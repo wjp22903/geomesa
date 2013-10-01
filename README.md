@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/geomesa/geomesa.png?branch=0.9.x)](https://travis-ci.org/geomesa/geomesa)
 # geomesa Project Structure
 
 There are a few sub-projects which correspond to the main aims of this project.
