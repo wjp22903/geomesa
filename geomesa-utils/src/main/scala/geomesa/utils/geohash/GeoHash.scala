@@ -16,15 +16,29 @@
 
 package geomesa.utils.geohash
 
-import com.vividsolutions.jts.geom.Point
-import com.vividsolutions.jts.geom.{Coordinate, PrecisionModel, GeometryFactory}
+import com.vividsolutions.jts.geom.{Point, Coordinate, PrecisionModel, GeometryFactory}
 import scala.collection.BitSet
+import scala.collection.immutable.{BitSet => IBitSet}
+import java.io.{Serializable => JSerializable}
+import com.typesafe.scalalogging.slf4j.Logging
 
-case class GeoHash(x: Double, y: Double,
+case class GeoHash(x: Double,
+                   y: Double,
                    bbox: BoundingBox,
                    bitset: BitSet,
-                   hash: String,
-                   prec: Int) extends Comparable[GeoHash] {
+                   prec: Int,
+                   specifiedHash: Option[String]) extends Comparable[GeoHash]
+                                                                 with Serializable
+                                                                 with JSerializable {
+
+  import GeoHash._
+
+  /**
+   * Hash string is calculated lazily if GeoHash object was created
+   * from a Point, because calculation is expensive
+   */
+  lazy val hash = specifiedHash.getOrElse(toBase32(bitset, prec))
+
   /**
    * Utility method to return the bit-string as a full binary string.
    *
@@ -38,36 +52,33 @@ case class GeoHash(x: Double, y: Double,
    * order, so that their correspondence with the base-32
    * characters is directly readable.
    */
-  def toBinaryString : String = {
-    val boolMap : Map[Boolean,String] = Map(false -> "0", true -> "1")
+  def toBinaryString: String =
     (0 until prec).map((bitIndex) => boolMap(bitset(bitIndex))).mkString
-  }
 
   def getPoint = GeoHash.factory.createPoint(new Coordinate(x,y))
 
-  def contains(gh: GeoHash): Boolean =
-    if(prec > gh.prec) false else bitset.subsetOf(gh.bitset)
+  def contains(gh: GeoHash): Boolean = prec <= gh.prec && bitset.subsetOf(gh.bitset)
 
   def next(): GeoHash =  GeoHash(GeoHash.next(bitset, prec), prec)
 
-  override def equals(obj: Any): Boolean = {
-    obj match {
-      case that: GeoHash => this.hash == that.hash && this.prec == that.prec
-      case _ => false
-    }
+  override def equals(obj: Any): Boolean = obj match {
+    case that: GeoHash => this.bitset == that.bitset
+    case _ => false
   }
 
-  // Overriding equals obligates me to override hashCode.
-  override def hashCode: Int = (hash+prec.toString).hashCode
+  // Overriding equals obligates us to override hashCode.
+  override def hashCode: Int = bitset.hashCode
 
   override def compareTo(gh: GeoHash) = this.hash.compareTo(gh.hash)
 }
 
-case class Bounds(l: Double, r: Double) {
-  lazy val mid = l+((r-l)/2.0)
+case class Bounds(low: Double,
+                  high: Double) {
+  lazy val mid = (low+high)/2.0
 }
 
-object GeoHash {
+object GeoHash extends Logging {
+  private[GeoHash] val boolMap : Map[Boolean,String] = Map(false -> "0", true -> "1")
   lazy val factory: GeometryFactory = new GeometryFactory(new PrecisionModel, 4326)
 
   def apply(string: String): GeoHash = decode(string)
@@ -79,12 +90,8 @@ object GeoHash {
 
   // We expect points x,y i.e., lon-lat
   def apply(lon: Double, lat: Double, prec: Int = 25): GeoHash = {
-    val (lonb, lonBits) = fixLons(lon, prec)
-    val (latb, latBits) = fixLats(lat, prec)
-    val bitset = lonBits | latBits
-    val hash = toBase32(bitset, prec)
-    val bbox = BoundingBox(lonb, latb)
-    GeoHash(lonb.mid, latb.mid, bbox, bitset, hash, prec)
+    val (bbox, bitset) = bitsBoxForLonLatPrec(lon, lat, prec)
+    GeoHash(bbox.midLon, bbox.midLat, bbox, bitset, prec, None)
   }
 
   def covering(ll: GeoHash, ur: GeoHash, prec: Int = 25) = {
@@ -196,11 +203,15 @@ object GeoHash {
     }})._2
   }
 
-
-
   private val bits = Array(16,8,4,2,1)
   private val latBounds = Bounds(-90.0,90.0)
+  private lazy val latRange = latBounds.high - latBounds.low
   private val lonBounds = Bounds(-180.0,180.0)
+  private lazy val lonRange = lonBounds.high - lonBounds.low
+
+  private lazy val latDeltaMap  = (0 to 50).map(i => (i, latRange / math.pow(2,i))).toMap
+  private lazy val lonDeltaMap = (0 to 50).map(i => (i, lonRange / math.pow(2,i))).toMap
+
   protected[geohash] val base32 = "0123456789bcdefghjkmnpqrstuvwxyz"
   private val characterMap: Map[Char, BitSet] =
     base32.zipWithIndex.map { case (c, i) => c -> bitSetFromBase32Character(i) }.toMap
@@ -219,21 +230,31 @@ object GeoHash {
   private def toPaddedBinaryString(i: Long, length: Int): String =
     String.format("%" + length + "s", i.toBinaryString).replace(' ', '0')
 
-  private def fixLons = fixedPoint(0, lonBounds)(_,_)
-  private def fixLats = fixedPoint(1, latBounds)(_,_)
-  private def fixedPoint(initV: Int, initBounds: Bounds)(v: Double, length: Int): (Bounds, BitSet) = {
-    val toggled = (initV until length by 2).scanLeft((initBounds,initV)) {
-      case ((b, i), idx) =>
-        encode(v, b, idx)
-    }.drop(1)
-    val oneBitIndexes = toggled.map { case (bounds, t) => t }.filter(_ != -1)
-    val (finalBound, _) = if (toggled.size > 0) toggled.last else (initBounds, null)
-    (finalBound, BitSet(oneBitIndexes: _*))
-  }
+  private def bitsBoxForLonLatPrec(lon: Double, lat: Double, prec: Int): (BoundingBox, BitSet) = {
+    val minLon = lonBounds.low
+    val minLat = latBounds.low
 
-  private def encode(v: Double, bounds: Bounds, idx: Int): (Bounds, Int) =
-    if(v < bounds.mid) (bounds.copy(r=bounds.mid), -1)
-    else (bounds.copy(l=bounds.mid), idx)
+    val latBits = prec / 2
+    val lonBits = latBits + prec % 2
+
+    val lonDelta = lonDeltaMap(lonBits)
+    val lonIndex = ((lon - minLon) / lonDelta).toLong
+    val lonBitsetRev = IBitSet.fromBitMaskNoCopy(Array(lonIndex))
+
+    val latDelta = latDeltaMap(latBits)
+    val latIndex = ((lat - minLat) / latDelta).toLong
+    val latBitsetRev = IBitSet.fromBitMaskNoCopy(Array(latIndex))
+
+    val bitSet = BitSet((0 until prec).filter{ idx =>
+      val indBSIdx = (prec-idx-1)/2
+      (idx % 2 == 0 && lonBitsetRev(indBSIdx) || (idx % 2 == 1 && latBitsetRev(indBSIdx)))
+    }: _*)
+
+    val bbox = BoundingBox(Bounds((minLon+lonDelta*lonIndex), (minLon+lonDelta*(lonIndex+1))),
+                           Bounds((minLat+latDelta*latIndex), (minLat+latDelta*(latIndex+1))))
+
+    (bbox, bitSet)
+  }
 
   /**
    * There is no visible difference between "t4bt" as a 20-bit GeoHash and
@@ -263,7 +284,7 @@ object GeoHash {
     val finalBitset : BitSet = bitsets.size match {
       case 0 => BitSet()
       case 1 => bitsets(0)
-      case _ => bitsets.reduce((bitsetA, bitsetB) => bitsetA | bitsetB)
+      case _ => bitsets.reduce(_|_)
     }
 
     // compute the geometry implied by this bit-set
@@ -271,7 +292,7 @@ object GeoHash {
     val latb = latFromBitset(finalBitset, precision)
     val bbox = BoundingBox(lonb, latb)
 
-    GeoHash(lonb.mid, latb.mid, bbox, finalBitset, string, precision)
+    GeoHash(lonb.mid, latb.mid, bbox, finalBitset, precision, Some(string))
   }
 
   private def lonFromBitset = boundsFromBitset(0, lonBounds)(_,_)
@@ -279,8 +300,8 @@ object GeoHash {
   private def boundsFromBitset(startIdx: Int, bounds: Bounds)(bs: BitSet, prec: Int): Bounds =
     (startIdx until prec by 2).foldLeft(bounds) {
       case (bounds: Bounds, i: Int) =>
-        if(!bs(i)) bounds.copy(r=bounds.mid)
-        else bounds.copy(l=bounds.mid)
+        if(!bs(i)) bounds.copy(high=bounds.mid)
+        else bounds.copy(low=bounds.mid)
     }
 
 
