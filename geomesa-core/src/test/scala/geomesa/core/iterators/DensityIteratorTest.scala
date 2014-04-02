@@ -44,12 +44,9 @@ class DensityIteratorTest extends Specification {
 
   ds.createSchema(sft)
 
-  val encodedFeatures = Array(
-    Array("1", "1.0", new DateTime("2012-01-01T00:00:00").toDate, "POINT(-77 38)"),
-    Array("2", "1.0", new DateTime("2012-01-01T01:00:00").toDate, "POINT(-77 38)"),
-    Array("3", "1.0", new DateTime("2012-01-01T02:00:00").toDate, "POINT(-77 38)"),
-    Array("4", "1.0", new DateTime("2012-01-01T03:00:00").toDate, "POINT(-77 38)")
-  )
+  val encodedFeatures = (0 until 150).map { i =>
+    Array(s"$i", "1.0", new DateTime("2012-01-01T00:00:00").toDate, "POINT(-77 38)")
+  }
 
   val builder = new SimpleFeatureBuilder(sft)
   val features = encodedFeatures.map { e =>
@@ -67,6 +64,8 @@ class DensityIteratorTest extends Specification {
   q.getHints.put(AccumuloFeatureReader.DENSITY_KEY, java.lang.Boolean.TRUE)
   val results = fs.getFeatures(q)
 
-  results.features().next()
+  import geomesa.utils.geotools.Conversions._
+
+  println(results.features().map(_.getAttribute("encodedraster").toString).map(DensityIterator.decodeSparseMatrix).map(_.get(300,300)).sum)
 
 }
