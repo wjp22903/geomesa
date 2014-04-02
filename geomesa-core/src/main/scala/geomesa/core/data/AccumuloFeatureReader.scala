@@ -23,7 +23,8 @@ import geomesa.core.data.FilterToAccumulo.{SetLikeFilter, SetLikeInterval, SetLi
 import geomesa.core.index._
 import geomesa.utils.geohash.GeohashUtils
 import org.apache.accumulo.core.data.Value
-import org.geotools.data.{Query, FeatureReader}
+import org.geotools.data.{DataUtilities, Query, FeatureReader}
+import org.geotools.factory.Hints.ClassKey
 import org.geotools.filter.text.ecql.ECQL
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -36,8 +37,11 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
                             sft: SimpleFeatureType)
   extends FeatureReader[SimpleFeatureType, SimpleFeature] {
 
-  import collection.JavaConversions._
   import AccumuloFeatureReader._
+  import collection.JavaConversions._
+
+  val densitySFT = DataUtilities.createType(sft.getTypeName, "encodedraster:String,geom:Point:srid=4326")
+  val projectedSFT = if(query.getHints.containsKey(DENSITY_KEY)) densitySFT else sft
 
   lazy val indexSchema = SpatioTemporalIndexSchema(indexSchemaFmt, sft)
   lazy val geometryPropertyName = sft.getGeometryDescriptor.getName.toString
@@ -112,8 +116,9 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
       // run the query
       val bs = dataStore.createBatchScanner
 
-      val iter =  if(isDisjoint) emptyValueIterator
-      else           indexSchema.query(bs, polygon, interval, attributes, ecql)
+      val iter =
+        if(isDisjoint) emptyValueIterator
+        else indexSchema.query(bs, polygon, interval, attributes, ecql, query.getHints.containsKey(DENSITY_KEY))
 
       ( iter, Some(bs) )
     } catch {
@@ -129,7 +134,7 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
 
   override def getFeatureType = sft
 
-  override def next() = SimpleFeatureEncoder.decode(getFeatureType, iterValues.next())
+  override def next() = SimpleFeatureEncoder.decode(projectedSFT, iterValues.next())
 
   override def hasNext = iterValues.hasNext
 
@@ -137,6 +142,8 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
 }
 
 object AccumuloFeatureReader {
+  val DENSITY_KEY = new ClassKey(classOf[java.lang.Boolean])
+
   val latLonGeoFactory = new GeometryFactory(new PrecisionModel(PrecisionModel.FLOATING), 4326)
 
   // used when the query-polygon is disjoint with the known feature bounds

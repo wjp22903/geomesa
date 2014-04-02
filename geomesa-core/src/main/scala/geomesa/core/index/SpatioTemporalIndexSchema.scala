@@ -90,7 +90,12 @@ case class SpatioTemporalIndexSchema(encoder: SpatioTemporalIndexEncoder,
       case _ => 1  // couldn't find a matching partitioner
     }
 
-  def query(bs: BatchScanner, rawPoly: Polygon, rawInterval:Interval, simpleFeatureType: String, ecql:Option[String]=None): Iterator[Value] = {
+  def query(bs: BatchScanner,
+            rawPoly: Polygon,
+            rawInterval: Interval,
+            simpleFeatureType: String,
+            ecql: Option[String] = None,
+            density: Boolean = false): Iterator[Value] = {
     // standardize the two key query arguments:  polygon and date-range
     val poly = netPolygon(rawPoly)
     val interval = netInterval(rawInterval)
@@ -102,7 +107,7 @@ case class SpatioTemporalIndexSchema(encoder: SpatioTemporalIndexEncoder,
     val queryID = System.currentTimeMillis().toString + "~" + polyHash + "~" + bs.hashCode().toString
 
     // perform the query as requestedIngestFea
-    val rawIter = planner.within(bs, poly, interval, simpleFeatureType, ecql, queryID)
+    val rawIter = planner.within(bs, poly, interval, simpleFeatureType, ecql, queryID, density)
 
     // the final iterator may need duplicates removed
     val finalIter: Iterator[Entry[Key,Value]] =
@@ -267,9 +272,13 @@ case class SpatioTemporalIndexQueryPlanner(keyPlanner: KeyPlanner, cfPlanner: Co
     iteratorPriority_SimpleFeatureFilteringIterator  // lowest priority:  runs last
   ) = apportionRange(HIGHEST_ITERATOR_PRIORITY, LOWEST_ITERATOR_PRIORITY, 5)
 
-  def within(bs: BatchScanner, poly: Polygon, interval:Interval,
-             simpleFeatureType: String, ecql:Option[String],
-             queryID:String) : JIterator[Entry[Key,Value]] = {
+  def within(bs: BatchScanner,
+             poly: Polygon,
+             interval: Interval,
+             simpleFeatureType: String,
+             ecql: Option[String],
+             queryID: String,
+             density: Boolean = false) : JIterator[Entry[Key,Value]] = {
 
     // figure out which of our various filters we intend to use
     // based on the arguments passed in
@@ -292,7 +301,7 @@ case class SpatioTemporalIndexQueryPlanner(keyPlanner: KeyPlanner, cfPlanner: Co
 
     // always set up the aggregating-combiner and simple-feature filtering iterator
     configureAttributeAggregator(bs)
-    configureSimpleFeatureFilteringIterator(bs, simpleFeatureType, ecql)
+    configureSimpleFeatureFilteringIterator(bs, simpleFeatureType, ecql, density, poly)
 
     bs.iterator()
   }
@@ -343,13 +352,22 @@ case class SpatioTemporalIndexQueryPlanner(keyPlanner: KeyPlanner, cfPlanner: Co
 
   // assumes that it receives an iterator over data-only entries, and aggregates
   // the values into a map of attribute, value pairs
-  def configureSimpleFeatureFilteringIterator(bs: BatchScanner, simpleFeatureType: String, ecql:Option[String]) {
+  def configureSimpleFeatureFilteringIterator(bs: BatchScanner,
+                                              simpleFeatureType: String,
+                                              ecql: Option[String],
+                                              density: Boolean,
+                                              poly: Polygon = null) {
+    val clazz =
+      if(density) classOf[DensityIterator]
+      else classOf[SimpleFeatureFilteringIterator]
+
     val cfg = new IteratorSetting(iteratorPriority_SimpleFeatureFilteringIterator,
                                   "sffilter-" + randomPrintableString(5),
-                                  classOf[SimpleFeatureFilteringIterator])
+                                  clazz)
 
     SimpleFeatureFilteringIterator.setFeatureType(cfg, simpleFeatureType)
     ecql.foreach(SimpleFeatureFilteringIterator.setECQLFilter(cfg, _))
+    if(density) DensityIterator.setBbox(cfg, poly)
     bs.addScanIterator(cfg)
   }
 

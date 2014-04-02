@@ -22,6 +22,8 @@ import org.geotools.util.{Converter, ConverterFactory}
 import org.geotools.factory.Hints
 import org.joda.time.format.ISODateTimeFormat
 import org.joda.time.DateTime
+import org.geotools.geometry.DirectPosition2D
+import com.vividsolutions.jts.geom.{Envelope, Coordinate}
 
 object Conversions {
 
@@ -40,6 +42,12 @@ object Conversions {
   }
 
   implicit def toRichSimpleFeatureIterator(iter: SimpleFeatureIterator) = new RichSimpleFeatureIterator(iter)
+
+
+  implicit class RichCoord(val c: Coordinate) extends AnyVal {
+    def toPoint2D = new DirectPosition2D(c.x, c.y)
+  }
+
 }
 
 class JodaConverterFactory extends ConverterFactory {
