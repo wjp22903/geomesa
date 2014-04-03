@@ -29,6 +29,8 @@ import org.geotools.filter.text.ecql.ECQL
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import geomesa.core.iterators.DensityIterator
+import org.geotools.geometry.jts.ReferencedEnvelope
+import org.geotools.factory.CommonFactoryFinder
 
 class AccumuloFeatureReader(dataStore: AccumuloDataStore,
                             featureName: String,
@@ -41,15 +43,24 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
   import AccumuloFeatureReader._
   import collection.JavaConversions._
 
+  val ff = CommonFactoryFinder.getFilterFactory2(null)
+
   val densitySFT = DataUtilities.createType(sft.getTypeName, "encodedraster:String,geom:Point:srid=4326")
   val projectedSFT = if(query.getHints.containsKey(DENSITY_KEY)) densitySFT else sft
+
+  val derivedQuery =
+    if(query.getHints.containsKey(BBOX_KEY)) {
+      val env = query.getHints.get(BBOX_KEY).asInstanceOf[ReferencedEnvelope]
+      val q1 = new Query(sft.getTypeName, ff.bbox(ff.property(sft.getGeometryDescriptor.getLocalName), env))
+      DataUtilities.mixQueries(q1, query, "geomesa.mixed.query")
+    } else query
 
   lazy val indexSchema = SpatioTemporalIndexSchema(indexSchemaFmt, sft)
   lazy val geometryPropertyName = sft.getGeometryDescriptor.getName.toString
   lazy val dtgStartField        = sft.getUserData.getOrElse(SF_PROPERTY_START_TIME, SF_PROPERTY_START_TIME).asInstanceOf[String]
   lazy val dtgEndField          = sft.getUserData.getOrElse(SF_PROPERTY_END_TIME, SF_PROPERTY_END_TIME).asInstanceOf[String]
 
-  lazy val bounds = dataStore.getBounds(query) match {
+  lazy val bounds = dataStore.getBounds(derivedQuery) match {
     case null => null
     case b =>
       val res = latLonGeoFactory.toGeometry(b)
@@ -58,9 +69,9 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
   }
 
   lazy val (iterValues, bs) =
-    if(query.getFilter == Filter.EXCLUDE) (Iterator.empty, None)
+    if(derivedQuery.getFilter == Filter.EXCLUDE) (Iterator.empty, None)
     else try {
-      val givenFilter = query.getFilter
+      val givenFilter = derivedQuery.getFilter
 
       // extract the query polygon, the query interval, and the filter that
       // results from removing these portions
@@ -107,7 +118,7 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
 
       //@TODO convert this to DEBUG logging as part of CBGEO-34
       println("[AccumuloFeatureReader]")
-      println("  Query:  " + query.toString)
+      println("  Query:  " + derivedQuery.toString)
       println("  Polygon:  " + polygon)
       println("  Are query-polygon and bounds disjoint?  " + isDisjoint)
       println(s"  Interval:  $interval")
@@ -150,8 +161,9 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
 
 object AccumuloFeatureReader {
   val DENSITY_KEY = new ClassKey(classOf[java.lang.Boolean])
-  val WIDTH_KEY = new IntegerKey(256)
-  val HEIGHT_KEY = new IntegerKey(256)
+  val WIDTH_KEY   = new IntegerKey(256)
+  val HEIGHT_KEY  = new IntegerKey(256)
+  val BBOX_KEY    = new ClassKey(classOf[ReferencedEnvelope])
 
   val latLonGeoFactory = new GeometryFactory(new PrecisionModel(PrecisionModel.FLOATING), 4326)
 }
