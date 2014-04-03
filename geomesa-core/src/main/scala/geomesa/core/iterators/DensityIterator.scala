@@ -36,10 +36,10 @@ class DensityIterator extends SimpleFeatureFilteringIterator {
                     env: IteratorEnvironment): Unit = {
     super.init(source, options, env)
     bbox = JTS.toEnvelope(WKTUtils.read(options.get(DensityIterator.BBOX_KEY)))
-    w = 256
-    h = 256
+    (w, h) = DensityIterator.getBounds(options)
     snap = new GridSnap(bbox, w, h)
-    projectedSFT = DataUtilities.createType(simpleFeatureType.getTypeName, "encodedraster:String,geom:Point:srid=4326")
+    projectedSFT =
+      DataUtilities.createType(simpleFeatureType.getTypeName, "encodedraster:String,geom:Point:srid=4326")
     featureBuilder = new SimpleFeatureBuilder(projectedSFT)
   }
 
@@ -82,6 +82,7 @@ class DensityIterator extends SimpleFeatureFilteringIterator {
 
 object DensityIterator {
   val BBOX_KEY = "geomesa.density.bbox"
+  val BOUNDS_KEY = "geomesa.density.bounds"
   type SparseMatrix = HashBasedTable[Double, Double, Int]
   val densitySFT = DataUtilities.createType("geomesadensity", "weight:Double,geom:Point:srid=4326")
   val geomFactory = JTSFactoryFinder.getGeometryFactory
@@ -89,6 +90,16 @@ object DensityIterator {
   def setBbox(iterSettings: IteratorSetting, poly: Polygon): Unit = {
     iterSettings.addOption(BBOX_KEY, WKTUtils.write(poly))
   }
+
+  def setBounds(iterSettings: IteratorSetting, width: Int, height: Int): Unit = {
+    iterSettings.addOption(BOUNDS_KEY, s"$width,$height")
+  }
+
+  def getBounds(options: ju.Map[String, String]) = {
+    val Array(w, h) = options.get(BOUNDS_KEY).split(",")
+    (w, h)
+  }
+
 
   def expandFeature(sf: SimpleFeature): Iterable[SimpleFeature] = {
     val builder = new SimpleFeatureBuilder(densitySFT)

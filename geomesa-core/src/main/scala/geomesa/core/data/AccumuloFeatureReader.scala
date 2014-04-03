@@ -24,7 +24,7 @@ import geomesa.core.index._
 import geomesa.utils.geohash.GeohashUtils
 import org.apache.accumulo.core.data.Value
 import org.geotools.data.{DataUtilities, Query, FeatureReader}
-import org.geotools.factory.Hints.ClassKey
+import org.geotools.factory.Hints.{IntegerKey, ClassKey}
 import org.geotools.filter.text.ecql.ECQL
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -150,6 +150,8 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
 
 object AccumuloFeatureReader {
   val DENSITY_KEY = new ClassKey(classOf[java.lang.Boolean])
+  val WIDTH_KEY = new IntegerKey(256)
+  val HEIGHT_KEY = new IntegerKey(256)
 
   val latLonGeoFactory = new GeometryFactory(new PrecisionModel(PrecisionModel.FLOATING), 4326)
 }
