@@ -22,8 +22,6 @@ class DensityIterator extends SimpleFeatureFilteringIterator {
   import DensityIterator.SparseMatrix
 
   var bbox: ReferencedEnvelope = null
-  var w: Int = 0
-  var h: Int = 0
   var curRange: ARange = null
   var result: SparseMatrix = HashBasedTable.create[Double, Double, Int]()
   var srcIter: SortedKeyValueIterator[Key, Value] = null
@@ -36,7 +34,7 @@ class DensityIterator extends SimpleFeatureFilteringIterator {
                     env: IteratorEnvironment): Unit = {
     super.init(source, options, env)
     bbox = JTS.toEnvelope(WKTUtils.read(options.get(DensityIterator.BBOX_KEY)))
-    (w, h) = DensityIterator.getBounds(options)
+    val (w, h) = DensityIterator.getBounds(options)
     snap = new GridSnap(bbox, w, h)
     projectedSFT =
       DataUtilities.createType(simpleFeatureType.getTypeName, "encodedraster:String,geom:Point:srid=4326")
@@ -95,8 +93,8 @@ object DensityIterator {
     iterSettings.addOption(BOUNDS_KEY, s"$width,$height")
   }
 
-  def getBounds(options: ju.Map[String, String]) = {
-    val Array(w, h) = options.get(BOUNDS_KEY).split(",")
+  def getBounds(options: ju.Map[String, String]): (Int, Int) = {
+    val Array(w, h) = options.get(BOUNDS_KEY).split(",").map(_.toInt)
     (w, h)
   }
 
