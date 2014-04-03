@@ -17,7 +17,7 @@
 package geomesa.core.data
 
 import FilterToAccumulo._
-import com.vividsolutions.jts.geom.Polygon
+import com.vividsolutions.jts.geom.{Envelope, Point, Polygon}
 import geomesa.core.index.SpatioTemporalIndexSchema
 import geomesa.core.index.SpatioTemporalIndexSchema._
 import geomesa.utils.text.WKTUtils
@@ -33,6 +33,9 @@ import org.opengis.geometry.BoundingBox
 import org.opengis.temporal.Period
 import scala.collection.JavaConverters._
 import scala.util.Try
+import org.geotools.filter.spatial.DWithinImpl
+import org.geotools.referencing.GeodeticCalculator
+import com.vividsolutions.jts.util.GeometricShapeFactory
 
 object FilterToAccumulo {
   val IntervalBound = 0
@@ -42,6 +45,8 @@ object FilterToAccumulo {
   val TypeGeom = "geom"
   val TypeTime = "time"
   val TypeOther = "other"
+
+  val geoCalc = new GeodeticCalculator()
 
   // core of set operations on JodaIntervals, Polygons, and Filters
   trait SetLike[T] {
@@ -179,12 +184,54 @@ case class FilterExtractor(geometryPropertyName: String, temporalPropertyNames: 
     bbox.getMinX + " " + bbox.getMaxY + "," +
     bbox.getMaxX + " " + bbox.getMaxY + "," +
     bbox.getMaxX + " " + bbox.getMinY + "," +
+    bbox.getMinX + " " + bbox.getMinY +
+    "))").asInstanceOf[Polygon]
+
+  implicit def env2poly(bbox: Envelope): Polygon = WKTUtils.read("POLYGON((" +
     bbox.getMinX + " " + bbox.getMinY + "," +
+    bbox.getMinX + " " + bbox.getMaxY + "," +
+    bbox.getMaxX + " " + bbox.getMaxY + "," +
+    bbox.getMaxX + " " + bbox.getMinY + "," +
+    bbox.getMinX + " " + bbox.getMinY +
     "))").asInstanceOf[Polygon]
 
   def getGeometry(expression: Expression): Option[Polygon] = expression.evaluate(null) match {
     case poly: Polygon     => Some(poly)
     case bbox: BoundingBox => Some(bounds2poly(bbox))
+    case _                 => SetLikePolygon.nothing
+  }
+
+  implicit def bufferedPoint2Poly(point: Point, distance: Double): Polygon = {
+
+    // Distance must be in meters
+    geoCalc.setStartingGeographicPoint(point.getX, point.getY)
+    geoCalc.setDirection(0, distance)
+    val top = geoCalc.getDestinationGeographicPoint
+    geoCalc.setDirection(180, distance)
+    val bottom = geoCalc.getDestinationGeographicPoint
+
+    geoCalc.setStartingGeographicPoint(top)
+    geoCalc.setDirection(90, distance)
+    val topRight = geoCalc.getDestinationGeographicPoint
+    geoCalc.setDirection(-90, distance)
+    val topLeft = geoCalc.getDestinationGeographicPoint
+
+    geoCalc.setStartingGeographicPoint(bottom)
+    geoCalc.setDirection(90, distance)
+    val bottomRight = geoCalc.getDestinationGeographicPoint
+    geoCalc.setDirection(-90, distance)
+    val bottomLeft = geoCalc.getDestinationGeographicPoint
+
+    val env = (new Envelope(point.getCoordinate))
+    env.expandToInclude(topRight.getX, topRight.getY)
+    env.expandToInclude(topLeft.getX, topLeft.getY)
+    env.expandToInclude(bottomRight.getX, bottomRight.getY)
+    env.expandToInclude(bottomLeft.getX, bottomLeft.getY)
+    env2poly(env)
+  }
+
+  def getBufferedGeometry(expression: Expression, distance: Double, units: String): Option[Polygon] = expression.evaluate(null) match {
+    case point: Point      => Some(bufferedPoint2Poly(point, distance))
     case _                 => SetLikePolygon.nothing
   }
 
@@ -228,6 +275,22 @@ case class FilterExtractor(geometryPropertyName: String, temporalPropertyNames: 
     getPropertyName(filter.getExpression1) match {
       case Some(property) if temporalPropertyNames.contains(property) =>
         Some(Extraction(SetLikePolygon.undefined, getInterval(filter.getExpression2, bound), SetLikeFilter.everything))
+      case _ => Some(Extraction(SetLikePolygon.undefined, SetLikeInterval.undefined, SetLikeFilter.everything))
+    }
+  }
+
+  def processDWithin(filter: BinarySpatialOperator) : Option[Extraction] = {
+    getPropertyName(filter.getExpression1) match {
+      case Some(property) if (property == geometryPropertyName || property.isEmpty) =>
+        filter match {
+          case dwithin: DWithinImpl =>
+            // Convert meters to decimal degrees, returns false positives
+            // ECQL in debug printout will say units are meters, but they are really decimal degrees
+            val dwithinDegrees = ECQL.toFilter(s"DWITHIN(${dwithin.getExpression1}, ${dwithin.getExpression2},${dwithin.getDistance/111120.0}, ${dwithin.getDistanceUnits})")
+            Some(Extraction(getBufferedGeometry(dwithin.getExpression2, dwithin.getDistance, dwithin.getDistanceUnits),
+              SetLikeInterval.undefined, Some(dwithinDegrees)))
+          case _ => Some(Extraction(SetLikePolygon.undefined, SetLikeInterval.undefined, SetLikeFilter.everything))
+        }
       case _ => Some(Extraction(SetLikePolygon.undefined, SetLikeInterval.undefined, SetLikeFilter.everything))
     }
   }
@@ -375,6 +438,7 @@ case class FilterExtractor(geometryPropertyName: String, temporalPropertyNames: 
     case bbox: BBOX => processBinaryGeometryPredicate(bbox)
     case intx: Intersects => processBinaryGeometryPredicate(intx)
     case ovlp: Overlaps => processBinaryGeometryPredicate(ovlp)
+    case dwithin: DWithin => processDWithin(dwithin)
     // temporal filters
     case before: Before => processBinaryTemporalPredicate(before, UpperBound)
     case after: After => processBinaryTemporalPredicate(after, LowerBound)
