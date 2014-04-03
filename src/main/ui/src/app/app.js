@@ -1,8 +1,11 @@
-angular.module('darwin', [
+angular.module('stealth', [
     'ngRoute',
     'ngAnimate',
+    'ngResource',
+    'ui.bootstrap',
     'templates-app',
-    'darwin.home'
+    'stealth.home',
+    'stealth.leafletMap'
 ])
     .config(['$routeProvider', function ($routeProvider) {
         // Configure route provider to transform any undefined hashes to /home.
@@ -10,8 +13,8 @@ angular.module('darwin', [
     }])
 
     .constant('appInfo', {
-        name: 'darwin',
-        title: 'Darwin'
+        name: 'stealth',
+        title: 'Stealth'
     })
 
     .controller('AppController', ['$scope', 'appInfo', function ($scope, appInfo) {

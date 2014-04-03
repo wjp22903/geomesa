@@ -1,25 +1,25 @@
 <div ng-controller="HomeController">
-    <div class="row">
-        <div class="col-md-12 page-header">
-            <h1>{{ appModel.appTitle }}</h1>
-            <p class="label label-success"><i class="fa fa-check-circle"></i> It worked!</p>
+    <div class = "row">
+        <leaflet-map id="map" mc="mc" map="map"></leaflet-map>
+        <div class="site-layer-manager">
+            <div class="btn-group btn-group-vertical">
+                <button type="button" class="btn" ng-click="showSiteWizard=true;"><i class="glyphicon glyphicon-plus"> Site</i></button>
+                <button type="button" class="btn" ng-repeat="s in sites">{{s.name}}</button>
+            </div>
         </div>
+        <div class="site-wizard" ng-show="showSiteWizard===true">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><span class="glyphicon glyphicon-search"></span>&nbsp;&nbsp;SITE SEARCH</h3>
+                </div>
+                <div class="panel-body">
+                    <select ng-model="newLayer" ng-options="l for l in layers"></select>
+                    <button type="button" class="btn" ng-click="addSite(newLayer);">Submit</button>
+                    <button type="button" class="btn" ng-click="showSiteWizard=false">Cancel</button>
+                </div>
+            </div>
+        </div>
+        <div class="feature-layer-manager"></div>
     </div>
-    <div class="row">
-        <section class="col-md-4">
-            <h2>Section 1</h2>
-            <p>Adipisicing recusandae commodi ducimus aliquam rerum esse. Nostrum numquam inventore cumque voluptatibus sequi impedit minima, harum voluptate facilis quidem soluta.
-            Et cupiditate quis quas sit exercitationem quidem assumenda fuga dicta.</p>
-        </section>
-        <section class="col-md-4">
-            <h2>Section 2</h2>
-            <p>Adipisicing recusandae commodi ducimus aliquam rerum esse. Nostrum numquam inventore cumque voluptatibus sequi impedit minima, harum voluptate facilis quidem soluta.
-            Et cupiditate quis quas sit exercitationem quidem assumenda fuga dicta.</p>
-        </section>
-        <section class="col-md-4">
-            <h2>Section 3</h2>
-            <p>Adipisicing recusandae commodi ducimus aliquam rerum esse. Nostrum numquam inventore cumque voluptatibus sequi impedit minima, harum voluptate facilis quidem soluta.
-            Et cupiditate quis quas sit exercitationem quidem assumenda fuga dicta.</p>
-        </section>
-    </div>
+    {{test}}
 </div>

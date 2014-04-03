@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" ng-app="darwin">
+<html lang="en" ng-app="stealth">
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -7,7 +7,7 @@
     <!-- Replace above line with below line to disable zooming on touch screens. -->
     <!-- <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"> -->
 
-    <title>Darwin</title>
+    <title>Stealth</title>
     [% styles.forEach(function(file) { %]
     <link rel="stylesheet" href="[%= file %]">[% }); %]
     [% scripts.forEach(function(file) { %]
@@ -17,6 +17,6 @@
 
 <body ng-controller="AppController">
     <div ng-include="'masthead/masthead.tpl.html'"></div>
-    <div ng-view class="container-fluid"></div>
+    <div ng-view class="container-fluid content"></div>
 </body>
 </html>

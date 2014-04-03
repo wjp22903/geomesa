@@ -1,5 +1,5 @@
 {
-  "name": "darwin",
+  "name": "stealth",
   "private": true,
   "dependencies": {
     "angular": "~1.2.13",
@@ -10,6 +10,14 @@
     "d3": "~3.4.2",
     "jquery": "~2.1.0",
     "font-awesome": "~4.0.3",
-    "lodash": "~2.4.1"
+    "lodash": "~2.4.1",
+    "leaflet-dist": "~0.7.2",
+    "leaflet-providers": "~1.0.1",
+    "angular-resource": "~1.2.13",
+    "leaflet.markercluster": "~0.4.0",
+    "leaflet.heat": "https://raw.github.com/Leaflet/Leaflet.heat/gh-pages/dist/leaflet-heat.js",
+    "ui.bootstrap": "~0.10.0",
+    "angular-ui-bootstrap-bower": "~0.10.0",
+    "momentjs": "~2.5.1"
   }
 }
