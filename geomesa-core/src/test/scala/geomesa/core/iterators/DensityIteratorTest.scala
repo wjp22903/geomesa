@@ -14,13 +14,16 @@ import org.specs2.runner.JUnitRunner
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.joda.time.DateTime
 import org.geotools.factory.Hints
+import org.apache.hadoop.io.Text
 
 @RunWith(classOf[JUnitRunner])
 class DensityIteratorTest extends Specification {
 
   val mockInstance = new MockInstance("dummy")
-  val c = mockInstance.getConnector("user", new PasswordToken("pass".getBytes()))
+  val c = mockInstance.getConnector("user", new PasswordToken("pass".getBytes))
   c.tableOperations.create("test")
+  val splits = (0 to 99).map { s => "%02d".format(s) }.map(new Text(_))
+  c.tableOperations().addSplits("test", new java.util.TreeSet[Text](splits))
 
   val dsf = new AccumuloDataStoreFactory
 
@@ -66,6 +69,6 @@ class DensityIteratorTest extends Specification {
 
   import geomesa.utils.geotools.Conversions._
 
-  println(results.features().map(_.getAttribute("encodedraster").toString).map(DensityIterator.decodeSparseMatrix).map(_.get(300,300)).sum)
+  results.features()
 
 }

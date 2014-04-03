@@ -28,6 +28,7 @@ import org.geotools.factory.Hints.ClassKey
 import org.geotools.filter.text.ecql.ECQL
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
+import geomesa.core.iterators.DensityIterator
 
 class AccumuloFeatureReader(dataStore: AccumuloDataStore,
                             featureName: String,
@@ -56,8 +57,8 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
       else res.asInstanceOf[Polygon]
   }
 
-  lazy val (iterValues,bs) =
-    if(query.getFilter == Filter.EXCLUDE) emptyResultsSet
+  lazy val (iterValues, bs) =
+    if(query.getFilter == Filter.EXCLUDE) (Iterator.empty, None)
     else try {
       val givenFilter = query.getFilter
 
@@ -116,25 +117,31 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
       // run the query
       val bs = dataStore.createBatchScanner
 
-      val iter =
-        if(isDisjoint) emptyValueIterator
+      val underlyingIter =
+        if(isDisjoint) Iterator.empty
         else indexSchema.query(bs, polygon, interval, attributes, ecql, query.getHints.containsKey(DENSITY_KEY))
 
-      ( iter, Some(bs) )
+      val iter =
+        if(query.getHints.containsKey(DENSITY_KEY)) unpackDensityFeatures(underlyingIter)
+        else underlyingIter.map { v => SimpleFeatureEncoder.decode(sft, v) }
+
+      (iter, Some(bs))
     } catch {
-      case t: Throwable => {
+      case t: Throwable =>
         // let the user (perusing the log, no doubt) see why the query failed
         //@TODO convert this to DEBUG logging as part of CBGEO-34
         println("Could not satisfy query request", t)
 
         // dummy return value
-        emptyResultsSet
-      }
+        (Iterator.empty, None)
     }
+
+  def unpackDensityFeatures(iter: Iterator[Value]) =
+    iter.flatMap { i => DensityIterator.expandFeature(SimpleFeatureEncoder.decode(projectedSFT, i)) }
 
   override def getFeatureType = sft
 
-  override def next() = SimpleFeatureEncoder.decode(projectedSFT, iterValues.next())
+  override def next() = iterValues.next()
 
   override def hasNext = iterValues.hasNext
 
@@ -145,10 +152,4 @@ object AccumuloFeatureReader {
   val DENSITY_KEY = new ClassKey(classOf[java.lang.Boolean])
 
   val latLonGeoFactory = new GeometryFactory(new PrecisionModel(PrecisionModel.FLOATING), 4326)
-
-  // used when the query-polygon is disjoint with the known feature bounds
-  def emptyValueIterator : Iterator[Value] = List[Value]().iterator
-
-  // useful when a query should return nothing
-  private def emptyResultsSet = (emptyValueIterator, None)
 }

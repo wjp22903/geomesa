@@ -2,10 +2,8 @@ package geomesa.core.iterators
 
 import collection.JavaConversions._
 import com.google.common.collect._
-import com.vividsolutions.jts.geom.{Polygon, Point}
+import com.vividsolutions.jts.geom.{Coordinate, Polygon, Point}
 import geomesa.utils.text.WKTUtils
-import java.awt.Rectangle
-import java.awt.geom.AffineTransform
 import java.io.{ByteArrayInputStream, DataInputStream, DataOutputStream, ByteArrayOutputStream}
 import java.{util => ju}
 import org.apache.accumulo.core.client.IteratorSetting
@@ -14,33 +12,33 @@ import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIt
 import org.apache.commons.codec.binary.Base64
 import org.geotools.data.DataUtilities
 import org.geotools.feature.simple.SimpleFeatureBuilder
-import org.geotools.geometry.jts.{JTS, ReferencedEnvelope}
-import org.geotools.renderer.lite.RendererUtilities
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.geometry.jts.{JTSFactoryFinder, JTS, ReferencedEnvelope}
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.util.Random
+import geomesa.utils.geotools.GridSnap
 
 class DensityIterator extends SimpleFeatureFilteringIterator {
 
-  import geomesa.utils.geotools.Conversions._
+  import DensityIterator.SparseMatrix
 
   var bbox: ReferencedEnvelope = null
   var w: Int = 0
   var h: Int = 0
-  var transform: AffineTransform = null
   var curRange: ARange = null
-  var result = HashBasedTable.create[Int,Int,Int]()
+  var result: SparseMatrix = HashBasedTable.create[Double, Double, Int]()
   var srcIter: SortedKeyValueIterator[Key, Value] = null
   var projectedSFT: SimpleFeatureType = null
   var featureBuilder: SimpleFeatureBuilder = null
+  var snap: GridSnap = null
 
   override def init(source: SortedKeyValueIterator[Key, Value],
                     options: ju.Map[String, String],
                     env: IteratorEnvironment): Unit = {
     super.init(source, options, env)
     bbox = JTS.toEnvelope(WKTUtils.read(options.get(DensityIterator.BBOX_KEY)))
-    w = 600
-    h = 600
-    transform = RendererUtilities.worldToScreenTransform(bbox, new Rectangle(w, h))
+    w = 256
+    h = 256
+    snap = new GridSnap(bbox, w, h)
     projectedSFT = DataUtilities.createType(simpleFeatureType.getTypeName, "encodedraster:String,geom:Point:srid=4326")
     featureBuilder = new SimpleFeatureBuilder(projectedSFT)
   }
@@ -53,9 +51,8 @@ class DensityIterator extends SimpleFeatureFilteringIterator {
         if (!curRange.afterEndKey(topKey.followingKey(PartialKey.ROW))) {
           val geom = curFeature.getDefaultGeometry.asInstanceOf[Point]
           val coord = geom.getCoordinate
-          val pt = transform.transform(coord.toPoint2D, null)
-          val x = pt.getX.toInt
-          val y = pt.getY.toInt
+          val x = snap.x(snap.i(coord.x))
+          val y = snap.y(snap.j(coord.y))
           val cur = Option(result.get(x, y)).getOrElse(0)
           result.put(x, y, cur + 1)
         } else {
@@ -85,19 +82,34 @@ class DensityIterator extends SimpleFeatureFilteringIterator {
 
 object DensityIterator {
   val BBOX_KEY = "geomesa.density.bbox"
+  type SparseMatrix = HashBasedTable[Double, Double, Int]
+  val densitySFT = DataUtilities.createType("geomesadensity", "weight:Double,geom:Point:srid=4326")
+  val geomFactory = JTSFactoryFinder.getGeometryFactory
 
   def setBbox(iterSettings: IteratorSetting, poly: Polygon): Unit = {
     iterSettings.addOption(BBOX_KEY, WKTUtils.write(poly))
   }
 
-  def encodeSparseMatrix(sparseMatrix: HashBasedTable[Int, Int, Int]): String = {
+  def expandFeature(sf: SimpleFeature): Iterable[SimpleFeature] = {
+    val builder = new SimpleFeatureBuilder(densitySFT)
+    val m = decodeSparseMatrix(sf.getAttribute("encodedraster").toString)
+    m.rowMap().flatMap { case (lonIdx, col) =>
+      col.map { case (latIdx, count) =>
+        builder.reset()
+        val pt = geomFactory.createPoint(new Coordinate(lonIdx, latIdx))
+        builder.buildFeature(sf.getID, Array(count, pt).asInstanceOf[Array[AnyRef]])
+      }
+    }
+  }
+
+  def encodeSparseMatrix(sparseMatrix: SparseMatrix): String = {
     val baos = new ByteArrayOutputStream()
     val os = new DataOutputStream(baos)
     sparseMatrix.rowMap().foreach { case (rowIdx, cols) =>
-      os.writeInt(rowIdx)
+      os.writeDouble(rowIdx)
       os.writeInt(cols.size())
       cols.foreach { case (colIdx, v) =>
-        os.writeInt(colIdx)
+        os.writeDouble(colIdx)
         os.writeInt(v)
       }
     }
@@ -105,15 +117,15 @@ object DensityIterator {
     Base64.encodeBase64URLSafeString(baos.toByteArray)
   }
 
-  def decodeSparseMatrix(encoded: String): HashBasedTable[Int, Int, Int] = {
+  def decodeSparseMatrix(encoded: String): SparseMatrix = {
     val bytes = Base64.decodeBase64(encoded)
     val is = new DataInputStream(new ByteArrayInputStream(bytes))
-    val table = HashBasedTable.create[Int, Int, Int]()
+    val table = HashBasedTable.create[Double, Double, Int]()
     while(is.available() > 0) {
-      val rowIdx = is.readInt()
+      val rowIdx = is.readDouble()
       val colCount = is.readInt()
       (0 until colCount).foreach { _ =>
-        val colIdx = is.readInt()
+        val colIdx = is.readDouble()
         val v = is.readInt()
         table.put(rowIdx, colIdx, v)
       }
