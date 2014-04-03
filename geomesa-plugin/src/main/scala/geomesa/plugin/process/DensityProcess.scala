@@ -26,9 +26,10 @@ class DensityProcess extends HeatmapProcess {
         targetQuery,
         targetGridGeometry)
 
-    q.getHints().put(AccumuloFeatureReader.DENSITY_KEY, java.lang.Boolean.TRUE)
-    q.getHints().put(AccumuloFeatureReader.WIDTH_KEY, argOutputWidth)
-    q.getHints().put(AccumuloFeatureReader.HEIGHT_KEY, argOutputHeight)
+    q.getHints.put(AccumuloFeatureReader.BBOX_KEY, argOutputEnv)
+    q.getHints.put(AccumuloFeatureReader.DENSITY_KEY, java.lang.Boolean.TRUE)
+    q.getHints.put(AccumuloFeatureReader.WIDTH_KEY, argOutputWidth)
+    q.getHints.put(AccumuloFeatureReader.HEIGHT_KEY, argOutputHeight)
     q
   }
 }
