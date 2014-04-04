@@ -22,7 +22,10 @@ import geomesa.core.index.SpatioTemporalIndexSchema
 import geomesa.core.index.SpatioTemporalIndexSchema._
 import geomesa.utils.text.WKTUtils
 import java.util.Date
+import org.geotools.factory.CommonFactoryFinder
+import org.geotools.filter.spatial.DWithinImpl
 import org.geotools.filter.text.ecql.ECQL
+import org.geotools.referencing.GeodeticCalculator
 import org.joda.time.format.ISODateTimeFormat
 import org.joda.time.{Interval => JodaInterval, DateTime, Duration, DateTimeZone}
 import org.opengis.filter._
@@ -33,9 +36,6 @@ import org.opengis.geometry.BoundingBox
 import org.opengis.temporal.Period
 import scala.collection.JavaConverters._
 import scala.util.Try
-import org.geotools.filter.spatial.DWithinImpl
-import org.geotools.referencing.GeodeticCalculator
-import com.vividsolutions.jts.util.GeometricShapeFactory
 
 object FilterToAccumulo {
   val IntervalBound = 0
@@ -47,6 +47,8 @@ object FilterToAccumulo {
   val TypeOther = "other"
 
   val geoCalc = new GeodeticCalculator()
+  val everything = Extraction(SetLikePolygon.undefined, SetLikeInterval.undefined, SetLikeFilter.everything)
+  val ff = CommonFactoryFinder.getFilterFactory2(null)
 
   // core of set operations on JodaIntervals, Polygons, and Filters
   trait SetLike[T] {
@@ -267,7 +269,7 @@ case class FilterExtractor(geometryPropertyName: String, temporalPropertyNames: 
     getPropertyName(filter.getExpression1) match {
       case Some(property) if (property == geometryPropertyName || property.isEmpty) =>
         Some(Extraction(getGeometry(filter.getExpression2), SetLikeInterval.undefined, SetLikeFilter.everything))
-      case _ => Some(Extraction(SetLikePolygon.undefined, SetLikeInterval.undefined, SetLikeFilter.everything))
+      case _ => Some(everything)
     }
   }
 
@@ -275,25 +277,21 @@ case class FilterExtractor(geometryPropertyName: String, temporalPropertyNames: 
     getPropertyName(filter.getExpression1) match {
       case Some(property) if temporalPropertyNames.contains(property) =>
         Some(Extraction(SetLikePolygon.undefined, getInterval(filter.getExpression2, bound), SetLikeFilter.everything))
-      case _ => Some(Extraction(SetLikePolygon.undefined, SetLikeInterval.undefined, SetLikeFilter.everything))
+      case _ => Some(everything)
     }
   }
 
-  def processDWithin(filter: BinarySpatialOperator) : Option[Extraction] = {
-    getPropertyName(filter.getExpression1) match {
-      case Some(property) if (property == geometryPropertyName || property.isEmpty) =>
-        filter match {
-          case dwithin: DWithinImpl =>
-            // Convert meters to decimal degrees, returns false positives
-            // ECQL in debug printout will say units are meters, but they are really decimal degrees
-            val dwithinDegrees = ECQL.toFilter(s"DWITHIN(${dwithin.getExpression1}, ${dwithin.getExpression2},${dwithin.getDistance/111120.0}, ${dwithin.getDistanceUnits})")
-            Some(Extraction(getBufferedGeometry(dwithin.getExpression2, dwithin.getDistance, dwithin.getDistanceUnits),
-              SetLikeInterval.undefined, Some(dwithinDegrees)))
-          case _ => Some(Extraction(SetLikePolygon.undefined, SetLikeInterval.undefined, SetLikeFilter.everything))
-        }
-      case _ => Some(Extraction(SetLikePolygon.undefined, SetLikeInterval.undefined, SetLikeFilter.everything))
-    }
-  }
+  def processDWithin(filter: BinarySpatialOperator): Extraction =
+      getPropertyName(filter.getExpression1)
+        .filter { property => property == geometryPropertyName || property.isEmpty }
+        .map { property =>
+        val dwithin = filter.asInstanceOf[DWithinImpl]
+        val e1 = dwithin.getExpression1
+        val e2 = dwithin.getExpression2
+        val exp = ff.dwithin(e1, e2, dwithin.getDistance / 111120.0, "")
+        val geom = getBufferedGeometry(e2, dwithin.getDistance, dwithin.getDistanceUnits)
+        Extraction(geom, SetLikeInterval.undefined, Some(exp))
+      }.getOrElse(everything)
 
   val fmt = ISODateTimeFormat.dateTime()
   def extractDate(v: Any): Try[Date] = v match {
@@ -438,7 +436,7 @@ case class FilterExtractor(geometryPropertyName: String, temporalPropertyNames: 
     case bbox: BBOX => processBinaryGeometryPredicate(bbox)
     case intx: Intersects => processBinaryGeometryPredicate(intx)
     case ovlp: Overlaps => processBinaryGeometryPredicate(ovlp)
-    case dwithin: DWithin => processDWithin(dwithin)
+    case dwithin: DWithin => Option(processDWithin(dwithin))
     // temporal filters
     case before: Before => processBinaryTemporalPredicate(before, UpperBound)
     case after: After => processBinaryTemporalPredicate(after, LowerBound)
