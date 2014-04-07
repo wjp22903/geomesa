@@ -50,16 +50,16 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
       else res.asInstanceOf[Polygon]
   }
 
-  val filterVisitor = new FilterToAccumulo2(geometryPropertyName, dtgStartField)
-  query.getFilter.accept(filterVisitor, null)
+  val filterVisitor = new FilterToAccumulo2(null)
+  //query.getFilter.accept(filterVisitor, null)
 
   // run the query
   lazy val bs = dataStore.createBatchScanner
 
-  lazy val iterValues = indexSchema.query(bs,
-    JTS.toGeometry(filterVisitor.bbox),
-      filterVisitor.period, attributes,
-      Some(ECQL.toCQL(ff.and(filterVisitor.dwithinCQL, query.getFilter))))
+  lazy val iterValues = indexSchema.query(bs,null, null, null)
+    //filterVisitor.spatialPredicate,
+    //filterVisitor.temporalPredicate, attributes, null)
+//      Some(ECQL.toCQL(ff.and(filterVisitor.dwithinCQL, query.getFilter))))
 
   override def getFeatureType = sft
 
