@@ -1,19 +1,21 @@
 package geomesa.core.data
 
-import org.junit.runner.RunWith
-import org.specs2.runner.JUnitRunner
-import org.specs2.mutable.Specification
-import org.geotools.factory.CommonFactoryFinder
-import org.geotools.geometry.jts.{ReferencedEnvelope, JTSFactoryFinder}
-import org.geotools.referencing.crs.DefaultGeographicCRS
-import org.geotools.referencing.CRS
-import org.geotools.data.DataUtilities
-import org.opengis.filter.Filter
+import collection.JavaConversions._
+import com.vividsolutions.jts.geom.{Polygon, Coordinate}
 import geomesa.core.index.Constants
 import geomesa.utils.text.WKTUtils
-import com.vividsolutions.jts.geom.Coordinate
+import org.geotools.data.DataUtilities
+import org.geotools.factory.CommonFactoryFinder
+import org.geotools.filter.text.ecql.ECQL
+import org.geotools.geometry.jts.{JTS, ReferencedEnvelope, JTSFactoryFinder}
+import org.geotools.referencing.CRS
+import org.geotools.referencing.crs.DefaultGeographicCRS
+import org.joda.time.{DateTimeZone, DateTime, Interval}
+import org.junit.runner.RunWith
+import org.opengis.filter.Filter
 import org.opengis.filter.spatial.DWithin
-import org.geotools.filter.spatial.DWithinImpl
+import org.specs2.mutable.Specification
+import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class FilterToAccumulo2Test extends Specification {
@@ -53,10 +55,9 @@ class FilterToAccumulo2Test extends Specification {
 
       val f2a = new FilterToAccumulo2(sft)
       val result = f2a.visit(q)
-      val env = new ReferencedEnvelope(-70.00090210016619, - 69.99909789983381, 29.99909789983381, 30.00090210016619, WGS84)
-      val resultEnv = f2a.spatialPredicate.asInstanceOf[ReferencedEnvelope]
-      env.getLowerCorner.getCoordinate mustEqual resultEnv.getLowerCorner.getCoordinate
-      env.getUpperCorner.getCoordinate mustEqual resultEnv.getUpperCorner.getCoordinate
+      val expected = WKTUtils.read("POLYGON ((-69.99909789983381 30, -69.99911523343555 29.99982400898809, -69.99916656812019 29.999654781212065, -69.99924993112457 29.99949882000046, -69.99936211885517 29.999362118855178, -69.99949882000047 29.99924993112456, -69.99965478121207 29.99916656812018, -69.99982400898809 29.999115233435553, -70 29.99909789983381, -70.00017599101191 29.999115233435553, -70.00034521878793 29.99916656812018, -70.00050117999953 29.99924993112456, -70.00063788114483 29.999362118855178, -70.00075006887543 29.99949882000046, -70.00083343187981 29.999654781212065, -70.00088476656445 29.99982400898809, -70.00090210016619 30, -70.00088476656445 30.00017599101191, -70.00083343187981 30.000345218787935, -70.00075006887543 30.00050117999954, -70.00063788114483 30.000637881144822, -70.00050117999953 30.00075006887544, -70.00034521878793 30.00083343187982, -70.00017599101191 30.000884766564447, -70 30.00090210016619, -69.99982400898809 30.000884766564447, -69.99965478121207 30.00083343187982, -69.99949882000047 30.00075006887544, -69.99936211885517 30.000637881144822, -69.99924993112457 30.00050117999954, -69.99916656812019 30.000345218787935, -69.99911523343555 30.00017599101191, -69.99909789983381 30))").asInstanceOf[Polygon]
+      val resultEnv = f2a.spatialPredicate
+      resultEnv.equalsNorm(expected) must beTrue
       result.asInstanceOf[DWithin].getDistance mustEqual 9.021001661899675E-4
     }
   }
@@ -80,6 +81,64 @@ class FilterToAccumulo2Test extends Specification {
       val f2a = new FilterToAccumulo2(sft)
       val result = f2a.visit(rectWithin)
       result mustNotEqual Filter.INCLUDE
+    }
+  }
+
+  "Temporal queries" should {
+    "set the temporal predicate and simplify the query" in {
+      val pred = ECQL.toFilter("dtg DURING 2011-01-01T00:00:00Z/2011-02-01T00:00:00Z")
+      val f2a = new FilterToAccumulo2(sft)
+      val result = f2a.visit(pred)
+      val interval = new Interval(
+        new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC),
+        new DateTime("2011-02-01T00:00:00Z", DateTimeZone.UTC))
+      f2a.temporalPredicate mustEqual interval
+      result mustEqual Filter.INCLUDE
+    }
+
+    "with spatial queries should simplify the query" in {
+      val temporal = ECQL.toFilter("dtg DURING 2011-01-01T00:00:00Z/2011-02-01T00:00:00Z")
+      val spatial = ff.within(ff.property("geom"), ff.literal(WKTUtils.read("POLYGON((-80 30,-70 30,-70 40,-80 40,-80 30))")))
+      val pred = ff.and(temporal, spatial)
+      val f2a = new FilterToAccumulo2(sft)
+      val result = f2a.visit(pred)
+      val interval = new Interval(
+        new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC),
+        new DateTime("2011-02-01T00:00:00Z", DateTimeZone.UTC))
+      f2a.temporalPredicate mustEqual interval
+      result mustEqual Filter.INCLUDE
+    }
+
+    "with spatial queries and property queries should simplify the query" in {
+      val temporal = ECQL.toFilter("dtg DURING 2011-01-01T00:00:00Z/2011-02-01T00:00:00Z")
+      val spatial = ff.within(ff.property("geom"), ff.literal(WKTUtils.read("POLYGON((-80 30,-70 30,-70 40,-80 40,-80 30))")))
+      val prop = ff.like(ff.property("prop"), "FOO%")
+      val pred = ff.and(List(temporal, spatial, prop))
+      val f2a = new FilterToAccumulo2(sft)
+      val result = f2a.visit(pred)
+      val interval = new Interval(
+        new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC),
+        new DateTime("2011-02-01T00:00:00Z", DateTimeZone.UTC))
+      f2a.temporalPredicate mustEqual interval
+      result.toString mustEqual prop.toString
+    }
+  }
+
+  "Logic queries" should {
+    "keep property queries" in {
+      val temporal = ECQL.toFilter("dtg DURING 2011-01-01T00:00:00Z/2011-02-01T00:00:00Z")
+      val spatial = ff.within(ff.property("geom"), ff.literal(WKTUtils.read("POLYGON((-80 30,-70 30,-70 40,-80 40,-80 30))")))
+      val prop1 = ff.like(ff.property("prop"), "FOO%")
+      val prop2 = ff.like(ff.property("prop"), "BAR%")
+      val prop = ff.and(prop1, prop2)
+      val pred = ff.and(List(temporal, spatial, prop))
+      val f2a = new FilterToAccumulo2(sft)
+      val result = f2a.visit(pred)
+      val interval = new Interval(
+        new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC),
+        new DateTime("2011-02-01T00:00:00Z", DateTimeZone.UTC))
+      f2a.temporalPredicate mustEqual interval
+      result.toString mustEqual prop.toString
     }
   }
 

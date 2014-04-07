@@ -19,10 +19,9 @@ package geomesa.core.data
 
 import com.vividsolutions.jts.geom._
 import geomesa.core.index._
-import org.geotools.data.{Query, FeatureReader}
+import org.geotools.data.{DataUtilities, Query, FeatureReader}
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
-import org.geotools.geometry.jts.JTS
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 class AccumuloFeatureReader(dataStore: AccumuloDataStore,
@@ -41,6 +40,7 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
   lazy val geometryPropertyName = sft.getGeometryDescriptor.getName.toString
   lazy val dtgStartField        = sft.getUserData.getOrElse(SF_PROPERTY_START_TIME, SF_PROPERTY_START_TIME).asInstanceOf[String]
   lazy val dtgEndField          = sft.getUserData.getOrElse(SF_PROPERTY_END_TIME, SF_PROPERTY_END_TIME).asInstanceOf[String]
+  lazy val encodedSFT           = DataUtilities.encodeType(sft)
 
   lazy val bounds = dataStore.getBounds(query) match {
     case null => null
@@ -50,16 +50,16 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
       else res.asInstanceOf[Polygon]
   }
 
-  val filterVisitor = new FilterToAccumulo2(null)
-  //query.getFilter.accept(filterVisitor, null)
+  val filterVisitor = new FilterToAccumulo2(sft)
+  val rewrittenCQL = filterVisitor.visit(query)
+  val cqlString = ECQL.toCQL(rewrittenCQL)
 
   // run the query
   lazy val bs = dataStore.createBatchScanner
 
-  lazy val iterValues = indexSchema.query(bs,null, null, null)
-    //filterVisitor.spatialPredicate,
-    //filterVisitor.temporalPredicate, attributes, null)
-//      Some(ECQL.toCQL(ff.and(filterVisitor.dwithinCQL, query.getFilter))))
+  lazy val spatial = filterVisitor.spatialPredicate
+  lazy val temporal = filterVisitor.temporalPredicate
+  lazy val iterValues = indexSchema.query(bs, spatial, temporal, encodedSFT, Some(cqlString))
 
   override def getFeatureType = sft
 

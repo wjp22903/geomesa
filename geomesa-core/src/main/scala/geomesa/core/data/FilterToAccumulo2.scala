@@ -1,22 +1,23 @@
 package geomesa.core.data
 
-import com.vividsolutions.jts.geom.{Point, Geometry, Polygon, Envelope}
-import org.joda.time.Interval
+import collection.JavaConversions._
+import com.vividsolutions.jts.geom.{Polygon, Point, Geometry, Envelope}
+import geomesa.core.index
+import geomesa.utils.geotools.Conversions._
+import org.geotools.data.Query
+import org.geotools.factory.CommonFactoryFinder
+import org.geotools.filter.visitor.SimplifyingFilterVisitor
+import org.geotools.geometry.jts.{JTSFactoryFinder, JTS}
+import org.geotools.referencing.GeodeticCalculator
+import org.geotools.referencing.crs.DefaultGeographicCRS
+import org.joda.time.{DateTime, Interval}
+import org.opengis.feature.`type`.AttributeDescriptor
+import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter._
 import org.opengis.filter.expression._
 import org.opengis.filter.spatial._
 import org.opengis.filter.temporal._
-import org.geotools.factory.CommonFactoryFinder
-import org.geotools.geometry.jts.{JTSFactoryFinder, JTS}
-import collection.JavaConversions._
-import org.opengis.feature.simple.SimpleFeatureType
-import geomesa.core.index
-import org.opengis.feature.`type`.AttributeDescriptor
-import org.opengis.geometry.BoundingBox
-import org.geotools.filter.visitor.SimplifyingFilterVisitor
-import org.geotools.referencing.GeodeticCalculator
-import org.geotools.referencing.crs.DefaultGeographicCRS
-import org.geotools.geometry.DirectPosition2D
+import org.opengis.temporal.Instant
 
 // FilterToAccumulo2 extracts the spatial and temporal predicates from the
 // filter while rewriting the filter to optimize for scanning Accumulo
@@ -25,16 +26,17 @@ class FilterToAccumulo2(sft: SimpleFeatureType) {
   val dtgField  = index.getDtgDescriptor(sft)
   val geomField = sft.getGeometryDescriptor
 
-  val allTime: Interval  = new Interval(0, Long.MaxValue)
+  val allTime            = new Interval(0, Long.MaxValue)
   val wholeWorld         = new Envelope(-180, -90, 180, 90)
 
-  var spatialPredicate: BoundingBox  = null
+  var spatialPredicate:  Polygon  = null
   var temporalPredicate: Interval    = null
 
   val ff = CommonFactoryFinder.getFilterFactory2
   val geoFactory = JTSFactoryFinder.getGeometryFactory
 
-  def visit(filter: Filter) =
+  def visit(query: Query): Filter = visit(query.getFilter)
+  def visit(filter: Filter): Filter =
     process(filter).accept(new SimplifyingFilterVisitor, null).asInstanceOf[Filter]
 
   def processChildren(op: BinaryLogicOperator, lf: (Filter, Filter) => Filter): Filter =
@@ -53,13 +55,10 @@ class FilterToAccumulo2(sft: SimpleFeatureType) {
     case op: Overlaps   => visitBinarySpatialOp(op, acc)
 
     // Temporal filters
-    case op: Before     => acc
-    case op: After      => acc
-    case op: During     => acc
-    case op: TContains  => acc
+    case op: BinaryTemporalOperator => visitBinaryTemporalOp(op, acc)
 
     // Other
-    case op: PropertyIsBetween => acc
+    case op: PropertyIsBetween      => visitPropertyIsBetween(op, acc)
 
     // Catch all
     case f: Filter => f
@@ -71,7 +70,7 @@ class FilterToAccumulo2(sft: SimpleFeatureType) {
     if(!attr.getLocalName.equals(sft.getGeometryDescriptor.getLocalName)) {
       ff.and(acc, op)
     } else {
-      spatialPredicate = op.getBounds
+      spatialPredicate = JTS.toGeometry(op.getBounds)
       acc
     }
   }
@@ -84,7 +83,7 @@ class FilterToAccumulo2(sft: SimpleFeatureType) {
       ff.and(acc, op)
     } else {
       val geom = e2.evaluate(null, classOf[Geometry])
-      spatialPredicate = JTS.toEnvelope(geom)
+      spatialPredicate = geom.asInstanceOf[Polygon]
       if(!geom.isRectangle) ff.and(acc, op)
       else acc
     }
@@ -104,14 +103,45 @@ class FilterToAccumulo2(sft: SimpleFeatureType) {
       val farthestPoint = JTS.toGeometry(geoCalc.getDestinationPosition)
       val degreesDistance = geom.distance(farthestPoint)
       val buffer = geom.buffer(degreesDistance)
-      spatialPredicate = JTS.toEnvelope(buffer)
+      spatialPredicate = buffer.asInstanceOf[Polygon]
       val rewrittenFilter =
         ff.dwithin(
-          ff.literal(sft.getGeometryDescriptor.getLocalName),
+          ff.property(sft.getGeometryDescriptor.getLocalName),
           ff.literal(geom),
           degreesDistance,
           "meters")
       ff.and(acc, rewrittenFilter)
     }
   }
+
+  def visitBinaryTemporalOp(bto: BinaryTemporalOperator, acc: Filter): Filter = {
+    val prop     = bto.getExpression1.asInstanceOf[PropertyName]
+    val lit      = bto.getExpression2.asInstanceOf[Literal]
+    val attr     = prop.evaluate(sft).asInstanceOf[AttributeDescriptor]
+    if(!attr.getLocalName.equals(dtgField.getLocalName)) ff.and(acc, bto)
+    else {
+      val period = lit.evaluate(null).asInstanceOf[org.opengis.temporal.Period]
+      temporalPredicate = bto match {
+        case op: Before    => new Interval(new DateTime(0L), period.getEnding)
+        case op: After     => new Interval(period.getBeginning, new DateTime(Long.MaxValue))
+        case op: During    => new Interval(period.getBeginning, period.getEnding)
+        case op: TContains => new Interval(period.getBeginning, period.getEnding)
+        case _             => throw new IllegalArgumentException("Invalid query")
+      }
+      acc
+    }
+  }
+
+  def visitPropertyIsBetween(op: PropertyIsBetween, acc: Filter): Filter = {
+    val prop = op.getExpression.asInstanceOf[PropertyName]
+    val attr = prop.evaluate(sft).asInstanceOf[AttributeDescriptor]
+    if(!attr.getLocalName.equals(dtgField.getLocalName)) ff.and(acc, op)
+    else {
+      val start = op.getLowerBoundary.evaluate(null).asInstanceOf[Instant]
+      val end   = op.getUpperBoundary.evaluate(null).asInstanceOf[Instant]
+      temporalPredicate = new Interval(start, end)
+      acc
+    }
+  }
+
 }
