@@ -79,6 +79,11 @@
             <groupId>net.sf.ehcache</groupId>
             <artifactId>ehcache-core</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.scala-saddle</groupId>
+            <artifactId>saddle-core_2.10</artifactId>
+            <version>1.3.2</version>
+        </dependency>
         <!-- jta is required so scalac can compile ehcache-core which
              uses jta annotations -->
         <dependency>
