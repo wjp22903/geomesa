@@ -14,25 +14,18 @@
  * limitations under the License.
  */
 
-
 package geomesa.core.data
 
 import com.vividsolutions.jts.geom._
 import geomesa.core.index._
-import org.geotools.data.{DataUtilities, Query, FeatureReader}
-import org.geotools.factory.CommonFactoryFinder
-import org.geotools.filter.text.ecql.ECQL
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import geomesa.utils.geohash.GeohashUtils
+import geomesa.core.iterators.DensityIterator
 import org.apache.accumulo.core.data.Value
 import org.geotools.data.{DataUtilities, Query, FeatureReader}
+import org.geotools.factory.CommonFactoryFinder
 import org.geotools.factory.Hints.{IntegerKey, ClassKey}
 import org.geotools.filter.text.ecql.ECQL
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter.Filter
-import geomesa.core.iterators.DensityIterator
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.geotools.factory.CommonFactoryFinder
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 class AccumuloFeatureReader(dataStore: AccumuloDataStore,
                             featureName: String,
@@ -43,9 +36,6 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
   extends FeatureReader[SimpleFeatureType, SimpleFeature] {
 
   import AccumuloFeatureReader._
-  import collection.JavaConversions._
-
-  val ff = CommonFactoryFinder.getFilterFactory2(null)
 
   val densitySFT = DataUtilities.createType(sft.getTypeName, "encodedraster:String,geom:Point:srid=4326")
   val projectedSFT = if(query.getHints.containsKey(DENSITY_KEY)) densitySFT else sft
@@ -60,8 +50,6 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
   lazy val ff = CommonFactoryFinder.getFilterFactory2
   lazy val indexSchema = SpatioTemporalIndexSchema(indexSchemaFmt, sft)
   lazy val geometryPropertyName = sft.getGeometryDescriptor.getName.toString
-  lazy val dtgStartField        = sft.getUserData.getOrElse(SF_PROPERTY_START_TIME, SF_PROPERTY_START_TIME).asInstanceOf[String]
-  lazy val dtgEndField          = sft.getUserData.getOrElse(SF_PROPERTY_END_TIME, SF_PROPERTY_END_TIME).asInstanceOf[String]
   lazy val encodedSFT           = DataUtilities.encodeType(sft)
 
   lazy val bounds = dataStore.getBounds(derivedQuery) match {
@@ -92,9 +80,9 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
 
   override def getFeatureType = sft
 
-  override def next() = iterValues.next()
+  override def next() = iter.next()
 
-  override def hasNext = iterValues.hasNext
+  override def hasNext = iter.hasNext
 
   override def close() = bs.close()
 }

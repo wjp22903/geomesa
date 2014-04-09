@@ -22,8 +22,17 @@
             <artifactId>geomesa-core</artifactId>
         </dependency>
         <dependency>
+            <groupId>geomesa</groupId>
+            <artifactId>geomesa-plugin</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.scala-saddle</groupId>
             <artifactId>saddle-core_2.10</artifactId>
+            <version>1.3.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.scala-saddle</groupId>
+            <artifactId>saddle-hdf5_2.10</artifactId>
             <version>1.3.2</version>
         </dependency>
         <dependency>

@@ -21,12 +21,11 @@ import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapreduce.TaskInputOutputContext
 import org.geotools.data.FeatureWriter
 import org.opengis.feature.simple.{SimpleFeatureType, SimpleFeature}
-import org.geotools.data.simple.SimpleFeatureSource
-import org.opengis.coverage.grid.GridCoverage
 
 package object data {
-  import geomesa.core.index._
+
   import collection.JavaConversions._
+  import geomesa.core.index._
 
   val INSTANCE_ID        = "geomesa.instance.id"
   val ZOOKEEPERS         = "geomesa.zookeepers"
@@ -56,11 +55,4 @@ package object data {
       .map { _.getName.toString }
       .getOrElse(SF_PROPERTY_START_TIME)
 
-  implicit class RichSimpleFeatureSource(val fs: SimpleFeatureSource) extends AnyVal {
-
-    def getDensity(filter: org.opengis.filter.Filter): GridCoverage = {
-      val hm = new DensityH
-    }
-
-  }
 }

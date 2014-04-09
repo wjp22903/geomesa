@@ -5,16 +5,16 @@ import geomesa.core.data.{AccumuloFeatureReader, AccumuloDataStoreFactory}
 import geomesa.core.index.Constants
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
+import org.apache.hadoop.io.Text
 import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.data.{Query, DataUtilities}
+import org.geotools.factory.Hints
+import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
+import org.joda.time.DateTime
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import org.geotools.feature.simple.SimpleFeatureBuilder
-import org.joda.time.DateTime
-import org.geotools.factory.Hints
-import org.apache.hadoop.io.Text
 
 @RunWith(classOf[JUnitRunner])
 class DensityIteratorTest extends Specification {
@@ -66,8 +66,6 @@ class DensityIteratorTest extends Specification {
   val q = new Query("test", ECQL.toFilter("(dtg between '2011-12-29T00:00:00.000Z' AND '2012-01-03T00:00:00.000Z') and BBOX(geom, -80, 33, -70, 40)") )
   q.getHints.put(AccumuloFeatureReader.DENSITY_KEY, java.lang.Boolean.TRUE)
   val results = fs.getFeatures(q)
-
-  import geomesa.utils.geotools.Conversions._
 
   results.features()
 

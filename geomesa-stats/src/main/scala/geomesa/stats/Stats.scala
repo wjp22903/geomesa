@@ -1,11 +1,22 @@
 package geomesa.stats
 
 import collection.JavaConversions._
-import com.vividsolutions.jts.geom.Geometry
+import com.vividsolutions.jts.geom.{Polygon, Geometry}
+import geomesa.plugin.process.DensityProcess
 import geomesa.utils.geotools.Conversions._
-import org.geotools.data.simple.SimpleFeatureCollection
+import java.awt.geom.AffineTransform
+import java.awt.image.BufferedImage
+import java.awt.{Graphics2D, Graphics}
+import javax.swing.{JFrame, JPanel}
+import org.geotools.coverage.grid.GridCoverage2D
+import org.geotools.data.simple.{SimpleFeatureSource, SimpleFeatureCollection}
 import org.geotools.factory.CommonFactoryFinder
+import org.geotools.filter.visitor.DefaultFilterVisitor
+import org.geotools.geometry.jts.{JTS, ReferencedEnvelope}
+import org.geotools.referencing.crs.DefaultGeographicCRS
+import org.opengis.filter.Filter
 import org.opengis.filter.expression.PropertyName
+import org.opengis.filter.spatial.{Within, BBOX}
 import org.saddle._
 import scala.reflect.ClassTag
 
@@ -38,6 +49,43 @@ object Stats {
     private def extractCol[T](col: SimpleFeatureCollection, extractor: PropertyName)(implicit ct: ClassTag[T]): Vec[T] = {
       val res = col.features.map { sf => extractor.evaluate(sf, ct.runtimeClass).asInstanceOf[T] }
       Vec(res.toArray)
+    }
+  }
+
+  implicit class RichSimpleFeatureSource(val fs: SimpleFeatureSource) extends AnyVal {
+
+    def getCoverage(filter: Filter,
+                    radiusPixels: Int,
+                    width: Int,
+                    height: Int) = {
+      val env = filter.accept(EnvelopeExtractingFilterVisitor, null).asInstanceOf[ReferencedEnvelope]
+      val hm = new DensityProcess
+      val results = fs.getFeatures(filter)
+      hm.execute(results, radiusPixels, "geom", 1, env, width, height, null)
+    }
+  }
+
+  val EnvelopeExtractingFilterVisitor = new DefaultFilterVisitor {
+    override def visit(filter: BBOX, data: scala.Any): AnyRef = new ReferencedEnvelope(filter.getBounds)
+    override def visit(filter: Within, data: scala.Any): AnyRef =
+      JTS.bounds(filter.getExpression2.evaluate(null).asInstanceOf[Polygon], DefaultGeographicCRS.WGS84)
+  }
+
+  implicit class RichGridCoverage(val coverage: GridCoverage2D) extends AnyVal {
+    def show: Unit = {
+      val scaleXform = AffineTransform.getScaleInstance(1f, 1f)
+      val frame = new JFrame()
+      frame.setSize(200, 200)
+      val panel = new JPanel {
+        override def paintComponents(g: Graphics): Unit = {
+          super.paintComponents(g)
+          val image = new BufferedImage(200, 200, BufferedImage.TYPE_INT_RGB)
+          image.setData(coverage.getRenderedImage.getData)
+          g.asInstanceOf[Graphics2D].drawImage(image, scaleXform, null)
+        }
+      }
+      frame.add(panel)
+      frame.setVisible(true)
     }
   }
 
