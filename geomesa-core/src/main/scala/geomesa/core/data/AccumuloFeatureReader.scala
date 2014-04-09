@@ -61,7 +61,7 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
   }
 
   val filterVisitor = new FilterToAccumulo(sft)
-  val rewrittenCQL = filterVisitor.visit(query)
+  val rewrittenCQL = filterVisitor.visit(derivedQuery)
   val cqlString = ECQL.toCQL(rewrittenCQL)
 
   // run the query

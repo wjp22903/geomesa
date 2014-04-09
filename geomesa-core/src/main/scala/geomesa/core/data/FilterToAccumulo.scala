@@ -145,9 +145,9 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
     val attr = prop.evaluate(sft).asInstanceOf[AttributeDescriptor]
     if(!attr.getLocalName.equals(dtgField.getLocalName)) ff.and(acc, op)
     else {
-      val start = op.getLowerBoundary.evaluate(null).asInstanceOf[Instant]
-      val end   = op.getUpperBoundary.evaluate(null).asInstanceOf[Instant]
-      temporalPredicate = new Interval(start, end)
+      val start = op.getLowerBoundary.evaluate(null).asInstanceOf[java.util.Date]
+      val end   = op.getUpperBoundary.evaluate(null).asInstanceOf[java.util.Date]
+      temporalPredicate = new Interval(new DateTime(start), new DateTime(end))
       acc
     }
   }
