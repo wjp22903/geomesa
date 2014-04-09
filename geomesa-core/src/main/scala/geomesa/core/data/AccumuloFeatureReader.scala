@@ -23,6 +23,16 @@ import org.geotools.data.{DataUtilities, Query, FeatureReader}
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import geomesa.utils.geohash.GeohashUtils
+import org.apache.accumulo.core.data.Value
+import org.geotools.data.{DataUtilities, Query, FeatureReader}
+import org.geotools.factory.Hints.{IntegerKey, ClassKey}
+import org.geotools.filter.text.ecql.ECQL
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.filter.Filter
+import geomesa.core.iterators.DensityIterator
+import org.geotools.geometry.jts.ReferencedEnvelope
+import org.geotools.factory.CommonFactoryFinder
 
 class AccumuloFeatureReader(dataStore: AccumuloDataStore,
                             featureName: String,
@@ -35,6 +45,18 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
   import AccumuloFeatureReader._
   import collection.JavaConversions._
 
+  val ff = CommonFactoryFinder.getFilterFactory2(null)
+
+  val densitySFT = DataUtilities.createType(sft.getTypeName, "encodedraster:String,geom:Point:srid=4326")
+  val projectedSFT = if(query.getHints.containsKey(DENSITY_KEY)) densitySFT else sft
+
+  val derivedQuery =
+    if(query.getHints.containsKey(BBOX_KEY)) {
+      val env = query.getHints.get(BBOX_KEY).asInstanceOf[ReferencedEnvelope]
+      val q1 = new Query(sft.getTypeName, ff.bbox(ff.property(sft.getGeometryDescriptor.getLocalName), env))
+      DataUtilities.mixQueries(q1, query, "geomesa.mixed.query")
+    } else query
+
   lazy val ff = CommonFactoryFinder.getFilterFactory2
   lazy val indexSchema = SpatioTemporalIndexSchema(indexSchemaFmt, sft)
   lazy val geometryPropertyName = sft.getGeometryDescriptor.getName.toString
@@ -42,7 +64,7 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
   lazy val dtgEndField          = sft.getUserData.getOrElse(SF_PROPERTY_END_TIME, SF_PROPERTY_END_TIME).asInstanceOf[String]
   lazy val encodedSFT           = DataUtilities.encodeType(sft)
 
-  lazy val bounds = dataStore.getBounds(query) match {
+  lazy val bounds = dataStore.getBounds(derivedQuery) match {
     case null => null
     case b =>
       val res = latLonGeoFactory.toGeometry(b)
@@ -59,11 +81,18 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
 
   lazy val spatial = filterVisitor.spatialPredicate
   lazy val temporal = filterVisitor.temporalPredicate
-  lazy val iterValues = indexSchema.query(bs, spatial, temporal, encodedSFT, Some(cqlString))
+  lazy val underlyingIter = indexSchema.query(bs, spatial, temporal, encodedSFT, Some(cqlString), query.getHints.containsKey(DENSITY_KEY))
+
+  lazy val iter =
+    if(query.getHints.containsKey(DENSITY_KEY)) unpackDensityFeatures(underlyingIter)
+    else underlyingIter.map { v => SimpleFeatureEncoder.decode(sft, v) }
+
+  def unpackDensityFeatures(iter: Iterator[Value]) =
+    iter.flatMap { i => DensityIterator.expandFeature(SimpleFeatureEncoder.decode(projectedSFT, i)) }
 
   override def getFeatureType = sft
 
-  override def next() = SimpleFeatureEncoder.decode(getFeatureType, iterValues.next())
+  override def next() = iterValues.next()
 
   override def hasNext = iterValues.hasNext
 
@@ -71,5 +100,10 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
 }
 
 object AccumuloFeatureReader {
+  val DENSITY_KEY = new ClassKey(classOf[java.lang.Boolean])
+  val WIDTH_KEY   = new IntegerKey(256)
+  val HEIGHT_KEY  = new IntegerKey(256)
+  val BBOX_KEY    = new ClassKey(classOf[ReferencedEnvelope])
+
   val latLonGeoFactory = new GeometryFactory(new PrecisionModel(PrecisionModel.FLOATING), 4326)
 }
