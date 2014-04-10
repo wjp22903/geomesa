@@ -10,12 +10,13 @@ import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Range => ARange, PartialKey, ByteSequence, Value, Key}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.apache.commons.codec.binary.Base64
-import org.geotools.data.DataUtilities
+import org.geotools.data.{Query, DataUtilities}
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.geometry.jts.{JTSFactoryFinder, JTS, ReferencedEnvelope}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.util.Random
 import geomesa.utils.geotools.GridSnap
+import geomesa.core.data.AccumuloFeatureReader
 
 class DensityIterator extends SimpleFeatureFilteringIterator {
 
@@ -79,12 +80,18 @@ class DensityIterator extends SimpleFeatureFilteringIterator {
 }
 
 object DensityIterator {
+
   val BBOX_KEY = "geomesa.density.bbox"
   val BOUNDS_KEY = "geomesa.density.bounds"
   type SparseMatrix = HashBasedTable[Double, Double, Int]
   val densitySFT = DataUtilities.createType("geomesadensity", "weight:Double,geom:Point:srid=4326")
   val geomFactory = JTSFactoryFinder.getGeometryFactory
 
+  def configure(cfg: IteratorSetting, polygon: Polygon, w: Int, h: Int) = {
+    setBbox(cfg, polygon)
+    setBounds(cfg, w, h)
+  }
+  
   def setBbox(iterSettings: IteratorSetting, poly: Polygon): Unit = {
     iterSettings.addOption(BBOX_KEY, WKTUtils.write(poly))
   }

@@ -9,11 +9,13 @@ import java.awt.image.BufferedImage
 import java.awt.{Graphics2D, Graphics}
 import javax.swing.{JFrame, JPanel}
 import org.geotools.coverage.grid.GridCoverage2D
+import org.geotools.data.Query
 import org.geotools.data.simple.{SimpleFeatureSource, SimpleFeatureCollection}
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.visitor.DefaultFilterVisitor
 import org.geotools.geometry.jts.{JTS, ReferencedEnvelope}
 import org.geotools.referencing.crs.DefaultGeographicCRS
+import org.opengis.coverage.grid.GridGeometry
 import org.opengis.filter.Filter
 import org.opengis.filter.expression.PropertyName
 import org.opengis.filter.spatial.{Within, BBOX}
@@ -60,7 +62,10 @@ object Stats {
                     height: Int) = {
       val env = filter.accept(EnvelopeExtractingFilterVisitor, null).asInstanceOf[ReferencedEnvelope]
       val hm = new DensityProcess
-      val results = fs.getFeatures(filter)
+      val targetQuery = new Query("geomesa-density", filter)
+      val targetGridGeometry = null.asInstanceOf[GridGeometry]
+      val invertQuery = hm.invertQuery(radiusPixels, env, width, height, targetQuery, targetGridGeometry)
+      val results = fs.getFeatures(invertQuery)
       hm.execute(results, radiusPixels, "geom", 1, env, width, height, null)
     }
   }

@@ -47,28 +47,19 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
       DataUtilities.mixQueries(q1, query, "geomesa.mixed.query")
     } else query
 
-  lazy val ff = CommonFactoryFinder.getFilterFactory2
-  lazy val indexSchema = SpatioTemporalIndexSchema(indexSchemaFmt, sft)
-  lazy val geometryPropertyName = sft.getGeometryDescriptor.getName.toString
-  lazy val encodedSFT           = DataUtilities.encodeType(sft)
-
-  lazy val bounds = dataStore.getBounds(derivedQuery) match {
-    case null => null
-    case b =>
-      val res = latLonGeoFactory.toGeometry(b)
-      if(res.isInstanceOf[Point] || res.isInstanceOf[LineString]) res.buffer(0.01).asInstanceOf[Polygon]
-      else res.asInstanceOf[Polygon]
-  }
+  val ff = CommonFactoryFinder.getFilterFactory2
+  val indexSchema = SpatioTemporalIndexSchema(indexSchemaFmt, sft)
+  val geometryPropertyName = sft.getGeometryDescriptor.getName.toString
+  val encodedSFT           = DataUtilities.encodeType(sft)
 
   val filterVisitor = new FilterToAccumulo(sft)
   val rewrittenCQL = filterVisitor.visit(derivedQuery)
   val cqlString = ECQL.toCQL(rewrittenCQL)
 
-  // run the query
-  lazy val bs = dataStore.createBatchScanner
+  val spatial = filterVisitor.spatialPredicate
+  val temporal = filterVisitor.temporalPredicate
 
-  lazy val spatial = filterVisitor.spatialPredicate
-  lazy val temporal = filterVisitor.temporalPredicate
+  lazy val bs = dataStore.createBatchScanner
   lazy val underlyingIter = indexSchema.query(bs, spatial, temporal, encodedSFT, Some(cqlString), query.getHints.containsKey(DENSITY_KEY))
 
   lazy val iter =
