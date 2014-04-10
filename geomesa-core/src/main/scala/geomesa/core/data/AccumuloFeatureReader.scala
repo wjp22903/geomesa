@@ -16,7 +16,6 @@
 
 package geomesa.core.data
 
-import com.vividsolutions.jts.geom._
 import geomesa.core.index._
 import geomesa.core.iterators.DensityIterator
 import org.apache.accumulo.core.data.Value
@@ -35,12 +34,16 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
                             sft: SimpleFeatureType)
   extends FeatureReader[SimpleFeatureType, SimpleFeature] {
 
-  import collection.JavaConversions._
+  import AccumuloFeatureReader._
 
   val ff = CommonFactoryFinder.getFilterFactory2
   val indexSchema = SpatioTemporalIndexSchema(indexSchemaFmt, sft)
   val geometryPropertyName = sft.getGeometryDescriptor.getName.toString
   val encodedSFT           = DataUtilities.encodeType(sft)
+
+  val projectedSFT =
+    if(query.getHints.containsKey(DENSITY_KEY)) DataUtilities.createType(sft.getTypeName, "encodedraster:String,geom:Point:srid=4326")
+    else sft
 
   val derivedQuery =
     if(query.getHints.containsKey(BBOX_KEY)) {
@@ -57,7 +60,13 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
   val temporal = filterVisitor.temporalPredicate
 
   lazy val bs = dataStore.createBatchScanner
-  lazy val underlyingIter = indexSchema.query(bs, spatial, temporal, encodedSFT, Some(cqlString), query.getHints.containsKey(DENSITY_KEY))
+  lazy val underlyingIter = if(query.getHints.containsKey(DENSITY_KEY)) {
+    val width = query.getHints.containsKey(WIDTH_KEY).asInstanceOf[Integer]
+    val height = query.getHints.containsKey(HEIGHT_KEY).asInstanceOf[Integer]
+    indexSchema.query(bs, spatial, temporal, encodedSFT, Some(cqlString), true, width, height)
+  } else {
+    indexSchema.query(bs, spatial, temporal, encodedSFT, Some(cqlString), false)
+  }
 
   lazy val iter =
     if(query.getHints.containsKey(DENSITY_KEY)) unpackDensityFeatures(underlyingIter)
@@ -81,5 +90,5 @@ object AccumuloFeatureReader {
   val HEIGHT_KEY  = new IntegerKey(256)
   val BBOX_KEY    = new ClassKey(classOf[ReferencedEnvelope])
 
-  val latLonGeoFactory = new GeometryFactory(new PrecisionModel(PrecisionModel.FLOATING), 4326)
+
 }
