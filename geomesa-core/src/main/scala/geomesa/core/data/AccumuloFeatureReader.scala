@@ -61,8 +61,8 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
 
   lazy val bs = dataStore.createBatchScanner
   lazy val underlyingIter = if(query.getHints.containsKey(DENSITY_KEY)) {
-    val width = query.getHints.containsKey(WIDTH_KEY).asInstanceOf[Integer]
-    val height = query.getHints.containsKey(HEIGHT_KEY).asInstanceOf[Integer]
+    val width = query.getHints.get(WIDTH_KEY).asInstanceOf[Integer]
+    val height = query.getHints.get(HEIGHT_KEY).asInstanceOf[Integer]
     indexSchema.query(bs, spatial, temporal, encodedSFT, Some(cqlString), true, width, height)
   } else {
     indexSchema.query(bs, spatial, temporal, encodedSFT, Some(cqlString), false)
