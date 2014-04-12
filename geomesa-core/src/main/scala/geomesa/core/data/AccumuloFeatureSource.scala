@@ -24,6 +24,7 @@ import org.opengis.feature.FeatureVisitor
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 import org.opengis.util.ProgressListener
+import org.geotools.process.vector.TransformProcess.Definition
 
 trait AccumuloAbstractFeatureSource extends AbstractFeatureSource {
   val dataStore: AccumuloDataStore
@@ -66,7 +67,12 @@ trait AccumuloAbstractFeatureSource extends AbstractFeatureSource {
 }
 
 class AccumuloFeatureSource(val dataStore: AccumuloDataStore, val featureName: String)
-  extends AccumuloAbstractFeatureSource
+  extends AccumuloAbstractFeatureSource {
+  var transforms: Seq[Definition] = null
+  def setTransform(definitions: Seq[Definition]): Unit = {
+    transforms = definitions
+  }
+}
 
 class AccumuloFeatureCollection(source: SimpleFeatureSource, query: Query)
   extends DefaultFeatureResults(source, query) {

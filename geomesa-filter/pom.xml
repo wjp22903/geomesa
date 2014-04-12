@@ -37,5 +37,9 @@
             <groupId>org.geotools</groupId>
             <artifactId>gt-api</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.geotools</groupId>
+            <artifactId>gt-transform</artifactId>
+        </dependency>
     </dependencies>
 </project>
