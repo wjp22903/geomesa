@@ -34,6 +34,8 @@ import org.geotools.process.vector.TransformProcess
 @RunWith(classOf[JUnitRunner])
 class AccumuloDataStoreTest extends Specification {
 
+  sequential
+
   val geotimeAttributes = geomesa.core.index.spec
 
   def createStore: AccumuloDataStore =
