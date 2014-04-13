@@ -38,6 +38,12 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.identity.FeatureId
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
+import org.geotools.process.vector.TransformProcess.Definition
+import org.opengis.feature.`type`.AttributeDescriptor
+import org.opengis.filter.expression.PropertyName
+import org.geotools.feature.`type`.AttributeDescriptorImpl
+import org.geotools.filter.FunctionExpressionImpl
+import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 
 class AccumuloFeatureStore(val dataStore: AccumuloDataStore, val featureName: String)
     extends AbstractFeatureStore with AccumuloAbstractFeatureSource {
@@ -190,4 +196,33 @@ class MapReduceAccumuloFeatureStore(dataStore: MapReduceAccumuloDataStore,
   }
 }
 
+object AccumuloFeatureStore {
 
+  def computeSchema(origSFT: SimpleFeatureType, transforms: Seq[Definition]): SimpleFeatureType = {
+    val attributes: Seq[AttributeDescriptor] = transforms.map { definition =>
+      val name = definition.name
+      val cql  = definition.expression
+      cql match {
+        case p: PropertyName =>
+          val origAttr = origSFT.getDescriptor(p.getPropertyName)
+          new AttributeDescriptorImpl(
+            origAttr.getType,
+            new NameImpl(name),
+            origAttr.getMinOccurs,
+            origAttr.getMaxOccurs,
+            origAttr.isNillable,
+            origAttr.getDefaultValue)
+
+        case f: FunctionExpressionImpl  =>
+          val clazz = f.getFunctionName.getReturn.getType
+          val attrType = new AttributeTypeBuilder().binding(clazz).buildType()
+          new AttributeDescriptorImpl(attrType, new NameImpl(name), 1, 1, false, null)
+
+      }
+    }
+    val sftBuilder = new SimpleFeatureTypeBuilder()
+    sftBuilder.setName("transform")
+    sftBuilder.addAll(attributes.toArray)
+    sftBuilder.buildFeatureType()
+  }
+}

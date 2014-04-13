@@ -25,6 +25,7 @@ import org.geotools.factory.Hints.{IntegerKey, ClassKey}
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import scala.util.Try
 
 class AccumuloFeatureReader(dataStore: AccumuloDataStore,
                             featureName: String,
@@ -60,17 +61,22 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
   val temporal = filterVisitor.temporalPredicate
 
   lazy val bs = dataStore.createBatchScanner
-  lazy val underlyingIter = if(query.getHints.containsKey(DENSITY_KEY)) {
-    val width = query.getHints.get(WIDTH_KEY).asInstanceOf[Integer]
-    val height = query.getHints.get(HEIGHT_KEY).asInstanceOf[Integer]
-    indexSchema.query(bs, spatial, temporal, encodedSFT, Some(cqlString), true, width, height)
-  } else {
-    indexSchema.query(bs, spatial, temporal, encodedSFT, Some(cqlString), false)
+  lazy val iter = {
+    val transformOption = Option(query.getHints.get(TRANSFORMS)).map(_.asInstanceOf[String])
+    val transformSchema = Option(query.getHints.get(TRANSFORM_SCHEMA)).map(_.asInstanceOf[SimpleFeatureType])
+    if (query.getHints.containsKey(DENSITY_KEY)) {
+      val width = query.getHints.get(WIDTH_KEY).asInstanceOf[Integer]
+      val height = query.getHints.get(HEIGHT_KEY).asInstanceOf[Integer]
+      val q = indexSchema.query(bs, spatial, temporal, encodedSFT, Some(cqlString),
+        transformOption, transformSchema, density = true, width, height)
+      unpackDensityFeatures(q)
+    } else {
+      val q = indexSchema.query(bs, spatial, temporal, encodedSFT, Some(cqlString),
+        transformOption, transformSchema, density = false)
+      val result = transformSchema.map { tschema => q.map { v => SimpleFeatureEncoder.decode(tschema, v) } }
+      result.getOrElse(q.map { v => SimpleFeatureEncoder.decode(sft, v) })
+    }
   }
-
-  lazy val iter =
-    if(query.getHints.containsKey(DENSITY_KEY)) unpackDensityFeatures(underlyingIter)
-    else underlyingIter.map { v => SimpleFeatureEncoder.decode(sft, v) }
 
   def unpackDensityFeatures(iter: Iterator[Value]) =
     iter.flatMap { i => DensityIterator.expandFeature(SimpleFeatureEncoder.decode(projectedSFT, i)) }

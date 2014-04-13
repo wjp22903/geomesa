@@ -23,12 +23,13 @@ import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.cql2.CQL
-import geomesa.core.index._
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.geotools.geometry.jts.JTSFactoryFinder
 import com.vividsolutions.jts.geom.Coordinate
+import org.opengis.filter.Filter
+import org.geotools.process.vector.TransformProcess
 
 @RunWith(classOf[JUnitRunner])
 class AccumuloDataStoreTest extends Specification {
@@ -179,6 +180,116 @@ class AccumuloDataStoreTest extends Specification {
       val f = features.next()
       f.getID mustEqual "fid-1"
       features.hasNext must beFalse
+    }
+
+    "handle transformations" in {
+      // create the data store
+      val ds = createStore
+      val sftName = "transformtest"
+      val sft = DataUtilities.createType(sftName, s"name:String,dtg:Date,*geom:Point:srid=4326")
+      ds.createSchema(sft)
+
+      val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+
+      // create a feature
+      val geom = WKTUtils.read("POINT(45.0 49.0)")
+      val liveFeature = SimpleFeatureBuilder.build(sft, List("testType", null, geom), "fid-1")
+      liveFeature.setDefaultGeometry(geom)
+
+      // make sure we ask the system to re-use the provided feature-ID
+      liveFeature.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+      val featureCollection = new DefaultFeatureCollection(sftName, sft)
+      featureCollection.add(liveFeature)
+      fs.addFeatures(featureCollection)
+
+      val query = new Query("transformtest", Filter.INCLUDE,
+        Array("name", "derived=strConcat('hello',name)", "geom"))
+
+      // Let's read out what we wrote.
+      val results = fs.getFeatures(query)
+      val features = results.features
+      val f = features.next()
+
+      "name:String,geom:Point,derived:String" mustEqual DataUtilities.encodeType(results.getSchema)
+      "fid-1=testType|POINT (45 49)|hellotestType" mustEqual DataUtilities.encodeFeature(f)
+    }
+
+    "handle transformations across multiple fields" in {
+      // create the data store
+      val ds = createStore
+      val sftName = "transformtest"
+      val sft = DataUtilities.createType(sftName, s"name:String,attr:String,dtg:Date,*geom:Point:srid=4326")
+      ds.createSchema(sft)
+
+      val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+
+      // create a feature
+      val geom = WKTUtils.read("POINT(45.0 49.0)")
+      val liveFeature = SimpleFeatureBuilder.build(sft, List("testType", "v1", null, geom), "fid-1")
+      liveFeature.setDefaultGeometry(geom)
+
+      // make sure we ask the system to re-use the provided feature-ID
+      liveFeature.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+      val featureCollection = new DefaultFeatureCollection(sftName, sft)
+      featureCollection.add(liveFeature)
+      fs.addFeatures(featureCollection)
+
+      val query = new Query("transformtest", Filter.INCLUDE,
+        Array("name", "derived=strConcat(attr,name)", "geom"))
+
+      // Let's read out what we wrote.
+      val results = fs.getFeatures(query)
+      val features = results.features
+      val f = features.next()
+
+      "name:String,geom:Point,derived:String" mustEqual DataUtilities.encodeType(results.getSchema)
+      "fid-1=testType|POINT (45 49)|v1testType" mustEqual DataUtilities.encodeFeature(f)
+    }
+
+    "handle transformations to subtypes" in {
+      // create the data store
+      val ds = createStore
+      val sftName = "transformtest"
+      val sft = DataUtilities.createType(sftName, s"name:String,attr:String,dtg:Date,*geom:Point:srid=4326")
+      ds.createSchema(sft)
+
+      val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+
+      // create a feature
+      val geom = WKTUtils.read("POINT(45.0 49.0)")
+      val liveFeature = SimpleFeatureBuilder.build(sft, List("testType", "v1", null, geom), "fid-1")
+      liveFeature.setDefaultGeometry(geom)
+
+      // make sure we ask the system to re-use the provided feature-ID
+      liveFeature.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+      val featureCollection = new DefaultFeatureCollection(sftName, sft)
+      featureCollection.add(liveFeature)
+      fs.addFeatures(featureCollection)
+
+      val query = new Query("transformtest", Filter.INCLUDE,
+        Array("name", "geom"))
+
+      // Let's read out what we wrote.
+      val results = fs.getFeatures(query)
+      val features = results.features
+      val f = features.next()
+
+      "name:String,geom:Point" mustEqual DataUtilities.encodeType(results.getSchema)
+      "fid-1=testType|POINT (45 49)" mustEqual DataUtilities.encodeFeature(f)
+    }
+
+  }
+
+  "AccumuloFeatureStore" should {
+    "compute target schemas from transformation expressions" in {
+      val origSFT = DataUtilities.createType("test", "name:String,dtg:Date,*geom:Point:srid=4326")
+      val definitions =
+        TransformProcess.toDefinition("name=name;helloName=strConcat('hello', name);geom=geom")
+
+      val result = AccumuloFeatureStore.computeSchema(origSFT, definitions.toSeq)
+      println(DataUtilities.encodeType(result))
+
+      (result must not).beNull
     }
   }
 }
