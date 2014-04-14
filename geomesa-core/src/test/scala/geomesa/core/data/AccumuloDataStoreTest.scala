@@ -212,7 +212,7 @@ class AccumuloDataStoreTest extends Specification {
       val features = results.features
       val f = features.next()
 
-      "name:String,geom:Point,derived:String" mustEqual DataUtilities.encodeType(results.getSchema)
+      "name:String,geom:Point:srid=4326,derived:String" mustEqual DataUtilities.encodeType(results.getSchema)
       "fid-1=testType|POINT (45 49)|hellotestType" mustEqual DataUtilities.encodeFeature(f)
     }
 
@@ -244,7 +244,7 @@ class AccumuloDataStoreTest extends Specification {
       val features = results.features
       val f = features.next()
 
-      "name:String,geom:Point,derived:String" mustEqual DataUtilities.encodeType(results.getSchema)
+      "name:String,geom:Point:srid=4326,derived:String" mustEqual DataUtilities.encodeType(results.getSchema)
       "fid-1=testType|POINT (45 49)|v1testType" mustEqual DataUtilities.encodeFeature(f)
     }
 
@@ -276,7 +276,7 @@ class AccumuloDataStoreTest extends Specification {
       val features = results.features
       val f = features.next()
 
-      "name:String,geom:Point" mustEqual DataUtilities.encodeType(results.getSchema)
+      "name:String,geom:Point:srid=4326" mustEqual DataUtilities.encodeType(results.getSchema)
       "fid-1=testType|POINT (45 49)" mustEqual DataUtilities.encodeFeature(f)
     }
 
