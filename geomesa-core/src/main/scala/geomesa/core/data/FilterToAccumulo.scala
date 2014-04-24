@@ -49,7 +49,7 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
   val wholeWorld           = new Envelope(-180, -90, 180, 90)
 
   val noPolygon : Polygon  = null
-  val noInterval: Interval = new Interval(0L, 0L)
+  val noInterval: Interval = null
 
   var spatialPredicate:  Polygon  = noPolygon
   var temporalPredicate: Interval = noInterval
@@ -75,14 +75,13 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
     val firstChildEval = process(op.getChildren.head)
     val result = op.getChildren.tail.foldLeft((firstChildEval, spatialPredicate, temporalPredicate))((t, child) => t match {
       case (lastChildEval, polygonSoFar, intervalSoFar) =>
+        spatialPredicate = noPolygon
+        temporalPredicate = noInterval
         // this evaluation updates the (child) estimate of temporalPredicate and spatialPredicate
         val childEval = process(child)
         (ff.or(lastChildEval, childEval),
           (polygonSoFar, spatialPredicate) match {
-            case (a, b) if a == null && b != null => b
-            case (a, b) if b == null && a != null => a
-            case (a, b) if a == null || b == null => noPolygon
-            case (a, b) =>
+            case (a, b) if a != null && b != null =>
               if (a.intersects(b)) {
                 val p = a.union(b).asInstanceOf[Polygon]
                 p.normalize()
@@ -93,17 +92,16 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
                 env.expandToInclude(b.getEnvelopeInternal)
                 env2poly(env)
               }
+            case _ => noPolygon
           },
           (temporalPredicate, intervalSoFar) match {
-            case (a, b) if a == null && b != null => b
-            case (a, b) if b == null && a != null => a
-            case (a, b) if a == null || b == null => noInterval
-            case (a, b) =>
+            case (a, b) if a != null && b != null =>
               new Interval(
                 Math.min(a.getStartMillis, b.getStartMillis),
                 Math.max(a.getEndMillis, b.getEndMillis),
                 DateTimeZone.forID("UTC")
               )
+            case _ => noInterval
           }
         )
     })
