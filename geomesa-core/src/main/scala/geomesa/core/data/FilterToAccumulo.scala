@@ -21,6 +21,7 @@ import com.vividsolutions.jts.geom._
 import geomesa.core.index
 import geomesa.utils.geotools.Conversions._
 import geomesa.utils.geotools.GeometryUtils
+import geomesa.utils.text.WKTUtils
 import org.geotools.data.Query
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.visitor.SimplifyingFilterVisitor
@@ -44,26 +45,111 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
   val dtgField  = index.getDtgDescriptor(sft)
   val geomField = sft.getGeometryDescriptor
 
-  val allTime            = new Interval(0, Long.MaxValue)
-  val wholeWorld         = new Envelope(-180, -90, 180, 90)
+  val allTime              = new Interval(0, Long.MaxValue)
+  val wholeWorld           = new Envelope(-180, -90, 180, 90)
 
-  var spatialPredicate:  Polygon  = null
-  var temporalPredicate: Interval    = null
+  val noPolygon : Polygon  = null
+  val noInterval: Interval = new Interval(0L, 0L)
+
+  var spatialPredicate:  Polygon  = noPolygon
+  var temporalPredicate: Interval = noInterval
 
   val ff = CommonFactoryFinder.getFilterFactory2
   val geoFactory = JTSFactoryFinder.getGeometryFactory
+
+  implicit def env2poly(env: Envelope): Polygon = WKTUtils.read(
+    "POLYGON((" +
+      env.getMinX + " " + env.getMinY + ", " +
+      env.getMinX + " " + env.getMaxY + ", " +
+      env.getMaxX + " " + env.getMaxY + ", " +
+      env.getMaxX + " " + env.getMinY + ", " +
+      env.getMinX + " " + env.getMinY +
+    "))"
+  ).asInstanceOf[Polygon]
 
   def visit(query: Query): Filter = visit(query.getFilter)
   def visit(filter: Filter): Filter =
     process(filter).accept(new SimplifyingFilterVisitor, null).asInstanceOf[Filter]
 
-  def processChildren(op: BinaryLogicOperator, lf: (Filter, Filter) => Filter): Filter =
-    op.getChildren.reduce { (l, r) => lf(process(l), process(r)) }
-  
+  def processOrChildren(op: BinaryLogicOperator): Filter = {
+    val firstChildEval = process(op.getChildren.head)
+    val result = op.getChildren.tail.foldLeft((firstChildEval, spatialPredicate, temporalPredicate))((t, child) => t match {
+      case (lastChildEval, polygonSoFar, intervalSoFar) =>
+        // this evaluation updates the (child) estimate of temporalPredicate and spatialPredicate
+        val childEval = process(child)
+        (ff.or(lastChildEval, childEval),
+          (polygonSoFar, spatialPredicate) match {
+            case (a, b) if a == null && b != null => b
+            case (a, b) if b == null && a != null => a
+            case (a, b) if a == null || b == null => noPolygon
+            case (a, b) =>
+              if (a.intersects(b)) {
+                val p = a.union(b).asInstanceOf[Polygon]
+                p.normalize()
+                p
+              }
+              else {
+                val env = a.getEnvelopeInternal
+                env.expandToInclude(b.getEnvelopeInternal)
+                env2poly(env)
+              }
+          },
+          (temporalPredicate, intervalSoFar) match {
+            case (a, b) if a == null && b != null => b
+            case (a, b) if b == null && a != null => a
+            case (a, b) if a == null || b == null => noInterval
+            case (a, b) =>
+              new Interval(
+                Math.min(a.getStartMillis, b.getStartMillis),
+                Math.max(a.getEndMillis, b.getEndMillis),
+                DateTimeZone.forID("UTC")
+              )
+          }
+        )
+    })
+
+    spatialPredicate = result._2
+    temporalPredicate = result._3
+    result._1
+  }
+
+  def processAndChildren(op: BinaryLogicOperator): Filter = {
+    val firstChildEval = process(op.getChildren.head)
+    val result = op.getChildren.tail.foldLeft((firstChildEval, spatialPredicate, temporalPredicate))((t, child) => t match {
+      case (lastChildEval, polygonSoFar, intervalSoFar) =>
+        // this evaluation updates the (child) estimate of temporalPredicate and spatialPredicate
+        val childEval = process(child)
+        val nextPolygon = (polygonSoFar, spatialPredicate) match {
+          case (a, b) if a == null && b != null => b
+          case (a, b) if b == null && a != null => a
+          case (a, b) if a == null || b == null => noPolygon
+          case (a, b) =>
+            if (a.intersects(b)) {
+              val p = a.intersection(b).asInstanceOf[Polygon]
+              p.normalize()
+              p
+            }
+            else noPolygon
+        }
+        val nextInterval = (intervalSoFar, temporalPredicate) match {
+          case (a, b) if a == null && b != null => b
+          case (a, b) if b == null && a != null => a
+          case (a, b) if a == null || b == null => noInterval
+          case (a, b) =>
+            if (a.overlap(b) != null) a.overlap(b) else noInterval
+        }
+        (ff.and(lastChildEval, childEval), nextPolygon, nextInterval)
+    })
+
+    spatialPredicate = result._2
+    temporalPredicate = result._3
+    result._1
+  }
+
   def process(filter: Filter, acc: Filter = Filter.INCLUDE): Filter = filter match {
     // Logical filters
-    case op: Or    => processChildren(op, ff.or)
-    case op: And   => processChildren(op, ff.and)
+    case op: Or    => processOrChildren(op)
+    case op: And   => processAndChildren(op)
 
     // Spatial filters
     case op: BBOX       => visitBBOX(op, acc)
