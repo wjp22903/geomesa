@@ -268,7 +268,7 @@ class FilterToAccumuloTest extends Specification {
       result.toString mustEqual pred.toString
     }
 
-    "combine nested logical functions correctly" in {
+    "combine nested logical functions (and reduce the filter) correctly" in {
       val temporal_a = ECQL.toFilter("dtg DURING 2011-01-01T00:00:00Z/2011-01-20T00:00:00Z")
       val temporal_b = ECQL.toFilter("dtg DURING 2011-01-10T00:00:00Z/2011-02-01T00:00:00Z")
       val temporal_c = ECQL.toFilter("dtg DURING 2011-08-10T00:00:00Z/2011-09-01T00:00:00Z")
@@ -286,7 +286,7 @@ class FilterToAccumuloTest extends Specification {
 
       f2a.temporalPredicate mustEqual f2a.noInterval
       f2a.spatialPredicate mustEqual f2a.noPolygon
-      //result.toString mustEqual "NWF"
+      result.toString mustEqual "NWF"
     }
   }
 

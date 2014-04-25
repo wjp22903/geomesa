@@ -37,6 +37,7 @@ import org.opengis.filter.expression._
 import org.opengis.filter.spatial._
 import org.opengis.filter.temporal._
 import org.opengis.temporal.Instant
+import org.geotools.filter.text.ecql.ECQL
 
 // FilterToAccumulo extracts the spatial and temporal predicates from the
 // filter while rewriting the filter to optimize for scanning Accumulo
@@ -71,7 +72,29 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
   def visit(filter: Filter): Filter =
     process(filter).accept(new SimplifyingFilterVisitor, null).asInstanceOf[Filter]
 
-  case class EvalNode(raw: Filter, evaluated: Filter, polygon: Polygon, interval: Interval)
+  case class EvalNode(raw: Filter, evaluated: Filter, polygon: Polygon, interval: Interval) {
+    def simplify: Filter = evaluated match {
+      case Filter.INCLUDE if polygon != noPolygon && interval != noInterval =>
+        ff.and(intersects, during)
+      case Filter.INCLUDE if polygon != noPolygon  =>
+        intersects
+      case Filter.INCLUDE if interval != noInterval =>
+        during
+      case f => f
+    }
+
+    def intersects: Filter = raw match {
+      case f: SpatialOperator => f
+      case _                  =>
+        ff.intersects(ff.property(geomField.getLocalName), ff.literal(polygon))
+    }
+
+    def during: Filter = raw match {
+      case f: BinaryTemporalOperator => f
+      case _                         =>
+        ff.during(ff.property(dtgField.getLocalName), ff.literal(interval))
+    }
+  }
 
   def getSafeUnionPolygon(a: Polygon, b: Polygon): Polygon = {
     if (a != noPolygon && b != noPolygon) {
@@ -142,7 +165,15 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
             getSafeUnionInterval(iSoFar, node.interval)
         )
         simplifyChildren(nodes, ff.or)
-      } else op
+      } else {
+        // this was neither all geometry nor all interval
+        val leftovers = nodes.map(_.simplify).filter(_ != Filter.INCLUDE)
+        leftovers.size match {
+          case 0 => Filter.INCLUDE
+          case 1 => leftovers.head
+          case _ => ff.or(leftovers)
+        }
+      }
     }
   }
 
