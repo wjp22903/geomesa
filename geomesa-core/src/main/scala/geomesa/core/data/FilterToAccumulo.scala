@@ -107,18 +107,19 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
     }
   }
 
-  def evaluateChildrenIndependently(filter: BinaryLogicOperator): Seq[EvalNode] = filter.getChildren.map(child => {
-    val oldPolygon = spatialPredicate
-    val oldInterval = temporalPredicate
-    spatialPredicate = noPolygon
-    temporalPredicate = noInterval
-    val childEval = process(child)
-    val p = spatialPredicate
-    val t = temporalPredicate
-    spatialPredicate = oldPolygon
-    temporalPredicate = oldInterval
-    EvalNode(child, childEval, p, t)
-  })
+  def evaluateChildrenIndependently(filter: BinaryLogicOperator): Seq[EvalNode] =
+    filter.getChildren.map(child => {
+      val oldPolygon = spatialPredicate
+      val oldInterval = temporalPredicate
+      spatialPredicate = noPolygon
+      temporalPredicate = noInterval
+      val childEval = process(child)
+      val p = spatialPredicate
+      val t = temporalPredicate
+      spatialPredicate = oldPolygon
+      temporalPredicate = oldInterval
+      EvalNode(child, childEval, p, t)
+    })
 
   def processOrChildren(op: BinaryLogicOperator): Filter = {
     // evaluate all children independently
@@ -148,48 +149,88 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
     }
   }
 
+  def getSafeIntersectionPolygon(a: Polygon, b: Polygon): Polygon =
+    if (a == noPolygon) b
+    else if (b == noPolygon) a
+    else if (a.intersects(b)) {
+      val p = a.intersection(b)
+      p.normalize()
+      p.asInstanceOf[Polygon]
+    } else noPolygon
+
+  def getSafeIntersectionInterval(a: Interval, b: Interval): Interval =
+    if (a == noInterval) b
+    else if (b == noInterval) a
+    else {
+      new Interval(
+        if (a.getStart.isBefore(b.getStart)) b.getStart else a.getStart,
+        if (a.getEnd.isAfter(b.getEnd)) b.getEnd else a.getEnd
+      )
+    }
+
   def processAndChildren(op: BinaryLogicOperator): Filter = {
-    spatialPredicate = noPolygon
-    temporalPredicate = noInterval
-    val firstChildEval = process(op.getChildren.head)
-    val result = op.getChildren.tail.foldLeft((firstChildEval, spatialPredicate, temporalPredicate))((t, child) => t match {
-      case (lastChildEval, polygonSoFar, intervalSoFar) =>
-        // this evaluation updates the (child) estimate of temporalPredicate and spatialPredicate
-        spatialPredicate = noPolygon
-        temporalPredicate = noInterval
-        val childEval = process(child)
-        val nextPolygon = (polygonSoFar, spatialPredicate) match {
-          case (a, b) if a == null && b != null => b
-          case (a, b) if b == null && a != null => a
-          case (a, b) if a == null || b == null => noPolygon
-          case (a, b) =>
-            if (a.intersects(b)) {
-              val p = a.intersection(b).asInstanceOf[Polygon]
-              p.normalize()
-              p
-            }
-            else noPolygon
-        }
-        val nextInterval = (intervalSoFar, temporalPredicate) match {
-          case (a, b) if a == null && b != null => b
-          case (a, b) if b == null && a != null => a
-          case (a, b) if a == null || b == null => noInterval
-          case (a, b) =>
-            if (a.overlap(b) != null) a.overlap(b) else noInterval
-        }
-        val nextEval = (lastChildEval, childEval) match {
-          case (Filter.EXCLUDE, _) => Filter.EXCLUDE
-          case (_, Filter.EXCLUDE) => Filter.EXCLUDE
-          case (Filter.INCLUDE, _) => childEval
-          case (_, Filter.INCLUDE) => lastChildEval
-          case _                   => ff.and(lastChildEval, childEval)
-        }
-        (nextEval, nextPolygon, nextInterval)
+    // evaluate all children independently
+    val nodes = evaluateChildrenIndependently(op)
+
+    val result = nodes.tail.foldLeft(nodes.head)((soFar, node) => {
+      val nextEval = (soFar.evaluated, node.evaluated) match {
+        case (Filter.EXCLUDE, _) => Filter.EXCLUDE
+        case (_, Filter.EXCLUDE) => Filter.EXCLUDE
+        case (Filter.INCLUDE, e) => e
+        case (e, Filter.INCLUDE) => e
+        case (e0, e1)            => ff.and(e0, e1)
+      }
+      EvalNode(
+        Filter.INCLUDE,
+        nextEval,
+        getSafeIntersectionPolygon(soFar.polygon, node.polygon),
+        getSafeIntersectionInterval(soFar.interval, node.interval)
+      )
     })
 
-    spatialPredicate = result._2
-    temporalPredicate = result._3
-    result._1
+    spatialPredicate = result.polygon
+    temporalPredicate = result.interval
+    result.evaluated
+
+//    val firstChildEval = process(op.getChildren.head)
+//    val result = op.getChildren.tail.foldLeft((firstChildEval, spatialPredicate, temporalPredicate))((t, child) => t match {
+//      case (lastChildEval, polygonSoFar, intervalSoFar) =>
+//        // this evaluation updates the (child) estimate of temporalPredicate and spatialPredicate
+//        spatialPredicate = noPolygon
+//        temporalPredicate = noInterval
+//        val childEval = process(child)
+//        val nextPolygon = (polygonSoFar, spatialPredicate) match {
+//          case (a, b) if a == null && b != null => b
+//          case (a, b) if b == null && a != null => a
+//          case (a, b) if a == null || b == null => noPolygon
+//          case (a, b) =>
+//            if (a.intersects(b)) {
+//              val p = a.intersection(b).asInstanceOf[Polygon]
+//              p.normalize()
+//              p
+//            }
+//            else noPolygon
+//        }
+//        val nextInterval = (intervalSoFar, temporalPredicate) match {
+//          case (a, b) if a == null && b != null => b
+//          case (a, b) if b == null && a != null => a
+//          case (a, b) if a == null || b == null => noInterval
+//          case (a, b) =>
+//            if (a.overlap(b) != null) a.overlap(b) else noInterval
+//        }
+//        val nextEval = (lastChildEval, childEval) match {
+//          case (Filter.EXCLUDE, _) => Filter.EXCLUDE
+//          case (_, Filter.EXCLUDE) => Filter.EXCLUDE
+//          case (Filter.INCLUDE, _) => childEval
+//          case (_, Filter.INCLUDE) => lastChildEval
+//          case _                   => ff.and(lastChildEval, childEval)
+//        }
+//        (nextEval, nextPolygon, nextInterval)
+//    })
+//
+//    spatialPredicate = result._2
+//    temporalPredicate = result._3
+//    result._1
   }
 
   def process(filter: Filter, acc: Filter = Filter.INCLUDE): Filter = filter match {
