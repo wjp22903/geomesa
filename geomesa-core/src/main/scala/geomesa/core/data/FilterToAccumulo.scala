@@ -71,51 +71,92 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
   def visit(filter: Filter): Filter =
     process(filter).accept(new SimplifyingFilterVisitor, null).asInstanceOf[Filter]
 
-  def processOrChildren(op: BinaryLogicOperator): Filter = {
-    val firstChildEval = process(op.getChildren.head)
-    val result = op.getChildren.tail.foldLeft((firstChildEval, spatialPredicate, temporalPredicate))((t, child) => t match {
-      case (lastChildEval, polygonSoFar, intervalSoFar) =>
-        spatialPredicate = noPolygon
-        temporalPredicate = noInterval
-        // this evaluation updates the (child) estimate of temporalPredicate and spatialPredicate
-        val childEval = process(child)
-        (ff.or(lastChildEval, childEval),
-          (polygonSoFar, spatialPredicate) match {
-            case (a, b) if a != null && b != null =>
-              if (a.intersects(b)) {
-                val p = a.union(b).asInstanceOf[Polygon]
-                p.normalize()
-                p
-              }
-              else {
-                val env = a.getEnvelopeInternal
-                env.expandToInclude(b.getEnvelopeInternal)
-                env2poly(env)
-              }
-            case _ => noPolygon
-          },
-          (temporalPredicate, intervalSoFar) match {
-            case (a, b) if a != null && b != null =>
-              new Interval(
-                Math.min(a.getStartMillis, b.getStartMillis),
-                Math.max(a.getEndMillis, b.getEndMillis),
-                DateTimeZone.forID("UTC")
-              )
-            case _ => noInterval
-          }
-        )
-    })
+  case class EvalNode(raw: Filter, evaluated: Filter, polygon: Polygon, interval: Interval)
 
-    spatialPredicate = result._2
-    temporalPredicate = result._3
-    result._1
+  def getSafeUnionPolygon(a: Polygon, b: Polygon): Polygon = {
+    if (a != noPolygon && b != noPolygon) {
+      if (a.overlaps(b)) {
+        val p = a.union(b)
+        p.normalize()
+        p.asInstanceOf[Polygon]
+      } else {
+        // they don't overlap; take the merge of their envelopes
+        // (since we don't support MultiPolygon returns yet)
+        val env = a.getEnvelopeInternal
+        env.expandToInclude(b.getEnvelopeInternal)
+        env2poly(env)
+      }
+    } else noPolygon
+  }
+
+  def getSafeUnionInterval(a: Interval, b: Interval): Interval = {
+    if (a != noInterval && b != noInterval) {
+      new Interval(
+        if (a.getStart.isBefore(b.getStart)) a.getStart else b.getStart,
+        if (a.getEnd.isAfter(b.getEnd)) a.getEnd else b.getEnd
+      )
+    } else noInterval
+  }
+
+  def simplifyChildren(nodes: Seq[EvalNode], fnx: (Filter, Filter) => Filter): Filter = {
+    nodes.map(_.evaluated).filter(_ != Filter.INCLUDE) match {
+      case children if children.size == 0 => Filter.INCLUDE
+      case children if children.size == 1 => children.head
+      case children =>
+        children.foldLeft(children.head)((filterSoFar, child) => ff.or(filterSoFar, child))
+    }
+  }
+
+  def evaluateChildrenIndependently(filter: BinaryLogicOperator): Seq[EvalNode] = filter.getChildren.map(child => {
+    val oldPolygon = spatialPredicate
+    val oldInterval = temporalPredicate
+    spatialPredicate = noPolygon
+    temporalPredicate = noInterval
+    val childEval = process(child)
+    val p = spatialPredicate
+    val t = temporalPredicate
+    spatialPredicate = oldPolygon
+    temporalPredicate = oldInterval
+    EvalNode(child, childEval, p, t)
+  })
+
+  def processOrChildren(op: BinaryLogicOperator): Filter = {
+    // evaluate all children independently
+    val nodes = evaluateChildrenIndependently(op)
+
+    spatialPredicate = noPolygon
+    temporalPredicate = noInterval
+
+    // you can reduce a sequence of nodes if they all set (only) geometry
+    val onlyPolygons = nodes.filter(node => node.polygon != noPolygon && node.interval == noInterval)
+    if (onlyPolygons.size == nodes.size) {
+      if (spatialPredicate == noPolygon) spatialPredicate = nodes.head.polygon
+      spatialPredicate = nodes.foldLeft(spatialPredicate)((pSoFar, node) =>
+        getSafeUnionPolygon(pSoFar, node.polygon)
+      )
+      simplifyChildren(nodes, ff.or)
+    } else {
+      // you can reduce a sequence of nodes if they all set (only) time
+      val onlyIntervals = nodes.filter(node => node.polygon == noPolygon && node.interval != noInterval)
+      if (onlyIntervals.size == nodes.size) {
+        if (temporalPredicate == noInterval) temporalPredicate = nodes.head.interval
+        temporalPredicate = nodes.foldLeft(temporalPredicate)((iSoFar, node) =>
+            getSafeUnionInterval(iSoFar, node.interval)
+        )
+        simplifyChildren(nodes, ff.or)
+      } else op
+    }
   }
 
   def processAndChildren(op: BinaryLogicOperator): Filter = {
+    spatialPredicate = noPolygon
+    temporalPredicate = noInterval
     val firstChildEval = process(op.getChildren.head)
     val result = op.getChildren.tail.foldLeft((firstChildEval, spatialPredicate, temporalPredicate))((t, child) => t match {
       case (lastChildEval, polygonSoFar, intervalSoFar) =>
         // this evaluation updates the (child) estimate of temporalPredicate and spatialPredicate
+        spatialPredicate = noPolygon
+        temporalPredicate = noInterval
         val childEval = process(child)
         val nextPolygon = (polygonSoFar, spatialPredicate) match {
           case (a, b) if a == null && b != null => b
@@ -136,7 +177,14 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
           case (a, b) =>
             if (a.overlap(b) != null) a.overlap(b) else noInterval
         }
-        (ff.and(lastChildEval, childEval), nextPolygon, nextInterval)
+        val nextEval = (lastChildEval, childEval) match {
+          case (Filter.EXCLUDE, _) => Filter.EXCLUDE
+          case (_, Filter.EXCLUDE) => Filter.EXCLUDE
+          case (Filter.INCLUDE, _) => childEval
+          case (_, Filter.INCLUDE) => lastChildEval
+          case _                   => ff.and(lastChildEval, childEval)
+        }
+        (nextEval, nextPolygon, nextInterval)
     })
 
     spatialPredicate = result._2
