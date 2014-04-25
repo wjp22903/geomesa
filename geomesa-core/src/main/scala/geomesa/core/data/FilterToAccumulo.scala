@@ -122,7 +122,6 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
     })
 
   def processOrChildren(op: BinaryLogicOperator): Filter = {
-    // evaluate all children independently
     val nodes = evaluateChildrenIndependently(op)
 
     spatialPredicate = noPolygon
@@ -131,8 +130,7 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
     // you can reduce a sequence of nodes if they all set (only) geometry
     val onlyPolygons = nodes.filter(node => node.polygon != noPolygon && node.interval == noInterval)
     if (onlyPolygons.size == nodes.size) {
-      if (spatialPredicate == noPolygon) spatialPredicate = nodes.head.polygon
-      spatialPredicate = nodes.foldLeft(spatialPredicate)((pSoFar, node) =>
+      spatialPredicate = nodes.foldLeft(nodes.head.polygon)((pSoFar, node) =>
         getSafeUnionPolygon(pSoFar, node.polygon)
       )
       simplifyChildren(nodes, ff.or)
@@ -140,8 +138,7 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
       // you can reduce a sequence of nodes if they all set (only) time
       val onlyIntervals = nodes.filter(node => node.polygon == noPolygon && node.interval != noInterval)
       if (onlyIntervals.size == nodes.size) {
-        if (temporalPredicate == noInterval) temporalPredicate = nodes.head.interval
-        temporalPredicate = nodes.foldLeft(temporalPredicate)((iSoFar, node) =>
+        temporalPredicate = nodes.foldLeft(nodes.head.interval)((iSoFar, node) =>
             getSafeUnionInterval(iSoFar, node.interval)
         )
         simplifyChildren(nodes, ff.or)
@@ -169,7 +166,6 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
     }
 
   def processAndChildren(op: BinaryLogicOperator): Filter = {
-    // evaluate all children independently
     val nodes = evaluateChildrenIndependently(op)
 
     val result = nodes.tail.foldLeft(nodes.head)((soFar, node) => {
@@ -191,46 +187,6 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
     spatialPredicate = result.polygon
     temporalPredicate = result.interval
     result.evaluated
-
-//    val firstChildEval = process(op.getChildren.head)
-//    val result = op.getChildren.tail.foldLeft((firstChildEval, spatialPredicate, temporalPredicate))((t, child) => t match {
-//      case (lastChildEval, polygonSoFar, intervalSoFar) =>
-//        // this evaluation updates the (child) estimate of temporalPredicate and spatialPredicate
-//        spatialPredicate = noPolygon
-//        temporalPredicate = noInterval
-//        val childEval = process(child)
-//        val nextPolygon = (polygonSoFar, spatialPredicate) match {
-//          case (a, b) if a == null && b != null => b
-//          case (a, b) if b == null && a != null => a
-//          case (a, b) if a == null || b == null => noPolygon
-//          case (a, b) =>
-//            if (a.intersects(b)) {
-//              val p = a.intersection(b).asInstanceOf[Polygon]
-//              p.normalize()
-//              p
-//            }
-//            else noPolygon
-//        }
-//        val nextInterval = (intervalSoFar, temporalPredicate) match {
-//          case (a, b) if a == null && b != null => b
-//          case (a, b) if b == null && a != null => a
-//          case (a, b) if a == null || b == null => noInterval
-//          case (a, b) =>
-//            if (a.overlap(b) != null) a.overlap(b) else noInterval
-//        }
-//        val nextEval = (lastChildEval, childEval) match {
-//          case (Filter.EXCLUDE, _) => Filter.EXCLUDE
-//          case (_, Filter.EXCLUDE) => Filter.EXCLUDE
-//          case (Filter.INCLUDE, _) => childEval
-//          case (_, Filter.INCLUDE) => lastChildEval
-//          case _                   => ff.and(lastChildEval, childEval)
-//        }
-//        (nextEval, nextPolygon, nextInterval)
-//    })
-//
-//    spatialPredicate = result._2
-//    temporalPredicate = result._3
-//    result._1
   }
 
   def process(filter: Filter, acc: Filter = Filter.INCLUDE): Filter = filter match {
