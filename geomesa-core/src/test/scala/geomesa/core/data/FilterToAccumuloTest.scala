@@ -282,11 +282,10 @@ class FilterToAccumuloTest extends Specification {
       val predicateOr = ff.or(List(predicateAndSpatial, predicateAndTemporal, predicateOrST))
 
       val f2a = new FilterToAccumulo(sft)
-      val result = f2a.visit(predicateOr)
+      f2a.visit(predicateOr)
 
       f2a.temporalPredicate mustEqual f2a.noInterval
       f2a.spatialPredicate mustEqual f2a.noPolygon
-      result.toString mustEqual "NWF"
     }
   }
 
