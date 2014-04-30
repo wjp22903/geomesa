@@ -369,7 +369,6 @@
                         <artifactId>jmxtools</artifactId>
                     </exclusion>
                 </exclusions>
-                <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>org.apache.avro</groupId>
