@@ -13,6 +13,7 @@ import geomesa.utils.geotools.GeneralShapefileIngest
 import java.util.{Map => JMap}
 import scala.collection.JavaConversions._
 import org.geotools.data.DataStoreFinder
+import java.net.URL
 
 
 @RunWith(classOf[JUnitRunner])
@@ -37,14 +38,18 @@ class MiniMesaTest extends Specification {
 
       val zk: String = ma.getZooKeepers
 
-      val villages = "/opt/devel/src/SPINOZA-RPMS/spinoza-geo-data/target/af/spinoza_map_data/features/af_villages_u.shp"
+      val r: URL = getClass.getResource("/shpfiles/af_villages_u.shp")
+
+      System.out.println(s"Path is ${r.getPath}")
+
+      //val villages = "/opt/devel/src/SPINOZA-RPMS/spinoza-geo-data/target/af/spinoza_map_data/features/af_villages_u.shp"
 
       val maparams = Map("instanceId" -> "miniInstance", "zookeepers" -> zk, "user" -> "root",
         "password" -> new String(passwd), "auths" -> "", "tableName" -> "matest")
 
       System.out.println("Ingesting Shapefile")
 
-      GeneralShapefileIngest.shpToDataStoreViaParams(villages, maparams)
+      GeneralShapefileIngest.shpToDataStoreViaParams(r.getPath, maparams)
 
       System.out.println("Ingested shapefile")
 
