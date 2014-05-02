@@ -3,11 +3,9 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
-    <groupId>stealth</groupId>
+    <groupId>com.ccri.stealth</groupId>
     <artifactId>stealth</artifactId>
-    <version>1.0-SNAPSHOT</version>
-
+    <version>1.0.0-SNAPSHOT</version>
     <packaging>war</packaging>
 
     <properties>
@@ -21,17 +19,193 @@
         <jsr305.version>1.3.9</jsr305.version>
         <uidir.pathname>${project.basedir}/src/main/ui</uidir.pathname>
 
-        <basemap.url>http://dgeo:8080/geoserver/wms</basemap.url>
-        <baselayers>high_contrast</baselayers>
+        <basemap.url>http://localhost:8081/geoserver/wms</basemap.url>
+        <baselayers>nurc:Img_Sample</baselayers>
+        <!--basemap.url>http://dgeo:8080/geoserver/wms</basemap.url>
+        <baselayers>mapproxy:globe.osm.toner</baselayers-->
         <basemap.format>image/png</basemap.format>
         <basemap.transparent>true</basemap.transparent>
         <basemap.crs>EPSG:4326</basemap.crs>
-        <basemap.centerLat>33.9</basemap.centerLat>
-        <basemap.centerLon>66.2</basemap.centerLon>
-        <basemap.defaultZoom>4</basemap.defaultZoom>
-        <basemap.minZoom>3</basemap.minZoom>
-        <basemap.maxZoom>14</basemap.maxZoom>
+        <basemap.centerLat>37.76</basemap.centerLat>
+        <basemap.centerLon>-122.45</basemap.centerLon>
+        <basemap.defaultZoom>6</basemap.defaultZoom>
+        <basemap.minZoom>0</basemap.minZoom>
+        <basemap.maxZoom>15</basemap.maxZoom>
     </properties>
+
+    <profiles>
+        <profile>
+            <id>unpack-ui</id>
+            <activation>
+                <property>
+                    <name>!skip-unpack</name>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-dependency-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>extract-js-dependencies</id>
+                                <phase>generate-resources</phase>
+                                <goals>
+                                    <goal>unpack</goal>
+                                </goals>
+                                <configuration>
+                                    <artifactItems>
+                                        <artifactItem>
+                                            <outputDirectory>src/main/ui</outputDirectory>
+                                            <groupId>com.ccri.stealth</groupId>
+                                            <artifactId>stealth</artifactId>
+                                            <version>${project.version}</version>
+                                            <type>zip</type>
+                                            <classifier>npm</classifier>
+                                        </artifactItem>
+                                        <artifactItem>
+                                            <outputDirectory>src/main/ui/vendor</outputDirectory>
+                                            <groupId>com.ccri.stealth</groupId>
+                                            <artifactId>stealth</artifactId>
+                                            <version>${project.version}</version>
+                                            <type>zip</type>
+                                            <classifier>bower</classifier>
+                                        </artifactItem>
+                                    </artifactItems>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>pack-ui</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                        <version>2.4</version>
+                        <configuration>
+                            <descriptors>
+                                <descriptor>src/main/assembly/npm.xml</descriptor>
+                                <descriptor>src/main/assembly/bower.xml</descriptor>
+                            </descriptors>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>make-assembly</id>
+                                <phase>prepare-package</phase>
+                                <goals>
+                                    <goal>single</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>build-helper-maven-plugin</artifactId>
+                        <version>1.8</version>
+                        <executions>
+                            <execution>
+                                <id>attach-artifacts</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>attach-artifact</goal>
+                                </goals>
+                                <configuration>
+                                    <artifacts>
+                                        <artifact>
+                                            <file>${project.build.directory}/${project.artifactId}-${project.version}-npm.zip</file>
+                                            <type>zip</type>
+                                            <classifier>npm</classifier>
+                                        </artifact>
+                                        <artifact>
+                                            <file>${project.build.directory}/${project.artifactId}-${project.version}-bower.zip</file>
+                                            <type>zip</type>
+                                            <classifier>bower</classifier>
+                                        </artifact>
+                                    </artifacts>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <version>1.7</version>
+                        <executions>
+                            <execution>
+                                <id>npm-bower-prune</id>
+                                <phase>clean</phase>
+                                <configuration>
+                                    <target>
+                                        <echo>${project.basedir}
+                                            ---------------------------------------------------
+                                            -- NPM PRUNE --
+                                            ---------------------------------------------------
+                                        </echo>
+                                        <exec executable="cmd" dir="${uidir.pathname}" osfamily="windows" failonerror="true">
+                                            <arg line="/c npm prune"/>
+                                        </exec>
+                                        <exec executable="bash" dir="${uidir.pathname}" osfamily="unix" failonerror="true">
+                                            <arg line="-c 'npm prune'"/>
+                                        </exec>
+                                        <echo>${project.basedir}
+                                            ---------------------------------------------------
+                                            -- BOWER PRUNE --
+                                            ---------------------------------------------------
+                                        </echo>
+                                        <exec executable="cmd" dir="${uidir.pathname}" osfamily="windows" failonerror="true">
+                                            <arg line="/c bower prune"/>
+                                        </exec>
+                                        <exec executable="bash" dir="${uidir.pathname}" osfamily="unix" failonerror="true">
+                                            <arg line="-c 'bower prune'"/>
+                                        </exec>
+                                    </target>
+                                </configuration>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>npm-bower-install</id>
+                                <phase>generate-resources</phase>
+                                <configuration>
+                                    <target>
+                                        <echo>${project.basedir}
+                                            ---------------------------------------------------
+                                            -- NPM INSTALL --
+                                            ---------------------------------------------------
+                                        </echo>
+                                        <exec executable="cmd" dir="${uidir.pathname}" osfamily="windows" failonerror="true">
+                                            <arg line="/c npm install"/>
+                                        </exec>
+                                        <exec executable="bash" dir="${uidir.pathname}" osfamily="unix" failonerror="true">
+                                            <arg line="-c 'npm install'"/>
+                                        </exec>
+                                        <echo>${project.basedir}
+                                            ---------------------------------------------------
+                                            -- BOWER INSTALL --
+                                            ---------------------------------------------------
+                                        </echo>
+                                        <exec executable="cmd" dir="${uidir.pathname}" osfamily="windows" failonerror="true">
+                                            <arg line="/c bower install"/>
+                                        </exec>
+                                        <exec executable="bash" dir="${uidir.pathname}" osfamily="unix" failonerror="true">
+                                            <arg line="-c 'bower install'"/>
+                                        </exec>
+                                    </target>
+                                </configuration>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
     <build>
         <resources>
@@ -76,27 +250,6 @@
                 </configuration>
             </plugin>
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-                <version>1.7</version>
-                <executions>
-                    <execution>
-                        <id>sanitized-project-version</id>
-                        <phase>initialize</phase>
-                        <goals>
-                            <goal>regex-property</goal>
-                        </goals>
-                        <configuration>
-                            <name>sanitized.project.version</name>
-                            <value>${project.version}</value>
-                            <regex>(\d)\.(\d)\.(\d+)-(SNAPSHOT)</regex>
-                            <replacement>$1_$2_snapshot</replacement>
-                            <failIfNoMatch>false</failIfNoMatch>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
                 <groupId>net.alchim31.maven</groupId>
                 <artifactId>scala-maven-plugin</artifactId>
                 <version>3.1.0</version>
@@ -128,29 +281,7 @@
                         <id>grunt-build</id>
                         <phase>prepare-package</phase>
                         <configuration>
-                            <target name="building">
-                                <echo>${project.basedir}
-                                    ---------------------------------------------------
-                                    -- NPM INSTALL --
-                                    ---------------------------------------------------
-                                </echo>
-                                <exec executable="cmd" dir="${uidir.pathname}" osfamily="windows" failonerror="true">
-                                    <arg line="/c npm install"/>
-                                </exec>
-                                <exec executable="bash" dir="${uidir.pathname}" osfamily="unix" failonerror="true">
-                                    <arg line="-c 'npm install'"/>
-                                </exec>
-                                <echo>${project.basedir}
-                                    ---------------------------------------------------
-                                    -- BOWER INSTALL --
-                                    ---------------------------------------------------
-                                </echo>
-                                <exec executable="cmd" dir="${uidir.pathname}" osfamily="windows" failonerror="true">
-                                    <arg line="/c bower install"/>
-                                </exec>
-                                <exec executable="bash" dir="${uidir.pathname}" osfamily="unix" failonerror="true">
-                                    <arg line="-c 'bower install'"/>
-                                </exec>
+                            <target>
                                 <echo>
                                     ---------------------------------------------------
                                     -- GRUNT --
@@ -158,11 +289,11 @@
                                 </echo>
                                 <exec executable="cmd" dir="${uidir.pathname}" osfamily="windows"
                                       resultproperty="cmdresult">
-                                    <arg line="/c grunt"/>
+                                    <arg line="/c grunt --buildDir=../../../target/${project.artifactId}-${project.version}"/>
                                 </exec>
                                 <exec executable="bash" dir="${uidir.pathname}" osfamily="unix"
                                       resultproperty="cmdresult">
-                                    <arg line="-c 'grunt'"/>
+                                    <arg line="-c 'grunt --buildDir=../../../target/${project.artifactId}-${project.version}'"/>
                                 </exec>
 
                                 <condition property="cmdsuccess">
@@ -231,7 +362,7 @@
             <groupId>com.google.code.findbugs</groupId>
             <artifactId>jsr305</artifactId>
             <version>${jsr305.version}</version>
+            <optional>true</optional>
         </dependency>
     </dependencies>
-
 </project>

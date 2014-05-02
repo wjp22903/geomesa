@@ -7,7 +7,7 @@
 @import 'vars'
 @import 'masthead'
 @import 'map'
-@import 'site-lm'
+@import 'classification'
 
 @font-face
     font-family 'FontAwesome'
@@ -22,3 +22,168 @@
     src url('../assets/glyphicons-halflings-regular.eot') format('embedded-opentype'), url('../assets/glyphicons-halflings-regular.woff') format('woff'), url('../assets/glyphicons-halflings-regular.ttf') format('truetype'), url('../assets/glyphics-halflings-regular.svg') format('svg');
     font-weight normal
     font-style normal
+
+body
+    overflow hidden
+
+.anchorTop {
+    position: absolute;
+    top: 0;
+}
+.anchorBottom {
+    position: absolute;
+    bottom: 0;
+}
+.anchorLeft {
+    position: absolute;
+    left: 0;
+}
+.anchorRight {
+    position: absolute;
+    right: 0;
+}
+
+.red {background-color: lightpink;}
+.blue {background-color: lightskyblue;}
+.green {background-color: lightgreen;}
+.yellow {background-color: lightyellow;}
+.gray {background-color: lightgray;}
+.purple {background-color:purple;}
+.tan {background-color:tan;}
+.violet {background-color:violet;}
+
+center-pane
+    position absolute
+    top 0
+    right 0
+    bottom 0
+    left sidePaneWidth
+    &.full-width
+        left 0
+
+.left-pane
+    position absolute
+    top 0
+    //top mastheadHeight
+    bottom 0
+    width sidePaneWidth
+    z-index 500
+    left -1 * (sidePaneWidth)
+    transition left 0.5s ease
+    border-right 1px solid #ccc
+    //background white
+    &.visible
+        left 0
+        .close-btn i
+            -webkit-transform scale(1, -1)
+            transform scale(1, -1)
+    .btn-container
+        position absolute
+        top 0
+        bottom 0
+        right 0
+        vertical-align middle
+    .close-btn
+        position absolute
+        transform translateY(-50%)
+        top 50%
+        width closeBtnWidth
+        height closeBtnHeight
+        border-radius 0 8px 8px 0
+        border 1px solid #CCC
+        border-left 0
+        user-select none
+        cursor pointer
+        background linear-gradient(left, white, '#F5F5F5')
+        i
+            display inline-block
+            line-height closeBtnHeight
+            margin-left 4px
+            -webkit-transform scale(-1, 1)
+            transform scale(-1, 1)
+
+.center-top
+    position absolute
+    left 10px
+    right 10px
+    height 100px
+    z-index 400
+    border-radius 0 0 5px 5px
+    top -1 * (100px)
+    transition top 0.5s ease
+    border 1px solid #ccc
+    border-top 0
+    //background white
+    &.visible
+        top 0
+        .close-btn i
+            -webkit-transform scale(-1, 1)
+            transform scale(-1, 1)
+    .btn-container
+        position absolute
+        left 0
+        bottom 0
+        right 0
+        text-align center
+    .close-btn
+        position absolute
+        transform translateX(-50%)
+        left 50%
+        width 70px
+        height 20px
+        border-radius 0 0 8px 8px
+        border 1px solid #CCC
+        border-top 0
+        user-select none
+        cursor pointer
+        background linear-gradient(top, white, '#F5F5F5')
+        i
+            display inline-block
+            -webkit-transform scale(1, -1)
+            transform scale(1, -1)
+
+.center-right
+    position absolute
+    top 110px
+    bottom 15px
+    z-index 400
+    width 100px
+    border-radius 5px 0 0 5px
+    right -1 * (100px)
+    transition right 0.5s ease
+    border 1px solid #ccc
+    border-right 0
+    //background white
+    &.visible
+        right 0
+        .close-btn i
+            -webkit-transform scale(1, -1)
+            transform scale(1, -1)
+    .btn-container
+        position absolute
+        top 0
+        bottom 0
+        left 0
+        vertical-align middle
+    .close-btn
+        position absolute
+        left -20px
+        transform translateY(-50%)
+        top 50%
+        width closeBtnWidth
+        height closeBtnHeight
+        border-radius 8px 0 0 8px
+        border 1px solid #CCC
+        border-right 0
+        user-select none
+        cursor pointer
+        background linear-gradient(right, white, '#F5F5F5')
+        i
+            display inline-block
+            line-height closeBtnHeight
+            margin-left 4px
+            -webkit-transform scale(-1, 1)
+            transform scale(-1, 1)
+
+.activeNavItem
+    color red !important

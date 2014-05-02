@@ -1,9 +1,5 @@
 package com.ccri.stealth.service
 
-/**
- * Created by mforkin on 3/26/14.
- */
-
 case class BasemapConfig(
   url: String,
   baseLayers: String,

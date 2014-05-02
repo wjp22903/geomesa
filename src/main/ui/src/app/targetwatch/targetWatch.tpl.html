@@ -1,0 +1,16 @@
+<div ng-controller="TargetWatchController">
+    <left-pane is-visible="isLeftPaneVisible">
+        <div>Sites/Data/Targets go here</div>
+    </left-pane>
+    <center-pane is-full-width="!isLeftPaneVisible">
+        <center-top is-visible="isCenterTopVisible">
+            <div>Analysis controls go here</div>
+        </center-top>
+        <center-right is-visible="isCenterRightVisible">
+            <div>Viz selector here</div>
+        </center-right>
+        <div class="anchorTop anchorBottom anchorLeft anchorRight">
+            <leaflet-map id="map" mc="mc" map="map"></leaflet-map>
+        </div>
+    </center-pane>
+</div>

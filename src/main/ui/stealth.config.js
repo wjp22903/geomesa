@@ -1,9 +1,6 @@
 // Project configuration.
 //
 module.exports = {
-    
-    // Where the project is build during development.
-    buildDir: '../../../target/stealth-1.0-SNAPSHOT',
 
     // The location of the html page that will be built.
     // Change if needed...
@@ -52,6 +49,7 @@ module.exports = {
         ],
         css: [],
         assets: [
+            'vendor/bower/leaflet-dist/images/*',
             'vendor/bower/font-awesome/fonts/*',
             'vendor/bower/bootstrap/fonts/*'
         ]

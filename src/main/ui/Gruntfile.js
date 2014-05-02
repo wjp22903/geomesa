@@ -13,7 +13,7 @@ module.exports = function (grunt) {
     grunt.initConfig(require('./stealth.config.js'));
 
     // Expand the buildDir pattern to allow glob minimatch patterns in config.
-    grunt.config('buildDir', grunt.file.expand(grunt.config('buildDir')));
+    grunt.config('buildDir', grunt.option('buildDir'));
     
     // CLEAN
     grunt.config('clean', [

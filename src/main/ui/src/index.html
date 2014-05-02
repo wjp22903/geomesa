@@ -12,11 +12,18 @@
     <link rel="stylesheet" href="[%= file %]">[% }); %]
     [% scripts.forEach(function(file) { %]
     <script src="[%= file %]"></script>[% }); %]
-
 </head>
 
 <body ng-controller="AppController">
-    <div ng-include="'masthead/masthead.tpl.html'"></div>
-    <div ng-view class="container-fluid content"></div>
+    <div class="anchorTop classBanner unclassified">
+        Dynamic Page - Highest Possible Classification is UNCLASSIFIED//FOR OFFICIAL USE ONLY
+    </div>
+    <div class="betweenClassBanners">
+        <div ng-include="'common/nav/navBar.tpl.html'"></div>
+        <div ng-view style="position:absolute;top:50px;bottom:0;left:0;right:0;"></div>
+    </div>
+    <div class="anchorBottom classBanner unclassified">
+        Dynamic Page - Highest Possible Classification is UNCLASSIFIED//FOR OFFICIAL USE ONLY
+    </div>
 </body>
 </html>
