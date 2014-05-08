@@ -31,8 +31,7 @@ angular.module('stealth.siteactivity.siteActivity', [
                 version: '2.0.0',
                 request: 'GetFeature',
                 typeName: 'topp:states',
-                outputFormat: 'text/javascript', //JSONP
-                format_options: 'callback:JSON_CALLBACK'
+                outputFormat: 'application/json'
             },
             showWindow: function () {
                 $modal.open({
@@ -41,7 +40,7 @@ angular.module('stealth.siteactivity.siteActivity', [
                     controller: function ($scope, $modalInstance) {
                         $scope.submit = function () {
                             var cql_filter = $scope.addSites.formData.cql_filter;
-                            $http.jsonp('http://localhost:8081/geoserver/wfs', {params: $scope.addSites.formData})
+                            $http.get('cors/http://localhost:8081/geoserver/wfs', {params: $scope.addSites.formData})
                                 .success(function (data) {
                                     $modalInstance.close();
                                     $rootScope.$broadcast("AddMapLayer", {
