@@ -17,8 +17,7 @@
 
 package geomesa.core.data
 
-import geomesa.core
-import geomesa.core.data.AccumuloFeatureWriter.{LocalRecordDeleter, LocalRecordWriter, MapReduceRecordWriter}
+import geomesa.core.data.FeatureEncoding.FeatureEncoding
 import geomesa.core.index.{Constants, SpatioTemporalIndexSchema}
 import java.io.Serializable
 import java.util.{Map=>JMap}
@@ -40,12 +39,11 @@ import org.opengis.filter.Filter
 import org.opengis.referencing.crs.CoordinateReferenceSystem
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
-import geomesa.core.data.FeatureEncoding.FeatureEncoding
 
 /**
  *
  * @param connector        Accumulo connector
- * @param tableName        The name of the Accumulo table contains the various features
+ * @param tableName        The name of the Accumulo table contains the catalog
  * @param authorizations   The authorizations used to access data
  *
  * This class handles DataStores which are stored in Accumulo Tables.  To be clear, one table may contain multiple
@@ -64,32 +62,46 @@ class AccumuloDataStore(val connector: Connector,
   Hints.putSystemDefault(Hints.FORCE_LONGITUDE_FIRST_AXIS_ORDER, true)
 
   val tableOps = connector.tableOperations()
+  if(!tableOps.exists(tableName)) tableOps.create(tableName)
+
   type KVEntry = JMap.Entry[Key,Value]
 
-  def createTableIfNotExists(tableName: String,
-                             featureType: SimpleFeatureType,
-                             featureEncoding: FeatureEncoding) {
-    if (!tableOps.exists(tableName))
-      connector.tableOperations.create(tableName)
+  def getRecordTableForType(featureType: SimpleFeatureType) = s"${featureType.getTypeName}_records"
+  def getSTIdxTableForType(featureType: SimpleFeatureType)  = s"${featureType.getTypeName}_st_idx"
+  def getAttrIdxTableForType(featureType: SimpleFeatureType)  = s"${featureType.getTypeName}_attr_idx"
+
+  def createTablesForType(featureType: SimpleFeatureType,
+                          featureEncoding: FeatureEncoding) {
+    val recordTable       = getRecordTableForType(featureType)
+    val stIdxTable        = getSTIdxTableForType(featureType)
+    val attributeIdxTable = getAttrIdxTableForType(featureType)
+    
+    List(recordTable, stIdxTable, attributeIdxTable).map { t =>
+      if (!tableOps.exists(t)) connector.tableOperations.create(t)
+    }
 
     if(!connector.isInstanceOf[MockConnector])
-      configureNewTable(createIndexSchema(featureType), featureType, tableName, featureEncoding)
+      configureNewTable(createIndexSchema(featureType), featureType, stIdxTable, featureEncoding)
   }
 
-  def configureNewTable(indexSchemaFormat: String, featureType: SimpleFeatureType, tableName: String, fe: FeatureEncoding) {
+  def configureNewTable(indexSchemaFormat: String,
+                        featureType: SimpleFeatureType,
+                        stIdxTable: String,
+                        fe: FeatureEncoding) {
+
     val encoder = SimpleFeatureEncoderFactory.createEncoder(fe)
     val indexSchema = SpatioTemporalIndexSchema(indexSchemaFormat, featureType, encoder)
     val maxShard = indexSchema.maxShard
 
     val splits = (1 to maxShard).map { i => s"%0${maxShard.toString.length}d".format(i) }.map(new Text(_))
-    tableOps.addSplits(tableName, new java.util.TreeSet(splits))
+    tableOps.addSplits(stIdxTable, new java.util.TreeSet(splits))
 
     // enable the column-family functor
-    tableOps.setProperty(tableName, "table.bloom.key.functor", classOf[ColumnFamilyFunctor].getCanonicalName)
-    tableOps.setProperty(tableName, "table.bloom.enabled", "true")
+    tableOps.setProperty(stIdxTable, "table.bloom.key.functor", classOf[ColumnFamilyFunctor].getCanonicalName)
+    tableOps.setProperty(stIdxTable, "table.bloom.enabled", "true")
 
     // isolate various metadata elements in locality groups
-    tableOps.setLocalityGroups(tableName,
+    tableOps.setLocalityGroups(stIdxTable,
       Map(
         ATTRIBUTES_CF.toString -> Set(ATTRIBUTES_CF).asJava,
         SCHEMA_CF.toString     -> Set(SCHEMA_CF).asJava,
@@ -97,7 +109,7 @@ class AccumuloDataStore(val connector: Connector,
   }
 
   override def createSchema(featureType: SimpleFeatureType) {
-    createTableIfNotExists(tableName, featureType, featureEncoding)
+    createTablesForType(featureType, featureEncoding)
     writeMetadata(featureType)
   }
 
@@ -109,8 +121,8 @@ class AccumuloDataStore(val connector: Connector,
     val schemaValue = createIndexSchema(sft)
     writeMetadataItem(featureName, SCHEMA_CF, new Value(schemaValue.getBytes))
     val userData = sft.getUserData
-    if(userData.containsKey(core.index.SF_PROPERTY_START_TIME)) {
-      val dtgField = userData.get(core.index.SF_PROPERTY_START_TIME)
+    if(userData.containsKey(Constants.SF_PROPERTY_START_TIME)) {
+      val dtgField = userData.get(Constants.SF_PROPERTY_START_TIME)
       writeMetadataItem(featureName, DTGFIELD_CF, new Value(dtgField.asInstanceOf[String].getBytes))
     }
     val fe = SimpleFeatureEncoderFactory.createEncoder(featureEncoding).getName
@@ -266,8 +278,8 @@ class AccumuloDataStore(val connector: Connector,
   def getSchema(featureName: String) = {
     val sft = DataUtilities.createType(featureName, getAttributes(featureName))
     val dtgField = readMetadataItem(featureName, DTGFIELD_CF).getOrElse(Constants.SF_PROPERTY_START_TIME)
-    sft.getUserData.put(core.index.SF_PROPERTY_START_TIME, dtgField)
-    sft.getUserData.put(core.index.SF_PROPERTY_END_TIME,   dtgField)
+    sft.getUserData.put(Constants.SF_PROPERTY_START_TIME, dtgField)
+    sft.getUserData.put(Constants.SF_PROPERTY_END_TIME,   dtgField)
     sft
   }
 
@@ -289,9 +301,7 @@ class AccumuloDataStore(val connector: Connector,
     val indexSchemaFmt = getIndexSchemaFmt(typeName)
     val fe = getFeatureEncoder(typeName)
     val schema = SpatioTemporalIndexSchema(indexSchemaFmt, featureType, fe)
-    val writer = new LocalRecordWriter(tableName, connector)
-    val deleter = new LocalRecordDeleter(tableName, connector)
-    new ModifyAccumuloFeatureWriter(featureType, schema, writer, deleter, this)
+    new ModifyAccumuloFeatureWriter(featureType, schema, connector, fe, this)
   }
 
   /* optimized for GeoTools API to return writer ONLY for appending (aka don't scan table) */
@@ -300,13 +310,16 @@ class AccumuloDataStore(val connector: Connector,
     val indexSchemaFmt = getIndexSchemaFmt(typeName)
     val fe = getFeatureEncoder(typeName)
     val schema = SpatioTemporalIndexSchema(indexSchemaFmt, featureType, fe)
-    val writer = new LocalRecordWriter(tableName, connector)
-    new AppendAccumuloFeatureWriter(featureType, schema, writer)
+    new AppendAccumuloFeatureWriter(featureType, schema, connector, fe, this)
   }
 
   override def getUnsupportedFilter(featureName: String, filter: Filter): Filter = Filter.INCLUDE
 
+  // Catalog BatchScanner
   def createBatchScanner = connector.createBatchScanner(tableName, authorizations, 100)
+
+  def createBatchScanner(sft: SimpleFeatureType) =
+    connector.createBatchScanner(getSTIdxTableForType(sft), authorizations, 100)
 
   // Accumulo assumes that the failures directory exists.  This function assumes that you have already created it.
   def importDirectory(tableName: String,
@@ -349,9 +362,8 @@ class MapReduceAccumuloDataStore(connector: Connector,
     val idxFmt = getIndexSchemaFmt(featureName)
     val fe = getFeatureEncoder(featureName)
     val idx = SpatioTemporalIndexSchema(idxFmt, featureType, fe)
-    val writer = new MapReduceRecordWriter(context)
     // TODO allow deletes? modifications?
-    new AppendAccumuloFeatureWriter(featureType, idx, writer)
+    new AppendAccumuloFeatureWriter(featureType, idx, connector, fe, this)
   }
 
 }

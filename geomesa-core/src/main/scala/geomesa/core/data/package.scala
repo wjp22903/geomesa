@@ -45,6 +45,7 @@ package object data {
   val METADATA_TAG_END   = s"$METADATA_TAG~~"
   val EMPTY_STRING       = ""
   val EMPTY_VALUE        = new Value(Array[Byte]())
+  val SFT_CF             = new Text("SFT")
   val EMPTY_COLQ         = new Text(EMPTY_STRING)
   val WHOLE_WORLD_BOUNDS = "-180.0:180.0:-90.0:90.0"
   val TRANSFORMS         = new ClassKey(classOf[String])

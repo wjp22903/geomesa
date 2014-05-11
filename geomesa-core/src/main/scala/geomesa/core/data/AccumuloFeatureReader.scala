@@ -60,7 +60,7 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
   val spatial = filterVisitor.spatialPredicate
   val temporal = filterVisitor.temporalPredicate
 
-  lazy val bs = dataStore.createBatchScanner
+  lazy val bs = dataStore.createBatchScanner(sft)
   lazy val iter = {
     val transformOption = Option(query.getHints.get(TRANSFORMS)).map(_.asInstanceOf[String])
     val transformSchema = Option(query.getHints.get(TRANSFORM_SCHEMA)).map(_.asInstanceOf[SimpleFeatureType])
