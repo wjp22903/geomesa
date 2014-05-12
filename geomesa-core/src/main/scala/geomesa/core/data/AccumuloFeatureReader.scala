@@ -16,15 +16,22 @@
 
 package geomesa.core.data
 
+import collection.JavaConversions._
 import geomesa.core.index._
 import geomesa.core.iterators.DensityIterator
-import org.apache.accumulo.core.data.Value
+import java.nio.charset.StandardCharsets
+import org.apache.accumulo.core.data.{Range, Value}
+import org.apache.hadoop.io.Text
 import org.geotools.data.{DataUtilities, Query, FeatureReader}
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.factory.Hints.{IntegerKey, ClassKey}
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.filter.PropertyIsEqualTo
+import org.opengis.filter.expression.{Literal, PropertyName}
+import org.opengis.filter.spatial.Equals
+import org.geotools.metadata.iso.extent.GeographicBoundingBoxImpl
 
 class AccumuloFeatureReader(dataStore: AccumuloDataStore,
                             featureName: String,
@@ -71,11 +78,33 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
         transformOption, transformSchema, density = true, width, height)
       unpackDensityFeatures(q)
     } else {
-      val q = indexSchema.query(bs, spatial, temporal, encodedSFT, Some(cqlString),
-        transformOption, transformSchema, density = false)
-      val result = transformSchema.map { tschema => q.map { v => featureEncoder.decode(tschema, v) } }
-      result.getOrElse(q.map { v => featureEncoder.decode(sft, v) })
+      rewrittenCQL match {
+        case isEqualsTo: PropertyIsEqualTo => processPropertyIsEqualsTo(isEqualsTo)
+        case _ =>
+          val q = indexSchema.query(bs, spatial, temporal, encodedSFT, Some(cqlString),
+            transformOption, transformSchema, density = false)
+          val result = transformSchema.map { tschema => q.map { v => featureEncoder.decode(tschema, v) } }
+          result.getOrElse(q.map { v => featureEncoder.decode(sft, v) })
+      }
     }
+  }
+
+  def processPropertyIsEqualsTo(filter: PropertyIsEqualTo) = {
+    val attrScanner = dataStore.createAttrIdxScanner(sft)
+    val recordScanner = dataStore.createRecordScanner(sft)
+
+    val one = filter.getExpression1
+    val two = filter.getExpression2
+    val (prop, lit) = (one, two) match {
+      case (p: PropertyName, l: Literal) => (p.getPropertyName, l.getValue.toString)
+      case (l: Literal, p: PropertyName) => (p.getPropertyName, l.getValue.toString)
+    }
+
+    val range = new Text(prop.getBytes(StandardCharsets.UTF_8) ++ NULLBYTE ++ lit.getBytes(StandardCharsets.UTF_8))
+    attrScanner.setRange(new Range(range))
+    val ids = attrScanner.iterator().map { _.getKey.getColumnFamily.toString }
+    recordScanner.setRanges(ids.map { i => new Range(i) }.toList)
+    recordScanner.iterator().map { _.getValue }.map { v => featureEncoder.decode(sft, v) }
   }
 
   def unpackDensityFeatures(iter: Iterator[Value]) =

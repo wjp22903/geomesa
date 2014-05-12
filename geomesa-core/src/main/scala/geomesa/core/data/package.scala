@@ -20,8 +20,10 @@ import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapreduce.TaskInputOutputContext
 import org.geotools.data.FeatureWriter
-import org.opengis.feature.simple.{SimpleFeatureType, SimpleFeature}
 import org.geotools.factory.Hints.ClassKey
+import org.opengis.feature.simple.{SimpleFeatureType, SimpleFeature}
+import com.vividsolutions.jts.geom.Envelope
+import org.geotools.geometry.jts.JTS
 
 package object data {
 
@@ -45,9 +47,12 @@ package object data {
   val METADATA_TAG_END   = s"$METADATA_TAG~~"
   val EMPTY_STRING       = ""
   val EMPTY_VALUE        = new Value(Array[Byte]())
+  val NULLBYTE           = Array[Byte](0)
   val SFT_CF             = new Text("SFT")
   val EMPTY_COLQ         = new Text(EMPTY_STRING)
   val WHOLE_WORLD_BOUNDS = "-180.0:180.0:-90.0:90.0"
+  val WHOLE_WORLD_ENV    = new Envelope(-180.0, 180.0, -90.0, 90.0)
+  val WHOLE_WORLD_POLY   = JTS.toGeometry(WHOLE_WORLD_ENV)
   val TRANSFORMS         = new ClassKey(classOf[String])
   val TRANSFORM_SCHEMA   = new ClassKey(classOf[SimpleFeatureType])
 

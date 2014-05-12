@@ -192,7 +192,7 @@ extends IndexEntryEncoder[SimpleFeature] {
     // remember the resulting index-entries
     val keys = entries.map { entry =>
       val Array(r, cf, cq) = formats.map { _.format(entry) }
-      new Key(r, cf, cq, entry.dt.map(_.getMillis).getOrElse(DateTime.now().getMillis))
+      new Key(r, cf, cq, entry.dt.fold(DateTime.now().getMillis)(_.getMillis))
     }
     val rowIDs = keys.map(_.getRow)
     val id = new Text(entryToEncode.sid)

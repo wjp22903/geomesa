@@ -321,6 +321,12 @@ class AccumuloDataStore(val connector: Connector,
   def createBatchScanner(sft: SimpleFeatureType) =
     connector.createBatchScanner(getSTIdxTableForType(sft), authorizations, 100)
 
+  def createAttrIdxScanner(sft: SimpleFeatureType) =
+    connector.createScanner(getAttrIdxTableForType(sft), authorizations)
+
+  def createRecordScanner(sft: SimpleFeatureType) =
+    connector.createBatchScanner(getRecordTableForType(sft), authorizations, 20)
+
   // Accumulo assumes that the failures directory exists.  This function assumes that you have already created it.
   def importDirectory(tableName: String,
                       dir: String,

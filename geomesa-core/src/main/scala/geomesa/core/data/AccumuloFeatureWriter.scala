@@ -116,7 +116,6 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
     stIdxWriter.addMutations(m.asJava)
   }
 
-  private val nullByte = Array[Byte](0)
   private def writeAttrIdx(feature: SimpleFeature): Unit = {
     val muts = getAttrIdxMutations(feature, new Text(feature.getID)).map {
       case PutOrDeleteMutation(row, cf, cq, v) =>
@@ -132,7 +131,7 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
     featureType.getAttributeDescriptors.map { attr =>
       val attrName = attr.getLocalName.getBytes(StandardCharsets.UTF_8)
       val attrValue = valOrNull(feature.getAttribute(attr.getName)).getBytes(StandardCharsets.UTF_8)
-      val row = attrName ++ nullByte ++ attrValue
+      val row = attrName ++ NULLBYTE ++ attrValue
       val value = SpatioTemporalIndexSchema.encodeIndexValue(feature)
       PutOrDeleteMutation(row, cf, EMPTY_COLQ, value)
     }
