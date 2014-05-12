@@ -10,13 +10,16 @@
 
     <!--
         Available profiles:
+        install-nodejs
+            Fetch nodejs from artifactory and unpack.  Only has to be run once initially
+            and subsequently whenever the nodejs version needs to be changed.
+        unpack-ui
+            Fetch UI dependency zips from artifactory and unpack.  Only has to be run once initially
+            and subsequently after dependency changes have been deployed to artifactory.
         pack-ui
             Download UI dependencies from internet and package as zips.  Must be online.
             Run when you modify package.json or bower.json deps.
             Also, run by CI to deploy zips to artifactory.
-        unpack-ui
-            Fetch UI dependency zips from artifactory and unpack.  Only has to be run once initially
-            and subsequently after dependency changes have been deployed to artifactory.
     -->
 
     <properties>
@@ -25,6 +28,13 @@
         <spray-json.version>1.2.3</spray-json.version>
         <scala.version>2.10.0</scala.version>
         <uidir.pathname>${project.basedir}/src/main/ui</uidir.pathname>
+
+        <nodejs.local.dir>${uidir.pathname}/nodejs</nodejs.local.dir>
+        <nodejs.version>v0.10.28</nodejs.version>
+        <nodejs.classifier>INVALID</nodejs.classifier>
+        <phantomjs.local.dir>${uidir.pathname}/node_modules/karma-phantomjs-launcher/node_modules/phantomjs/lib/phantom</phantomjs.local.dir>
+        <phantomjs.version>1.9.7</phantomjs.version>
+        <phantomjs.classifier>INVALID</phantomjs.classifier>
 
         <basemap.url>http://localhost:8081/geoserver/wms</basemap.url>
         <baselayers>nurc:Img_Sample</baselayers>
@@ -42,10 +52,6 @@
 
     <build>
         <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>false</filtering>
-            </resource>
             <resource>
                 <directory>src/main/resources-filter</directory>
                 <filtering>true</filtering>
@@ -137,14 +143,14 @@
                         <phase>prepare-package</phase>
                         <configuration>
                             <target>
-                                <echo>---- GRUNT ----</echo>
+                                <echo>**** GRUNT ****</echo>
                                 <exec executable="cmd" dir="${uidir.pathname}" osfamily="windows"
                                       resultproperty="cmdresult">
-                                    <arg line="/c grunt"/>
+                                    <arg line="/c node.exe ${uidir.pathname}/node_modules/grunt-cli/bin/grunt"/>
                                 </exec>
                                 <exec executable="bash" dir="${uidir.pathname}" osfamily="unix"
                                       resultproperty="cmdresult">
-                                    <arg line="-c grunt"/>
+                                    <arg line="-c ${uidir.pathname}/node_modules/grunt-cli/bin/grunt"/>
                                 </exec>
 
                                 <condition property="cmdsuccess">
@@ -201,9 +207,110 @@
         </dependency>
     </dependencies>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.ccri.stealth</groupId>
+                <artifactId>stealth</artifactId>
+                <version>${project.version}</version>
+                <classifier>npm</classifier>
+                <type>zip</type>
+            </dependency>
+            <dependency>
+                <groupId>com.ccri.stealth</groupId>
+                <artifactId>stealth</artifactId>
+                <version>${project.version}</version>
+                <classifier>bower</classifier>
+                <type>zip</type>
+            </dependency>
+            <dependency>
+                <groupId>nodejs</groupId>
+                <artifactId>node</artifactId>
+                <version>${nodejs.version}</version>
+                <classifier>${nodejs.classifier}</classifier>
+                <type>zip</type>
+            </dependency>
+            <dependency>
+                <groupId>phantomjs</groupId>
+                <artifactId>phantomjs</artifactId>
+                <version>${phantomjs.version}</version>
+                <classifier>${phantomjs.classifier}</classifier>
+                <type>zip</type>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <profiles>
         <profile>
-            <id>unpack-ui</id>
+            <id>install-nodejs</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-clean-plugin</artifactId>
+                        <version>2.5</version>
+                        <configuration>
+                            <filesets>
+                                <fileset>
+                                    <directory>${nodejs.local.dir}</directory>
+                                </fileset>
+                                <fileset>
+                                    <directory>${uidir.pathname}</directory>
+                                    <includes>
+                                        <include>node.exe</include>
+                                    </includes>
+                                </fileset>
+                            </filesets>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-dependency-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>extract-nodejs</id>
+                                <phase>initialize</phase>
+                                <goals>
+                                    <goal>unpack</goal>
+                                </goals>
+                                <configuration>
+                                    <artifactItems>
+                                        <artifactItem>
+                                            <outputDirectory>${uidir.pathname}</outputDirectory>
+                                            <groupId>nodejs</groupId>
+                                            <artifactId>node</artifactId>
+                                            <classifier>${nodejs.classifier}</classifier>
+                                            <type>zip</type>
+                                            <includes>node-v*/**</includes>
+                                        </artifactItem>
+                                    </artifactItems>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <version>1.7</version>
+                        <executions>
+                            <execution>
+                                <id>nodejs-rename</id>
+                                <phase>generate-sources</phase>
+                                <configuration>
+                                    <target>
+                                        <move file="${uidir.pathname}/node-${nodejs.version}-${nodejs.classifier}" tofile="${nodejs.local.dir}"/>
+                                        <copy file="${nodejs.local.dir}/node.exe" tofile="${uidir.pathname}/node.exe" overwrite="true" failonerror="false"/>
+                                    </target>
+                                </configuration>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>pack-ui</id>
             <build>
                 <plugins>
                     <plugin>
@@ -220,46 +327,6 @@
                             </filesets>
                         </configuration>
                     </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-dependency-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>extract-js-dependencies</id>
-                                <phase>generate-resources</phase>
-                                <goals>
-                                    <goal>unpack</goal>
-                                </goals>
-                                <configuration>
-                                    <artifactItems>
-                                        <artifactItem>
-                                            <outputDirectory>src/main/ui</outputDirectory>
-                                            <groupId>com.ccri.stealth</groupId>
-                                            <artifactId>stealth</artifactId>
-                                            <version>${project.version}</version>
-                                            <type>zip</type>
-                                            <classifier>npm</classifier>
-                                        </artifactItem>
-                                        <artifactItem>
-                                            <outputDirectory>src/main/ui/vendor</outputDirectory>
-                                            <groupId>com.ccri.stealth</groupId>
-                                            <artifactId>stealth</artifactId>
-                                            <version>${project.version}</version>
-                                            <type>zip</type>
-                                            <classifier>bower</classifier>
-                                        </artifactItem>
-                                    </artifactItems>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-        <profile>
-            <id>pack-ui</id>
-            <build>
-                <plugins>
                     <plugin>
                         <artifactId>maven-assembly-plugin</artifactId>
                         <version>2.4</version>
@@ -312,48 +379,23 @@
                         <version>1.7</version>
                         <executions>
                             <execution>
-                                <id>npm-bower-prune</id>
-                                <phase>clean</phase>
-                                <configuration>
-                                    <target>
-                                        <echo>---- NPM PRUNE -----</echo>
-                                        <exec executable="cmd" dir="${uidir.pathname}" osfamily="windows" failonerror="true">
-                                            <arg line="/c npm prune"/>
-                                        </exec>
-                                        <exec executable="bash" dir="${uidir.pathname}" osfamily="unix" failonerror="true">
-                                            <arg line="-c 'npm prune'"/>
-                                        </exec>
-                                        <echo>---- BOWER PRUNE ----</echo>
-                                        <exec executable="cmd" dir="${uidir.pathname}" osfamily="windows" failonerror="true">
-                                            <arg line="/c bower prune"/>
-                                        </exec>
-                                        <exec executable="bash" dir="${uidir.pathname}" osfamily="unix" failonerror="true">
-                                            <arg line="-c 'bower prune'"/>
-                                        </exec>
-                                    </target>
-                                </configuration>
-                                <goals>
-                                    <goal>run</goal>
-                                </goals>
-                            </execution>
-                            <execution>
                                 <id>npm-bower-install</id>
                                 <phase>generate-resources</phase>
                                 <configuration>
                                     <target>
-                                        <echo>---- NPM INSTALL ----</echo>
+                                        <echo>**** NPM INSTALL ****</echo>
                                         <exec executable="cmd" dir="${uidir.pathname}" osfamily="windows" failonerror="true">
-                                            <arg line="/c npm install"/>
+                                            <arg line="/c ${uidir.pathname}/nodejs/npm.cmd install"/>
                                         </exec>
                                         <exec executable="bash" dir="${uidir.pathname}" osfamily="unix" failonerror="true">
                                             <arg line="-c 'npm install'"/>
                                         </exec>
-                                        <echo>---- BOWER INSTALL ----</echo>
+                                        <echo>**** BOWER INSTALL ****</echo>
                                         <exec executable="cmd" dir="${uidir.pathname}" osfamily="windows" failonerror="true">
-                                            <arg line="/c bower install"/>
+                                            <arg line="/c node.exe ${uidir.pathname}/node_modules/bower/bin/bower install"/>
                                         </exec>
                                         <exec executable="bash" dir="${uidir.pathname}" osfamily="unix" failonerror="true">
-                                            <arg line="-c 'bower install'"/>
+                                            <arg line="-c '${uidir.pathname}/node_modules/bower/bin/bower install'"/>
                                         </exec>
                                     </target>
                                 </configuration>
@@ -365,6 +407,203 @@
                     </plugin>
                 </plugins>
             </build>
+        </profile>
+        <profile>
+            <id>unpack-ui</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-clean-plugin</artifactId>
+                        <version>2.5</version>
+                        <configuration>
+                            <filesets>
+                                <fileset>
+                                    <directory>src/main/ui/node_modules</directory>
+                                </fileset>
+                                <fileset>
+                                    <directory>src/main/ui/vendor/bower</directory>
+                                </fileset>
+                            </filesets>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-dependency-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>extract-js-dependencies</id>
+                                <phase>generate-resources</phase>
+                                <goals>
+                                    <goal>unpack</goal>
+                                </goals>
+                                <configuration>
+                                    <artifactItems>
+                                        <artifactItem>
+                                            <outputDirectory>src/main/ui</outputDirectory>
+                                            <groupId>com.ccri.stealth</groupId>
+                                            <artifactId>stealth</artifactId>
+                                            <classifier>npm</classifier>
+                                            <type>zip</type>
+                                        </artifactItem>
+                                        <artifactItem>
+                                            <outputDirectory>src/main/ui/vendor</outputDirectory>
+                                            <groupId>com.ccri.stealth</groupId>
+                                            <artifactId>stealth</artifactId>
+                                            <classifier>bower</classifier>
+                                            <type>zip</type>
+                                        </artifactItem>
+                                        <artifactItem>
+                                            <outputDirectory>${uidir.pathname}/node_modules/karma-phantomjs-launcher/node_modules/phantomjs/lib</outputDirectory>
+                                            <groupId>phantomjs</groupId>
+                                            <artifactId>phantomjs</artifactId>
+                                            <classifier>${phantomjs.classifier}</classifier>
+                                            <type>zip</type>
+                                            <includes>phantomjs-*/**</includes>
+                                        </artifactItem>
+                                    </artifactItems>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <version>1.7</version>
+                        <executions>
+                            <execution>
+                                <id>phantomjs-rename</id>
+                                <phase>process-resources</phase>
+                                <configuration>
+                                    <target>
+                                        <move file="${uidir.pathname}/node_modules/karma-phantomjs-launcher/node_modules/phantomjs/lib/phantomjs-${phantomjs.version}-${phantomjs.classifier}" tofile="${phantomjs.local.dir}"/>
+                                    </target>
+                                </configuration>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <!-- The remaining profiles are auto-activated based on OS.  No reason to explicitly activate them. -->
+        <profile>
+            <id>macos-x86</id>
+            <activation>
+                <os>
+                    <family>mac</family>
+                    <arch>x86</arch>
+                </os>
+            </activation>
+            <properties>
+                <nodejs.classifier>darwin-x86</nodejs.classifier>
+                <phantomjs.classifier>macosx</phantomjs.classifier>
+            </properties>
+        </profile>
+        <profile>
+            <id>macos-x64</id>
+            <activation>
+                <os>
+                    <family>mac</family>
+                    <arch>x86_64</arch>
+                </os>
+            </activation>
+            <properties>
+                <nodejs.classifier>darwin-x64</nodejs.classifier>
+                <phantomjs.classifier>macosx</phantomjs.classifier>
+            </properties>
+        </profile>
+        <profile>
+            <id>win-x86</id>
+            <activation>
+                <os>
+                    <family>windows</family>
+                    <arch>x86</arch>
+                </os>
+            </activation>
+            <properties>
+                <nodejs.classifier>win-x86</nodejs.classifier>
+                <phantomjs.classifier>windows</phantomjs.classifier>
+            </properties>
+        </profile>
+        <profile>
+            <id>win-x64</id>
+            <activation>
+                <os>
+                    <family>windows</family>
+                    <arch>amd64</arch>
+                </os>
+            </activation>
+            <properties>
+                <nodejs.classifier>win-x64</nodejs.classifier>
+                <phantomjs.classifier>windows</phantomjs.classifier>
+            </properties>
+        </profile>
+        <profile>
+            <id>linux-x86</id>
+            <activation>
+                <os>
+                    <family>linux</family>
+                    <arch>x86</arch>
+                </os>
+            </activation>
+            <properties>
+                <nodejs.classifier>linux-x86</nodejs.classifier>
+                <phantomjs.classifier>linux-x86_64</phantomjs.classifier>
+            </properties>
+        </profile>
+        <profile>
+            <id>linux-x86-386</id>
+            <activation>
+                <os>
+                    <family>linux</family>
+                    <arch>i386</arch>
+                </os>
+            </activation>
+            <properties>
+                <nodejs.classifier>linux-x86</nodejs.classifier>
+                <phantomjs.classifier>linux-i686</phantomjs.classifier>
+            </properties>
+        </profile>
+        <profile>
+            <id>linux-x86-686</id>
+            <activation>
+                <os>
+                    <family>linux</family>
+                    <arch>i686</arch>
+                </os>
+            </activation>
+            <properties>
+                <nodejs.classifier>linux-x86</nodejs.classifier>
+                <phantomjs.classifier>linux-i686</phantomjs.classifier>
+            </properties>
+        </profile>
+        <profile>
+            <id>linux-x64-x86_64</id>
+            <activation>
+                <os>
+                    <family>linux</family>
+                    <arch>x86_64</arch>
+                </os>
+            </activation>
+            <properties>
+                <nodejs.classifier>linux-x64</nodejs.classifier>
+                <phantomjs.classifier>linux-x86_64</phantomjs.classifier>
+            </properties>
+        </profile>
+        <profile>
+            <id>linux-x64-amd64</id>
+            <activation>
+                <os>
+                    <family>linux</family>
+                    <arch>amd64</arch>
+                </os>
+            </activation>
+            <properties>
+                <nodejs.classifier>linux-x64</nodejs.classifier>
+                <phantomjs.classifier>linux-x86_64</phantomjs.classifier>
+            </properties>
         </profile>
     </profiles>
 </project>
