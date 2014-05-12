@@ -78,6 +78,8 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
         transformOption, transformSchema, density = true, width, height)
       unpackDensityFeatures(q)
     } else {
+      // TODO: push query planning down into the indexSchema including optimizing for
+      // attribute-only queries
       rewrittenCQL match {
         case isEqualsTo: PropertyIsEqualTo => processPropertyIsEqualsTo(isEqualsTo)
         case _ =>
