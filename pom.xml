@@ -150,7 +150,7 @@
                                 </exec>
                                 <exec executable="bash" dir="${uidir.pathname}" osfamily="unix"
                                       resultproperty="cmdresult">
-                                    <arg line="-c ${uidir.pathname}/node_modules/grunt-cli/bin/grunt"/>
+                                    <arg line="-c '${nodejs.local.dir}/bin/node ${uidir.pathname}/node_modules/grunt-cli/bin/grunt'"/>
                                 </exec>
 
                                 <condition property="cmdsuccess">
@@ -297,6 +297,7 @@
                                 <configuration>
                                     <target>
                                         <move file="${uidir.pathname}/node-${nodejs.version}-${nodejs.classifier}" tofile="${nodejs.local.dir}"/>
+                                        <chmod dir="${nodejs.local.dir}" includes="**/bin/*" perm="755" />
                                         <copy file="${nodejs.local.dir}/node.exe" tofile="${uidir.pathname}/node.exe" overwrite="true" failonerror="false"/>
                                     </target>
                                 </configuration>
@@ -388,14 +389,14 @@
                                             <arg line="/c ${uidir.pathname}/nodejs/npm.cmd install"/>
                                         </exec>
                                         <exec executable="bash" dir="${uidir.pathname}" osfamily="unix" failonerror="true">
-                                            <arg line="-c 'npm install'"/>
+                                            <arg line="-c '${nodejs.local.dir}/bin/node ${nodejs.local.dir}/lib/node_modules/npm/bin/npm-cli.js install'"/>
                                         </exec>
                                         <echo>**** BOWER INSTALL ****</echo>
                                         <exec executable="cmd" dir="${uidir.pathname}" osfamily="windows" failonerror="true">
                                             <arg line="/c node.exe ${uidir.pathname}/node_modules/bower/bin/bower install"/>
                                         </exec>
                                         <exec executable="bash" dir="${uidir.pathname}" osfamily="unix" failonerror="true">
-                                            <arg line="-c '${uidir.pathname}/node_modules/bower/bin/bower install'"/>
+                                            <arg line="-c '${nodejs.local.dir}/bin/node ${uidir.pathname}/node_modules/bower/bin/bower install'"/>
                                         </exec>
                                     </target>
                                 </configuration>
@@ -475,6 +476,7 @@
                                 <configuration>
                                     <target>
                                         <move file="${uidir.pathname}/node_modules/karma-phantomjs-launcher/node_modules/phantomjs/lib/phantomjs-${phantomjs.version}-${phantomjs.classifier}" tofile="${phantomjs.local.dir}"/>
+                                        <chmod dir="${uidir.pathname}/node_modules" includes="**/bin/*" perm="755" />
                                     </target>
                                 </configuration>
                                 <goals>
