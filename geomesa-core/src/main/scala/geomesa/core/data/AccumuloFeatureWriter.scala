@@ -133,7 +133,8 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
       val attrName = attr.getLocalName.getBytes(StandardCharsets.UTF_8)
       val attrValue = valOrNull(feature.getAttribute(attr.getName)).getBytes(StandardCharsets.UTF_8)
       val row = attrName ++ nullByte ++ attrValue
-      PutOrDeleteMutation(row, cf, EMPTY_COLQ, EMPTY_VALUE)
+      val value = SpatioTemporalIndexSchema.encodeIndexValue(feature)
+      PutOrDeleteMutation(row, cf, EMPTY_COLQ, value)
     }
 
   private val nullString = "<null>"
@@ -147,11 +148,7 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
     m
   }
 
-  def close() = {
-    recordWriter.close()
-    stIdxWriter.close()
-    attrIdxWriter.close()
-  }
+  def close() = multiBWWriter.close()
 
   def remove() {}
 
