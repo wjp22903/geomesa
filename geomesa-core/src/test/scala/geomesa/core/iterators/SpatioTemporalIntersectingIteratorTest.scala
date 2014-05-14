@@ -189,11 +189,11 @@ object TestData {
   }
 
 
-  def setupMockAccumuloTable(entries: List[Entry], numExpected: Int): Connector = {
+  def setupMockAccumuloTable(entries: List[Entry], numExpected: Int, tableName: String = TEST_TABLE): Connector = {
     val mockInstance = new MockInstance()
     val c = mockInstance.getConnector(TEST_USER, new PasswordToken(Array[Byte]()))
-    c.tableOperations.create(TEST_TABLE)
-    val bw = c.createBatchWriter(TEST_TABLE, new BatchWriterConfig)
+    c.tableOperations.create(tableName)
+    val bw = c.createBatchWriter(tableName, new BatchWriterConfig)
 
     // populate the mock table
     val dataList: util.Collection[(Key, Value)] = TestData.encodeDataList(entries)
