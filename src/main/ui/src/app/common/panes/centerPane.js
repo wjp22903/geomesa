@@ -1,7 +1,7 @@
 angular.module('stealth.common.panes.centerPane', [
 ])
 
-    .directive('centerPane', ['$timeout', function ($timeout) {
+    .directive('centerPane', ['$timeout', '$rootScope', function ($timeout, $rootScope) {
         return {
             restrict: 'E',
             transclude: true,
@@ -14,6 +14,7 @@ angular.module('stealth.common.panes.centerPane', [
                     if(newVal !== oldVal) {
                         $timeout(function () {
                             element.toggleClass('full-width', newVal === true);
+                            $rootScope.$broadcast("CenterPaneFullWidthChange", newVal);
                         }, newVal === true ? 0 : 500);
                     }
                 });

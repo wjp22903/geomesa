@@ -62,6 +62,9 @@ angular.module('stealth.common.map.leafletMap', [
                 scope.$on("AddMapLayer", function (event, lc) {
                     MapService.addLayer(scope, lc);
                 });
+                scope.$on("CenterPaneFullWidthChange", function (event, fullWidth) {
+                    scope.map.invalidateSize();
+                });
             }
         };
 

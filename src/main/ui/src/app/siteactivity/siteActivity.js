@@ -14,7 +14,7 @@ angular.module('stealth.siteactivity.siteActivity', [
         });
     }])
 
-    .controller('SiteActivityController', ['$scope', '$rootScope', '$modal', '$http', 'MapService', function($scope, $rootScope, $modal, $http, MapService) {
+    .controller('SiteActivityController', ['$scope', '$rootScope', '$modal', '$http', function($scope, $rootScope, $modal, $http) {
         $scope.isLeftPaneVisible = true;
         $scope.isCenterTopVisible = true;
         $scope.isCenterRightVisible = true;

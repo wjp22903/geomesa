@@ -14,7 +14,7 @@ module.exports = function (grunt) {
 
     // Expand the buildDir pattern to allow glob minimatch patterns in config.
     grunt.config('buildDir', require('../../../target/non-packaged-resources/stealth.config.filtered.js').buildDir);
-    
+
     // CLEAN
     grunt.config('clean', [
         // '<%= buildDir %>',
@@ -51,6 +51,14 @@ module.exports = function (grunt) {
         build_vendorjs: {
             files: [{
                 src: ['<%= vendorFiles.js %>'],
+                dest: '<%= buildDir %>/',
+                cwd: '.',
+                expand: true
+            }]
+        },
+        build_vendorassets_nested: {
+            files: [{
+                src: ['<%= vendorFiles.assets_nested %>'],
                 dest: '<%= buildDir %>/',
                 cwd: '.',
                 expand: true
@@ -203,7 +211,7 @@ module.exports = function (grunt) {
     grunt.template.addDelimiters('squareBrackets', '[%', '%]');
 
     grunt.registerMultiTask( 'index', 'Process index.html template', function () {
-        var dirRE, jsFiles, cssFiles;
+        var dirRE, jsFiles, cssFiles, templates;
 
         dirRE = new RegExp( '^('+grunt.config('buildDir')+'|'+grunt.config('compileDir')+')\/', 'g' );
 
@@ -217,16 +225,21 @@ module.exports = function (grunt) {
             return file.replace( dirRE, '' );
         });
 
-        grunt.file.copy('src/index.html', grunt.config('buildDir') + '/' + grunt.config('indexDest'), {
-            process: function ( contents, path ) {
-                return grunt.template.process( contents, {
-                    data: {
-                        scripts: jsFiles,
-                        styles: cssFiles
-                    },
-                    delimiters: 'squareBrackets'
-                });
-            }
+        templates = ['src/index.html', 'src/sandbox.html'];
+        templates.forEach(function (tpl) {
+            var fileName = tpl.split('/').pop().split('.')[0];
+
+            grunt.file.copy(tpl, grunt.config('buildDir') + '/WEB-INF/views/' + fileName + '.ssp', {
+                process: function ( contents, path ) {
+                    return grunt.template.process( contents, {
+                        data: {
+                            scripts: jsFiles,
+                            styles: cssFiles
+                        },
+                        delimiters: 'squareBrackets'
+                    });
+                }
+            });
         });
     });
 
@@ -264,6 +277,7 @@ module.exports = function (grunt) {
         'copy:build_vendor_assets',
         'copy:build_appjs',
         'copy:build_vendorjs',
+        'copy:build_vendorassets_nested',
         'index:build'
     ]);
 };

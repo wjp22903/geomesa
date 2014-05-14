@@ -13,7 +13,7 @@ angular.module('stealth.targetwatch.targetWatch', [
         });
     }])
 
-    .controller('TargetWatchController', ['$scope', 'MapService', function($scope, MapService) {
+    .controller('TargetWatchController', ['$scope', function($scope) {
         $scope.isLeftPaneVisible = true;
         $scope.isCenterTopVisible = true;
         $scope.isCenterRightVisible = true;

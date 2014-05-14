@@ -5,7 +5,8 @@ angular.module('stealth', [
     'ui.bootstrap',
     'templates-app',
     'stealth.siteactivity.siteActivity',
-    'stealth.targetwatch.targetWatch'
+    'stealth.targetwatch.targetWatch',
+    'stealth.wps.wps'
 ])
 
     .config(['$routeProvider', function ($routeProvider) {

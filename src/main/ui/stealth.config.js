@@ -14,7 +14,7 @@ module.exports = {
         js : [ 'src/**/*.js', '!src/**/*.spec.js', '!src/assets/**/*.js' ],
         specs: [ 'src/**/*.spec.js' ],
         tpl: [ 'src/app/**/*.tpl.html' ],
-        html: [ 'src/index.html' ],
+        html: [ 'src/index.html', 'src/sandbox.html' ],
         stylus: 'src/stylus/main.styl'
     },
     
@@ -44,10 +44,17 @@ module.exports = {
             'vendor/bower/momentjs/moment.js',
             'vendor/bower/angular-ui-bootstrap-bower/ui-bootstrap.js',
             'vendor/bower/angular-ui-bootstrap-bower/ui-bootstrap-tpls.js',
+            'vendor/openlayers/OpenLayers.debug.js',
+            'vendor/extensions/openlayers/OpenLayers.WPS.extended.js',
             // TODO - test only
             'vendor/bower/angular-mocks/angular-mocks.js',
         ],
         css: [],
+        assets_nested: [
+            'vendor/bower/openlayers/img/*',
+            'vendor/bower/openlayers/theme/default/img/*',
+            'vendor/bower/openlayers/theme/default/style.css'
+        ],
         assets: [
             'vendor/bower/leaflet-dist/images/*',
             'vendor/bower/font-awesome/fonts/*',

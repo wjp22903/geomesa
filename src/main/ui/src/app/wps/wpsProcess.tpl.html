@@ -1,0 +1,25 @@
+<div style="border:1px white solid;padding:5px;margin:5px;">
+    <i class="pull-right fa fa-times btn btn-default btn-sm" ng-click="$parent.removeProcess(key)"></i>
+    <div>
+        <b>Process:</b> {{value.process.identifier}}&nbsp;
+        <i class="fa fa-info-circle" tooltip="{{value.description.abstract}}" tooltip-placement="right"></i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <b>Name:</b> {{value.name}}
+    </div>
+    <div>
+        <b>Execute:</b> <input type="checkbox" ng-model="value.execute">&nbsp;
+        <i class="fa fa-info-circle" tooltip-html-unsafe='<span style="white-space:nowrap;">Execute a process to see its output.</span><br/>Do not execute a process that is only needed as input to another process.' tooltip-placement="right"></i>
+    </div>
+    <div name="input">
+        <div ng-repeat="input in value.description.dataInputs">
+            <div>
+                {{input.identifier}}<span ng-if="input.minOccurs > 0">*</span>&nbsp;
+                <i class="fa fa-info-circle" tooltip="{{input.abstract}}" tooltip-placement="right"></i>&nbsp;&nbsp;
+                <select ng-model="input.selectedInputMode" ng-options="['Text', 'Sub-process']"></select>
+                <!--span ng-if="input.complexData">
+                    <select ng-model="value.selectedFormat[input.identifier]" ng-options="key as key for (key, value) in input.complexData.supported.formats"></select>
+                </span-->
+            </div>
+        </div>
+    </div>
+    <div name="output"></div>
+</div>
