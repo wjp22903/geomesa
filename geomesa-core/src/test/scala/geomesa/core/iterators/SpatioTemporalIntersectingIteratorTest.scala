@@ -18,7 +18,7 @@ package geomesa.core.iterators
 
 import collection.JavaConversions._
 import collection.JavaConverters._
-import com.vividsolutions.jts.geom.{Polygon, Geometry}
+import com.vividsolutions.jts.geom.{Polygon, Geometry, GeometryFactory}
 import geomesa.core.data.SimpleFeatureEncoderFactory
 import geomesa.core.index._
 import geomesa.utils.text.WKTUtils
@@ -77,6 +77,8 @@ object TestData {
   def createSF(e: Entry): SimpleFeature = {
     val geomType: String = e.wkt.split( """\(""").head
     val geometry: Geometry = WKTUtils.read(e.wkt)
+
+
     val entry = SimpleFeatureBuilder.build(featureType, List(null, null, null, null, geometry, e.dt.toDate, e.dt.toDate), s"|data|${e.id}")
     entry.setAttribute(geomType, e.id)
     entry.setAttribute("attr2", "2nd" + e.id)
@@ -143,7 +145,8 @@ object TestData {
     val rng = new Random(0)
     val minTime = new DateTime(2010, 6, 1, 0, 0, 0, DateTimeZone.forID("UTC")).getMillis
     val maxTime = new DateTime(2010, 8, 31, 23, 59, 59, DateTimeZone.forID("UTC")).getMillis
-    (1 to 50000).map(i => {
+
+    val pts = (1 to 50000).map(i => {
       val wkt = "POINT(" +
         (40.0 + 10.0 * rng.nextDouble()).toString + " " +
         (20.0 + 10.0 * rng.nextDouble()).toString + " " +
@@ -154,6 +157,25 @@ object TestData {
       )
       Entry(wkt, (100000 + i).toString, dt)
     }).toList
+
+    val gf = new GeometryFactory()
+
+    val linesPolys = pts.grouped(3).take(10000).flatMap { threeEntries =>
+      val headEntry = threeEntries.head
+
+      val threeCoords = threeEntries.map(e => WKTUtils.read(e.wkt).getCoordinate)
+
+      val lineString = gf.createLineString(threeCoords.toArray)
+      println(s"LineString: $lineString")
+      val poly = gf.createPolygon((threeCoords :+ threeCoords.head).toArray)
+
+      val lsEntry = Entry(lineString.toString, headEntry.id+1000000, headEntry.dt)
+      val polyEntry = Entry(poly.toString, headEntry.id+2000000, headEntry.dt)
+      Seq(lsEntry, polyEntry)
+    }
+
+
+    pts ++ linesPolys.toList
   }
 
   val pointWithNoID = List(Entry("POINT(-78.0 38.0)", null))
@@ -189,7 +211,7 @@ object TestData {
   }
 
 
-  def setupMockAccumuloTable(entries: List[Entry], numExpected: Int, tableName: String = TEST_TABLE): Connector = {
+  def setupMockAccumuloTable(entries: List[Entry], tableName: String = TEST_TABLE): Connector = {
     val mockInstance = new MockInstance()
     val c = mockInstance.getConnector(TEST_USER, new PasswordToken(Array[Byte]()))
     c.tableOperations.create(tableName)
@@ -234,7 +256,6 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
   def runMockAccumuloTest(label: String,
                           entries: List[TestData.Entry] = TestData.fullData,
                           ecqlFilter: Option[String] = None,
-                          numExpectedDataIn: Int = 113,
                           dtFilter: Interval = null,
                           overrideGeometry: Boolean = false,
                           doPrint: Boolean = true): Int = {
@@ -245,7 +266,7 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
     }
 
     // create the batch scanner
-    val c = TestData.setupMockAccumuloTable(entries, numExpectedDataIn)
+    val c = TestData.setupMockAccumuloTable(entries)
     val bs = c.createBatchScanner(TEST_TABLE, TEST_AUTHORIZATIONS, 5)
 
     val gf = s"WITHIN(geomesa_index_geometry, ${polygon.toText})"
@@ -296,7 +317,7 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
       val entries: List[TestData.Entry] = TestData.shortListOfPoints
 
       // run this query on regular data
-      val numHits: Int = runMockAccumuloTest("mock-small", entries, None, 5)
+      val numHits: Int = runMockAccumuloTest("mock-small", entries, None)
 
       // validate the total number of query-hits
       // Since we are playing with points, we can count **exactly** how many results we should
@@ -309,7 +330,7 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
     "use our iterators and aggregators the same way we do" in {
       // run this query on regular data
       val numHits: Int = runMockAccumuloTest("mock-real",
-        TestData.fullData, None, 113)
+        TestData.fullData, None)
 
       // validate the total number of query-hits
       numHits must be equalTo (21)
@@ -322,7 +343,7 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
 
       // run this query on regular data
       val numHits: Int = runMockAccumuloTest("mock-attr-all",
-        TestData.fullData, Some(ecqlFilter), 113)
+        TestData.fullData, Some(ecqlFilter))
 
       // validate the total number of query-hits
       numHits must be equalTo (21)
@@ -335,7 +356,7 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
 
       // run this query on regular data
       val numHits: Int = runMockAccumuloTest("mock-attr-filt",
-        TestData.fullData, Some(ecqlFilter), 113)
+        TestData.fullData, Some(ecqlFilter))
 
       // validate the total number of query-hits
       numHits must be equalTo (6)
@@ -344,7 +365,7 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
 
   "Realistic Mock Accumulo" should {
     "handle edge intersection false positives" in {
-      val numHits = runMockAccumuloTest("mock-small", TestData.shortListOfPoints ++ TestData.geohashHitActualNotHit, None, 6)
+      val numHits = runMockAccumuloTest("mock-small", TestData.shortListOfPoints ++ TestData.geohashHitActualNotHit, None)
       numHits must be equalTo(3)
     }
   }
@@ -357,7 +378,7 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
 
       // run this query on regular data
       val numHits: Int = runMockAccumuloTest("mock-huge",
-        TestData.hugeData, Some(ecqlFilter), TestData.hugeData.size)
+        TestData.hugeData, Some(ecqlFilter))
 
       // validate the total number of query-hits
       numHits must be equalTo (68)
@@ -374,7 +395,7 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
         new DateTime(2010, 8, 8, 23, 59, 59, DateTimeZone.forID("UTC"))
       )
       val numHits: Int = runMockAccumuloTest("mock-huge-time",
-        TestData.hugeData, Some(ecqlFilter), TestData.hugeData.size, dtFilter)
+        TestData.hugeData, Some(ecqlFilter), dtFilter)
 
       // validate the total number of query-hits
       numHits must be equalTo (68)
@@ -388,7 +409,7 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
       // run this query on regular data
       val dtFilter = IndexSchema.everywhen
       val numHits: Int = runMockAccumuloTest("mock-huge-notime",
-        TestData.hugeData, Some(ecqlFilter), TestData.hugeData.size, dtFilter,
+        TestData.hugeData, Some(ecqlFilter), dtFilter,
         doPrint = false)
 
       // validate the total number of query-hits
@@ -401,7 +422,7 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
       // run this query on regular data
       val dtFilter = IndexSchema.everywhen
       val numHits: Int = runMockAccumuloTest("mock-huge-notime",
-        TestData.hugeData, None, TestData.hugeData.size, dtFilter,
+        TestData.hugeData, None, dtFilter,
         overrideGeometry = true, doPrint = false)
 
       // validate the total number of query-hits
@@ -411,7 +432,7 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
 
   "Consistency Iterator" should {
     "verify consistency of table" in {
-      val c = TestData.setupMockAccumuloTable(TestData.shortListOfPoints, TestData.shortListOfPoints.length)
+      val c = TestData.setupMockAccumuloTable(TestData.shortListOfPoints)
       val bs = c.createBatchScanner(TEST_TABLE, TEST_AUTHORIZATIONS, 8)
       val cfg = new IteratorSetting(1000, "consistency-iter", classOf[ConsistencyCheckingIterator])
 
@@ -425,7 +446,7 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
 
   "Consistency Iterator" should {
     "verify inconsistency of table" in {
-      val c = TestData.setupMockAccumuloTable(TestData.shortListOfPoints, TestData.shortListOfPoints.length)
+      val c = TestData.setupMockAccumuloTable(TestData.shortListOfPoints)
       val bd = c.createBatchDeleter(TEST_TABLE, TEST_AUTHORIZATIONS, 8, new BatchWriterConfig)
       bd.setRanges(List(new org.apache.accumulo.core.data.Range()))
       bd.fetchColumnFamily(new Text("|data|1".getBytes()))
@@ -444,7 +465,7 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
 
   "Feature with a null ID" should {
     "not fail to insert" in {
-      val c = Try(TestData.setupMockAccumuloTable(TestData.pointWithNoID, TestData.pointWithNoID.length))
+      val c = Try(TestData.setupMockAccumuloTable(TestData.pointWithNoID))
 
       c.isFailure must be equalTo false
     }
