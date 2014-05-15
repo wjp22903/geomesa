@@ -21,9 +21,13 @@ class FilterTest extends Specification {
   val fullDataConnector = TestData.setupMockAccumuloTable(fullData, "fullData")
 
   val hugeDataFeatures = hugeData.map(createSF)
-//  val hugeDataConnector = TestData.setupMockAccumuloTable(hugeData, "hugeData")
+  val hugeDataConnector = TestData.setupMockAccumuloTable(hugeData, "hugeData")
 
-  val predicates = List("INTERSECTS", "DISJOINT", "CROSSES", "CONTAINS", "TOUCHES", "EQUALS", "OVERLAPS", "WITHIN")
+  val predicates = List("INTERSECTS", "DISJOINT", "CROSSES", "CONTAINS", "OVERLAPS", "WITHIN")
+
+  // Predicates which are downright silly
+  val silly = List("TOUCHES", "EQUALS")
+
 
   // Worthless predicates: predicats which don't return results against 'fullData'.
   val untested = List("CONTAINS", "TOUCHES", "EQUALS", "DISJOINT", "CROSSES")
@@ -31,8 +35,10 @@ class FilterTest extends Specification {
   // These predicates are *not* working presently.
   val failingPredicates = List("OVERLAPS", "WITHIN")
 
-  val tails = List("(geomesa_index_geometry, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
-                   "(geomesa_index_geometry, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))) AND (attr2 like '2nd___')")
+  val tails = List("(geomesa_index_geometry, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))")
+
+//  val tails = List("(geomesa_index_geometry, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
+//                   "(geomesa_index_geometry, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))) AND (attr2 like '2nd___')")
 
   val dtFilter: Interval = IndexSchema.everywhen
   val int2 = new Interval(new DateTime("2010-07-01T00:00:00.000Z"), new DateTime("2010-07-31T00:00:00.000Z"))
@@ -69,25 +75,25 @@ class FilterTest extends Specification {
     g2 <- geoms if g2 != g1
   } yield s"$p1$g1 OR $p2$g2"
 
-  val filters = basicFilters //++ moreGeomFilters ++ oneAndGeoms //++ oneOrGeoms
+  val filters: List[String] = basicFilters ++ moreGeomFilters ++ oneAndGeoms :+ "INCLUDE"  //++ oneOrGeoms
   //val filters = oneOrGeoms
   // RELATE, DWITHIN, BEYOND, BBOX
 
-  filters.map{ fs => s"Filter $fs should work the same" should {
-    "in Mock GeoMesa and directly for the fullDataFeatures" in {
-        compare(fs, fullDataFeatures, "fullData", fullDataConnector)
-      }
-    }
-  }
-
-  //basicFilters.map{ fs => s"Filter $fs should work the same" should {
-
 //  filters.map{ fs => s"Filter $fs should work the same" should {
-//    "in Mock GeoMesa and directly for the hugeDataFeatures" in {
-//      compare(fs, hugeDataFeatures, "hugeData", hugeDataConnector)
+//    "in Mock GeoMesa and directly for the fullDataFeatures" in {
+//        compare(fs, fullDataFeatures, "fullData", fullDataConnector)
 //      }
 //    }
 //  }
+
+  //basicFilters.map{ fs => s"Filter $fs should work the same" should {
+
+  filters.map{ fs => s"Filter $fs should work the same" should {
+    "in Mock GeoMesa and directly for the hugeDataFeatures" in {
+      compare(fs, hugeDataFeatures, "hugeData", hugeDataConnector)
+      }
+    }
+  }
 
   def compare(fs: String, features: List[SimpleFeature], target: String, conn: Connector) = {
     val bs = conn.createBatchScanner(target, TEST_AUTHORIZATIONS, 5)

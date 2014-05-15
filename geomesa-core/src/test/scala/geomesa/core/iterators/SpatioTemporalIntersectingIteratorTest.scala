@@ -69,18 +69,14 @@ object TestData {
     val geomType: String = wkt.split( """\(""").head
     val geometry: Geometry = WKTUtils.read(wkt)
     val entry = SimpleFeatureBuilder.build(featureType, List(null, null, null, null, geometry, dt.toDate, dt.toDate), s"|data|$id")
-    entry.setAttribute(geomType, id)
+    //entry.setAttribute(geomType, id)
     entry.setAttribute("attr2", "2nd" + id)
     index.encode(entry).toList
   }
 
   def createSF(e: Entry): SimpleFeature = {
-    val geomType: String = e.wkt.split( """\(""").head
     val geometry: Geometry = WKTUtils.read(e.wkt)
-
-
     val entry = SimpleFeatureBuilder.build(featureType, List(null, null, null, null, geometry, e.dt.toDate, e.dt.toDate), s"|data|${e.id}")
-    entry.setAttribute(geomType, e.id)
     entry.setAttribute("attr2", "2nd" + e.id)
     entry
   }
@@ -166,7 +162,7 @@ object TestData {
       val threeCoords = threeEntries.map(e => WKTUtils.read(e.wkt).getCoordinate)
 
       val lineString = gf.createLineString(threeCoords.toArray)
-      println(s"LineString: $lineString")
+      //println(s"LineString: $lineString")
       val poly = gf.createPolygon((threeCoords :+ threeCoords.head).toArray)
 
       val lsEntry = Entry(lineString.toString, headEntry.id+1000000, headEntry.dt)
