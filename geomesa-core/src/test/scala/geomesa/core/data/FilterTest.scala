@@ -104,7 +104,9 @@ class FilterTest extends Specification {
     val filteredNumber: Int = features.count(filter.evaluate)
     val mockNumber: Int = stiit.runQuery(q, bs, false)
 
-    println(s"Filter against $target: $fs filtered: $filteredNumber mockNumber: $mockNumber")
+    if(filteredNumber != mockNumber)
+      println(s"Filter against $target: $fs filtered: $filteredNumber mockNumber: $mockNumber")
+
     filteredNumber mustEqual mockNumber
   }
 
