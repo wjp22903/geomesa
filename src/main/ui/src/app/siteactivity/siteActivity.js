@@ -9,8 +9,7 @@ angular.module('stealth.siteactivity.siteActivity', [
 
     .config(['$routeProvider', function ($routeProvider) {
         $routeProvider.when('/siteactivity', {
-            templateUrl: 'siteactivity/siteActivity.tpl.html',
-            controller: 'SiteActivityController'
+            templateUrl: 'siteactivity/siteActivity.tpl.html'
         });
     }])
 

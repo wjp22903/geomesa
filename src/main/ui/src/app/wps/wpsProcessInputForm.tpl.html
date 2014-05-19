@@ -1,0 +1,9 @@
+<div>
+    <div ng-repeat="input in value.description.dataInputs">
+        <div>
+            {{input.identifier}}<span ng-if="input.minOccurs > 0">*</span>&nbsp;
+            <i class="fa fa-info-circle" tooltip="{{input.abstract}}" tooltip-placement="right"></i>&nbsp;&nbsp;
+            <wps-process-input input="input"></wps-process-input>
+        </div>
+    </div>
+</div>

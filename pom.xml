@@ -146,7 +146,7 @@
                                 <echo>**** GRUNT ****</echo>
                                 <exec executable="cmd" dir="${uidir.pathname}" osfamily="windows"
                                       resultproperty="cmdresult">
-                                    <arg line="/c node.exe ${uidir.pathname}/node_modules/grunt-cli/bin/grunt"/>
+                                    <arg line="/c node.exe ${uidir.pathname}/node_modules/grunt-cli/bin/grunt --force"/>
                                 </exec>
                                 <exec executable="bash" dir="${uidir.pathname}" osfamily="unix"
                                       resultproperty="cmdresult">

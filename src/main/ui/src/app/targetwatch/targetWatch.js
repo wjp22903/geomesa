@@ -8,8 +8,7 @@ angular.module('stealth.targetwatch.targetWatch', [
 
     .config(['$routeProvider', function ($routeProvider) {
         $routeProvider.when('/targetwatch', {
-            templateUrl: 'targetwatch/targetWatch.tpl.html',
-            controller: 'TargetWatchController'
+            templateUrl: 'targetwatch/targetWatch.tpl.html'
         });
     }])
 
