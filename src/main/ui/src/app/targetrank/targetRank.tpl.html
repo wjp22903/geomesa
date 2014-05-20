@@ -1,0 +1,33 @@
+<div ng-controller="TargetRankController">
+    <left-pane is-visible="targetRank.isLeftPaneVisible">
+        <tr-left-nav></tr-left-nav>
+        <div ng-switch="targetRank.leftPaneView">
+            <div class="anchorBottom anchorLeft anchorRight panel panel-primary" style="margin:5px;top:35px;" ng-switch-when="analysis">
+                <div class="panel-heading">
+                    <i class="fa fa-map-marker fa-lg"></i> Sites <span class="badge">{{targetRank.numSites}}</span>
+                    <i class="pull-right fa fa-plus btn btn-default btn-sm" ng-click="addSites.showWindow()"></i>
+                </div>
+                <div class="anchorBottom anchorLeft anchorRight" style="top:40px;overflow-y:auto;">
+                    <table class="table table-striped table-hover table-condensed">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="site in targetRank.sites">
+                                <td>{{site.properties.STATE_NAME}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="anchorBottom anchorLeft anchorRight" style="top:35px;" ng-switch-when="targets">
+                targets
+            </div>
+        </div>
+    </left-pane>
+    <center-pane is-full-width="!targetRank.isLeftPaneVisible">
+        <leaflet-map id="map" mc="mc" map="map"></leaflet-map>
+    </center-pane>
+</div>

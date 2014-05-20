@@ -4,14 +4,13 @@ angular.module('stealth', [
     'ngResource',
     'ui.bootstrap',
     'templates-app',
-    'stealth.siteactivity.siteActivity',
-    'stealth.targetwatch.targetWatch',
+    'stealth.siterank.siteRank',
+    'stealth.targetrank.targetRank',
     'stealth.wps.wps'
 ])
 
     .config(['$routeProvider', function ($routeProvider) {
-        // Configure route provider to transform any undefined hashes to /home.
-        $routeProvider.otherwise({redirectTo: '/siteactivity'});
+        $routeProvider.otherwise({redirectTo: '/targetRank'});
     }])
 
     .constant('appInfo', {

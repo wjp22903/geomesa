@@ -1,28 +1,27 @@
-angular.module('stealth.siteactivity.siteActivity', [
+angular.module('stealth.targetrank.targetRank', [
     'stealth.common.map.leafletMap',
     'stealth.common.panes.centerPane',
     'stealth.common.panes.leftPane',
     'stealth.common.panes.centerTop',
     'stealth.common.panes.centerRight',
-    'stealth.siteactivity.leftNav'
+    'stealth.targetrank.leftNav'
 ])
 
     .config(['$routeProvider', function ($routeProvider) {
-        $routeProvider.when('/siteactivity', {
-            templateUrl: 'siteactivity/siteActivity.tpl.html'
+        $routeProvider.when('/targetRank', {
+            templateUrl: 'targetrank/targetRank.tpl.html'
         });
     }])
 
-    .controller('SiteActivityController', ['$scope', '$rootScope', '$modal', '$http', function($scope, $rootScope, $modal, $http) {
-        $scope.isLeftPaneVisible = true;
-        $scope.isCenterTopVisible = true;
-        $scope.isCenterRightVisible = true;
-        $scope.vizitems = ['blue', 'green', 'map', 'other'];
-        $scope.viz = $scope.vizitems[2];
-        $scope.numSites = 0;
-        $scope.numData = 0;
-        $scope.numTargets = 0;
-        $scope.sites = [{properties: {STATE_NAME: '(none)'}}];
+    .controller('TargetRankController', ['$scope', '$rootScope', '$modal', '$http', function($scope, $rootScope, $modal, $http) {
+        $scope.targetRank = {
+            isLeftPaneVisible: true,
+            leftPaneView: 'analysis',
+            numSites: 0,
+            numData: 0,
+            numTargets: 0,
+            sites: [{properties: {STATE_NAME: '(none)'}}]
+        };
 
         $scope.addSites = {
             formData: {
@@ -35,9 +34,9 @@ angular.module('stealth.siteactivity.siteActivity', [
             showWindow: function () {
                 $modal.open({
                     scope: $scope,
-                    templateUrl: 'siteactivity/addSitesForm.tpl.html',
+                    templateUrl: 'targetrank/addSitesForm.tpl.html',
                     controller: function ($scope, $modalInstance) {
-                        $scope.submit = function () {
+                        $scope.addSites.submit = function () {
                             var cql_filter = $scope.addSites.formData.cql_filter;
                             $http.get('cors/http://localhost:8081/geoserver/wfs', {params: $scope.addSites.formData})
                                 .success(function (data) {
@@ -47,11 +46,11 @@ angular.module('stealth.siteactivity.siteActivity', [
                                         layers: ['topp:states'],
                                         cql_filter: cql_filter
                                     });
-                                    $scope.$parent.numSites += data.totalFeatures;
-                                    $scope.$parent.sites = data.features;
+                                    $scope.$parent.targetRank.numSites += data.totalFeatures;
+                                    $scope.$parent.targetRank.sites = data.features;
                                 });
                         };
-                        $scope.cancel = function () {
+                        $scope.addSites.cancel = function () {
                             $modalInstance.dismiss('cancel');
                         };
                     }

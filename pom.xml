@@ -36,10 +36,9 @@
         <phantomjs.version>1.9.7</phantomjs.version>
         <phantomjs.classifier>INVALID</phantomjs.classifier>
 
-        <basemap.url>http://localhost:8081/geoserver/wms</basemap.url>
-        <baselayers>nurc:Img_Sample</baselayers>
-        <!--basemap.url>http://dgeo:8080/geoserver/wms</basemap.url>
-        <baselayers>mapproxy:globe.osm.toner</baselayers-->
+        <geoserver.url>http://dgeo:8080/geoserver</geoserver.url>
+        <basemap.url>http://dgeo:8080/geoserver/wms</basemap.url>
+        <baselayers>mapproxy:globe.osm.toner</baselayers>
         <basemap.format>image/png</basemap.format>
         <basemap.transparent>true</basemap.transparent>
         <basemap.crs>EPSG:4326</basemap.crs>
