@@ -197,6 +197,10 @@ module.exports = function (grunt) {
     function filterForJS ( files ) {
         return files.filter( function ( file ) {
             return file.match( /\.js$/ );
+        }).filter( function (file) {
+            //we only want to include the main OpenLayers file
+            return file.match( /^(?!vendor\/bower\/openlayers).*/ ) ||
+                file === 'vendor/bower/openlayers/lib/OpenLayers.js';
         });
     }
 
@@ -219,11 +223,13 @@ module.exports = function (grunt) {
             return file.replace( dirRE, '' );
         });
 
-        console.log(eyes.inspect(this.filesSrc));
+        console.log(eyes.inspect(jsFiles));
 
         cssFiles = filterForCSS( this.filesSrc ).map( function ( file ) {
             return file.replace( dirRE, '' );
         });
+
+        console.log(eyes.inspect(cssFiles));
 
         templates = ['src/index.html', 'src/sandbox.html'];
         templates.forEach(function (tpl) {

@@ -1,5 +1,5 @@
 angular.module('stealth.targetrank.targetRank', [
-    'stealth.common.map.leafletMap',
+    'stealth.common.map.openlayersMap',
     'stealth.common.panes.centerPane',
     'stealth.common.panes.leftPane',
     'stealth.common.panes.centerTop',
@@ -41,7 +41,8 @@ angular.module('stealth.targetrank.targetRank', [
                             $http.get('cors/http://localhost:8081/geoserver/wfs', {params: $scope.addSites.formData})
                                 .success(function (data) {
                                     $modalInstance.close();
-                                    $rootScope.$broadcast("AddMapLayer", {
+                                    $rootScope.$broadcast("AddWmsMapLayer", {
+                                        name: 'Sites',
                                         url: 'http://localhost:8081/geoserver/wms',
                                         layers: ['topp:states'],
                                         cql_filter: cql_filter

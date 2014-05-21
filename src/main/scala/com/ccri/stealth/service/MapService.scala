@@ -4,14 +4,10 @@ case class BasemapConfig(
   url: String,
   baseLayers: String,
   format: String,
-  attribution: String,
-  transparent: Boolean,
   crs: String,
   centerLat: Double,
   centerLon: Double,
-  defaultZoom: Int,
-  maxZoom: Int,
-  minZoom: Int
+  defaultZoom: Int
 )
 
 trait MapService extends Service {
@@ -21,14 +17,10 @@ trait MapService extends Service {
       mc.getString("url"),
       mc.getString("baselayers"),
       mc.getString("format"),
-      "CCRi",
-      mc.getBoolean("transparent"),
       mc.getString("crs"),
       mc.getDouble("defaultLat"),
       mc.getDouble("defaultLon"),
-      mc.getInt("defaultZoom"),
-      mc.getInt("maxZoom"),
-      mc.getInt("minZoom")
+      mc.getInt("defaultZoom")
     )
   }
 }

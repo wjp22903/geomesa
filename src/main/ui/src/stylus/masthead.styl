@@ -8,4 +8,13 @@
         .navbar-brand
             color mastheadColor
             &:hover
-                color darken(mastheadColor, 30%)
+                -webkit-opacity 0
+                -moz-opacity 0
+                opacity 0
+                -webkit-transition all 1s ease
+                -moz-transition all 1s ease
+                -ms-transition all 1s ease
+                -o-transition all 1s ease
+                transition all 1s ease
+    .activeNavItem
+        color red !important

@@ -44,7 +44,7 @@ module.exports = {
             'vendor/bower/momentjs/moment.js',
             'vendor/bower/angular-ui-bootstrap-bower/ui-bootstrap.js',
             'vendor/bower/angular-ui-bootstrap-bower/ui-bootstrap-tpls.js',
-            'vendor/openlayers/OpenLayers.debug.js',
+            'vendor/bower/openlayers/lib/**/*.js',
             'vendor/extensions/openlayers/OpenLayers.WPS.extended.js',
             // TODO - test only
             'vendor/bower/angular-mocks/angular-mocks.js',

@@ -124,7 +124,7 @@ angular.module('stealth.wps.wps', [
                                     textarea.innerHTML = outputs.result;
                                     outputEl.appendChild(textarea);
                                     if (outputs.features) {
-                                        layer.addFeatures(outputs.features);
+                                        $scope.layer.addFeatures(outputs.features);
                                     }
                                 }
                             });
@@ -134,35 +134,32 @@ angular.module('stealth.wps.wps', [
             });
         };
         angular.element(document).ready(function () {
-            map.render('map');
-            map.zoomTo(1);
+            var capabilities, // the capabilities, read by Format.WPSCapabilities::read
+                process; // the process description from Format.WPSDescribeProcess::read
+
+            // create the UI
+            $scope.layer = new OpenLayers.Layer.Vector("Scratchpad");
+            var toolbar = new OpenLayers.Control.EditingToolbar($scope.layer);
+            toolbar.addControls([new OpenLayers.Control.ModifyFeature($scope.layer, {
+                title: "Select feature"
+            })]);
+            $scope.map = new OpenLayers.Map('wpsMap', {
+                controls: [
+                    toolbar,
+                    new OpenLayers.Control.ZoomPanel(),
+                    new OpenLayers.Control.PanPanel()
+                ],
+                layers: [
+                    new OpenLayers.Layer.WMS(
+                        "OSM", "http://maps.opengeo.org/geowebcache/service/wms",
+                        {layers: "openstreetmap", format: "image/png"},
+                        {wrapDateLine: true}
+                    ), $scope.layer
+                ]
+            });
+            $scope.map.zoomTo(1);
         });
         $scope.$on("CenterPaneFullWidthChange", function (event, fullWidth) {
-            map.updateSize();
+            $scope.map.updateSize();
         });
     }]);
-
-OpenLayers.ProxyHost = "cors/";
-
-var capabilities, // the capabilities, read by Format.WPSCapabilities::read
-    process; // the process description from Format.WPSDescribeProcess::read
-
-// create the UI
-var layer = new OpenLayers.Layer.Vector("Scratchpad");
-var toolbar = new OpenLayers.Control.EditingToolbar(layer);
-toolbar.addControls([new OpenLayers.Control.ModifyFeature(layer, {
-    title: "Select feature"
-})]);
-var map = new OpenLayers.Map({
-    controls: [
-        toolbar,
-        new OpenLayers.Control.ZoomPanel(),
-        new OpenLayers.Control.PanPanel()
-    ],
-    layers: [
-        new OpenLayers.Layer.WMS(
-            "OSM", "http://maps.opengeo.org/geowebcache/service/wms",
-            {layers: "openstreetmap", format: "image/png"}
-        ), layer
-    ]
-});

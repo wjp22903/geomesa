@@ -1,4 +1,4 @@
-<div ng-controller="TargetRankController">
+<div id="targetRank" ng-controller="TargetRankController">
     <left-pane is-visible="targetRank.isLeftPaneVisible">
         <tr-left-nav></tr-left-nav>
         <div ng-switch="targetRank.leftPaneView">
@@ -28,6 +28,6 @@
         </div>
     </left-pane>
     <center-pane is-full-width="!targetRank.isLeftPaneVisible">
-        <leaflet-map id="map" mc="mc" map="map"></leaflet-map>
+        <openlayers-map id="targetRankMap" mc="mc" map="map"></openlayers-map>
     </center-pane>
 </div>

@@ -6,7 +6,6 @@
 @import 'mixins'
 @import 'vars'
 @import 'masthead'
-@import 'map'
 @import 'classification'
 @import 'ol'
 
@@ -44,14 +43,8 @@ body
     right: 0;
 }
 
-.red {background-color: lightpink;}
-.blue {background-color: lightskyblue;}
-.green {background-color: lightgreen;}
-.yellow {background-color: lightyellow;}
+.map-bg {background-color: mapBgColor;}
 .gray {background-color: lightgray;}
-.purple {background-color:purple;}
-.tan {background-color:tan;}
-.violet {background-color:violet;}
 
 center-pane
     position absolute
@@ -185,6 +178,3 @@ center-pane
             margin-left 4px
             -webkit-transform scale(-1, 1)
             transform scale(-1, 1)
-
-.activeNavItem
-    color red !important

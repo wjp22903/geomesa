@@ -38,15 +38,12 @@
 
         <geoserver.url>http://dgeo:8080/geoserver</geoserver.url>
         <basemap.url>http://dgeo:8080/geoserver/wms</basemap.url>
-        <baselayers>mapproxy:globe.osm.toner</baselayers>
+        <basemap.layers>mapproxy:globe.osm.toner</basemap.layers>
         <basemap.format>image/png</basemap.format>
-        <basemap.transparent>true</basemap.transparent>
         <basemap.crs>EPSG:4326</basemap.crs>
         <basemap.centerLat>37.76</basemap.centerLat>
         <basemap.centerLon>-122.45</basemap.centerLon>
         <basemap.defaultZoom>6</basemap.defaultZoom>
-        <basemap.minZoom>0</basemap.minZoom>
-        <basemap.maxZoom>15</basemap.maxZoom>
     </properties>
 
     <build>

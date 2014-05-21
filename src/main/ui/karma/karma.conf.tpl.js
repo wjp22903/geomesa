@@ -11,7 +11,8 @@ module.exports = function ( karma ) {
     files: [
       <% scripts.forEach( function ( file ) { %>'<%= file %>',
       <% }); %>
-      'src/**/*.js'
+      'src/**/*.js',
+      {pattern: 'vendor/bower/openlayers/lib/**/*.js', watched: false, included: false, served: true}
       // 'src/**/*.coffee'
     ],
     exclude: [
