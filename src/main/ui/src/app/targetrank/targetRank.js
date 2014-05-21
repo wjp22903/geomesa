@@ -4,7 +4,8 @@ angular.module('stealth.targetrank.targetRank', [
     'stealth.common.panes.leftPane',
     'stealth.common.panes.centerTop',
     'stealth.common.panes.centerRight',
-    'stealth.targetrank.leftNav'
+    'stealth.targetrank.leftNav',
+    'stealth.ows.ows'
 ])
 
     .config(['$routeProvider', function ($routeProvider) {
@@ -13,7 +14,8 @@ angular.module('stealth.targetrank.targetRank', [
         });
     }])
 
-    .controller('TargetRankController', ['$scope', '$rootScope', '$modal', '$http', function($scope, $rootScope, $modal, $http) {
+    .controller('TargetRankController', ['$scope', '$rootScope', '$modal', '$http', 'WMS', function($scope, $rootScope, $modal, $http, WMS) {
+
         $scope.targetRank = {
             isLeftPaneVisible: true,
             leftPaneView: 'analysis',
@@ -36,6 +38,14 @@ angular.module('stealth.targetrank.targetRank', [
                     scope: $scope,
                     templateUrl: 'targetrank/addSitesForm.tpl.html',
                     controller: function ($scope, $modalInstance) {
+                        
+                        // Get the layer list from the GetCapabilities WMS operation.
+                        WMS.getCapabilities().then(function (data) {
+                            var layers = data.capability.layers;
+                            $scope.addSites.layers = layers;
+                            $scope.addSites.currentLayer = $scope.addSites.currentLayer || layers[0];
+                        });
+
                         $scope.addSites.submit = function () {
                             var cql_filter = $scope.addSites.formData.cql_filter;
                             $http.get('cors/http://localhost:8081/geoserver/wfs', {params: $scope.addSites.formData})
@@ -44,13 +54,14 @@ angular.module('stealth.targetrank.targetRank', [
                                     $rootScope.$broadcast("AddWmsMapLayer", {
                                         name: 'Sites',
                                         url: 'http://localhost:8081/geoserver/wms',
-                                        layers: ['topp:states'],
+                                        layers: [$scope.addSites.currentLayer.name],
                                         cql_filter: cql_filter
                                     });
-                                    $scope.$parent.targetRank.numSites += data.totalFeatures;
+                                    $scope.$parent.targetRank.numSites = data.totalFeatures;
                                     $scope.$parent.targetRank.sites = data.features;
                                 });
                         };
+
                         $scope.addSites.cancel = function () {
                             $modalInstance.dismiss('cancel');
                         };

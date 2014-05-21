@@ -4,7 +4,19 @@
 </div>
 <form ng-submit="addSites.submit()">
     <div class="modal-body">
-        <input type="text" class="form-control" name="siteCql" placeholder="Enter CQL" ng-model="addSites.formData.cql_filter">
+        <div class="form-group">
+            <label for="">Select a layer</label>
+            <select class="form-control input-sm"
+                ng-model="addSites.currentLayer"
+                ng-init="addSites.currentLayer"
+                ng-options="layer.name for layer in addSites.layers | orderBy:'name'">
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="">Enter CQL</label>
+            <input type="text" class="form-control input-sm" name="siteCql" placeholder="Enter CQL" 
+                ng-model="addSites.formData.cql_filter">
+        </div>
     </div>
     <div class="modal-footer">
         <button type="submit" class="btn btn-primary btn-block">

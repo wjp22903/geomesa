@@ -19,6 +19,7 @@ angular.module('stealth', [
     })
 
     .controller('AppController', ['$scope', '$rootScope', '$location', 'appInfo', function ($scope, $rootScope, $location, appInfo) {
+        
         $rootScope.alert = function(text) {
             alert(text);
         };
