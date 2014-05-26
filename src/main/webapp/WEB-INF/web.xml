@@ -21,6 +21,14 @@
         <servlet-class>com.ccri.stealth.web.CorsProxyServlet</servlet-class>
         <load-on-startup>1</load-on-startup>
         <async-supported>true</async-supported>
+        <init-param>
+            <param-name>idleTimeout</param-name>
+            <param-value>3600000</param-value>
+        </init-param>
+        <init-param>
+            <param-name>timeout</param-name>
+            <param-value>3600000</param-value>
+        </init-param>
     </servlet>
 
     <servlet-mapping>

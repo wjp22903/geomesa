@@ -91,9 +91,9 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>org.eclipse.jetty</groupId>
+                <groupId>org.mortbay.jetty</groupId>
                 <artifactId>jetty-maven-plugin</artifactId>
-                <version>9.1.4.v20140401</version>
+                <version>8.1.15.v20140411</version>
                 <configuration>
                     <scanIntervalSeconds>10</scanIntervalSeconds>
                     <webApp>
@@ -198,8 +198,8 @@
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-proxy</artifactId>
-            <version>9.1.4.v20140401</version>
+            <artifactId>jetty-servlets</artifactId>
+            <version>8.1.15.v20140411</version>
         </dependency>
     </dependencies>
 
