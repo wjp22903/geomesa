@@ -1,3 +1,7 @@
+@import 'nib'
+@import 'mixins'
+@import 'vars'
+
 .masthead
     z-index 800
     height mastheadHeight
@@ -5,16 +9,14 @@
     border-radius 0
     &.navbar-default
         color mastheadColor
+        border-color mastheadBg
         .navbar-brand
             color mastheadColor
             &:hover
-                -webkit-opacity 0
-                -moz-opacity 0
                 opacity 0
-                -webkit-transition all 1s ease
-                -moz-transition all 1s ease
-                -ms-transition all 1s ease
-                -o-transition all 1s ease
                 transition all 1s ease
+        .navbar-nav>li>a:hover
+            color white
+
     .activeNavItem
         color red !important

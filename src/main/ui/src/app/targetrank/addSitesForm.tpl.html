@@ -1,25 +1,81 @@
 <div class="modal-header">
     <i class="fa fa-map-marker fa-lg"></i> Add Sites
-    <i class="fa fa-times pull-right btn btn-default btn-sm" ng-click="addSites.cancel()"></i>
+    <i class="fa fa-times pull-right btn btn-default btn-sm" ng-click="modal.cancel()"></i>
 </div>
 <form ng-submit="addSites.submit()">
     <div class="modal-body">
-        <div class="form-group">
-            <label for="">Select a layer</label>
+        <div class="form-group" ng-class="{ 'has-error': serverData.error }">
+            <label for=""><span class="form-step">1</span> Enter a server url</label>
+            <div class="input-group">
+                <input type="text" class="form-control input-sm" name="geoserverUrl"
+                    ng-model="serverData.proposedGeoserverUrl"
+                    ng-keypress="$event.keyCode == 13 ? addSites.updateServer() : false">
+
+                <span class="input-group-btn">
+                    <button ng-click="addSites.updateServer()"
+                        type="button"
+                        class="btn btn-default btn-sm">Choose</button>
+                </span>
+            </div>
+            <div class="alert alert-danger" ng-show="serverData.error">
+                <i class="fa fa-warning"></i>
+                {{ serverData.error }}
+            </div>
+        </div>
+        
+        <div class="form-group" ng-show="addSites.formStep() > 1">
+            <label for=""><span class="form-step">2</span> Choose an input type:</label>
+            <div class="btn-group">
+                <label class="btn btn-default" ng-model="inputData.type" btn-radio="'site'">Site</label>
+                <label class="btn btn-default" ng-model="inputData.type" btn-radio="'track'">Track</label>
+                <label class="btn btn-default" ng-model="inputData.type" btn-radio="'routepoint'">Point Route</label>
+                <label class="btn btn-default" ng-model="inputData.type" btn-radio="'routeline'">Line Route</label>
+            </div>
+        </div>
+
+        <div class="form-group" ng-show="addSites.formStep() > 2">
+            <label for=""><span class="form-step">3</span> Select a layer from: <span class="label label-success">{{serverData.currentGeoserverUrl}}</span></label>
             <select class="form-control input-sm"
-                ng-model="addSites.currentLayer"
-                ng-init="addSites.currentLayer"
-                ng-options="layer.name for layer in addSites.layers | orderBy:'name'">
+                ng-model="layerData.currentLayer"
+                ng-init="layerData.currentLayer"
+                ng-change="addSites.getFeatureTypeDescription()"
+                ng-options="layer.name for layer in layerData.layers | orderBy:'name'">
             </select>
         </div>
-        <div class="form-group">
-            <label for="">Enter CQL</label>
+        
+        <div class="form-group" ng-show="addSites.formStep() > 3">
+            <blockquote class="feature-type-data-container">
+                <h4>{{ layerData.currentLayer.title }}</h4>
+                <p>{{ layerData.currentLayer.abstract }}</p>
+                    
+                <div ng-switch="featureTypeData">
+                    <div ng-switch-when="unavailable" class="alert alert-warning">
+                        <i class="fa fa-warning"></i> There is no feature type description for this layer.
+                    </div>
+                    <div ng-switch-default class="feature-type-properties-container">
+                        <section ng-show="featureTypeData !== 'unavailable'"
+                            ng-repeat="featureType in featureTypeData.featureTypes">
+                            <h5>Properties for type <strong>{{ featureType.typeName }}</strong></h5>
+                            <table class="table-condensed">
+                                <tr ng-repeat="property in featureType.properties">
+                                    <td>{{ property.name }}</td>
+                                    <td><code>{{ property.localType }}</code></td>
+                                </tr>
+                            </table>
+                        </section>
+                    </div>
+                </div>
+            </blockquote>
+            <label for=""><span class="form-step">4</span> Enter CQL</label>
             <input type="text" class="form-control input-sm" name="siteCql" placeholder="Enter CQL" 
-                ng-model="addSites.formData.cql_filter">
+                ng-model="filterData.cql">
         </div>
+
     </div>
     <div class="modal-footer">
-        <button type="submit" class="btn btn-primary btn-block">
+        <button type="submit" class="btn btn-primary"
+            ng-disabled="addSites.formStep() < 4"
+            ng-click="modal.cancel()">
             Submit
         </button>
     </div>
