@@ -8,9 +8,19 @@ angular.module('stealth', [
     'stealth.targetrank.targetRank',
     'stealth.wps.wps'
 ])
-
-    .config(['$routeProvider', function ($routeProvider) {
+    
+    .config(['$routeProvider', '$provide', function ($routeProvider, $provide) {
+        // Config variables are specified in the pom and written to STEALTH.config
+        // via scalate. Copy that object as an injectable angular constant here.
+        var config = angular.copy(window.STEALTH.config);
+        $provide.constant('CONFIG', config);
+        
+        // Set the default route.
         $routeProvider.otherwise({redirectTo: '/targetRank'});
+    }])
+
+    .config(['CONFIG', function (CONFIG) {
+        OpenLayers.ImgPath = CONFIG.openlayers.imagePath;
     }])
 
     .constant('appInfo', {

@@ -1,17 +1,5 @@
 angular.module('stealth.ows.ows', [])
     
-    // TODO - move this to root module
-    .constant('CONFIG', {
-        geoserver: {
-            url: 'http://localhost:8081/geoserver/',
-            proxyHost: 'cors/'
-        }
-    })
-
-    .config(['CONFIG', function (CONFIG) {
-        OpenLayers.ProxyHost = CONFIG.geoserver.proxyHost;
-    }])
-
     // Formats the url to have the specified endpoint.
     .filter('endpoint', function () {
         return function (url, pathname, omitProxy) {
@@ -19,7 +7,7 @@ angular.module('stealth.ows.ows', [])
             var uri = url.replace(/(\/|wms|wfs)+$/, "");
             uri += '/' + pathname;
             if (!omitProxy) {
-                uri = OpenLayers.ProxyHost + uri;
+                uri = 'cors/' + uri;
             }
             return uri;
         };
@@ -36,7 +24,7 @@ angular.module('stealth.ows.ows', [])
 
             var deferred = $q.defer();
             
-            // Using open layers rather than $http because of the ProxyHost.
+            // TODO could use $http instead of OpenLayers
             OpenLayers.Request.GET({
                 url: url,
                 params: {
@@ -87,7 +75,7 @@ angular.module('stealth.ows.ows', [])
         function requestFeatureTypeDescription (url, typeName) {
             var deferred = $q.defer();
             
-            // Using open layers rather than $http because of the ProxyHost.
+            // TODO could use $http instead of OpenLayers
             OpenLayers.Request.GET({
                 url: url,
                 params: {

@@ -1,3 +1,4 @@
+<%@ var config: spray.json.JsValue %>
 <!DOCTYPE html>
 <html lang="en" ng-app="stealth">
 <head>
@@ -13,8 +14,8 @@
     [% scripts.forEach(function(file) { %]
     <script src="[%= file %]"></script>[% }); %]
     <script type="text/javascript">
-        OpenLayers.ProxyHost = "cors/";
-        OpenLayers.ImgPath = "vendor/bower/openlayers/img/";
+        var STEALTH = STEALTH || {};
+        STEALTH.config = ${ unescape(config) };
     </script>
 </head>
 

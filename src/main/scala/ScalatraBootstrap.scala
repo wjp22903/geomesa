@@ -1,22 +1,23 @@
-import com.ccri.stealth.web.MapAPI
+import com.typesafe.config.{ConfigFactory, ConfigRenderOptions}
 import javax.servlet.ServletContext
 import org.scalatra.scalate.ScalateSupport
 import org.scalatra.{LifeCycle, ScalatraServlet}
+import spray.json._
 
-class DefaultServlet extends ScalatraServlet with ScalateSupport {
+class DefaultServlet extends ScalatraServlet with ScalateSupport with DefaultJsonProtocol {
+  val conf = ConfigFactory.load().getConfig("stealth")
+
   get("/") {
     contentType = "text/html; charset=UTF-8"
     response.setHeader("X-UA-Compatible", "IE=edge")
     ssp(
-      "index"
-    )
-  }
-
-  get("/sandbox") {
-    contentType = "text/html; charset=UTF-8"
-    response.setHeader("X-UA-Compatible", "IE=edge")
-    ssp(
-      "sandbox"
+      "index",
+      "config" -> JsonParser(conf.root().render(
+          ConfigRenderOptions.defaults()
+            .setJson(true)
+            .setComments(false)
+            .setOriginComments(false)
+      ))
     )
   }
 }
@@ -24,6 +25,5 @@ class DefaultServlet extends ScalatraServlet with ScalateSupport {
 class ScalatraBootstrap extends LifeCycle {
   override def init(context: ServletContext) {
     context.mount(new DefaultServlet, "/", "stealth")
-    context.mount(new MapAPI, "/mapservice", "stealth/mapservice")
   }
 }

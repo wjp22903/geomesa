@@ -28,7 +28,7 @@ angular.module('stealth.targetrank.targetRank', [
         // Geoserver url
         $scope.serverData = {
             // The value the user enters into the form.
-            proposedGeoserverUrl: CONFIG.geoserver.url,
+            proposedGeoserverUrl: CONFIG.geoserver.defaultUrl,
             // The value after the users clicks 'Choose'.
             currentGeoserverUrl: null
         };
@@ -109,9 +109,9 @@ angular.module('stealth.targetrank.targetRank', [
                 $scope.targetRank.sites = response.data.features;
                 
                 // Update the map.
-                $rootScope.$broadcast("AddWmsMapLayer", {
+                $rootScope.$emit("AddWmsMapLayer", {
                     name: 'Sites',
-                    url: $filter('endpoint')(url, 'wms'),
+                    url: $filter('endpoint')(url, 'wms', true),
                     layers: [layerName],
                     cql_filter: cql
                 });

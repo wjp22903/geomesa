@@ -1,11 +1,6 @@
 angular.module('stealth.common.map.openlayersMap', [
     'ngResource'
 ])
-    .factory('OlMapConfig', ['$resource', function ($resource) {
-        return $resource('mapservice/basemapconf', {}, {
-            query: {method: 'GET', params: {}, isArray: false}
-        });
-    }])
 
     .service('OlMapService', [function () {
         this.addWmsLayer = function (scope, lc) {
@@ -19,36 +14,32 @@ angular.module('stealth.common.map.openlayersMap', [
         };
     }])
 
-    .directive('openlayersMap', ['$rootScope', 'OlMapConfig', 'OlMapService', function ($rootScope, OlMapConfig, OlMapService) {
+    .directive('openlayersMap', ['$rootScope', 'CONFIG', 'OlMapService', function ($rootScope, CONFIG, OlMapService) {
         return {
             restrict: 'E',
             replace: true,
             scope: {
-                mc: '=',
                 map: '='
             },
             template: '<div class="anchorTop anchorBottom anchorLeft anchorRight map-bg"></div>',
             link: function (scope, element, attrs) {
-                OlMapConfig.query().$promise.then(function (mc) {
-                    scope.mc = mc;
-                    scope.map = new OpenLayers.Map(attrs.id, {
-                        controls: [
-                            new OpenLayers.Control.ZoomPanel(),
-                            new OpenLayers.Control.LayerSwitcher(),
-                            new OpenLayers.Control.MousePosition(),
-                            new OpenLayers.Control.NavToolbar()
-                        ],
-                        projection: mc.crs,
-                        layers: [
-                            new OpenLayers.Layer.WMS(
-                                "Base", mc.url,
-                                {layers: mc.baseLayers, format: mc.format},
-                                {wrapDateLine: true}
-                            )
-                        ]
-                    });
-                    scope.map.setCenter([mc.centerLon, mc.centerLat], mc.defaultZoom);
+                scope.map = new OpenLayers.Map(attrs.id, {
+                    controls: [
+                        new OpenLayers.Control.ZoomPanel(),
+                        new OpenLayers.Control.LayerSwitcher(),
+                        new OpenLayers.Control.MousePosition(),
+                        new OpenLayers.Control.NavToolbar()
+                    ],
+                    projection: CONFIG.map.crs,
+                    layers: [
+                        new OpenLayers.Layer.WMS(
+                            "Base", CONFIG.map.url,
+                            {layers: CONFIG.map.baseLayers, format: CONFIG.map.format},
+                            {wrapDateLine: true}
+                        )
+                    ]
                 });
+                scope.map.setCenter([CONFIG.map.defaultLon, CONFIG.map.defaultLat], CONFIG.map.defaultZoom);
 
                 $rootScope.$on("AddWmsMapLayer", function (event, lc) {
                     OlMapService.addWmsLayer(scope, lc);
