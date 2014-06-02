@@ -4,7 +4,7 @@
         <div ng-switch="targetRank.leftPaneView">
             <div class="anchorBottom anchorLeft anchorRight panel panel-primary" style="margin:5px;top:35px;" ng-switch-when="analysis">
                 <div class="panel-heading">
-                    <i class="fa fa-map-marker fa-lg"></i> Sites <span class="badge">{{targetRank.numSites}}</span>
+                    <i class="fa fa-map-marker fa-lg"></i> {{targetRank.inputData.display ? targetRank.inputData.display : 'Input'}} <span class="badge">{{targetRank.numSites}}</span>
                     <i class="pull-right fa fa-plus btn btn-default btn-sm" ng-click="addSites.showWindow()"></i>
                 </div>
                 <div class="anchorBottom anchorLeft anchorRight" style="top:40px;overflow-y:auto;">

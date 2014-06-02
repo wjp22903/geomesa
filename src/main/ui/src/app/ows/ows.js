@@ -1,5 +1,5 @@
 angular.module('stealth.ows.ows', [])
-    
+
     // Formats the url to have the specified endpoint.
     .filter('endpoint', function () {
         return function (url, pathname, omitProxy) {
@@ -12,46 +12,33 @@ angular.module('stealth.ows.ows', [])
             return uri;
         };
     })
-    
+
     // WMS Utilities
     .factory('WMS', ['$q', '$http', '$filter', 'CONFIG', function ($q, $http, $filter, CONFIG) {
-        
         var parser = new OpenLayers.Format.WMSCapabilities(),
             capabilities = {};
-        
+
         // Requests the wms capabilities from geoserver and returns a promise.
         function requestCapabilities (url) {
-
-            var deferred = $q.defer();
-            
-            // TODO could use $http instead of OpenLayers
-            OpenLayers.Request.GET({
-                url: url,
+            return $http.get(url, {
                 params: {
                     SERVICE: 'WMS',
                     REQUEST: 'GetCapabilities'
                 },
-                success: function (response) {
-                    if(response && response.responseText) {
-                        deferred.resolve(parser.read(response.responseText));
-                    }
-                },
-                failure: function (response) {
-                    // TODO - block other fields here
-                    deferred.reject(response);
+                timeout: 30000
+            }).then(function (response) {
+                if (response && response.data) {
+                    return parser.read(response.data);
                 }
             });
-
-            return deferred.promise;
         }
 
         return {
             // Requests capabilities (or returns the cached version) as a promise.
             getCapabilities: function (url) {
-
                 // TODO url validation.
                 var uri = $filter('endpoint')(url, 'wms');
-                
+
                 if(angular.isDefined(capabilities[uri])) {
                     return $q.when(capabilities[uri]);
                 }
@@ -64,38 +51,23 @@ angular.module('stealth.ows.ows', [])
         };
 
     }])
-    
+
     // WFS Utilities.
     .factory('WFS', ['$q', '$http', '$filter', 'CONFIG', function ($q, $http, $filter, CONFIG) {
-
-        var parser = new OpenLayers.Format.WFSDescribeFeatureType(),
-            descriptions = {};
+        var descriptions = {};
 
         // Makes a DescribeFeatureType request to GeoServer and returns a promise.
         function requestFeatureTypeDescription (url, typeName) {
-            var deferred = $q.defer();
-            
-            // TODO could use $http instead of OpenLayers
-            OpenLayers.Request.GET({
-                url: url,
+            return $http.get(url, {
                 params: {
-                    SERVICE: 'WFS',
-                    REQUEST: 'describeFeatureType',
-                    TYPENAME: typeName
+                    service: 'WFS',
+                    version: '2.0.0',
+                    request: 'DescribeFeatureType',
+                    typeName: typeName,
+                    outputFormat: 'application/json'
                 },
-                success: function (response) {
-                    if(response && response.responseText) {
-                        deferred.resolve(parser.read(response.responseText));
-                    }
-                },
-                failure: function (response) {
-                    // block other fields here
-                            
-                    deferred.reject(response);
-                }
+                timeout: 30000
             });
-
-            return deferred.promise;
         }
 
         function getFeature (url, typeName, paramOverrides) {
@@ -106,9 +78,9 @@ angular.module('stealth.ows.ows', [])
                     version: '2.0.0',
                     request: 'GetFeature',
                     typeName: typeName,
-                    outputFormat: 'application/json',
+                    outputFormat: 'application/json'
                 };
-                
+
             return $http.get(uri, { params:  _.merge(paramDefaults, paramOverrides) });
         }
 
@@ -130,11 +102,11 @@ angular.module('stealth.ows.ows', [])
                     if (!angular.isDefined(descriptions[uri])) {
                         descriptions[uri] = {};
                     }
-                    descriptions[uri][typeName] = data;
+                    descriptions[uri][typeName] = data.data;
                     return descriptions[uri][typeName];
                 });
             },
-            
+
             // (GetFeature)
             getFeature: function (url, typeName, paramOverrides) {
                 // TODO validate the url.

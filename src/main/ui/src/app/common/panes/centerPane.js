@@ -14,7 +14,7 @@ angular.module('stealth.common.panes.centerPane', [
                     if(newVal !== oldVal) {
                         $timeout(function () {
                             element.toggleClass('full-width', newVal === true);
-                            $rootScope.$broadcast("CenterPaneFullWidthChange", newVal);
+                            $rootScope.$emit("CenterPaneFullWidthChange", newVal);
                         }, newVal === true ? 0 : 500);
                     }
                 });
