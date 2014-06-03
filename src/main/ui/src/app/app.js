@@ -5,40 +5,48 @@ angular.module('stealth', [
     'ui.bootstrap',
     'templates-app',
     'stealth.siterank.siteRank',
-    'stealth.targetrank.targetRank',
-    'stealth.wps.wps'
+    'stealth.targetrank.targetRank'
 ])
-    
-    .config(['$routeProvider', '$provide', function ($routeProvider, $provide) {
+
+    .config(['$provide', function ($provide) {
         // Config variables are specified in the pom and written to STEALTH.config
         // via scalate. Copy that object as an injectable angular constant here.
         var config = angular.copy(window.STEALTH.config);
         $provide.constant('CONFIG', config);
-        
-        // Set the default route.
-        $routeProvider.otherwise({redirectTo: '/targetRank'});
     }])
 
-    .config(['CONFIG', function (CONFIG) {
+    .config(['$routeProvider', 'CONFIG', function ($routeProvider, CONFIG) {
         OpenLayers.ImgPath = CONFIG.openlayers.imagePath;
+
+        // Set the default route.
+        $routeProvider.otherwise({redirectTo: '/' + CONFIG.app.defaultTab});
     }])
 
-    .constant('appInfo', {
-        name: 'stealth',
-        title: 'Stealth'
-    })
-
-    .controller('AppController', ['$scope', '$rootScope', '$location', 'appInfo', function ($scope, $rootScope, $location, appInfo) {
-        
+    .controller('AppController', ['$scope', '$rootScope', '$location', 'CONFIG', function ($scope, $rootScope, $location, CONFIG) {
         $rootScope.alert = function(text) {
             alert(text);
         };
 
-        $scope.appModel = {
-            appName: appInfo.name,
-            appTitle: appInfo.title
+        //Block location changes to disallowed or non-existent routes
+        $rootScope.$on('$locationChangeStart', function (event, next, current) {
+            if (next.indexOf('#') !== -1 && //route specified AND...
+                    !_.some(CONFIG.app.tabs, function (tab) { //route does not lead to allowed tab
+                        return (next.indexOf('#/' + tab) > -1);
+                    })
+                )
+            {
+                event.preventDefault();
+            }
+        });
+
+        $scope.app = {
+            title: CONFIG.app.title,
+            classification: CONFIG.classification
         };
         $scope.isActiveNavItem = function (viewLocation) {
             return viewLocation === $location.path();
+        };
+        $scope.showTab = function (tab) {
+            return _.contains(CONFIG.app.tabs, tab);
         };
     }]);

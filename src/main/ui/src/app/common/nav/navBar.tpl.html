@@ -1,9 +1,9 @@
 <nav class="masthead navbar navbar-default">
     <div class="navbar-header">
-        <span class="navbar-brand">{{appModel.appTitle}}</span>
+        <span class="navbar-brand">{{app.title}}</span>
     </div>
     <ul class="nav navbar-nav">
-        <li><a ng-class="{activeNavItem: isActiveNavItem('/targetRank')}" href="#/targetRank"><i class="fa fa-crosshairs fa-lg"></i> Target Prioritization</a></li>
-        <li><a ng-class="{activeNavItem: isActiveNavItem('/siteRank')}" href="#/siteRank"><i class="fa fa-map-marker fa-lg"></i> Site Nomination</a></li>
+        <li ng-show="showTab('targetRank')"><a ng-class="{activeNavItem: isActiveNavItem('/targetRank')}" href="#/targetRank"><i class="fa fa-crosshairs fa-lg"></i> Target Prioritization</a></li>
+        <li ng-show="showTab('siteRank')"><a ng-class="{activeNavItem: isActiveNavItem('/siteRank')}" href="#/siteRank"><i class="fa fa-map-marker fa-lg"></i> Site Nomination</a></li>
     </ul>
 </nav>

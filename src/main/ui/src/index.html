@@ -1,6 +1,6 @@
 <%@ var config: spray.json.JsValue %>
 <!DOCTYPE html>
-<html lang="en" ng-app="stealth">
+<html lang="en" ng-app="stealth" ng-controller="AppController">
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -8,7 +8,7 @@
     <!-- Replace above line with below line to disable zooming on touch screens. -->
     <!-- <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"> -->
 
-    <title>Stealth</title>
+    <title ng-bind="app.title"></title>
     [% styles.forEach(function(file) { %]
     <link rel="stylesheet" href="[%= file %]">[% }); %]
     [% scripts.forEach(function(file) { %]
@@ -19,16 +19,12 @@
     </script>
 </head>
 
-<body ng-controller="AppController">
-    <div class="anchorTop classBanner unclassified">
-        Dynamic Page - Highest Possible Classification is UNCLASSIFIED//FOR OFFICIAL USE ONLY
-    </div>
+<body>
+    <div class="anchorTop classBanner {{app.classification.level}}" ng-bind="app.classification.text"></div>
     <div class="betweenClassBanners">
         <div ng-include="'common/nav/navBar.tpl.html'"></div>
         <div ng-view style="position:absolute;top:50px;bottom:0;left:0;right:0;"></div>
     </div>
-    <div class="anchorBottom classBanner unclassified">
-        Dynamic Page - Highest Possible Classification is UNCLASSIFIED//FOR OFFICIAL USE ONLY
-    </div>
+    <div class="anchorBottom classBanner {{app.classification.level}}" ng-bind="app.classification.text"></div>
 </body>
 </html>
