@@ -1,29 +1,102 @@
 <div id="targetRank" ng-controller="TargetRankController">
     <left-pane is-visible="targetRank.isLeftPaneVisible">
-        <tr-left-nav></tr-left-nav>
+
+        <!-- Top tabs -->
+        <ul class="nav nav-tabs">
+            <li ng-class="{active: targetRank.leftPaneView==='analysis'}" ng-click="targetRank.leftPaneView='analysis'">
+                <a href="#/targetRank">
+                    <i class="fa fa-eye"></i>
+                    Analysis
+                </a>
+            </li>
+            <li ng-class="{active: targetRank.leftPaneView==='targets'}" ng-click="targetRank.leftPaneView='targets'">
+                <a href="#/targetRank">
+                    <i class="fa fa-crosshairs fa-lg"></i>
+                    Targets 
+                    <span class="badge">{{targetRank.numTargets}}</span>
+                </a>
+            </li>
+        </ul>
+        
+        <!-- Pane content area -->
         <div ng-switch="targetRank.leftPaneView">
-            <div class="anchorBottom anchorLeft anchorRight panel panel-primary" style="margin:5px;top:35px;" ng-switch-when="analysis">
-                <div class="panel-heading">
-                    <i class="fa fa-map-marker fa-lg"></i> {{targetRank.inputData.display ? targetRank.inputData.display : 'Input'}} <span class="badge">{{targetRank.numSites}}</span>
-                    <i class="pull-right fa fa-plus btn btn-default btn-sm" ng-click="addSites.showWindow()"></i>
+            <!-- Analysis panel -->
+            <div class="tab-pane" ng-switch-when="analysis">
+                <div class="instructions alert alert-info"
+                    ng-show="!targetRank.sites">
+                    <i class="fa fa-info-circle fa-3x"></i>
+                    Select a data source and enter a query to begin.
+                    <button class="btn btn-default"
+                        ng-click="addSites.showWindow()">Get Started</button>
                 </div>
-                <div class="anchorBottom anchorLeft anchorRight" style="top:40px;overflow-y:auto;">
-                    <ul class="sites-list list-unstyled">
-                        <li ng-repeat="site in targetRank.sites">
-                            <h4>{{ site.id }}</h4>
-                            <div class="property"
-                                ng-repeat="(key, val) in site.properties">
-                                <strong>{{ key }}:</strong> {{ val }}
-                            </div>
-                        </li>
-                    </ul>
-                </div>
+                <ui-layout options="{flow: 'row'}"
+                    ng-show="targetRank.sites">
+                    <section id="sites-section">
+                        <header>
+                            <i class="fa fa-map-marker fa-lg"></i> 
+                            {{targetRank.inputData.display ? targetRank.inputData.display : 'Input'}} 
+                            <span class="badge">{{targetRank.numSites}}</span>
+                            <button class="btn btn-default btn-xs pull-right"
+                                ng-click="addSites.showWindow()">
+                                Update Sites
+                            </button>
+                        </header>
+
+                        <ul class="sites-list list-unstyled">
+                            <li ng-repeat="site in targetRank.sites">
+                                <h4>{{ site.id }}</h4>
+                                <div class="property"
+                                    ng-repeat="(key, val) in site.properties">
+                                    <strong>{{ key }}:</strong> {{ val }}
+                                </div>
+                            </li>
+                        </ul>
+                    </section>
+
+                    <section id="data-section">
+                        <header>
+                            <i class="fa fa-database fa-lg"></i> Data layers</span>
+                        </header>
+                        <ul class="list-unstyled data-layers">
+                            <li class="checkbox"
+                                ng-repeat="(workspace, layers) in dataLayers">
+
+                                <label ng-if="layers.length === 1"
+                                    class="header-label">
+                                    <input type="checkbox"
+                                        ng-model="layers[0].isSelected"> {{ layers[0].name }}
+                                </label>
+                
+                                <label ng-if="layers.length > 1"
+                                    class="header-label">
+                                    <input type="checkbox"
+                                        group-checkbox="layers.isSelected"> {{ workspace }}
+                                </label>
+
+                                <ul ng-if="layers.length > 1"
+                                    class="list-unstyled workspace-layers nest">
+                                    <li class="checkbox" ng-repeat="layer in layers">
+                                        <label>
+                                            <input type="checkbox"
+                                                ng-model="layer.isSelected"> {{ layer.name }}
+                                        </label>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </section>
+
+                </ui-layout>
             </div>
-            <div class="anchorBottom anchorLeft anchorRight" style="top:35px;" ng-switch-when="targets">
+
+            <!-- Targets panel -->
+            <div class="tab-pane" ng-switch-when="targets">
                 targets
             </div>
         </div>
     </left-pane>
+
+    <!-- Map -->
     <center-pane is-full-width="!targetRank.isLeftPaneVisible">
         <openlayers-map id="targetRankMap" map="map"></openlayers-map>
     </center-pane>

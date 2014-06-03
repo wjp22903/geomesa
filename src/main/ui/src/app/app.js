@@ -3,6 +3,7 @@ angular.module('stealth', [
     'ngAnimate',
     'ngResource',
     'ui.bootstrap',
+    'ui.utils',
     'templates-app',
     'stealth.siterank.siteRank',
     'stealth.targetrank.targetRank'

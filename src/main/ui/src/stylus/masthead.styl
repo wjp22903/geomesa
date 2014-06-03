@@ -8,6 +8,7 @@
     background linear-gradient(top, lighten(mastheadBg, 10%), mastheadBg)
     border-radius 0
     &.navbar-default
+        shadow-bottom()
         color mastheadColor
         border-color mastheadBg
         .navbar-brand
@@ -15,8 +16,13 @@
             &:hover
                 opacity 0
                 transition all 1s ease
-        .navbar-nav>li>a:hover
-            color white
+        .navbar-nav
+            > li
+                > a
+                    outline none
+                    transition color 0.3s ease
+                    &:hover
+                        color white
 
     .activeNavItem
         color red !important

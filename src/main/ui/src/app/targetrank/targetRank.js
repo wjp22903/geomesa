@@ -4,8 +4,9 @@ angular.module('stealth.targetrank.targetRank', [
     'stealth.common.panes.leftPane',
     'stealth.common.panes.centerTop',
     'stealth.common.panes.centerRight',
-    'stealth.targetrank.leftNav',
+    'stealth.common.groupCheckbox',
     'stealth.ows.ows',
+    'ui.layout',
     'ui.bootstrap.buttons'
 ])
 
@@ -14,7 +15,7 @@ angular.module('stealth.targetrank.targetRank', [
             templateUrl: 'targetrank/targetRank.tpl.html'
         });
     }])
-
+    
     .controller('TargetRankController', ['$scope', '$rootScope', '$modal', '$http', '$filter', 'WMS', 'WFS', 'CONFIG', function($scope, $rootScope, $modal, $http, $filter, WMS, WFS, CONFIG) {
 
         $scope.targetRank = {
@@ -42,6 +43,13 @@ angular.module('stealth.targetrank.targetRank', [
         };
 
         // Layers returned from a GetCapabilities query.
+        $scope.layerData = {
+            layers: null,
+            currentLayer: null,
+            currentLayerDescription: null
+        };
+
+        $scope.dataLayers = {};
         $scope.layerData = {};
         $scope.inputData = {};
         $scope.filterData = {};
@@ -101,7 +109,21 @@ angular.module('stealth.targetrank.targetRank', [
 
             // Get the layer list from the GetCapabilities WMS operation.
             WMS.getCapabilities($scope.serverData.currentGeoserverUrl).then(function (data) {
-                $scope.layerData.layers = data.capability.layers;
+                var layers = data.capability.layers;
+                $scope.serverData.error = null;
+                $scope.layerData.layers = layers;
+
+                $scope.dataLayers = _.chain(layers)
+                    // Streamline the properties we are including.
+                    .map(function (workspace) {
+                        return _.pick(workspace, ['name', 'prefix']);
+                    })
+                    // Build a map of workspaces
+                    .groupBy('prefix')
+                    // Only include the workspaces specified in the config.
+                    .pick(CONFIG.geoserver.workspaces.data)
+                    .value();
+
             }, function (reason) {
                 // The GetCapabilites request failed.
                 $scope.serverData.error = 'GetCapabilities request failed. Error: ' + reason.status + ' ' + reason.statusText;

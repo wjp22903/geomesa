@@ -9,7 +9,7 @@ angular.module('stealth.common.map.openlayersMap', [
             scope: {
                 map: '='
             },
-            template: '<div class="anchorTop anchorBottom anchorLeft anchorRight map-bg">' +
+            template: '<div class="anchorTop anchorBottom anchorLeft anchorRight map">' +
                           '<div class="mapSpinner" ng-show="loading.count > 0">' +
                               '<div class="fa-stack fa-lg">' +
                                   '<i class="fa fa-spinner fa-stack-2x fa-spin"></i>' +

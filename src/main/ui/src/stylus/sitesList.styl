@@ -4,10 +4,11 @@
 
 // the list of sites in the left nav pane.
 .sites-list
-    padding-left 5px
     li
         clearfix()
         border-bottom 1px solid #BBB
+        &:last-of-type
+            border-bottom none
         h4
             font-size 14px
             font-weight bold
@@ -19,5 +20,19 @@
             border-right 2px solid #CCC
             strong
                 color #777
+
+// The second vertical element in the ui-layout.
+// Add margin to account for the separator bar.
+#data-section
+    margin-top 8px
+
+// the list of data layers in the left nav pane
+.data-layers
+    > li:not(:first-of-type)
+        border-top 1px solid #DDD
+        padding-top 10px
+        padding-bottom 10px
+
+    
 
 

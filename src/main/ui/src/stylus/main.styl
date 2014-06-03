@@ -1,14 +1,17 @@
 // Main stylus file. 
 @import '../../vendor/bower/bootstrap/dist/css/bootstrap.min.css'
 @import '../../vendor/bower/font-awesome/css/font-awesome.min.css'
+@import '../../vendor/bower/angular-ui-layout/ui-layout.css'
 // http://visionmedia.github.io/nib/
 @import 'nib'
+// applicaton files imports
 @import 'mixins'
 @import 'vars'
 @import 'masthead'
 @import 'classification'
 @import 'ol'
 @import 'forms'
+@import 'tabs'
 @import 'sitesList'
 
 @font-face
@@ -45,8 +48,61 @@ body
     right: 0;
 }
 
-.map-bg {background-color: mapBgColor;}
-.gray {background-color: lightgray;}
+
+.left-pane
+    background white
+    ul.nav:first-of-type
+        height 42px
+        border-bottom 1px solid  #BBB
+        background linear-gradient(top, white, #EEE)
+        padding-top 10px
+    .tab-pane
+        position absolute
+        top 42px
+        right 0
+        bottom 0
+        left 0
+        padding 0 10px
+        .instructions
+            margin-top 20px
+        section
+            overflow-y scroll
+            header
+                position fixed
+                height 50px
+                width sidePaneWidth - 16px
+                padding 20px 10px 10px 10px
+                background white
+                border-bottom 1px solid #DEDEDE
+                background-image linear-gradient(white, #E0E4E6)
+                shadow-bottom()
+            > ul
+                margin-top 55px
+            ul
+                padding-left 5px
+                overflow-y auto
+                &.nest
+                    li.checkbox:first-of-type
+                        margin-top 0
+                li.checkbox
+                    margin-bottom 6px
+
+
+label.header-label
+    font-weight bold
+    color #555
+    &:not(:first-of-type)
+        margin-top 10px
+                
+
+// ui split bar
+.ui-splitbar
+    border-top 1px solid #AAA
+    border-bottom 1px solid #AAA
+    background #CCC
+
+.map
+    background-color: mapBgColor
 
 center-pane
     position absolute

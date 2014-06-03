@@ -1,0 +1,32 @@
+@import 'nib'
+@import 'mixins'
+@import 'vars'
+
+// Override Bootstrap tabs
+.nav-tabs 
+    > li
+        > a
+            padding 5px 10px
+            color #AAA
+            outline none
+            .badge
+                background #AAA
+            &:hover
+                color #333
+                border-bottom none
+                .badge
+                    background-color #333
+        &.active 
+            > a
+                border-color #BBB
+                border-bottom 1px solid white
+                color red
+                &:hover
+                    color red
+                    .badge
+                        background red
+            .badge
+                background red
+
+        &:first-of-type
+            margin-left 10px
