@@ -24,7 +24,7 @@
 
     <properties>
         <scalatra.version>2.2.0</scalatra.version>
-        <slf4j.version>1.7.2</slf4j.version>
+        <logback-classic.version>1.0.13</logback-classic.version>
         <spray-json.version>1.2.3</spray-json.version>
         <scala.version>2.10.0</scala.version>
         <uidir.pathname>${project.basedir}/src/main/ui</uidir.pathname>
@@ -60,10 +60,17 @@
         <classification.text>Dynamic Page - Highest Possible Classification is UNCLASSIFIED//FOR OFFICIAL USE ONLY</classification.text>
         <!-- supported levels: unclassified, confidential, secret, topSecret, sci -->
         <classification.level>unclassified</classification.level>
+
+        <security.anonymous.access>true</security.anonymous.access>
+        <security.allowed.userDns>["CN=Guest User guest,O=CCRI,L=Charlottesville,ST=Virginia,C=US"]</security.allowed.userDns>
     </properties>
 
     <build>
         <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+            </resource>
             <resource>
                 <directory>src/main/resources-filter</directory>
                 <filtering>true</filtering>
@@ -118,8 +125,26 @@
                             <resourcesAsCSV>${project.basedir}/src/main/webapp,${project.build.directory}/${project.artifactId}-${project.version}</resourcesAsCSV>
                         </baseResource>
                         <maxFormContentSize>500000</maxFormContentSize>
-                        <jettyEnvXml>${project.build.outputDirectory}/jetty-env.xml</jettyEnvXml>
                     </webApp>
+                    <connectors>
+                        <connector implementation="org.eclipse.jetty.server.nio.SelectChannelConnector">
+                            <port>8080</port>
+                            <maxIdleTime>60000</maxIdleTime>
+                        </connector>
+                        <!-- Look at src/test/resources/certs.sh for how these stores and client certs are created. -->
+                        <connector implementation="org.eclipse.jetty.server.ssl.SslSelectChannelConnector">
+                            <port>8443</port>
+                            <maxIdleTime>60000</maxIdleTime>
+                            <keystore>${basedir}/src/test/resources/certs/server.p12</keystore>
+                            <keystoreType>PKCS12</keystoreType>
+                            <password>password</password>
+                            <keyPassword>password</keyPassword>
+                            <truststore>${basedir}/src/test/resources/certs/truststore.jks</truststore>
+                            <trustPassword>password</trustPassword>
+                            <wantClientAuth>false</wantClientAuth>
+                            <needClientAuth>true</needClientAuth>
+                        </connector>
+                    </connectors>
                 </configuration>
             </plugin>
             <plugin>
@@ -207,6 +232,11 @@
             <version>${scalatra.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.scalatra</groupId>
+            <artifactId>scalatra-auth_2.10</artifactId>
+            <version>${scalatra.version}</version>
+        </dependency>
+        <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
             <version>3.1.0</version>
@@ -216,6 +246,11 @@
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-servlets</artifactId>
             <version>8.1.15.v20140411</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback-classic.version}</version>
         </dependency>
     </dependencies>
 

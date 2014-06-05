@@ -1,10 +1,13 @@
 package com.ccri.stealth.web;
 
 //Jetty 8
+import org.eclipse.jetty.client.HttpClient;
+import org.eclipse.jetty.client.HttpExchange;
 import org.eclipse.jetty.http.HttpURI;
 import org.eclipse.jetty.servlets.ProxyServlet;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
 
-//Jetty 9
+//Jetty 9 - without SSL
 //import org.eclipse.jetty.proxy.ProxyServlet;
 
 import javax.servlet.http.HttpServletRequest;
@@ -22,7 +25,18 @@ public class CorsProxyServlet extends ProxyServlet {
         ).substring(1)));
     }
 
-    //Jetty 9
+    @Override
+    protected HttpClient createHttpClientInstance() {
+        return new HttpClient(new SslContextFactory());
+    }
+
+    @Override
+    protected void customizeExchange(HttpExchange exchange, HttpServletRequest request) {
+        super.customizeExchange(exchange, request);
+        exchange.setRequestHeader("Host", null);
+    }
+
+    //Jetty 9 - without SSL
     /*@Override
     protected URI rewriteURI(HttpServletRequest request) {
         String query = request.getQueryString();

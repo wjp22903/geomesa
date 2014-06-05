@@ -13,6 +13,7 @@ angular.module('stealth', [
         // Config variables are specified in the pom and written to STEALTH.config
         // via scalate. Copy that object as an injectable angular constant here.
         var config = angular.copy(window.STEALTH.config);
+        config.userCn = window.STEALTH.userCn;
         $provide.constant('CONFIG', config);
     }])
 
@@ -42,7 +43,8 @@ angular.module('stealth', [
 
         $scope.app = {
             title: CONFIG.app.title,
-            classification: CONFIG.classification
+            classification: CONFIG.classification,
+            userCn: CONFIG.userCn
         };
         $scope.isActiveNavItem = function (viewLocation) {
             return viewLocation === $location.path();
