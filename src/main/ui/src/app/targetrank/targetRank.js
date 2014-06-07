@@ -1,4 +1,6 @@
 angular.module('stealth.targetrank.targetRank', [
+    'stealth.common.proximity',
+    'stealth.common.utils',
     'stealth.common.map.openlayersMap',
     'stealth.common.panes.centerPane',
     'stealth.common.panes.leftPane',
@@ -15,9 +17,8 @@ angular.module('stealth.targetrank.targetRank', [
             templateUrl: 'targetrank/targetRank.tpl.html'
         });
     }])
-    
-    .controller('TargetRankController', ['$scope', '$rootScope', '$modal', '$http', '$filter', 'WMS', 'WFS', 'CONFIG', function($scope, $rootScope, $modal, $http, $filter, WMS, WFS, CONFIG) {
 
+    .controller('TargetRankController', ['$scope', '$rootScope', '$modal', '$http', '$filter', 'WMS', 'WFS', 'CONFIG', 'ProximityService', function($scope, $rootScope, $modal, $http, $filter, WMS, WFS, CONFIG, ProximityService) {
         $scope.targetRank = {
             isLeftPaneVisible: true,
             leftPaneView: 'analysis',
@@ -32,6 +33,56 @@ angular.module('stealth.targetrank.targetRank', [
                     return layer.name.substring(0, str.length) === str;
                 });
             }
+        };
+
+        $scope.targetRank.doProximity = function () {
+            var proxFn, proxArg = {
+                geoserverUrl: $scope.serverData.currentGeoserverUrl,
+                inputLayer: $scope.layerData.currentLayer.name,
+                inputLayerFilter: $scope.filterData.cql
+            };
+            switch ($scope.inputData.type) {
+                case 'site':
+                    proxFn = ProximityService.doLayerProximity;
+                    proxArg = _.merge(proxArg, {
+                        dataLayerFilter: 'dtg BETWEEN ' + $scope.options.startTime + ' AND ' + $scope.options.endTime,
+                        bufferDegrees: $scope.options.proximityDegrees
+                    });
+                    break;
+                case 'track':
+                    proxFn = ProximityService.doTrackProximity;
+                    proxArg = _.merge(proxArg, {
+                        maxSpeedMps: $scope.options.maxSpeedMps,
+                        maxTimeSec: $scope.options.maxTimeSec
+                    });
+                    break;
+                //TODO - connect to Route Search
+                /*case 'route':
+                    proxFn = ProximityService.doRouteProximity;
+                    break;*/
+                default:
+                    alert('Error: No proximity search available for this input type');
+            }
+
+            if (_.isFunction(proxFn)) {
+                _.chain($scope.dataLayers).values().flatten().filter(function (dataLayer) {
+                    delete dataLayer.spatialQueryStatus;
+                    return dataLayer.isSelected;
+                }).forEach(function (dataLayer) {
+                    proxArg.dataLayer = dataLayer.name;
+                    dataLayer.spatialQueryStatus = 'running';
+                    proxFn(proxArg).then(function () {
+                        dataLayer.spatialQueryStatus = 'done';
+                    }, function () {
+                        dataLayer.spatialQueryStatus = 'error';
+                    });
+                });
+            }
+        };
+
+        $scope.targetRank.run = function () {
+            $scope.targetRank.doProximity();
+            //TODO - get target ranks
         };
 
         // Geoserver url
@@ -49,6 +100,7 @@ angular.module('stealth.targetrank.targetRank', [
             currentLayerDescription: null
         };
 
+        $scope.options = {};
         $scope.dataLayers = {};
         $scope.layerData = {};
         $scope.inputData = {};
@@ -123,7 +175,6 @@ angular.module('stealth.targetrank.targetRank', [
                     // Only include the workspaces specified in the config.
                     .pick(CONFIG.geoserver.workspaces.data)
                     .value();
-
             }, function (reason) {
                 // The GetCapabilites request failed.
                 $scope.serverData.error = 'GetCapabilities request failed. Error: ' + reason.status + ' ' + reason.statusText;
@@ -168,6 +219,8 @@ angular.module('stealth.targetrank.targetRank', [
             WFS.getFeature(url, layerName, {cql_filter: cql}).then(function (response) {
                 $scope.targetRank.numSites = response.data.totalFeatures;
                 $scope.targetRank.sites = response.data.features;
+
+                $scope.options = {};
             });
         };
 

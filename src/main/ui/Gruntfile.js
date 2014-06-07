@@ -3,13 +3,12 @@ var eyes    = require('eyes'),
 
 module.exports = function (grunt) {
     'use strict';
-    
+
     // Load npm tasks.
     require('matchdep').filterDev('grunt-*').forEach(function (dep) {
         grunt.loadNpmTasks(dep);
     });
 
-    
     grunt.initConfig(require('./stealth.config.js'));
 
     // Expand the buildDir pattern to allow glob minimatch patterns in config.
@@ -96,7 +95,8 @@ module.exports = function (grunt) {
                 // '<%= html2js.common.dest %>',
                 '<%= html2js.app.dest %>',
                 '<%= vendorFiles.css %>',
-                '<%= stylus.build.dest %>'
+                '<%= stylus.build.dest %>',
+                '<%= buildDir %>/templates-jst.js'
             ]
         }
     });
@@ -130,7 +130,7 @@ module.exports = function (grunt) {
     
     grunt.config('karmaconfig', {
         spec: {
-            src: ['<%= vendorFiles.js %>', '<%= testFiles.js %>', '<%= html2js.app.dest %>']
+            src: ['<%= vendorFiles.js %>', '<%= testFiles.js %>', '<%= html2js.app.dest %>', '<%= buildDir %>/templates-jst.js']
         }
     });
 
@@ -155,6 +155,24 @@ module.exports = function (grunt) {
             options: {
                 compress: true,
                 'include css': true
+            }
+        }
+    });
+
+    // LODASH TEMPLATES
+    grunt.config('jst', {
+        compile: {
+            options: {
+                namespace: 'stealth.jst',
+                processName: function (filepath) {
+                    return filepath.replace(/^src\/templates\//, '').replace(/\.jst/, '');
+                },
+                templateSettings: {
+                    interpolate : /\{\{(.+?)\}\}/g
+                }
+            },
+            files: {
+                "<%= buildDir %>/templates-jst.js": ["src/templates/**/*.jst.*"]
             }
         }
     });
@@ -191,6 +209,10 @@ module.exports = function (grunt) {
         tpls: {
             files: ['<%= appFiles.tpl %>'],
             tasks: ['html2js']
+        },
+        jst: {
+            files: ['src/templates/**/*.jst.*'],
+            tasks: ['jst:compile']
         }
     });
 
@@ -250,9 +272,8 @@ module.exports = function (grunt) {
     });
 
     grunt.registerMultiTask('karmaconfig', 'Process Karma config templates', function () {
-
         var jsFiles = filterForJS(this.filesSrc);
-        
+
         console.log(eyes.inspect(jsFiles));
 
         grunt.file.copy('karma/karma.conf.tpl.js', 'karma.conf.js', {
@@ -268,13 +289,13 @@ module.exports = function (grunt) {
 
     grunt.renameTask('watch', 'delta');
 
-    grunt.registerTask('watch', ['build', 'karma:spec', 'delta']);
     // Register tasks.
+    grunt.registerTask('watch', ['build', 'karma:spec', 'delta']);
     grunt.registerTask('default', 'build');
-
     grunt.registerTask('build', [
         // 'clean',
         'html2js',
+        'jst:compile',
         'jshint',
         'karmaconfig',
         'karma:continuous',

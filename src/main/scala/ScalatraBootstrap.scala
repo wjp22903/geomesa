@@ -12,6 +12,7 @@ class DefaultServlet extends ScalatraServlet with ScalateSupport with DefaultJso
 
   get("/") {
     val userCn = pkiAuth
+    logger.info("Access Granted: " + userCn)
     contentType = "text/html; charset=UTF-8"
     response.setHeader("X-UA-Compatible", "IE=edge")
     ssp(
@@ -33,14 +34,14 @@ class DefaultServlet extends ScalatraServlet with ScalateSupport with DefaultJso
       else getCn(user.get.dn)
     } else {
       if (user.isEmpty) {
-        logger.warn("Access Denied: anonymous")
-        halt(403, "Access Denied: please use HTTPS and present a valid certificate")
+        logger.warn("Access Denied: Anonymous")
+        halt(403, "Access Denied: Please use HTTPS and present a valid certificate")
       } else {
         if (conf.getValue("private.security.userDns").unwrapped.asInstanceOf[java.util.List[String]].contains(user.get.dn)) {
           getCn(user.get.dn)
         } else {
           logger.warn("Access Denied: " + user.get.dn)
-          halt(403, "Access Denied: contact administrator for access")
+          halt(403, "Access Denied: Contact administrator for access")
         }
       }
     }

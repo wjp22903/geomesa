@@ -12,12 +12,12 @@
             <li ng-class="{active: targetRank.leftPaneView==='targets'}" ng-click="targetRank.leftPaneView='targets'">
                 <a href="#/targetRank">
                     <i class="fa fa-crosshairs fa-lg"></i>
-                    Targets 
+                    Targets
                     <span class="badge">{{targetRank.numTargets}}</span>
                 </a>
             </li>
         </ul>
-        
+
         <!-- Pane content area -->
         <div ng-switch="targetRank.leftPaneView">
             <!-- Analysis panel -->
@@ -25,7 +25,7 @@
                 <div class="instructions alert alert-info"
                     ng-show="!targetRank.sites">
                     <i class="fa fa-info-circle fa-3x"></i>
-                    Select a data source and enter a query to begin.
+                    <span>Select an input source and enter a query to begin.</span>
                     <button class="btn btn-default"
                         ng-click="addSites.showWindow()">Get Started</button>
                 </div>
@@ -33,15 +33,14 @@
                     ng-show="targetRank.sites">
                     <section id="sites-section">
                         <header>
-                            <i class="fa fa-map-marker fa-lg"></i> 
-                            {{targetRank.inputData.display ? targetRank.inputData.display : 'Input'}} 
+                            <i class="fa fa-map-marker fa-lg"></i>
+                            {{targetRank.inputData.display ? targetRank.inputData.display : 'Input'}}
                             <span class="badge">{{targetRank.numSites}}</span>
                             <button class="btn btn-default btn-xs pull-right"
                                 ng-click="addSites.showWindow()">
-                                Update Sites
+                                Change {{targetRank.inputData.display ? targetRank.inputData.display : 'Input'}}
                             </button>
                         </header>
-
                         <ul class="sites-list list-unstyled">
                             <li ng-repeat="site in targetRank.sites">
                                 <h4>{{ site.id }}</h4>
@@ -55,18 +54,23 @@
 
                     <section id="data-section">
                         <header>
-                            <i class="fa fa-database fa-lg"></i> Data layers</span>
+                            <i class="fa fa-database fa-lg"></i> Data Layers
                         </header>
                         <ul class="list-unstyled data-layers">
                             <li class="checkbox"
                                 ng-repeat="(workspace, layers) in dataLayers">
 
-                                <label ng-if="layers.length === 1"
-                                    class="header-label">
-                                    <input type="checkbox"
-                                        ng-model="layers[0].isSelected"> {{ layers[0].name }}
-                                </label>
-                
+                                <div ng-if="layers.length === 1">
+                                    <label class="header-label">
+                                        <input type="checkbox"
+                                            ng-model="layers[0].isSelected"> {{ layers[0].name }}
+                                    </label>
+                                    <i class="fa fa-lg pull-right spatial-query-status"
+                                       ng-class="{'fa-globe': layers[0].spatialQueryStatus === 'done',
+                                            'fa-exclamation-triangle': layers[0].spatialQueryStatus === 'error',
+                                            'fa-spinner fa-spin': layers[0].spatialQueryStatus === 'running'}"></i>
+                                </div>
+
                                 <label ng-if="layers.length > 1"
                                     class="header-label">
                                     <input type="checkbox"
@@ -80,12 +84,58 @@
                                             <input type="checkbox"
                                                 ng-model="layer.isSelected"> {{ layer.name }}
                                         </label>
+                                        <i class="fa fa-lg pull-right spatial-query-status"
+                                           ng-class="{'fa-globe': layer.spatialQueryStatus === 'done',
+                                                'fa-exclamation-triangle': layer.spatialQueryStatus === 'error',
+                                                'fa-spinner fa-spin': layer.spatialQueryStatus === 'running'}"></i>
                                     </li>
                                 </ul>
                             </li>
                         </ul>
                     </section>
 
+                    <section id="options-section">
+                        <header>
+                            <i class="fa fa-cog fa-lg"></i> Options
+                            <button class="btn btn-danger btn-xs pull-right" ng-click="targetRank.run()">
+                                Run
+                            </button>
+                        </header>
+                        <ul ng-switch="targetRank.inputData.type">
+                            <div ng-switch-when="site">
+                                <label for="">Proximity (degrees)</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control input-sm" name="proximityDegrees"
+                                           ng-model="options.proximityDegrees" style="width:50px;">
+                                </div>
+                                <label for="">Start time (yyyy-MM-ddTHH:mm:ss.sssZ)</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control input-sm" name="startTime"
+                                           ng-model="options.startTime" style="width:200px;">
+                                </div>
+                                <label for="">End time (yyyy-MM-ddTHH:mm:ss.sssZ)</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control input-sm" name="endTime"
+                                           ng-model="options.endTime" style="width:200px;">
+                                </div>
+                            </div>
+                            <form ng-switch-when="track">
+                                <label for="">Maximum speed (m/s)</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control input-sm" name="maxSpeedMps"
+                                           ng-model="options.maxSpeedMps" style="width:70px;">
+                                </div>
+                                <label for="">Maximum time (s)</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control input-sm" name="maxTimeSec"
+                                           ng-model="options.maxTimeSec" style="width:70px;">
+                                </div>
+                            </form>
+                            <div ng-switch-when="route">
+                                Not Implemented
+                            </div>
+                        </ul>
+                    </section>
                 </ui-layout>
             </div>
 
