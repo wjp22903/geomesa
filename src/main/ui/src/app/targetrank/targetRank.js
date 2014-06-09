@@ -27,11 +27,19 @@ angular.module('stealth.targetrank.targetRank', [
             numSites: 0,
             numData: 0,
             numTargets: 0,
-            matchGeoserverWorkspace: function(layer) {
+            matchGeoserverWorkspace: function (layer) {
                 return _.some(CONFIG.geoserver.workspaces[$scope.inputData.type], function (workspace) {
                     var str = workspace + ':';
                     return layer.name.substring(0, str.length) === str;
                 });
+            },
+            updateNumData: function () {
+                $scope.targetRank.numData = _.chain($scope.dataLayers).values().flatten().reduce(function (count, dataLayer) {
+                    if (dataLayer.isSelected) {
+                        count++;
+                    }
+                    return count;
+                }, 0).value();
             }
         };
 
@@ -41,7 +49,7 @@ angular.module('stealth.targetrank.targetRank', [
                 inputLayer: $scope.layerData.currentLayer.name,
                 inputLayerFilter: $scope.filterData.cql
             };
-            switch ($scope.inputData.type) {
+            switch ($scope.targetRank.inputData.type) {
                 case 'site':
                     proxFn = ProximityService.doLayerProximity;
                     proxArg = _.merge(proxArg, {

@@ -28,16 +28,8 @@ angular.module('stealth.common.map.openlayersMap', [
                         new OpenLayers.Control.MousePosition(),
                         new OpenLayers.Control.NavToolbar()
                     ],
-                    projection: CONFIG.map.crs,
-                    layers: [
-                        new OpenLayers.Layer.WMS(
-                            "Base", CONFIG.map.url,
-                            {layers: CONFIG.map.baseLayers, format: CONFIG.map.format},
-                            {wrapDateLine: true}
-                        )
-                    ]
+                    projection: CONFIG.map.crs
                 });
-                scope.map.setCenter([CONFIG.map.defaultLon, CONFIG.map.defaultLat], CONFIG.map.defaultZoom);
 
                 function addLayer (layer, extent) {
                     layer.events.register('loadstart', null, function (event) {
@@ -79,6 +71,13 @@ angular.module('stealth.common.map.openlayersMap', [
                     });
                     addWmsLayer(layerConfigToAdd);
                 }
+
+                addLayer(new OpenLayers.Layer.WMS(
+                    "Base Map", CONFIG.map.url,
+                    {layers: CONFIG.map.baseLayers, format: CONFIG.map.format},
+                    {wrapDateLine: true}
+                ));
+                scope.map.setCenter([CONFIG.map.defaultLon, CONFIG.map.defaultLat], CONFIG.map.defaultZoom);
 
                 $rootScope.$on("AddWmsMapLayer", function (event, layerConfig) {
                     addWmsLayer(layerConfig);

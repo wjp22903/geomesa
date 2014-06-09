@@ -8,4 +8,7 @@ angular.module('stealth.siterank.siteRank', [
     }])
 
     .controller('SiteRankController', ['$scope', function($scope) {
+        $scope.siteRank = {
+            isLeftPaneVisible: true
+        };
     }]);

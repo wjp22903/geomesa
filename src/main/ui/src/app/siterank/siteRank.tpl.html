@@ -1,3 +1,7 @@
-<div ng-controller="SiteRankController">
-    placeholder
+<div id="siteRank" ng-controller="SiteRankController">
+    <left-pane is-visible="siteRank.isLeftPaneVisible">
+    </left-pane>
+    <center-pane is-full-width="!siteRank.isLeftPaneVisible">
+        <openlayers-map id="siteRankMap" map="map"></openlayers-map>
+    </center-pane>
 </div>
