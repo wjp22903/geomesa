@@ -39,7 +39,7 @@ angular.module('stealth.common.map.openlayersMap', [
                 });
                 scope.map.setCenter([CONFIG.map.defaultLon, CONFIG.map.defaultLat], CONFIG.map.defaultZoom);
 
-                function addLayer (layer) {
+                function addLayer (layer, extent) {
                     layer.events.register('loadstart', null, function (event) {
                         $timeout(function () {
                             scope.loading.count++;
@@ -50,6 +50,9 @@ angular.module('stealth.common.map.openlayersMap', [
                             scope.loading.count--;
                         });
                     });
+                    if (extent) {
+                        scope.map.zoomToExtent(extent);
+                    }
                     scope.map.addLayer(layer);
                 }
                 function addWmsLayer (layerConfig) {
@@ -63,7 +66,7 @@ angular.module('stealth.common.map.openlayersMap', [
                         config.cql_filter = layerConfig.cql_filter;
                     }
                     layer = new OpenLayers.Layer.WMS(layerConfig.name, layerConfig.url, config, {wrapDateLine: true});
-                    addLayer(layer);
+                    addLayer(layer, layerConfig.extent);
                 }
                 function removeLayersByName (name) {
                     _.each(scope.map.getLayersByName(name), function (layer) {

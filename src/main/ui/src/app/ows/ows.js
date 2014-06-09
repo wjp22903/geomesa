@@ -78,7 +78,8 @@ angular.module('stealth.ows.ows', [])
                     version: '2.0.0',
                     request: 'GetFeature',
                     typeName: typeName,
-                    outputFormat: 'application/json'
+                    outputFormat: 'application/json',
+                    srsName: 'EPSG:4326'
                 };
 
             return $http.get(uri, { params:  _.merge(paramDefaults, paramOverrides) });

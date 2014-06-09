@@ -208,19 +208,30 @@ angular.module('stealth.targetrank.targetRank', [
                 layerName = $scope.layerData.currentLayer.name,
                 cql = $scope.filterData.cql;
 
-            // Update the map.
-            $rootScope.$emit("ReplaceWmsMapLayers", _.pluck($scope.addSites.types, 'display'), {
-                name: $scope.targetRank.inputData.display,
-                url: $filter('endpoint')(url, 'wms', true),
-                layers: [layerName],
-                cql_filter: cql
-            });
-
             WFS.getFeature(url, layerName, {cql_filter: cql}).then(function (response) {
                 $scope.targetRank.numSites = response.data.totalFeatures;
                 $scope.targetRank.sites = response.data.features;
 
                 $scope.options = {};
+
+                var extent = null,
+                    parser = new OpenLayers.Format.GeoJSON(),
+                    features = parser.read(JSON.stringify(response.data));
+                if (features && features.length > 0) {
+                    extent = new OpenLayers.Bounds();
+                    _.forEach(features, function (feature) {
+                        extent.extend(feature.geometry.getBounds());
+                    });
+                }
+
+                // Update the map.
+                $rootScope.$emit("ReplaceWmsMapLayers", _.pluck($scope.addSites.types, 'display'), {
+                    name: $scope.targetRank.inputData.display,
+                    url: $filter('endpoint')(url, 'wms', true),
+                    layers: [layerName],
+                    cql_filter: cql,
+                    extent: extent
+                });
             });
         };
 
