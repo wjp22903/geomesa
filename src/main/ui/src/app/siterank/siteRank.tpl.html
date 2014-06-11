@@ -1,5 +1,94 @@
 <div id="siteRank" ng-controller="SiteRankController">
     <left-pane is-visible="siteRank.isLeftPaneVisible">
+
+        <!-- Top tabs -->
+        <ul class="nav nav-tabs">
+            <li ng-class="{active: siteRank.leftPaneView==='analysis'}" ng-click="siteRank.leftPaneView='analysis'">
+                <a href="#/siteRank">
+                    <i class="fa fa-eye"></i>
+                    Analysis
+                </a>
+            </li>
+            <li ng-class="{active: siteRank.leftPaneView==='sites'}" ng-click="siteRank.leftPaneView='sites'">
+                <a href="#/siteRank">
+                    <i class="fa fa-map-marker fa-lg"></i>
+                    Sites
+                    <span class="badge">{{siteRank.numSites}}</span>
+                </a>
+            </li>
+        </ul>
+
+        <!-- Pane content area -->
+        <div ng-switch="siteRank.leftPaneView">
+            <!-- Analysis panel -->
+            <div class="tab-pane" ng-switch-when="analysis">
+                <div class="instructions alert alert-info"
+                     ng-show="siteRank.targets.length < 1">
+                    <i class="fa fa-info-circle fa-3x"></i>
+                    <span>Select an input source and enter a query to begin.</span>
+                    <button class="btn btn-default"
+                            ng-click="addTargets.showWindow()">Get Started</button>
+                </div>
+                <ui-layout options="{flow: 'row'}"
+                           ng-show="siteRank.targets.length > 0">
+                    <section id="targets-section">
+                        <header>
+                            <i class="fa fa-crosshair fa-lg"></i>Targets
+                            <span class="badge">{{siteRank.targets.length}}</span>
+                            <button class="btn btn-default btn-xs pull-right"
+                                    ng-click="addTargets.showWindow()">
+                                Add Target
+                            </button>
+                        </header>
+                        <ul class="targets-list list-unstyled">
+                            <li ng-repeat="target in siteRank.targets" style="padding:5px 0;">
+                                <div>
+                                    <i class="fa fa-times btn btn-default btn-xs" ng-click="siteRank.removeTarget(target)"></i>
+                                </div>
+                                <kbd>{{target.idValue}}</kbd><small> from </small><code>{{ellipsis(target.layer.name, 35)}}</code>
+                                <i class="fa fa-lg pull-right spatial-query-status"
+                                   ng-class="{'fa-globe': target.spatialQueryStatus === 'done',
+                                       'fa-exclamation-triangle': target.spatialQueryStatus === 'error',
+                                       'fa-spinner fa-spin': target.spatialQueryStatus === 'running'}"></i>
+                            </li>
+                        </ul>
+                    </section>
+
+                    <section id="options-section">
+                        <header>
+                            <i class="fa fa-cog fa-lg"></i> Options
+                            <button class="btn btn-danger btn-xs pull-right" ng-click="siteRank.run()">
+                                Run
+                            </button>
+                        </header>
+                        <ul>
+                            <div>
+                                <label for="">Proximity (meters)</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control input-sm" name="proximityMeters"
+                                           ng-model="siteRank.options.proximityMeters" style="width:50px;">
+                                </div>
+                                <label for="">Start time (yyyy-MM-ddTHH:mm:ss.sssZ)</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control input-sm" name="startTime"
+                                           ng-model="siteRank.options.startTime" style="width:200px;">
+                                </div>
+                                <label for="">End time (yyyy-MM-ddTHH:mm:ss.sssZ)</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control input-sm" name="endTime"
+                                           ng-model="siteRank.options.endTime" style="width:200px;">
+                                </div>
+                            </div>
+                        </ul>
+                    </section>
+                </ui-layout>
+            </div>
+
+            <!-- Sites panel -->
+            <div class="tab-pane" ng-switch-when="sites">
+                sites
+            </div>
+        </div>
     </left-pane>
     <center-pane is-full-width="!siteRank.isLeftPaneVisible">
         <openlayers-map id="siteRankMap" map="map"></openlayers-map>

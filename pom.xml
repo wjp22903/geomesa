@@ -20,6 +20,14 @@
             Download UI dependencies from internet and package as zips.  Must be online.
             Run when you modify package.json or bower.json deps.
             Also, run by CI to deploy zips to artifactory.
+
+        secure
+            Used for production build.  Blocks anonymous access.  External user whitelist needed.
+        doubletrouble8082
+            Used for low-side development.  Sets various properties to work with geoserver
+            at http://doubletrouble:8082/geoserver.  We try to take advantage of geoserver's
+            pre-installed layers as much as possible.  So, there are layers included in the
+            configured workspaces that make no sense to use.
     -->
 
     <properties>
@@ -40,7 +48,7 @@
         <app.tabs>["targetRank", "siteRank"]</app.tabs>
         <app.default.tab>targetRank</app.default.tab>
 
-        <geoserver.url>http://doubletrouble:8082/geoserver</geoserver.url>
+        <geoserver.url>http://dgeo:8080/geoserver</geoserver.url>
         <geoserver.workspaces.data>["stealth-devdata"]</geoserver.workspaces.data>
         <geoserver.workspaces.site>["stealth-sites"]</geoserver.workspaces.site>
         <geoserver.workspaces.track>["stealth-tracks"]</geoserver.workspaces.track>
@@ -63,6 +71,7 @@
 
         <security.anonymous.access>true</security.anonymous.access>
         <security.allowed.userDns>["CN=Guest User guest,O=CCRI,L=Charlottesville,ST=Virginia,C=US"]</security.allowed.userDns>
+        <dataSources>{}</dataSources>
     </properties>
 
     <build>
@@ -534,6 +543,39 @@
                     </plugin>
                 </plugins>
             </build>
+        </profile>
+
+        <profile>
+            <id>secure</id>
+            <properties>
+                <security.anonymous.access>false</security.anonymous.access>
+                <security.allowed.userDns>[]</security.allowed.userDns>
+            </properties>
+        </profile>
+
+        <!-- used for low-side dev -->
+        <profile>
+            <id>doubletrouble8082</id>
+            <properties>
+                <geoserver.url>http://doubletrouble:8082/geoserver</geoserver.url>
+                <geoserver.workspaces.data>["stealth-devdata", "sf", "topp", "accumulo"]</geoserver.workspaces.data>
+                <geoserver.workspaces.site>["stealth-sites", "stealth-tracks", "accumulo"]</geoserver.workspaces.site>
+                <geoserver.workspaces.track>["stealth-tracks", "accumulo"]</geoserver.workspaces.track>
+                <geoserver.workspaces.route>["stealth-routes", "stealth-sites", "nyc_roads", "topp"]</geoserver.workspaces.route>
+                <geoserver.output.workspace>stealth-output</geoserver.output.workspace>
+                <geoserver.output.store>stealth-output</geoserver.output.store>
+                <basemap.layers>accumulo:OSM_BASEMAP</basemap.layers>
+                <dataSources>
+                    {
+                        "accumulo:accumulo|||nj_tp_line_selected120_2}}{{accumulo|||twitter3}}{{df72707d-f558-44ed-ac0c-684781ab09b3": {
+                            "idField": "user_name"
+                        },
+                        "stealth-devdata:twitter3": {
+                            "idField": "user_name"
+                        }
+                    }
+                </dataSources>
+            </properties>
         </profile>
 
         <!-- The remaining profiles are auto-activated based on OS.  No reason to explicitly activate them. -->

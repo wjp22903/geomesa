@@ -1,0 +1,75 @@
+<div class="modal-header">
+    <i class="fa fa-crosshair fa-lg"></i> Select Target
+    <i class="fa fa-times pull-right btn btn-default btn-sm" ng-click="modal.cancel()"></i>
+</div>
+<form ng-submit="addTargets.submit()">
+    <div class="modal-body">
+        <div class="form-group" ng-class="{ 'has-error': addTargets.serverData.error }">
+            <label for=""><span class="form-step">1</span> Enter a server url</label>
+            <div class="input-group">
+                <input type="text" class="form-control input-sm" name="geoserverUrl"
+                       ng-model="addTargets.serverData.proposedGeoserverUrl"
+                       ng-keypress="$event.keyCode == 13 ? addTargets.updateServer() : false">
+
+                <span class="input-group-btn">
+                    <button ng-click="addTargets.updateServer()"
+                            type="button"
+                            class="btn btn-default btn-sm">Choose</button>
+                </span>
+            </div>
+            <div class="alert alert-danger" ng-show="addTargets.serverData.error">
+                <i class="fa fa-warning"></i>
+                {{ addTargets.serverData.error }}
+            </div>
+        </div>
+
+        <div class="form-group" ng-show="addTargets.formStep() > 1">
+            <label for=""><span class="form-step">2</span> Select a layer from: <span class="label label-success">{{addTargets.serverData.currentGeoserverUrl}}</span></label>
+            <select class="form-control input-sm"
+                    ng-model="addTargets.layerData.currentLayer"
+                    ng-init="addTargets.layerData.currentLayer"
+                    ng-change="addTargets.getFeatureTypeDescription()"
+                    ng-options="layer.name for layer in addTargets.layerData.layers | orderBy:'name' | filter:siteRank.matchDatasourceAndGeoserverWorkspace">
+            </select>
+        </div>
+
+        <div class="form-group" ng-show="addTargets.formStep() > 2">
+            <blockquote class="feature-type-data-container">
+                <h4>{{ addTargets.layerData.currentLayer.title }}</h4>
+                <p>{{ addTargets.layerData.currentLayer.abstract }}</p>
+
+                <div ng-switch="addTargets.featureTypeData">
+                    <div ng-switch-when="unavailable" class="alert alert-warning">
+                        <i class="fa fa-warning"></i> There is no feature type description for this layer.
+                    </div>
+                    <div ng-switch-default class="feature-type-properties-container">
+                        <section ng-show="addTargets.featureTypeData !== 'unavailable'"
+                                 ng-repeat="featureType in addTargets.featureTypeData.featureTypes">
+                            <h5>Properties for type <strong>{{ featureType.typeName }}</strong></h5>
+                            <table class="table-condensed">
+                                <tr ng-repeat="property in featureType.properties">
+                                    <td>{{ property.name }}</td>
+                                    <td><code>{{ property.localType }}</code></td>
+                                </tr>
+                            </table>
+                        </section>
+                    </div>
+                </div>
+            </blockquote>
+            <label for=""><span class="form-step">3</span> Enter identifier value</label>
+            <input type="text" class="form-control input-sm" name="targetId" placeholder="Enter identifier"
+                   ng-model="addTargets.targetData.id">
+        </div>
+
+        <div class="form-group" ng-show="addTargets.showSpinner">
+            <i class="fa fa-spinner fa-2x fa-spin"></i>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="submit" class="btn btn-primary"
+                ng-disabled="addTargets.formStep() < 3 || !addTargets.targetData.id"
+                ng-click="modal.cancel()">
+            Submit
+        </button>
+    </div>
+</form>

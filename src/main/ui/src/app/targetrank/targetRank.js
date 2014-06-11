@@ -18,7 +18,7 @@ angular.module('stealth.targetrank.targetRank', [
         });
     }])
 
-    .controller('TargetRankController', ['$scope', '$rootScope', '$modal', '$http', '$filter', 'WMS', 'WFS', 'CONFIG', 'ProximityService', function($scope, $rootScope, $modal, $http, $filter, WMS, WFS, CONFIG, ProximityService) {
+    .controller('TargetRankController', ['$scope', '$rootScope', '$modal', '$filter', 'WMS', 'WFS', 'CONFIG', 'ProximityService', function($scope, $rootScope, $modal, $filter, WMS, WFS, CONFIG, ProximityService) {
         $scope.targetRank = {
             isLeftPaneVisible: true,
             leftPaneView: 'analysis',
@@ -53,7 +53,7 @@ angular.module('stealth.targetrank.targetRank', [
                 case 'site':
                     proxFn = ProximityService.doLayerProximity;
                     proxArg = _.merge(proxArg, {
-                        dataLayerFilter: 'dtg BETWEEN ' + $scope.options.startTime + ' AND ' + $scope.options.endTime,
+                        dataLayerFilter: '(dtg > ' + $scope.options.startTime + ') AND (dtg < ' + $scope.options.endTime + ')',
                         bufferDegrees: $scope.options.proximityDegrees
                     });
                     break;
@@ -101,13 +101,6 @@ angular.module('stealth.targetrank.targetRank', [
             currentGeoserverUrl: null
         };
 
-        // Layers returned from a GetCapabilities query.
-        $scope.layerData = {
-            layers: null,
-            currentLayer: null,
-            currentLayerDescription: null
-        };
-
         $scope.options = {};
         $scope.dataLayers = {};
         $scope.layerData = {};
@@ -142,7 +135,7 @@ angular.module('stealth.targetrank.targetRank', [
             return step;
         };
 
-        // When the user changes the input data type, call getCapabilities
+        // When the user changes the input data type, switch display value
         $scope.$watch('inputData.type', function (newVal, oldVal) {
             $scope.addSites.showSpinner = true;
             if (newVal !== oldVal) {
@@ -173,7 +166,9 @@ angular.module('stealth.targetrank.targetRank', [
                 $scope.serverData.error = null;
                 $scope.layerData.layers = layers;
 
-                $scope.dataLayers = _.chain(layers)
+                $scope.dataLayers = _.chain(_.filter(layers, function (layer) {
+                    return _.contains(_.keys(CONFIG.dataSources), layer.name);
+                }))
                     // Streamline the properties we are including.
                     .map(function (workspace) {
                         return _.pick(workspace, ['name', 'prefix']);

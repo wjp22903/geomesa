@@ -25,8 +25,11 @@ angular.module('stealth', [
     }])
 
     .controller('AppController', ['$scope', '$rootScope', '$location', 'CONFIG', function ($scope, $rootScope, $location, CONFIG) {
-        $rootScope.alert = function(text) {
+        $rootScope.alert = function (text) {
             alert(text);
+        };
+        $rootScope.ellipsis = function (text, length) {
+            return text.length > length ? text.substr(0, length-3) + '...' : text;
         };
 
         //Block location changes to disallowed or non-existent routes

@@ -31,15 +31,21 @@ angular.module('stealth.common.map.openlayersMap', [
                     projection: CONFIG.map.crs
                 });
 
-                function addLayer (layer, extent) {
+                function addLayer (layer, extent, loadStartCallback, loadEndCallback) {
                     layer.events.register('loadstart', null, function (event) {
                         $timeout(function () {
                             scope.loading.count++;
+                            if (_.isFunction(loadStartCallback)) {
+                                loadStartCallback();
+                            }
                         });
                     });
                     layer.events.register('loadend', null, function (event) {
                         $timeout(function () {
                             scope.loading.count--;
+                            if (_.isFunction(loadEndCallback)) {
+                                loadEndCallback();
+                            }
                         });
                     });
                     if (extent) {
@@ -58,7 +64,7 @@ angular.module('stealth.common.map.openlayersMap', [
                         config.cql_filter = layerConfig.cql_filter;
                     }
                     layer = new OpenLayers.Layer.WMS(layerConfig.name, layerConfig.url, config, {wrapDateLine: true});
-                    addLayer(layer, layerConfig.extent);
+                    addLayer(layer, layerConfig.extent, layerConfig.loadStartCallback, layerConfig.loadEndCallback);
                 }
                 function removeLayersByName (name) {
                     _.each(scope.map.getLayersByName(name), function (layer) {
