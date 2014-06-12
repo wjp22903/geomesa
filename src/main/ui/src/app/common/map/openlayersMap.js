@@ -60,7 +60,7 @@ angular.module('stealth.common.map.openlayersMap', [
                             format: 'image/png',
                             transparent: true
                         };
-                    if (layerConfig.cql_filter) {
+                    if (!_.isEmpty(layerConfig.cql_filter)) {
                         config.cql_filter = layerConfig.cql_filter;
                     }
                     layer = new OpenLayers.Layer.WMS(layerConfig.name, layerConfig.url, config, {wrapDateLine: true});
@@ -81,7 +81,7 @@ angular.module('stealth.common.map.openlayersMap', [
                 addLayer(new OpenLayers.Layer.WMS(
                     "Base Map", CONFIG.map.url,
                     {layers: CONFIG.map.baseLayers, format: CONFIG.map.format},
-                    {wrapDateLine: true}
+                    {wrapDateLine: true, opacity: 0.5}
                 ));
                 scope.map.setCenter([CONFIG.map.defaultLon, CONFIG.map.defaultLat], CONFIG.map.defaultZoom);
 

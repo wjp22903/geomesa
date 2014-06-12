@@ -13,14 +13,14 @@
                            method="POST">
                 <wps:Body>
                     <wps:Execute version="1.0.0" service="WPS">
-                        <ows:Identifier>vec:TubeSelect</ows:Identifier>
+                        <ows:Identifier>geomesa:TubeSelect</ows:Identifier>
                         <wps:DataInputs>
                             <wps:Input>
                                 <ows:Identifier>tubeFeatures</ows:Identifier>
                                 <wps:Reference mimeType="text/xml" xlink:href="http://geoserver/wps" method="POST">
                                     <wps:Body>
                                         <wps:Execute version="1.0.0" service="WPS">
-                                            <ows:Identifier>vec:Query</ows:Identifier>
+                                            <ows:Identifier>geomesa:Query</ows:Identifier>
                                             <wps:DataInputs>
                                                 <wps:Input>
                                                     <ows:Identifier>features</ows:Identifier>

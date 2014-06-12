@@ -13,14 +13,47 @@
                            method="POST">
                 <wps:Body>
                     <wps:Execute version="1.0.0" service="WPS">
-                        <ows:Identifier>vec:InclusionFeatureCollection</ows:Identifier>
+                        <ows:Identifier>geomesa:ProximitySearch</ows:Identifier>
                         <wps:DataInputs>
                             <wps:Input>
-                                <ows:Identifier>first</ows:Identifier>
+                                <ows:Identifier>inputFeatures</ows:Identifier>
                                 <wps:Reference mimeType="text/xml" xlink:href="http://geoserver/wps" method="POST">
                                     <wps:Body>
                                         <wps:Execute version="1.0.0" service="WPS">
-                                            <ows:Identifier>vec:Query</ows:Identifier>
+                                            <ows:Identifier>geomesa:Query</ows:Identifier>
+                                            <wps:DataInputs>
+                                                <wps:Input>
+                                                    <ows:Identifier>features</ows:Identifier>
+                                                    <wps:Reference mimeType="text/xml" xlink:href="http://geoserver/wfs" method="POST">
+                                                        <wps:Body>
+                                                            <wfs:GetFeature service="WFS" version="1.0.0" outputFormat="GML2" xmlns:accumulo="http://locationtech.org/geomesa">
+                                                                <wfs:Query typeName="{{inputLayer}}"/>
+                                                            </wfs:GetFeature>
+                                                        </wps:Body>
+                                                    </wps:Reference>
+                                                </wps:Input>
+                                                <wps:Input>
+                                                    <ows:Identifier>filter</ows:Identifier>
+                                                    <wps:Data>
+                                                        <wps:ComplexData mimeType="text/plain; subtype=cql"><![CDATA[{{inputLayerFilter}}]]></wps:ComplexData>
+                                                    </wps:Data>
+                                                </wps:Input>
+                                            </wps:DataInputs>
+                                            <wps:ResponseForm>
+                                                <wps:RawDataOutput mimeType="text/xml; subtype=wfs-collection/1.0">
+                                                    <ows:Identifier>result</ows:Identifier>
+                                                </wps:RawDataOutput>
+                                            </wps:ResponseForm>
+                                        </wps:Execute>
+                                    </wps:Body>
+                                </wps:Reference>
+                            </wps:Input>
+                            <wps:Input>
+                                <ows:Identifier>dataFeatures</ows:Identifier>
+                                <wps:Reference mimeType="text/xml" xlink:href="http://geoserver/wps" method="POST">
+                                    <wps:Body>
+                                        <wps:Execute version="1.0.0" service="WPS">
+                                            <ows:Identifier>geomesa:Query</ows:Identifier>
                                             <wps:DataInputs>
                                                 <wps:Input>
                                                     <ows:Identifier>features</ows:Identifier>
@@ -48,108 +81,14 @@
                                     </wps:Body>
                                 </wps:Reference>
                             </wps:Input>
+
                             <wps:Input>
-                                <ows:Identifier>second</ows:Identifier>
-                                <wps:Reference mimeType="text/xml" xlink:href="http://geoserver/wps" method="POST">
-                                    <wps:Body>
-                                        <wps:Execute version="1.0.0" service="WPS">
-                                            <ows:Identifier>gs:Feature</ows:Identifier>
-                                            <wps:DataInputs>
-                                                <wps:Input>
-                                                    <ows:Identifier>geometry</ows:Identifier>
-                                                    <wps:Reference mimeType="text/xml; subtype=gml/3.1.1" xlink:href="http://geoserver/wps" method="POST">
-                                                        <wps:Body>
-                                                            <wps:Execute version="1.0.0" service="WPS">
-                                                                <ows:Identifier>geo:buffer</ows:Identifier>
-                                                                <wps:DataInputs>
-                                                                    <wps:Input>
-                                                                        <ows:Identifier>geom</ows:Identifier>
-                                                                        <wps:Reference mimeType="text/xml; subtype=gml/3.1.1" xlink:href="http://geoserver/wps" method="POST">
-                                                                            <wps:Body>
-                                                                                <wps:Execute version="1.0.0" service="WPS">
-                                                                                    <ows:Identifier>gs:CollectGeometries</ows:Identifier>
-                                                                                    <wps:DataInputs>
-                                                                                        <wps:Input>
-                                                                                            <ows:Identifier>features</ows:Identifier>
-                                                                                            <wps:Reference mimeType="text/xml" xlink:href="http://geoserver/wps" method="POST">
-                                                                                                <wps:Body>
-                                                                                                    <wps:Execute version="1.0.0" service="WPS">
-                                                                                                        <ows:Identifier>vec:Query</ows:Identifier>
-                                                                                                        <wps:DataInputs>
-                                                                                                            <wps:Input>
-                                                                                                                <ows:Identifier>features</ows:Identifier>
-                                                                                                                <wps:Reference mimeType="text/xml" xlink:href="http://geoserver/wfs" method="POST">
-                                                                                                                    <wps:Body>
-                                                                                                                        <wfs:GetFeature service="WFS" version="1.0.0" outputFormat="GML2" xmlns:accumulo="http://locationtech.org/geomesa">
-                                                                                                                            <wfs:Query typeName="{{inputLayer}}"/>
-                                                                                                                        </wfs:GetFeature>
-                                                                                                                    </wps:Body>
-                                                                                                                </wps:Reference>
-                                                                                                            </wps:Input>
-                                                                                                            <wps:Input>
-                                                                                                                <ows:Identifier>filter</ows:Identifier>
-                                                                                                                <wps:Data>
-                                                                                                                    <wps:ComplexData mimeType="text/plain; subtype=cql"><![CDATA[{{inputLayerFilter}}]]></wps:ComplexData>
-                                                                                                                </wps:Data>
-                                                                                                            </wps:Input>
-                                                                                                        </wps:DataInputs>
-                                                                                                        <wps:ResponseForm>
-                                                                                                            <wps:RawDataOutput mimeType="text/xml; subtype=wfs-collection/1.0">
-                                                                                                                <ows:Identifier>result</ows:Identifier>
-                                                                                                            </wps:RawDataOutput>
-                                                                                                        </wps:ResponseForm>
-                                                                                                    </wps:Execute>
-                                                                                                </wps:Body>
-                                                                                            </wps:Reference>
-                                                                                        </wps:Input>
-                                                                                    </wps:DataInputs>
-                                                                                    <wps:ResponseForm>
-                                                                                        <wps:RawDataOutput mimeType="text/xml; subtype=gml/3.1.1">
-                                                                                            <ows:Identifier>result</ows:Identifier>
-                                                                                        </wps:RawDataOutput>
-                                                                                    </wps:ResponseForm>
-                                                                                </wps:Execute>
-                                                                            </wps:Body>
-                                                                        </wps:Reference>
-                                                                    </wps:Input>
-                                                                    <wps:Input>
-                                                                        <ows:Identifier>distance</ows:Identifier>
-                                                                        <wps:Data>
-                                                                            <wps:LiteralData>{{bufferDegrees}}</wps:LiteralData>
-                                                                        </wps:Data>
-                                                                    </wps:Input>
-                                                                </wps:DataInputs>
-                                                                <wps:ResponseForm>
-                                                                    <wps:RawDataOutput mimeType="text/xml; subtype=gml/3.1.1">
-                                                                        <ows:Identifier>result</ows:Identifier>
-                                                                    </wps:RawDataOutput>
-                                                                </wps:ResponseForm>
-                                                            </wps:Execute>
-                                                        </wps:Body>
-                                                    </wps:Reference>
-                                                </wps:Input>
-                                                <wps:Input>
-                                                    <ows:Identifier>crs</ows:Identifier>
-                                                    <wps:Data>
-                                                        <wps:LiteralData>EPSG:4326</wps:LiteralData>
-                                                    </wps:Data>
-                                                </wps:Input>
-                                                <wps:Input>
-                                                    <ows:Identifier>typeName</ows:Identifier>
-                                                    <wps:Data>
-                                                        <wps:LiteralData>abc</wps:LiteralData>
-                                                    </wps:Data>
-                                                </wps:Input>
-                                            </wps:DataInputs>
-                                            <wps:ResponseForm>
-                                                <wps:RawDataOutput mimeType="text/xml; subtype=wfs-collection/1.0">
-                                                    <ows:Identifier>result</ows:Identifier>
-                                                </wps:RawDataOutput>
-                                            </wps:ResponseForm>
-                                        </wps:Execute>
-                                    </wps:Body>
-                                </wps:Reference>
+                                <ows:Identifier>bufferDistance</ows:Identifier>
+                                <wps:Data>
+                                    <wps:LiteralData>{{bufferMeters}}</wps:LiteralData>
+                                </wps:Data>
                             </wps:Input>
+
                         </wps:DataInputs>
                         <wps:ResponseForm>
                             <wps:RawDataOutput mimeType="text/xml; subtype=wfs-collection/1.0">

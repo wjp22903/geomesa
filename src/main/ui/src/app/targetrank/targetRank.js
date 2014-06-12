@@ -51,10 +51,11 @@ angular.module('stealth.targetrank.targetRank', [
             };
             switch ($scope.targetRank.inputData.type) {
                 case 'site':
+                case 'route':
                     proxFn = ProximityService.doLayerProximity;
                     proxArg = _.merge(proxArg, {
                         dataLayerFilter: '(dtg > ' + $scope.options.startTime + ') AND (dtg < ' + $scope.options.endTime + ')',
-                        bufferDegrees: $scope.options.proximityDegrees
+                        bufferMeters: $scope.options.proximityMeters
                     });
                     break;
                 case 'track':
@@ -64,10 +65,6 @@ angular.module('stealth.targetrank.targetRank', [
                         maxTimeSec: $scope.options.maxTimeSec
                     });
                     break;
-                //TODO - connect to Route Search
-                /*case 'route':
-                    proxFn = ProximityService.doRouteProximity;
-                    break;*/
                 default:
                     alert('Error: No proximity search available for this input type');
             }
@@ -209,7 +206,7 @@ angular.module('stealth.targetrank.targetRank', [
         $scope.addSites.getFeature = function () {
             var url = $scope.serverData.currentGeoserverUrl,
                 layerName = $scope.layerData.currentLayer.name,
-                cql = $scope.filterData.cql;
+                cql = _.isEmpty($scope.filterData.cql) ? null : $scope.filterData.cql;
 
             WFS.getFeature(url, layerName, {cql_filter: cql}).then(function (response) {
                 $scope.targetRank.numSites = response.data.totalFeatures;

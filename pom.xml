@@ -564,7 +564,6 @@
                 <geoserver.workspaces.route>["stealth-routes", "stealth-sites", "nyc_roads", "topp"]</geoserver.workspaces.route>
                 <geoserver.output.workspace>stealth-output</geoserver.output.workspace>
                 <geoserver.output.store>stealth-output</geoserver.output.store>
-                <basemap.layers>accumulo:OSM_BASEMAP</basemap.layers>
                 <dataSources>
                     {
                         "accumulo:accumulo|||nj_tp_line_selected120_2}}{{accumulo|||twitter3}}{{df72707d-f558-44ed-ac0c-684781ab09b3": {

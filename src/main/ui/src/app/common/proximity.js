@@ -31,7 +31,7 @@ angular.module('stealth.common.proximity', [])
                     dataLayer: arg.dataLayer,
                     inputLayerFilter: arg.inputLayerFilter,
                     dataLayerFilter: arg.dataLayerFilter,
-                    bufferDegrees: arg.bufferDegrees,
+                    bufferMeters: arg.bufferMeters,
                     output: {
                         workspace: CONFIG.geoserver.output.workspace,
                         store: CONFIG.geoserver.output.store,
