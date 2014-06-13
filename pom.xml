@@ -45,7 +45,7 @@
         <phantomjs.classifier>INVALID</phantomjs.classifier>
 
         <app.title>Stealth</app.title>
-        <app.tabs>["targetRank", "siteRank"]</app.tabs>
+        <app.tabs>["targetRank", "siteRank", "airDomain"]</app.tabs>
         <app.default.tab>targetRank</app.default.tab>
 
         <geoserver.url>http://dgeo:8080/geoserver</geoserver.url>

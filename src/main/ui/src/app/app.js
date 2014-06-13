@@ -6,7 +6,8 @@ angular.module('stealth', [
     'ui.utils',
     'templates-app',
     'stealth.siterank.siteRank',
-    'stealth.targetrank.targetRank'
+    'stealth.targetrank.targetRank',
+    'stealth.airdomain.airDomain'
 ])
 
     .config(['$provide', function ($provide) {

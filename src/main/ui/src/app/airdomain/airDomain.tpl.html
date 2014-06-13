@@ -1,0 +1,19 @@
+<div id="airDomain" ng-controller="AirDomainController">
+    <left-pane is-visible="airDomain.isLeftPaneVisible">
+
+        <!-- Top tabs -->
+        <ul class="nav nav-tabs">
+            <li ng-class="{active: airDomain.leftPaneView==='allTraffic'}" ng-click="airDomain.leftPaneView='allTraffic'">
+                <a href="#/airDomain">
+                    <i class="fa fa-exchange"></i>
+                    All Traffic
+                </a>
+            </li>
+        </ul>
+    </left-pane>
+
+    <!-- Map -->
+    <center-pane is-full-width="!airDomain.isLeftPaneVisible">
+        <openlayers-map id="airDomainMap" map="map"></openlayers-map>
+    </center-pane>
+</div>
