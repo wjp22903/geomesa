@@ -26,6 +26,7 @@ angular.module('stealth', [
     }])
 
     .controller('AppController', ['$scope', '$rootScope', '$location', 'CONFIG', function ($scope, $rootScope, $location, CONFIG) {
+        $rootScope.CONFIG = CONFIG;
         $rootScope.alert = function (text) {
             alert(text);
         };

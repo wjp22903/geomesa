@@ -565,7 +565,13 @@
                 <geoserver.output.workspace>stealth-output</geoserver.output.workspace>
                 <geoserver.output.store>stealth-output</geoserver.output.store>
                 <dataSources>
-                    {
+                {
+                    sites: {
+                        "stealth-tracks:nj_tp_line_selected120_2": {
+                            "idField": "tweet_id"
+                        }
+                    },
+                    targets: {
                         "accumulo:accumulo|||nj_tp_line_selected120_2}}{{accumulo|||twitter3}}{{df72707d-f558-44ed-ac0c-684781ab09b3": {
                             "idField": "user_name"
                         },
@@ -573,6 +579,7 @@
                             "idField": "user_name"
                         }
                     }
+                }
                 </dataSources>
             </properties>
         </profile>

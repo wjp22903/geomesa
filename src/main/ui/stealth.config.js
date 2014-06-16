@@ -43,7 +43,6 @@ module.exports = {
             'vendor/bower/angular-ui-bootstrap-bower/ui-bootstrap.js',
             'vendor/bower/angular-ui-bootstrap-bower/ui-bootstrap-tpls.js',
             'vendor/bower/openlayers/lib/**/*.js',
-            'vendor/bower/x2js/xml2json.min.js',
             // TODO - test only
             'vendor/bower/angular-mocks/angular-mocks.js',
         ],

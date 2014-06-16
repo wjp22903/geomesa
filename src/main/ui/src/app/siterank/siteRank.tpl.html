@@ -47,9 +47,55 @@
                                 </div>
                                 <kbd>{{target.idValue}}</kbd><small> from </small><code>{{ellipsis(target.layer.name, 35)}}</code>
                                 <i class="fa fa-lg pull-right spatial-query-status"
-                                   ng-class="{'fa-globe': target.spatialQueryStatus === 'done',
-                                       'fa-exclamation-triangle': target.spatialQueryStatus === 'error',
-                                       'fa-spinner fa-spin': target.spatialQueryStatus === 'running'}"></i>
+                                   ng-class="{'fa-globe': target.spatialQueryCount === 0,
+                                       'fa-exclamation-triangle': target.spatialQueryCount < 0,
+                                       'fa-spinner fa-spin': target.spatialQueryCount > 0}"></i>
+                            </li>
+                        </ul>
+                    </section>
+
+                    <section id="sites-section">
+                        <header>
+                            <i class="fa fa-database fa-lg"></i> Site Layers
+                            <span class="badge">{{siteRank.numSites}}</span>
+                        </header>
+                        <ul class="list-unstyled data-layers">
+                            <li class="checkbox"
+                                ng-repeat="(workspace, layers) in siteRank.siteLayers">
+
+                                <div ng-if="layers.length === 1">
+                                    <label class="header-label">
+                                        <input type="checkbox"
+                                               ng-change="siteRank.updateNumSites()"
+                                               ng-model="layers[0].isSelected"> {{ellipsis(layers[0].name, 60)}}
+                                    </label>
+                                    <i class="fa fa-lg pull-right spatial-query-status"
+                                       ng-class="{'fa-globe': layers[0].spatialQueryCount === 0,
+                                            'fa-exclamation-triangle': layers[0].spatialQueryCount < 0,
+                                            'fa-spinner fa-spin': layers[0].spatialQueryCount > 0}"></i>
+                                </div>
+
+                                <label ng-if="layers.length > 1"
+                                       class="header-label">
+                                    <input type="checkbox"
+                                           ng-click="siteRank.updateNumSites()"
+                                           group-checkbox="layers.isSelected"> {{ellipsis(workspace, 60)}}
+                                </label>
+
+                                <ul ng-if="layers.length > 1"
+                                    class="list-unstyled workspace-layers nest">
+                                    <li class="checkbox" ng-repeat="layer in layers">
+                                        <label>
+                                            <input type="checkbox"
+                                                   ng-change="siteRank.updateNumSites()"
+                                                   ng-model="layer.isSelected"> {{ellipsis(layer.name, 60)}}
+                                        </label>
+                                        <i class="fa fa-lg pull-right spatial-query-status"
+                                           ng-class="{'fa-globe': layer.spatialQueryCount === 0,
+                                                'fa-exclamation-triangle': layer.spatialQueryCount < 0,
+                                                'fa-spinner fa-spin': layer.spatialQueryCount > 0}"></i>
+                                    </li>
+                                </ul>
                             </li>
                         </ul>
                     </section>

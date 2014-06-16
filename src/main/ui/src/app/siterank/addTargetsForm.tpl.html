@@ -56,8 +56,8 @@
                     </div>
                 </div>
             </blockquote>
-            <label for=""><span class="form-step">3</span> Enter identifier value</label>
-            <input type="text" class="form-control input-sm" name="targetId" placeholder="Enter identifier"
+            <label for=""><span class="form-step">3</span> Enter {{CONFIG.dataSources.targets[addTargets.layerData.currentLayer.name].idField}} value</label>
+            <input type="text" class="form-control input-sm" name="targetId" placeholder="Enter {{CONFIG.dataSources.targets[addTargets.layerData.currentLayer.name].idField}}"
                    ng-model="addTargets.targetData.id">
         </div>
 

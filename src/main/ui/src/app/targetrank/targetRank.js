@@ -164,7 +164,7 @@ angular.module('stealth.targetrank.targetRank', [
                 $scope.layerData.layers = layers;
 
                 $scope.dataLayers = _.chain(_.filter(layers, function (layer) {
-                    return _.contains(_.keys(CONFIG.dataSources), layer.name);
+                    return _.contains(_.keys(CONFIG.dataSources.targets), layer.name);
                 }))
                     // Streamline the properties we are including.
                     .map(function (workspace) {

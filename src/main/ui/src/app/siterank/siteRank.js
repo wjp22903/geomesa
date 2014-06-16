@@ -7,15 +7,30 @@ angular.module('stealth.siterank.siteRank', [
         });
     }])
 
-    .controller('SiteRankController', ['$scope', '$rootScope', '$modal', '$filter', 'WMS', 'WFS', 'CONFIG', function($scope, $rootScope, $modal, $filter, WMS, WFS, CONFIG) {
+    .controller('SiteRankController', ['$scope', '$rootScope', '$modal', '$filter', 'WMS', 'WFS', 'ProximityService', 'CONFIG', function($scope, $rootScope, $modal, $filter, WMS, WFS, ProximityService, CONFIG) {
         $scope.siteRank = {
             isLeftPaneVisible: true,
             leftPaneView: 'analysis',
             targets: [],
             options: {},
+            siteLayers: _.chain(_.keys(CONFIG.dataSources.sites))
+                // Streamline the properties we are including.
+                .map(function (layer) {
+                    var parts = layer.split(':', 2);
+                    return {
+                        prefix: parts[0],
+                        name: layer,
+                        spatialQueryCount: null
+                    };
+                })
+                // Build a map of workspaces
+                .groupBy('prefix')
+                // Only include the workspaces specified in the config.
+                .pick(CONFIG.geoserver.workspaces.site)
+                .value(),
             numSites: 0,
             matchDatasourceAndGeoserverWorkspace: function (layer) {
-                return _.contains(_.keys(CONFIG.dataSources), layer.name) && _.some(CONFIG.geoserver.workspaces.data, function (workspace) {
+                return _.contains(_.keys(CONFIG.dataSources.targets), layer.name) && _.some(CONFIG.geoserver.workspaces.data, function (workspace) {
                     var str = workspace + ':';
                     return layer.name.substring(0, str.length) === str;
                 });
@@ -26,10 +41,43 @@ angular.module('stealth.siterank.siteRank', [
                     return _.isEqual(target, targetToRemove);
                 });
             },
+            updateNumSites: function () {
+                $scope.siteRank.numSites = _.chain($scope.siteRank.siteLayers).values().flatten().reduce(function (count, layer) {
+                    if (layer.isSelected) {
+                        count++;
+                    }
+                    return count;
+                }, 0).value();
+            },
+            doProximity: function (geoserverUrl, layerName, cql_filter) {
+                var proxFn = ProximityService.doLayerProximity,
+                    proxArg = {
+                        geoserverUrl: geoserverUrl,
+                        inputLayer: layerName,
+                        inputLayerFilter: cql_filter,
+                        dataLayerFilter: '1=1',
+                        bufferMeters: $scope.siteRank.options.proximityMeters
+                    };
+                _.chain($scope.siteRank.siteLayers).values().flatten().filter(function (siteLayer) {
+                    return siteLayer.isSelected;
+                }).forEach(function (siteLayer) {
+                    proxArg.dataLayer = siteLayer.name;
+                    siteLayer.spatialQueryCount++;
+                    proxFn(proxArg).then(function () {
+                        siteLayer.spatialQueryCount--;
+                    }, function () {
+                        siteLayer.spatialQueryCount--;
+                    });
+                });
+            },
             run: function () {
+                _.chain($scope.siteRank.siteLayers).values().flatten().forEach(function (siteLayer) {
+                    siteLayer.spatialQueryCount = siteLayer.isSelected ? 0 : null;
+                });
                 _.forEach($scope.siteRank.targets, function (target) {
                     var layerName = target.layer.name,
-                        cql_filter = '(' + target.idField + "='" + target.idValue + "')";
+                        cql_filter = '(' + target.idField + "='" + target.idValue + "')",
+                        geoserverUrl = $filter('endpoint')(target.geoserverUrl, 'wms', true);
                     if (!_.isEmpty($scope.siteRank.options.startTime)) {
                         cql_filter += ' AND (dtg > ' + $scope.siteRank.options.startTime + ')';
                     }
@@ -39,13 +87,14 @@ angular.module('stealth.siterank.siteRank', [
                     target.spatialQueryStatus = 'running';
                     $rootScope.$emit("ReplaceWmsMapLayers", [layerName], {
                         name: layerName,
-                        url: $filter('endpoint')(target.geoserverUrl, 'wms', true),
+                        url: geoserverUrl,
                         layers: [layerName],
                         cql_filter: cql_filter,
                         loadEndCallback: function () {
                             target.spatialQueryStatus = 'done';
                         }
                     });
+                    $scope.siteRank.doProximity(geoserverUrl, layerName, cql_filter);
                 });
                 //TODO - site rank
             }
@@ -101,7 +150,9 @@ angular.module('stealth.siterank.siteRank', [
                     $scope.addTargets.serverData.error = null;
                     $scope.addTargets.layerData.layers = layers;
 
-                    $scope.dataLayers = _.chain(layers)
+                    $scope.addTargets.siteLayers = _.chain(_.filter(layers, function (layer) {
+                        return _.contains(_.keys(CONFIG.dataSources.sites), layer.name);
+                    }))
                         // Streamline the properties we are including.
                         .map(function (workspace) {
                             return _.pick(workspace, ['name', 'prefix']);
@@ -140,7 +191,7 @@ angular.module('stealth.siterank.siteRank', [
                 $scope.siteRank.targets.push({
                     geoserverUrl: $scope.addTargets.serverData.currentGeoserverUrl,
                     layer: $scope.addTargets.layerData.currentLayer,
-                    idField: CONFIG.dataSources[$scope.addTargets.layerData.currentLayer.name].idField,
+                    idField: CONFIG.dataSources.targets[$scope.addTargets.layerData.currentLayer.name].idField,
                     idValue: $scope.addTargets.targetData.id
                 });
             }
