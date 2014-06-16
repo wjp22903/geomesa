@@ -17,7 +17,7 @@ module.exports = {
         html: [ 'src/index.html', 'src/sandbox.html' ],
         stylus: 'src/stylus/main.styl'
     },
-    
+
     // Dependencies needed for tests.
     testFiles: {
         js: [
@@ -39,15 +39,11 @@ module.exports = {
             'vendor/bower/angular-resource/angular-resource.js',
             'vendor/bower/angular-ui-layout/ui-layout.js',
             'vendor/bower/angular-ui-utils/ui-utils.js',
-            'vendor/bower/leaflet-dist/leaflet.js',
-            'vendor/bower/leaflet-providers/leaflet-providers.js',
-            'vendor/bower/leaflet.markercluster/dist/leaflet.markercluster.js',
-            'vendor/bower/leaflet.heat/index.js',
             'vendor/bower/momentjs/moment.js',
             'vendor/bower/angular-ui-bootstrap-bower/ui-bootstrap.js',
             'vendor/bower/angular-ui-bootstrap-bower/ui-bootstrap-tpls.js',
             'vendor/bower/openlayers/lib/**/*.js',
-            'vendor/extensions/openlayers/OpenLayers.WPS.extended.js',
+            'vendor/bower/x2js/xml2json.min.js',
             // TODO - test only
             'vendor/bower/angular-mocks/angular-mocks.js',
         ],

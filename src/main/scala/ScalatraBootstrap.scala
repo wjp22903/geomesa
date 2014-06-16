@@ -41,7 +41,7 @@ class DefaultServlet extends ScalatraServlet with ScalateSupport with DefaultJso
           getCn(user.get.dn)
         } else {
           logger.warn("Access Denied: " + user.get.dn)
-          halt(403, "Access Denied: Contact administrator for access")
+          halt(403, "Access Denied: Contact administrator for access. Your DN is [" + user.get.dn + "]")
         }
       }
     }

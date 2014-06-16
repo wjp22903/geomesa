@@ -208,7 +208,10 @@ angular.module('stealth.targetrank.targetRank', [
                 layerName = $scope.layerData.currentLayer.name,
                 cql = _.isEmpty($scope.filterData.cql) ? null : $scope.filterData.cql;
 
-            WFS.getFeature(url, layerName, {cql_filter: cql}).then(function (response) {
+            WFS.getFeature(url, layerName, {
+                cql_filter: cql,
+                sortBy: $scope.targetRank.inputData.type === 'track' ? 'dtg' : null
+            }).then(function (response) {
                 $scope.targetRank.numSites = response.data.totalFeatures;
                 $scope.targetRank.sites = response.data.features;
 
