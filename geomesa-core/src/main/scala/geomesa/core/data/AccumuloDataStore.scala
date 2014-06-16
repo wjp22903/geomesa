@@ -26,6 +26,10 @@ import geomesa.core.security.AuthorizationsProvider
 import java.io.{IOException, Serializable}
 import java.util.{Map => JMap}
 import org.apache.accumulo.core.client._
+import geomesa.core.data.FeatureEncoding.FeatureEncoding
+import geomesa.core.index.{Constants, SpatioTemporalIndexSchema}
+import java.io.Serializable
+import java.util.{Map=>JMap}
 import org.apache.accumulo.core.client.mock.MockConnector
 import org.apache.accumulo.core.data.{Mutation, Value, Range}
 import org.apache.accumulo.core.file.keyfunctor.ColumnFamilyFunctor
@@ -189,6 +193,57 @@ class AccumuloDataStore(val connector: Connector, val tableName: String,
     // write out the mutation
     writeMutations(mutation)
   }
+
+
+  type KVEntry = JMap.Entry[Key,Value]
+
+  def getRecordTableForType(featureType: SimpleFeatureType) = s"${featureType.getTypeName}_records"
+  def getSTIdxTableForType(featureType: SimpleFeatureType)  = s"${featureType.getTypeName}_st_idx"
+  def getAttrIdxTableForType(featureType: SimpleFeatureType)  = s"${featureType.getTypeName}_attr_idx"
+
+  def createTablesForType(featureType: SimpleFeatureType,
+                          featureEncoding: FeatureEncoding) {
+    val recordTable       = getRecordTableForType(featureType)
+    val stIdxTable        = getSTIdxTableForType(featureType)
+    val attributeIdxTable = getAttrIdxTableForType(featureType)
+    
+    List(recordTable, stIdxTable, attributeIdxTable).map { t =>
+      if (!tableOps.exists(t)) connector.tableOperations.create(t)
+    }
+
+    if(!connector.isInstanceOf[MockConnector])
+      configureNewTable(createIndexSchema(featureType), featureType, stIdxTable, featureEncoding)
+  }
+
+  def configureNewTable(indexSchemaFormat: String,
+                        featureType: SimpleFeatureType,
+                        stIdxTable: String,
+                        fe: FeatureEncoding) {
+
+    val encoder = SimpleFeatureEncoderFactory.createEncoder(fe)
+    val indexSchema = SpatioTemporalIndexSchema(indexSchemaFormat, featureType, encoder)
+    val maxShard = indexSchema.maxShard
+
+    val splits = (1 to maxShard).map { i => s"%0${maxShard.toString.length}d".format(i) }.map(new Text(_))
+    tableOps.addSplits(stIdxTable, new java.util.TreeSet(splits))
+
+    // enable the column-family functor
+    tableOps.setProperty(stIdxTable, "table.bloom.key.functor", classOf[ColumnFamilyFunctor].getCanonicalName)
+    tableOps.setProperty(stIdxTable, "table.bloom.enabled", "true")
+
+    // isolate various metadata elements in locality groups
+    tableOps.setLocalityGroups(stIdxTable,
+      Map(
+        ATTRIBUTES_CF.toString -> Set(ATTRIBUTES_CF).asJava,
+        SCHEMA_CF.toString     -> Set(SCHEMA_CF).asJava,
+        BOUNDS_CF.toString     -> Set(BOUNDS_CF).asJava))
+  }
+
+  override def createSchema(featureType: SimpleFeatureType) {
+    createTablesForType(featureType, featureEncoding)
+    writeMetadata(featureType)
+  }
+
 
   /**
    * Handles creating a mutation for writing metadata
@@ -523,10 +578,9 @@ class AccumuloDataStore(val connector: Connector, val tableName: String,
    */
   override def getSchema(featureName: String): SimpleFeatureType = {
     val sft = DataUtilities.createType(featureName, getAttributes(featureName))
-    val dtgField = readMetadataItem(featureName, DTGFIELD_CF)
-                   .getOrElse(Constants.SF_PROPERTY_START_TIME)
-    sft.getUserData.put(core.index.SF_PROPERTY_START_TIME, dtgField)
-    sft.getUserData.put(core.index.SF_PROPERTY_END_TIME, dtgField)
+    val dtgField = readMetadataItem(featureName, DTGFIELD_CF).getOrElse(Constants.SF_PROPERTY_START_TIME)
+    sft.getUserData.put(Constants.SF_PROPERTY_START_TIME, dtgField)
+    sft.getUserData.put(Constants.SF_PROPERTY_END_TIME,   dtgField)
     sft
   }
 
@@ -588,6 +642,15 @@ class AccumuloDataStore(val connector: Connector, val tableName: String,
   def createScanner: Scanner = {
     connector.createScanner(tableName, authorizationsProvider.getAuthorizations)
   }
+
+  def createBatchScanner(sft: SimpleFeatureType) =
+    connector.createBatchScanner(getSTIdxTableForType(sft), authorizations, 100)
+
+  def createAttrIdxScanner(sft: SimpleFeatureType) =
+    connector.createScanner(getAttrIdxTableForType(sft), authorizations)
+
+  def createRecordScanner(sft: SimpleFeatureType) =
+    connector.createBatchScanner(getRecordTableForType(sft), authorizations, 20)
 
   // Accumulo assumes that the failures directory exists.  This function assumes that you have already created it.
   def importDirectory(tableName: String, dir: String, failureDir: String, disableGC: Boolean) {

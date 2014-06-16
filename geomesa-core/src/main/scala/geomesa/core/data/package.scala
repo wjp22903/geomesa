@@ -22,6 +22,8 @@ import org.apache.hadoop.mapreduce.TaskInputOutputContext
 import org.geotools.data.FeatureWriter
 import org.geotools.factory.Hints.ClassKey
 import org.opengis.feature.simple.{SimpleFeatureType, SimpleFeature}
+import com.vividsolutions.jts.geom.Envelope
+import org.geotools.geometry.jts.JTS
 
 package object data {
 

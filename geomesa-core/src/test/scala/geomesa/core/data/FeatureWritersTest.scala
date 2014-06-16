@@ -105,7 +105,7 @@ class FeatureWritersTest extends Specification {
         val store = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
 
         /* turn fred into billy */
-        val filter = CQL.toFilter("name = 'fred'");
+        val filter = CQL.toFilter("name = 'fred'")
         store.modifyFeatures(Array("name", "age"), Array("billy", 25.asInstanceOf[AnyRef]), filter)
 
         /* delete kyle */
@@ -114,7 +114,6 @@ class FeatureWritersTest extends Specification {
 
         /* query everything */
         val cqlFilter = CQL.toFilter("include")
-        val query = new Query(sftName, cqlFilter)
 
         /* Let's read out what we wrote...we should only get tom and billy back out */
         val nameAgeMap = getMap[String, Int](getFeatures(sftName, fs, "include"), "name", "age")
