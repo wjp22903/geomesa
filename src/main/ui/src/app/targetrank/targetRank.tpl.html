@@ -19,9 +19,9 @@
         </ul>
 
         <!-- Pane content area -->
-        <div ng-switch="targetRank.leftPaneView">
+        <div>
             <!-- Analysis panel -->
-            <div class="tab-pane" ng-switch-when="analysis">
+            <div class="tab-pane" ng-show="targetRank.leftPaneView === 'analysis'">
                 <div class="instructions alert alert-info"
                     ng-show="!targetRank.sites">
                     <i class="fa fa-info-circle fa-3x"></i>
@@ -43,7 +43,7 @@
                         </header>
                         <ul class="sites-list list-unstyled">
                             <li ng-repeat="site in targetRank.sites">
-                                <h4>{{ site.id }}</h4>
+                                <h4 ng-show="site.id">{{ site.id }}</h4>
                                 <div class="property"
                                     ng-repeat="(key, val) in site.properties">
                                     <strong>{{ key }}:</strong> {{ val }}
@@ -141,7 +141,7 @@
             </div>
 
             <!-- Targets panel -->
-            <div class="tab-pane" ng-switch-when="targets">
+            <div class="tab-pane" ng-show="targetRank.leftPaneView === 'targets'">
                 targets
             </div>
         </div>

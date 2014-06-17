@@ -19,9 +19,9 @@
         </ul>
 
         <!-- Pane content area -->
-        <div ng-switch="siteRank.leftPaneView">
+        <div>
             <!-- Analysis panel -->
-            <div class="tab-pane" ng-switch-when="analysis">
+            <div class="tab-pane" ng-show="siteRank.leftPaneView === 'analysis'">
                 <div class="instructions alert alert-info"
                      ng-show="siteRank.targets.length < 1">
                     <i class="fa fa-info-circle fa-3x"></i>
@@ -131,7 +131,7 @@
             </div>
 
             <!-- Sites panel -->
-            <div class="tab-pane" ng-switch-when="sites">
+            <div class="tab-pane" ng-show="siteRank.leftPaneView === 'sites'">
                 sites
             </div>
         </div>
