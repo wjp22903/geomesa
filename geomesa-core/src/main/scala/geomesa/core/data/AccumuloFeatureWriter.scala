@@ -46,7 +46,7 @@ object AccumuloFeatureWriter {
 
     def write(key: Key, value: Value) {
       val m = new Mutation(key.getRow)
-      m.putDelete(key.getColumnFamily, key.getColumnQualifier, key.getColumnVisibilityParsed, key.getTimestamp)
+      m.putDelete(key.getColumnFamily, key.getColumnQualifier, key.getColumnVisibilityParsed)
       bw.addMutation(m)
     }
 
@@ -146,7 +146,7 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
   private def kvsToMutations(row: Text, kvs: Seq[(Key, Value)]): Mutation = {
     val m = new Mutation(row)
     kvs.foreach { case (k, v) =>
-      m.put(k.getColumnFamily, k.getColumnQualifier, k.getColumnVisibilityParsed, k.getTimestamp, v)
+      m.put(k.getColumnFamily, k.getColumnQualifier, k.getColumnVisibilityParsed, v)
     }
     m
   }
@@ -209,7 +209,7 @@ class ModifyAccumuloFeatureWriter(featureType: SimpleFeatureType,
     scanner.setRanges(List(new ARange(row, true, row, true)))
     scanner.iterator().foreach { entry =>
       val key = entry.getKey
-      mutation.putDelete(key.getColumnFamily, key.getColumnQualifier, key.getColumnVisibilityParsed, key.getTimestamp)
+      mutation.putDelete(key.getColumnFamily, key.getColumnQualifier, key.getColumnVisibilityParsed)
     }
     recordWriter.addMutation(mutation)
     recordWriter.flush()
@@ -218,7 +218,7 @@ class ModifyAccumuloFeatureWriter(featureType: SimpleFeatureType,
   private def removeSTIdx(feature: SimpleFeature) =
     indexer.encode(original).foreach { case (key, _) =>
       val m = new Mutation(key.getRow)
-      m.putDelete(key.getColumnFamily, key.getColumnQualifier, key.getColumnVisibilityParsed, key.getTimestamp)
+      m.putDelete(key.getColumnFamily, key.getColumnQualifier, key.getColumnVisibilityParsed)
       stIdxWriter.addMutation(m)
     }
 

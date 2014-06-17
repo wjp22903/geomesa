@@ -44,6 +44,7 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem
 import scala.Some
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
+import org.apache.accumulo.core.client.admin.TimeType
 
 /**
  *
@@ -146,7 +147,7 @@ class AccumuloDataStore(val connector: Connector,
     val attributeIdxTable = getAttrIdxTableForType(featureType)
     
     List(recordTable, stIdxTable, attributeIdxTable).map { t =>
-      if (!tableOps.exists(t)) connector.tableOperations.create(t)
+      if (!tableOps.exists(t)) connector.tableOperations.create(t, true, TimeType.LOGICAL)
     }
 
     if(!connector.isInstanceOf[MockConnector])
