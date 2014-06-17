@@ -17,14 +17,14 @@
 
 package geomesa.core.data
 
-import com.typesafe.scalalogging.slf4j.Logging
 import collection.JavaConversions._
 import collection.JavaConverters._
+import com.typesafe.scalalogging.slf4j.Logging
 import geomesa.core.index._
 import java.nio.charset.StandardCharsets
 import java.util.UUID
 import org.apache.accumulo.core.client.{BatchWriterConfig, Connector}
-import org.apache.accumulo.core.data.{Mutation, Value, Key}
+import org.apache.accumulo.core.data.{Mutation, Value, Key, Range => ARange}
 import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapred.{Reporter, RecordWriter}
 import org.apache.hadoop.mapreduce.TaskInputOutputContext
@@ -33,6 +33,7 @@ import org.geotools.data.simple.SimpleFeatureWriter
 import org.geotools.factory.Hints
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.apache.accumulo.core.security.ColumnVisibility
 
 object AccumuloFeatureWriter {
 
@@ -72,7 +73,8 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
   extends SimpleFeatureWriter
           with Logging {
 
-  private val log = Logger.getLogger(classOf[AccumuloFeatureWriter])
+  val NULLBYTE = Array[Byte](0.toByte)
+  val connector = ds.connector
   protected val multiBWWriter = connector.createMultiTableBatchWriter(new BatchWriterConfig)
   protected val recordWriter  = multiBWWriter.getBatchWriter(ds.getRecordTableForType(featureType))
   protected val stIdxWriter   = multiBWWriter.getBatchWriter(ds.getSTIdxTableForType(featureType))
@@ -101,14 +103,14 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
       writeSTIdx(feature)
       writeAttrIdx(feature)
     } else {
-      log.warn("Invalid feature to write:  " + DataUtilities.encodeFeature(toWrite))
+      logger.warn("Invalid feature to write:  " + DataUtilities.encodeFeature(toWrite))
       List()
     }
   }
 
   private def writeRecord(feature: SimpleFeature): Unit = {
     val m = new Mutation(feature.getID)
-    m.put(SFT_CF, EMPTY_COLQ, encoder.encode(feature), visibility)
+    m.put(SFT_CF, EMPTY_COLQ, new ColumnVisibility(visibility), encoder.encode(feature))
     recordWriter.addMutation(m)
   }
 
@@ -122,7 +124,7 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
     val muts = getAttrIdxMutations(feature, new Text(feature.getID)).map {
       case PutOrDeleteMutation(row, cf, cq, v) =>
         val m = new Mutation(row)
-        m.put(cf, cq, v, visibility)
+        m.put(cf, cq, new ColumnVisibility(visibility), v)
         m
     }
     attrIdxWriter.addMutations(muts)
@@ -144,7 +146,7 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
   private def kvsToMutations(row: Text, kvs: Seq[(Key, Value)]): Mutation = {
     val m = new Mutation(row)
     kvs.foreach { case (k, v) =>
-      m.put(k.getColumnFamily, k.getColumnQualifier, k.getColumnVisibilityParsed, k.getTimestamp, v, visibility)
+      m.put(k.getColumnFamily, k.getColumnQualifier, k.getColumnVisibilityParsed, k.getTimestamp, v)
     }
     m
   }
@@ -164,7 +166,7 @@ class AppendAccumuloFeatureWriter(featureType: SimpleFeatureType,
                                   encoder: SimpleFeatureEncoder,
                                   visibility: String,
                                   ds: AccumuloDataStore)
-  extends AccumuloFeatureWriter(featureType, indexer, connector, encoder, ds) {
+  extends AccumuloFeatureWriter(featureType, indexer, encoder, ds, visibility) {
 
   var currentFeature: SimpleFeature = null
 
@@ -181,12 +183,12 @@ class AppendAccumuloFeatureWriter(featureType: SimpleFeatureType,
 }
 
 class ModifyAccumuloFeatureWriter(featureType: SimpleFeatureType,
-                                  indexer: SpatioTemporalIndexSchema,
+                                  indexer: IndexSchema,
                                   connector: Connector,
                                   encoder: SimpleFeatureEncoder,
                                   visibility: String,
                                   dataStore: AccumuloDataStore)
-  extends AccumuloFeatureWriter(featureType, indexer, connector, encoder, dataStore) {
+  extends AccumuloFeatureWriter(featureType, indexer, encoder, dataStore, visibility) {
 
   val reader = dataStore.getFeatureReader(featureType.getName.toString)
   var live: SimpleFeature = null      /* feature to let user modify   */
@@ -199,13 +201,19 @@ class ModifyAccumuloFeatureWriter(featureType: SimpleFeatureType,
       removeAttrIdx(original)
     }
 
-  private def removeRecord(feature: SimpleFeature) =
-    connector
-      .tableOperations()
-      .deleteRows(
-        dataStore.getRecordTableForType(featureType),
-        new Text(feature.getID),
-        new Text(feature.getID))
+  private def removeRecord(feature: SimpleFeature) = {
+    val row = new Text(feature.getID)
+    val mutation = new Mutation(row)
+
+    val scanner = dataStore.createRecordScanner(featureType)
+    scanner.setRanges(List(new ARange(row, true, row, true)))
+    scanner.iterator().foreach { entry =>
+      val key = entry.getKey
+      mutation.putDelete(key.getColumnFamily, key.getColumnQualifier, key.getColumnVisibilityParsed, key.getTimestamp)
+    }
+    recordWriter.addMutation(mutation)
+    recordWriter.flush()
+  }
 
   private def removeSTIdx(feature: SimpleFeature) =
     indexer.encode(original).foreach { case (key, _) =>

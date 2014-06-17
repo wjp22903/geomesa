@@ -18,21 +18,13 @@ package geomesa.core.data
 
 import collection.JavaConversions._
 import geomesa.core.index._
-import org.geotools.data.{Query, FeatureReader}
-import geomesa.core.iterators.DensityIterator
 import java.nio.charset.StandardCharsets
-import org.apache.accumulo.core.data.{Range, Value}
+import org.apache.accumulo.core.data.Range
 import org.apache.hadoop.io.Text
-import org.geotools.data.{DataUtilities, Query, FeatureReader}
-import org.geotools.factory.CommonFactoryFinder
-import org.geotools.factory.Hints.{IntegerKey, ClassKey}
-import org.geotools.filter.text.ecql.ECQL
-import org.geotools.geometry.jts.ReferencedEnvelope
+import org.geotools.data.{Query, FeatureReader}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.PropertyIsEqualTo
 import org.opengis.filter.expression.{Literal, PropertyName}
-import org.opengis.filter.spatial.Equals
-import org.geotools.metadata.iso.extent.GeographicBoundingBoxImpl
 
 class AccumuloFeatureReader(dataStore: AccumuloDataStore,
                             query: Query,
@@ -42,9 +34,9 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
   extends FeatureReader[SimpleFeatureType, SimpleFeature] {
 
   val indexSchema = IndexSchema(indexSchemaFmt, sft, featureEncoder)
-  val bs = dataStore.createBatchScanner
+  val bs = dataStore.createBatchScanner(sft)
   val iter = indexSchema.query(query, bs)
-
+  val NULLBYTE = Array[Byte](0.toByte)
   def processPropertyIsEqualsTo(filter: PropertyIsEqualTo) = {
     val attrScanner = dataStore.createAttrIdxScanner(sft)
     val recordScanner = dataStore.createRecordScanner(sft)

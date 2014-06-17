@@ -48,6 +48,7 @@ package object data {
   val VISIBILITIES_CF      = new Text("visibilities")
   val VISIBILITIES_CHECK_CF = new Text("visibilitiesCheck")
   val DATA_CQ              = new Text("SimpleFeatureAttribute")
+  val SFT_CF               = new Text("SFT")
   val METADATA_TAG         = "~METADATA"
   val METADATA_TAG_END     = s"$METADATA_TAG~~"
   val EMPTY_STRING         = ""
