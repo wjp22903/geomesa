@@ -7,7 +7,7 @@ angular.module('stealth.siterank.siteRank', [
         });
     }])
 
-    .controller('SiteRankController', ['$scope', '$rootScope', '$modal', '$filter', 'WMS', 'WFS', 'ProximityService', 'CONFIG', function($scope, $rootScope, $modal, $filter, WMS, WFS, ProximityService, CONFIG) {
+    .controller('SiteRankController', ['$scope', '$rootScope', '$modal', '$filter', '$http', 'WMS', 'WFS', 'ProximityService', 'CONFIG', function($scope, $rootScope, $modal, $filter, $http, WMS, WFS, ProximityService, CONFIG) {
         $scope.siteRank = {
             isLeftPaneVisible: true,
             leftPaneView: 'analysis',
@@ -71,11 +71,12 @@ angular.module('stealth.siterank.siteRank', [
                 });
             },
             run: function () {
+                $rootScope.$emit('SetMapDataLayerZoomState', false);
                 _.chain($scope.siteRank.siteLayers).values().flatten().forEach(function (siteLayer) {
                     siteLayer.spatialQueryCount = siteLayer.isSelected ? 0 : null;
                 });
                 _.forEach($scope.siteRank.targets, function (target) {
-                    var layerName = target.layer.name,
+                    var layerName = target.idValue + '@' + target.layer.name,
                         cql_filter = '(' + target.idField + "='" + target.idValue + "')",
                         geoserverUrl = $filter('endpoint')(target.geoserverUrl, 'wms', true);
                     if (!_.isEmpty($scope.siteRank.options.startTime)) {
@@ -85,16 +86,30 @@ angular.module('stealth.siterank.siteRank', [
                         cql_filter += ' AND (dtg < ' + $scope.siteRank.options.endTime + ')';
                     }
                     target.spatialQueryStatus = 'running';
-                    $rootScope.$emit("ReplaceWmsMapLayers", [layerName], {
-                        name: layerName,
-                        url: geoserverUrl,
-                        layers: [layerName],
-                        cql_filter: cql_filter,
-                        loadEndCallback: function () {
-                            target.spatialQueryStatus = 'done';
-                        }
-                    });
-                    $scope.siteRank.doProximity(geoserverUrl, layerName, cql_filter);
+
+                    var extent = null,
+                        req = stealth.jst['wps/bounds_layer-filter.xml']({
+                            layer: target.layer.name,
+                            filter: cql_filter
+                        });
+                    $http.post($filter('endpoint')(geoserverUrl, 'wps'), req, {timeout: 30000})
+                        .then(function (data) {
+                            var obj = (new OpenLayers.Format.OWSCommon.v1_1_0()).read(OpenLayers.Format.XML.prototype.read.apply(this, [data.data]));
+                            extent = obj.bounds;
+                        })
+                        .finally(function () {
+                            $rootScope.$emit("ReplaceWmsMapLayers", [layerName], {
+                                name: layerName,
+                                url: geoserverUrl,
+                                layers: [target.layer.name],
+                                cql_filter: cql_filter,
+                                extent: extent,
+                                loadEndCallback: function () {
+                                    target.spatialQueryStatus = 'done';
+                                }
+                            });
+                        });
+                    $scope.siteRank.doProximity(geoserverUrl, target.layer.name, cql_filter);
                 });
                 //TODO - site rank
             }

@@ -5,7 +5,7 @@
              xmlns:gml="http://www.opengis.net/gml" xmlns:ogc="http://www.opengis.net/ogc"
              xmlns:wcs="http://www.opengis.net/wcs/1.1.1" xmlns:xlink="http://www.w3.org/1999/xlink"
              xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd">
-    <ows:Identifier>gs:Import</ows:Identifier>
+    <ows:Identifier>geomesa:Import</ows:Identifier>
     <wps:DataInputs>
         <wps:Input>
             <ows:Identifier>features</ows:Identifier>
@@ -26,7 +26,7 @@
                                                     <ows:Identifier>features</ows:Identifier>
                                                     <wps:Reference mimeType="text/xml" xlink:href="http://geoserver/wfs" method="POST">
                                                         <wps:Body>
-                                                            <wfs:GetFeature service="WFS" version="1.0.0" outputFormat="GML2" xmlns:accumulo="http://locationtech.org/geomesa">
+                                                            <wfs:GetFeature service="WFS" version="1.0.0" outputFormat="GML2">
                                                                 <wfs:Query typeName="{{tubeFeatures}}"/>
                                                             </wfs:GetFeature>
                                                         </wps:Body>
@@ -52,8 +52,7 @@
                                 <ows:Identifier>featureCollection</ows:Identifier>
                                 <wps:Reference mimeType="text/xml" xlink:href="http://geoserver/wfs" method="POST">
                                     <wps:Body>
-                                        <wfs:GetFeature service="WFS" version="1.0.0" outputFormat="GML2"
-                                                        xmlns:accumulo="http://locationtech.org/geomesa">
+                                        <wfs:GetFeature service="WFS" version="1.0.0" outputFormat="GML2">
                                             <wfs:Query typeName="{{featureCollection}}"/>
                                         </wfs:GetFeature>
                                     </wps:Body>

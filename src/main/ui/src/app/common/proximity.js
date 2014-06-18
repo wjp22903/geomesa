@@ -24,7 +24,7 @@ angular.module('stealth.common.proximity', [])
 
         //arg contains geoserverUrl, inputLayer, inputLayerFilter, dataLayer, dataLayerFilter, bufferDegrees
         this.doLayerProximity = function (arg) {
-            var resultLayer = (arg.inputLayer + '}}{{' + arg.dataLayer + '}}{{' + Utils.uuid()).replace(/:/g, '|||'),
+            var resultLayer = 'proximity_' + Utils.uuid().replace(/-/g, ''),
                 templateFn = _.isEmpty(arg.inputLayerFilter) ? stealth.jst['wps/proximity_layer.xml'] : stealth.jst['wps/proximity_layer-filter.xml'],
                 req = templateFn({
                     inputLayer: arg.inputLayer,
@@ -43,7 +43,7 @@ angular.module('stealth.common.proximity', [])
         };
         //arg contains geoserverUrl, inputLayer, inputLayerFilter, dataLayer, maxSpeedMps, maxTimeSec
         this.doTrackProximity = function (arg) {
-            var resultLayer = (arg.inputLayer + '}}{{' + arg.dataLayer + '}}{{' + Utils.uuid()).replace(/:/g, '|||'),
+            var resultLayer = 'proximity_' + Utils.uuid().replace(/-/g, ''),
                 templateFn = _.isEmpty(arg.inputLayerFilter) ? stealth.jst['wps/tube_layer.xml'] : stealth.jst['wps/tube_layer-filter.xml'],
                 req = templateFn({
                     tubeFeatures: arg.inputLayer,

@@ -21,6 +21,9 @@ angular.module('stealth.common.map.openlayersMap', [
                 scope.loading = {
                     count: 0
                 };
+                scope.state = {
+                    zoomedToDataLayer: false
+                };
                 scope.map = new OpenLayers.Map(attrs.id, {
                     controls: [
                         new OpenLayers.Control.ZoomPanel(),
@@ -28,7 +31,8 @@ angular.module('stealth.common.map.openlayersMap', [
                         new OpenLayers.Control.MousePosition(),
                         new OpenLayers.Control.NavToolbar()
                     ],
-                    projection: CONFIG.map.crs
+                    projection: CONFIG.map.crs,
+                    restrictedExtent: new OpenLayers.Bounds(-360, -90, 360, 90)
                 });
 
                 function addLayer (layer, extent, loadStartCallback, loadEndCallback) {
@@ -49,7 +53,14 @@ angular.module('stealth.common.map.openlayersMap', [
                         });
                     });
                     if (extent) {
-                        scope.map.zoomToExtent(extent);
+                        if (scope.state.zoomedToDataLayer) {
+                            var currentExtent = scope.map.getExtent();
+                            currentExtent.extend(extent);
+                            scope.map.zoomToExtent(currentExtent);
+                        } else {
+                            scope.map.zoomToExtent(extent);
+                            scope.state.zoomedToDataLayer = true;
+                        }
                     }
                     scope.map.addLayer(layer);
                 }
@@ -96,6 +107,9 @@ angular.module('stealth.common.map.openlayersMap', [
                 });
                 $rootScope.$on("CenterPaneFullWidthChange", function (event, fullWidth) {
                     scope.map.updateSize();
+                });
+                $rootScope.$on("SetMapDataLayerZoomState", function (event, zoomedToDataLayer) {
+                    scope.state.zoomedToDataLayer = zoomedToDataLayer;
                 });
             }
         };

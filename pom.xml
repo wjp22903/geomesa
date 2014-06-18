@@ -558,16 +558,16 @@
             <id>doubletrouble8082</id>
             <properties>
                 <geoserver.url>http://doubletrouble:8082/geoserver</geoserver.url>
-                <geoserver.workspaces.data>["stealth-devdata", "sf", "topp", "accumulo"]</geoserver.workspaces.data>
-                <geoserver.workspaces.site>["stealth-sites", "stealth-tracks", "accumulo"]</geoserver.workspaces.site>
-                <geoserver.workspaces.track>["stealth-tracks", "accumulo"]</geoserver.workspaces.track>
-                <geoserver.workspaces.route>["stealth-routes", "stealth-sites", "nyc_roads", "topp"]</geoserver.workspaces.route>
-                <geoserver.output.workspace>stealth-output</geoserver.output.workspace>
-                <geoserver.output.store>stealth-output</geoserver.output.store>
+                <geoserver.workspaces.data>["stealth_devdata", "sf", "topp", "accumulo"]</geoserver.workspaces.data>
+                <geoserver.workspaces.site>["stealth_sites", "stealth_tracks", "accumulo"]</geoserver.workspaces.site>
+                <geoserver.workspaces.track>["stealth_tracks", "accumulo"]</geoserver.workspaces.track>
+                <geoserver.workspaces.route>["stealth_routes", "stealth_sites", "nyc_roads", "topp"]</geoserver.workspaces.route>
+                <geoserver.output.workspace>stealth_output</geoserver.output.workspace>
+                <geoserver.output.store>stealth_output</geoserver.output.store>
                 <dataSources>
                 {
                     sites: {
-                        "stealth-tracks:nj_tp_line_selected120_2": {
+                        "stealth_tracks:nj_tp_line_selected120_2": {
                             "idField": "tweet_id"
                         }
                     },
@@ -575,7 +575,7 @@
                         "accumulo:accumulo|||nj_tp_line_selected120_2}}{{accumulo|||twitter3}}{{df72707d-f558-44ed-ac0c-684781ab09b3": {
                             "idField": "user_name"
                         },
-                        "stealth-devdata:twitter3": {
+                        "stealth_devdata:twitter3": {
                             "idField": "user_name"
                         }
                     }
