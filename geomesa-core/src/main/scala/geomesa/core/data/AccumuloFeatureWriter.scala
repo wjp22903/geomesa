@@ -99,9 +99,9 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
 
     // require non-null geometry to write to geomesa (can't index null geo yo!)
     if (toWrite.getDefaultGeometry != null) {
-      writeRecord(feature)
-      writeSTIdx(feature)
-      writeAttrIdx(feature)
+      writeRecord(toWrite)
+      writeSTIdx(toWrite)
+      writeAttrIdx(toWrite)
     } else {
       logger.warn("Invalid feature to write:  " + DataUtilities.encodeFeature(toWrite))
       List()

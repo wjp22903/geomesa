@@ -138,7 +138,7 @@ class FeatureWritersTest extends Specification {
 
         while(writer.hasNext){
           writer.next
-          writer.remove
+          writer.remove()
         }
 
         // cannot do anything here until the writer is closed.
@@ -158,10 +158,11 @@ class FeatureWritersTest extends Specification {
           c.zip(ids).foreach { case (feature, id) =>
             val writerCreatedFeature = writer.next()
             writerCreatedFeature.setAttributes(feature.getAttributes)
-            writerCreatedFeature.getUserData()(Hints.PROVIDED_FID) = id
-            writer.write
+            writerCreatedFeature.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+            writerCreatedFeature.getUserData.put(Hints.PROVIDED_FID, id)
+            writer.write()
           }
-        } finally { writer.close }
+        } finally { writer.close() }
 
         countFeatures(fs, sftName) should equalTo(5)
 

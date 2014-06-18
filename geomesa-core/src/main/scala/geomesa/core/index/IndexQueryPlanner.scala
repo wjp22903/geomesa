@@ -6,6 +6,7 @@ import geomesa.core.data._
 import geomesa.core.index.QueryHints._
 import geomesa.core.iterators.FEATURE_ENCODING
 import geomesa.core.iterators._
+import java.nio.charset.StandardCharsets
 import java.util.Map.Entry
 import java.util.{Iterator => JIterator}
 import org.apache.accumulo.core.client.{IteratorSetting, BatchScanner}
@@ -19,6 +20,8 @@ import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.joda.time.Interval
 import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.filter.expression.{Literal, PropertyName}
+import org.opengis.filter.{Filter, PropertyIsEqualTo}
 import scala.collection.JavaConversions._
 import scala.util.Random
 
@@ -27,6 +30,10 @@ object IndexQueryPlanner {
   val iteratorPriority_ColFRegex                      = 100
   val iteratorPriority_SpatioTemporalIterator         = 200
   val iteratorPriority_SimpleFeatureFilteringIterator = 300
+
+  trait CloseableIterator[T] extends Iterator[T] {
+    def close(): Unit
+  }
 }
 
 case class IndexQueryPlanner(keyPlanner: KeyPlanner,
@@ -64,23 +71,65 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     case _    => IndexSchema.everywhen.overlap(interval)
   }
 
+
   // Strategy:
   // 1. Inspect the query
   // 2. Set up the base iterators/scans.
   // 3. Set up the rest of the iterator stack.
-  def getIterator(bs: BatchScanner, query: Query) : JIterator[Entry[Key,Value]] = {
+  def getIterator(ds: AccumuloDataStore, query: Query) : CloseableIterator[Entry[Key,Value]] = {
 
     val ff = CommonFactoryFinder.getFilterFactory2
     val derivedQuery =
-      if(query.getHints.containsKey(BBOX_KEY)) {
+      if (query.getHints.containsKey(BBOX_KEY)) {
         val env = query.getHints.get(BBOX_KEY).asInstanceOf[ReferencedEnvelope]
         val q1 = new Query(featureType.getTypeName, ff.bbox(ff.property(featureType.getGeometryDescriptor.getLocalName), env))
         DataUtilities.mixQueries(q1, query, "geomesa.mixed.query")
       } else query
 
-    val simpleFeatureType = DataUtilities.encodeType(featureType)
+    def noSpaceTime(f2a: FilterToAccumulo) = f2a.spatialPredicate == null && f2a.temporalPredicate == null
+
     val filterVisitor = new FilterToAccumulo(featureType)
-    val rewrittenCQL = filterVisitor.visit(derivedQuery)
+    filterVisitor.visit(derivedQuery) match {
+      case isEqualTo: PropertyIsEqualTo if noSpaceTime(filterVisitor) =>
+        attrIdxQuery(ds, isEqualTo)
+
+      case cql =>
+        stIdxQuery(ds, derivedQuery, cql, filterVisitor)
+    }
+  }
+
+  val NULLBYTE = Array[Byte](0.toByte)
+  def attrIdxQuery(dataStore: AccumuloDataStore, filter: PropertyIsEqualTo) = {
+    type ARange = org.apache.accumulo.core.data.Range
+    val attrScanner = dataStore.createAttrIdxScanner(featureType)
+    val recordScanner = dataStore.createRecordScanner(featureType)
+
+    val one = filter.getExpression1
+    val two = filter.getExpression2
+    val (prop, lit) = (one, two) match {
+      case (p: PropertyName, l: Literal) => (p.getPropertyName, l.getValue.toString)
+      case (l: Literal, p: PropertyName) => (p.getPropertyName, l.getValue.toString)
+    }
+
+    val range = new Text(prop.getBytes(StandardCharsets.UTF_8) ++ NULLBYTE ++ lit.getBytes(StandardCharsets.UTF_8))
+    attrScanner.setRange(new ARange(range))
+    val ids = attrScanner.iterator().map { _.getKey.getColumnFamily.toString }
+    recordScanner.setRanges(ids.map { i => new ARange(i) }.toList)
+    new CloseableIterator[Entry[Key,Value]] {
+      val iter = recordScanner.iterator()
+
+      override def close(): Unit = {
+        recordScanner.close()
+        attrScanner.close()
+      }
+      override def next(): Entry[Key, Value] = iter.next()
+
+      override def hasNext: Boolean = iter.hasNext
+    }
+  }
+
+  def stIdxQuery(ds: AccumuloDataStore, query: Query, rewrittenCQL: Filter, filterVisitor: FilterToAccumulo) = {
+
     val ecql = Option(ECQL.toCQL(rewrittenCQL))
 
     val spatial = filterVisitor.spatialPredicate
@@ -98,6 +147,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     val oint  = IndexSchema.somewhen(interval)
 
     // set up row ranges and regular expression filter
+    val bs = ds.createBatchScanner(featureType)
     planQuery(bs, filter)
 
     if(log.isTraceEnabled) {
@@ -112,9 +162,15 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     // Configure STII
     configureSpatioTemporalIntersectingIterator(bs, opoly, oint)
 
+    val simpleFeatureType = DataUtilities.encodeType(featureType)
     configureSimpleFeatureFilteringIterator(bs, simpleFeatureType, ecql, query, poly)
 
-    bs.iterator()
+    new CloseableIterator[Entry[Key, Value]] {
+      val iter = bs.iterator()
+      override def close(): Unit = bs.close()
+      override def next(): Entry[Key, Value] = iter.next()
+      override def hasNext: Boolean = iter.hasNext
+    }
   }
 
   def configureFeatureEncoding(cfg: IteratorSetting) =
