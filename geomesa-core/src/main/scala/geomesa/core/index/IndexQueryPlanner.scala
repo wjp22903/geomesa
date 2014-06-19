@@ -24,6 +24,9 @@ import org.opengis.filter.expression.{Literal, PropertyName}
 import org.opengis.filter.{Filter, PropertyIsEqualTo}
 import scala.collection.JavaConversions._
 import scala.util.Random
+import com.google.common.collect.Queues
+import java.util.concurrent.Executors
+
 
 object IndexQueryPlanner {
   val iteratorPriority_RowRegex                       = 0
@@ -101,8 +104,6 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
   val NULLBYTE = Array[Byte](0.toByte)
   def attrIdxQuery(dataStore: AccumuloDataStore, filter: PropertyIsEqualTo) = {
     type ARange = org.apache.accumulo.core.data.Range
-    val attrScanner = dataStore.createAttrIdxScanner(featureType)
-    val recordScanner = dataStore.createRecordScanner(featureType)
 
     val one = filter.getExpression1
     val two = filter.getExpression2
@@ -111,11 +112,39 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
       case (l: Literal, p: PropertyName) => (p.getPropertyName, l.getValue.toString)
     }
 
-    val range = new Text(prop.getBytes(StandardCharsets.UTF_8) ++ NULLBYTE ++ lit.getBytes(StandardCharsets.UTF_8))
-    attrScanner.setRange(new ARange(range))
-    val ids = attrScanner.iterator().map { _.getKey.getColumnFamily.toString }
-    recordScanner.setRanges(ids.map { i => new ARange(i) }.toList)
     new CloseableIterator[Entry[Key,Value]] {
+      val done = new ThreadLocal[Boolean] {
+        override def initialValue(): Boolean = java.lang.Boolean.FALSE
+      }
+
+      val indexExecutor = Executors.newSingleThreadExecutor()
+      val q = Queues.newArrayBlockingQueue[java.util.Map.Entry[Key,Value]](2048)
+
+      val attrScanner = dataStore.createAttrIdxScanner(featureType)
+      val range = new Text(prop.getBytes(StandardCharsets.UTF_8) ++ NULLBYTE ++ lit.getBytes(StandardCharsets.UTF_8))
+      attrScanner.setRange(new ARange(range))
+
+      indexExecutor.submit(new Runnable {
+        override def run(): Unit = {
+          attrScanner.foreach(q.put)
+        }
+      })
+
+      val recordExecutor = Executors.newSingleThreadExecutor()
+      recordExecutor.submit(new Runnable {
+        override def run(): Unit =
+          while(!done.get()) {
+            val coll = new java.util.ArrayList[java.util.Map.Entry[Key,Value]]()
+            q.drainTo(coll)
+
+          }
+      })
+
+
+      val recordScanner = dataStore.createRecordScanner(featureType)
+
+      val ids = attrScanner.iterator().map { _.getKey.getColumnFamily.toString }
+      recordScanner.setRanges(ids.map { i => new ARange(i) }.toList)
       val iter = recordScanner.iterator()
 
       override def close(): Unit = {
