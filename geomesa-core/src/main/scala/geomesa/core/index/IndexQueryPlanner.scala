@@ -12,7 +12,7 @@ import geomesa.core.index.QueryHints._
 import geomesa.core.iterators.{FEATURE_ENCODING, _}
 import geomesa.core.util.BatchMultiScanner
 import org.apache.accumulo.core.client.{BatchScanner, IteratorSetting}
-import org.apache.accumulo.core.data.{Key, Value}
+import org.apache.accumulo.core.data.{Key, Value, Range => AccRange}
 import org.apache.accumulo.core.iterators.user.RegExFilter
 import org.apache.hadoop.io.Text
 import org.apache.log4j.Logger
@@ -119,7 +119,8 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
       attrScanner.setRange(new ARange(range))
       val recordScanner = dataStore.createRecordScanner(featureType)
 
-      val iter = new BatchMultiScanner(attrScanner, recordScanner).iterator
+      val bms = new BatchMultiScanner(attrScanner, recordScanner, e => new AccRange(e.getKey.getColumnFamily))
+      val iter = bms.iterator
 
       override def close(): Unit = {
         recordScanner.close()

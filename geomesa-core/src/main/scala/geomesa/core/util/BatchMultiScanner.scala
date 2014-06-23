@@ -8,7 +8,11 @@ import org.apache.accumulo.core.data.{Key, Value, Range => AccRange}
 
 import scala.collection.JavaConversions._
 
-class BatchMultiScanner(in: Scanner, out: BatchScanner) extends Iterable[java.util.Map.Entry[Key, Value]] {
+class BatchMultiScanner(in: Scanner,
+                        out: BatchScanner,
+                        joinFn: java.util.Map.Entry[Key, Value] => AccRange)
+  extends Iterable[java.util.Map.Entry[Key, Value]] {
+
   type E = java.util.Map.Entry[Key, Value]
   val inExecutor  = Executors.newSingleThreadExecutor()
   val outExecutor = Executors.newSingleThreadExecutor()
@@ -25,10 +29,12 @@ class BatchMultiScanner(in: Scanner, out: BatchScanner) extends Iterable[java.ut
 
   outExecutor.submit(new Runnable {
     override def run(): Unit = {
-      val batch = Lists.newLinkedList[E]()
       while(!done) {
+        // block until data is ready
+        val e = inQ.take()
+        val batch = Lists.newLinkedList[E]()
         val count = inQ.drainTo(batch)
-        val ranges = batch.take(count).map(e => new AccRange(e.getKey.getColumnFamily))
+        val ranges = batch.take(count).map(e => joinFn(e))
         out.setRanges(ranges)
         out.iterator().foreach(outQ.put)
       }
