@@ -1,17 +1,18 @@
 package geomesa.core.index
 
-import IndexQueryPlanner._
-import com.vividsolutions.jts.geom.Polygon
-import geomesa.core._
-import geomesa.core.data._
-import geomesa.core.index.QueryHints._
-import geomesa.core.iterators.FEATURE_ENCODING
-import geomesa.core.iterators._
 import java.nio.charset.StandardCharsets
 import java.util.Map.Entry
 import java.util.{Iterator => JIterator}
-import org.apache.accumulo.core.client.{IteratorSetting, BatchScanner}
-import org.apache.accumulo.core.data.{Value, Key}
+
+import com.vividsolutions.jts.geom.Polygon
+import geomesa.core._
+import geomesa.core.data._
+import geomesa.core.index.IndexQueryPlanner._
+import geomesa.core.index.QueryHints._
+import geomesa.core.iterators.{FEATURE_ENCODING, _}
+import geomesa.core.util.BatchMultiScanner
+import org.apache.accumulo.core.client.{BatchScanner, IteratorSetting}
+import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.user.RegExFilter
 import org.apache.hadoop.io.Text
 import org.apache.log4j.Logger
@@ -23,10 +24,9 @@ import org.joda.time.Interval
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.expression.{Literal, PropertyName}
 import org.opengis.filter.{Filter, PropertyIsEqualTo}
+
 import scala.collection.JavaConversions._
 import scala.util.Random
-import com.google.common.collect.Queues
-import java.util.concurrent.Executors
 
 
 object IndexQueryPlanner {
@@ -90,13 +90,11 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
         DataUtilities.mixQueries(q1, query, "geomesa.mixed.query")
       } else query
 
-    def noSpaceTime(f2a: FilterToAccumulo) = f2a.spatialPredicate == null && f2a.temporalPredicate == null
-
     val sourceSimpleFeatureType = DataUtilities.encodeType(featureType)
 
     val filterVisitor = new FilterToAccumulo(featureType)
     filterVisitor.visit(derivedQuery) match {
-      case isEqualTo: PropertyIsEqualTo if noSpaceTime(filterVisitor) =>
+      case isEqualTo: PropertyIsEqualTo =>
         attrIdxQuery(ds, isEqualTo)
 
       case cql =>
@@ -116,39 +114,12 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     }
 
     new CloseableIterator[Entry[Key,Value]] {
-      val done = new ThreadLocal[Boolean] {
-        override def initialValue(): Boolean = java.lang.Boolean.FALSE
-      }
-
-      val indexExecutor = Executors.newSingleThreadExecutor()
-      val q = Queues.newArrayBlockingQueue[java.util.Map.Entry[Key,Value]](2048)
-
       val attrScanner = dataStore.createAttrIdxScanner(featureType)
       val range = new Text(prop.getBytes(StandardCharsets.UTF_8) ++ NULLBYTE ++ lit.getBytes(StandardCharsets.UTF_8))
       attrScanner.setRange(new ARange(range))
-
-      indexExecutor.submit(new Runnable {
-        override def run(): Unit = {
-          attrScanner.foreach(q.put)
-        }
-      })
-
-      val recordExecutor = Executors.newSingleThreadExecutor()
-      recordExecutor.submit(new Runnable {
-        override def run(): Unit =
-          while(!done.get()) {
-            val coll = new java.util.ArrayList[java.util.Map.Entry[Key,Value]]()
-            q.drainTo(coll)
-
-          }
-      })
-
-
       val recordScanner = dataStore.createRecordScanner(featureType)
 
-      val ids = attrScanner.iterator().map { _.getKey.getColumnFamily.toString }
-      recordScanner.setRanges(ids.map { i => new ARange(i) }.toList)
-      val iter = recordScanner.iterator()
+      val iter = new BatchMultiScanner(attrScanner, recordScanner).iterator
 
       override def close(): Unit = {
         recordScanner.close()
@@ -191,6 +162,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
       log.trace("Query: " + Option(query).getOrElse("no query"))
     }
 
+    val sourceSimpleFeatureType = DataUtilities.encodeType(featureType)
     val iteratorConfig = IteratorTrigger.chooseIterator(ecql, query, sourceSimpleFeatureType)
 
     iteratorConfig.iterator match {
