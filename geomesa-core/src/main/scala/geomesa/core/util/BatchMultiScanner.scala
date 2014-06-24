@@ -4,6 +4,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
 
 import com.google.common.collect.{Lists, Queues}
+import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.client.{BatchScanner, Scanner}
 import org.apache.accumulo.core.data.{Key, Value, Range => AccRange}
 
@@ -13,20 +14,32 @@ import scala.collection.mutable.ListBuffer
 class BatchMultiScanner(in: Scanner,
                         out: BatchScanner,
                         joinFn: java.util.Map.Entry[Key, Value] => AccRange)
-  extends Iterable[java.util.Map.Entry[Key, Value]] {
+  extends Iterable[java.util.Map.Entry[Key, Value]] with Logging {
 
   type E = java.util.Map.Entry[Key, Value]
   val inExecutor  = Executors.newSingleThreadExecutor()
   val outExecutor = Executors.newSingleThreadExecutor()
-  val inQ  = Queues.newArrayBlockingQueue[E](2048)
+  val inQ  = Queues.newLinkedBlockingQueue[AccRange]()
   val outQ = Queues.newArrayBlockingQueue[E](2048)
   var inDone = new AtomicBoolean(false)
   var outDone = new AtomicBoolean(false)
 
   inExecutor.submit(new Runnable {
     override def run(): Unit = {
-      in.iterator().foreach(inQ.put)
+      //in.iterator().foreach(inQ.put)
+      val itr = in.iterator()
+      while(itr.hasNext){
+        inQ.add(joinFn(itr.next()))
+      }
+      in.close()
       inDone.set(true)
+      if(!inQ.isEmpty) {
+        logger.info(f"Found ${inQ.size}%d items in reverse index")
+        sub
+      }
+      else {
+        outDone.set(true)
+      }
     }
   })
 
@@ -34,20 +47,17 @@ class BatchMultiScanner(in: Scanner,
   def inQNonEmpty = !inQ.isEmpty
 
   // TODO parallelize so we can read while consuming the incoming itr - currently this fails tests
-  outExecutor.submit(new Runnable {
+  def sub = outExecutor.submit(new Runnable {
     override def run(): Unit = {
       // Todo can we not do a list buffer maybe with a fold
       val allRanges = new ListBuffer[AccRange]
       while(notDone || inQNonEmpty) {
-        // block until data is ready
-        val batch = Lists.newLinkedList[E]()
-        val count = inQ.drainTo(batch)
-        val ranges = batch.take(count).map(e => joinFn(e))
-        allRanges ++= ranges
+        allRanges += inQ.take()
       }
       out.setRanges(allRanges)
+      outDone.set(true) // this must come before things are added to the outQ
       out.iterator().foreach(outQ.add)
-      outDone.set(true)
+      out.close()
     }
   })
 
