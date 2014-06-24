@@ -62,7 +62,7 @@ class IndexIteratorTest extends SpatioTemporalIntersectingIteratorTest {
     def setupMockFeatureSource(entries: List[TestData.Entry]): SimpleFeatureStore = {
       val mockInstance = new MockInstance("dummy")
       val c = mockInstance.getConnector("user", new PasswordToken("pass".getBytes))
-      if (c.tableOperations.exists(TEST_TABLE)) c.tableOperations.delete(TEST_TABLE)
+      if (c.tableOperations.exists(TestData.testTable)) c.tableOperations.delete(TestData.testTable)
 
       val dsf = new AccumuloDataStoreFactory
 

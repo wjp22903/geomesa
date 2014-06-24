@@ -16,34 +16,36 @@
 
 package geomesa.core.iterators
 
-import collection.JavaConversions._
-import collection.JavaConverters._
-import com.vividsolutions.jts.geom.{Polygon, Geometry}
-import geomesa.core.data.SimpleFeatureEncoderFactory
-import geomesa.core.index._
-import geomesa.utils.text.WKTUtils
 import java.util
+
+import com.vividsolutions.jts.geom.{Geometry, Polygon}
+import geomesa.core.data.{AccumuloDataStore, SimpleFeatureEncoderFactory}
+import geomesa.core.index._
+import geomesa.core.security.DefaultAuthorizationsProvider
+import geomesa.utils.text.WKTUtils
 import org.apache.accumulo.core.Constants
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
-import org.apache.accumulo.core.client.{IteratorSetting, Connector, BatchWriterConfig}
+import org.apache.accumulo.core.client.{BatchWriterConfig, Connector, IteratorSetting}
 import org.apache.accumulo.core.data._
 import org.apache.hadoop.io.Text
 import org.geotools.data.{DataUtilities, Query}
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
-import org.joda.time.{Interval, DateTimeZone, DateTime}
+import org.joda.time.{DateTime, DateTimeZone, Interval}
 import org.junit.runner.RunWith
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import scala.util.{Try, Random}
+
+import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
+import scala.util.{Random, Try}
 
 @RunWith(classOf[JUnitRunner])
-class SpatioTemporalIntersectingIteratorTest extends Specification /*{
+class SpatioTemporalIntersectingIteratorTest extends Specification {
 
   val TEST_USER = "root"
-  val TEST_TABLE = "test_table"
   val TEST_AUTHORIZATIONS = Constants.NO_AUTHS
 
   sequential
@@ -69,6 +71,7 @@ class SpatioTemporalIntersectingIteratorTest extends Specification /*{
 
     val featureEncoder = SimpleFeatureEncoderFactory.defaultEncoder
     val featureName = "feature"
+    val testTable = s"${featureName}_st_idx"
     val schemaEncoding = "%~#s%" + featureName + "#cstr%10#r%0,1#gh%yyyyMM#d::%~#s%1,3#gh::%~#s%4,3#gh%ddHH#d%10#id"
     val featureType: SimpleFeatureType = DataUtilities.createType(featureName, UnitTestEntryType.getTypeSpec)
     featureType.getUserData.put(SF_PROPERTY_START_TIME, "geomesa_index_start_time")
@@ -196,8 +199,8 @@ class SpatioTemporalIntersectingIteratorTest extends Specification /*{
     def setupMockAccumuloTable(entries: List[Entry], numExpected: Int): Connector = {
       val mockInstance = new MockInstance()
       val c = mockInstance.getConnector(TEST_USER, new PasswordToken(Array[Byte]()))
-      c.tableOperations.create(TEST_TABLE)
-      val bw = c.createBatchWriter(TEST_TABLE, new BatchWriterConfig)
+      c.tableOperations.create(testTable)
+      val bw = c.createBatchWriter(testTable, new BatchWriterConfig)
 
       // populate the mock table
       val dataList: util.Collection[(Key, Value)] = TestData.encodeDataList(entries)
@@ -243,7 +246,7 @@ class SpatioTemporalIntersectingIteratorTest extends Specification /*{
 
     // create the batch scanner
     val c = TestData.setupMockAccumuloTable(entries, numExpectedDataIn)
-    val bs = c.createBatchScanner(TEST_TABLE, TEST_AUTHORIZATIONS, 5)
+    val bs = c.createBatchScanner(TestData.testTable, TEST_AUTHORIZATIONS, 5)
 
     val gf = s"WITHIN(geomesa_index_geometry, ${polygon.toText})"
     val dt: Option[String] = Option(dtFilter).map(int =>
@@ -260,7 +263,8 @@ class SpatioTemporalIntersectingIteratorTest extends Specification /*{
 
     val q = new Query(TestData.featureType.getTypeName, tf)
     // fetch results from the schema!
-    val itr = schema.query(q, bs)
+    val ds = new AccumuloDataStore(c, TestData.testTable, new DefaultAuthorizationsProvider, "")
+    val itr = schema.query(q, ds)
 
     // print out the hits
     val retval = if (doPrint) {
@@ -400,7 +404,7 @@ class SpatioTemporalIntersectingIteratorTest extends Specification /*{
   "Consistency Iterator" should {
     "verify consistency of table" in {
       val c = TestData.setupMockAccumuloTable(TestData.shortListOfPoints, TestData.shortListOfPoints.length)
-      val bs = c.createBatchScanner(TEST_TABLE, TEST_AUTHORIZATIONS, 8)
+      val bs = c.createBatchScanner(TestData.testTable, TEST_AUTHORIZATIONS, 8)
       val cfg = new IteratorSetting(1000, "consistency-iter", classOf[ConsistencyCheckingIterator])
 
       bs.setRanges(List(new org.apache.accumulo.core.data.Range()))
@@ -414,12 +418,12 @@ class SpatioTemporalIntersectingIteratorTest extends Specification /*{
   "Consistency Iterator" should {
     "verify inconsistency of table" in {
       val c = TestData.setupMockAccumuloTable(TestData.shortListOfPoints, TestData.shortListOfPoints.length)
-      val bd = c.createBatchDeleter(TEST_TABLE, TEST_AUTHORIZATIONS, 8, new BatchWriterConfig)
+      val bd = c.createBatchDeleter(TestData.testTable, TEST_AUTHORIZATIONS, 8, new BatchWriterConfig)
       bd.setRanges(List(new org.apache.accumulo.core.data.Range()))
       bd.fetchColumnFamily(new Text("|data|1".getBytes()))
       bd.delete()
       bd.flush()
-      val bs = c.createBatchScanner(TEST_TABLE, TEST_AUTHORIZATIONS, 8)
+      val bs = c.createBatchScanner(TestData.testTable, TEST_AUTHORIZATIONS, 8)
       val cfg = new IteratorSetting(1000, "consistency-iter", classOf[ConsistencyCheckingIterator])
 
       bs.setRanges(List(new org.apache.accumulo.core.data.Range()))
@@ -438,4 +442,3 @@ class SpatioTemporalIntersectingIteratorTest extends Specification /*{
     }
   }
 }
-*/

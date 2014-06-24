@@ -16,10 +16,11 @@
 
 package geomesa.core.data
 
-import geomesa.core.index
-import geomesa.utils.text.WKTUtils
 import java.text.SimpleDateFormat
 import java.util.TimeZone
+
+import geomesa.core.index
+import geomesa.utils.text.WKTUtils
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureIterator
 import org.geotools.factory.Hints
@@ -30,6 +31,7 @@ import org.junit.runner.RunWith
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
 import scala.collection
 import scala.collection.JavaConversions._
 

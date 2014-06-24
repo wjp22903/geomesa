@@ -222,11 +222,13 @@ class ModifyAccumuloFeatureWriter(featureType: SimpleFeatureType,
       stIdxWriter.addMutation(m)
     }
 
+  val emptyVis = new ColumnVisibility()
   private def removeAttrIdx(feature: SimpleFeature) =
     getAttrIdxMutations(feature, new Text(feature.getID)).map {
       case PutOrDeleteMutation(row, cf, cq, _) =>
         val m = new Mutation(row)
-        m.putDelete(cf, cq)
+        m.putDelete(cf, cq, emptyVis)
+        attrIdxWriter.addMutation(m)
     }
 
   override def hasNext = reader.hasNext

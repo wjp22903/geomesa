@@ -95,7 +95,10 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     val filterVisitor = new FilterToAccumulo(featureType)
     filterVisitor.visit(derivedQuery) match {
       case isEqualTo: PropertyIsEqualTo =>
-        attrIdxQuery(ds, isEqualTo)
+        if (filterVisitor.spatialPredicate == null && filterVisitor.temporalPredicate == null)
+          attrIdxQuery(ds, isEqualTo)
+        else
+          stIdxQuery(ds, derivedQuery, isEqualTo, filterVisitor)
 
       case cql =>
         stIdxQuery(ds, derivedQuery, cql, filterVisitor)
