@@ -64,8 +64,10 @@ class AccumuloDataStore(val connector: Connector,
                         val featureEncoding: FeatureEncoding = FeatureEncoding.AVRO)
     extends AbstractDataStore(true) with Logging {
 
-  private def buildDefaultSchema(name: String) =
-    s"%~#s%99#r%${name}#cstr%0,3#gh%yyyyMMdd#d::%~#s%3,2#gh::%~#s%#id"
+  private val DEFAULT_MAX_SHARD = 99
+
+  private def buildDefaultSchema(name: String, maxShard: Int) =
+    s"%~#s%$maxShard#r%${name}#cstr%0,3#gh%yyyyMMdd#d::%~#s%3,2#gh::%~#s%#id"
 
   Hints.putSystemDefault(Hints.FORCE_LONGITUDE_FIRST_AXIS_ORDER, true)
 
@@ -92,7 +94,7 @@ class AccumuloDataStore(val connector: Connector,
    */
   private def writeMetadata(sft: SimpleFeatureType,
                             fe: FeatureEncoding,
-                            indexSchemaString: String): Unit = {
+                            schemaValue: String): Unit = {
 
     val featureName = getFeatureName(sft)
 
@@ -101,7 +103,6 @@ class AccumuloDataStore(val connector: Connector,
 
     // compute the metadata values
     val attributesValue = DataUtilities.encodeType(sft)
-    val schemaValue = buildDefaultSchema(featureName)
     val dtgValue: Option[String] = {
       val userData = sft.getUserData
       if (userData.containsKey(core.index.SF_PROPERTY_START_TIME))
@@ -141,7 +142,8 @@ class AccumuloDataStore(val connector: Connector,
   def getAttrIdxTableForType(featureType: SimpleFeatureType)  = s"${featureType.getTypeName}_attr_idx"
 
   def createTablesForType(featureType: SimpleFeatureType,
-                          featureEncoding: FeatureEncoding) {
+                          featureEncoding: FeatureEncoding,
+                          maxShard: Int) {
     val recordTable       = getRecordTableForType(featureType)
     val stIdxTable        = getSTIdxTableForType(featureType)
     val attributeIdxTable = getAttrIdxTableForType(featureType)
@@ -151,18 +153,14 @@ class AccumuloDataStore(val connector: Connector,
     }
 
     if(!connector.isInstanceOf[MockConnector])
-      configureNewTable(buildDefaultSchema(featureType.getTypeName), featureType, stIdxTable, featureEncoding)
+      configureNewTable(maxShard, featureType, stIdxTable, featureEncoding)
   }
 
-  def configureNewTable(indexSchemaFormat: String,
+  def configureNewTable(maxShard: Int,
                         featureType: SimpleFeatureType,
                         stIdxTable: String,
                         fe: FeatureEncoding) {
-
     val encoder = SimpleFeatureEncoderFactory.createEncoder(fe)
-    val indexSchema = IndexSchema(indexSchemaFormat, featureType, encoder)
-    val maxShard = indexSchema.maxShard
-
     val splits = (1 to maxShard).map { i => s"%0${maxShard.toString.length}d".format(i) }.map(new Text(_))
     tableOps.addSplits(stIdxTable, new java.util.TreeSet(splits))
 
@@ -178,11 +176,21 @@ class AccumuloDataStore(val connector: Connector,
         BOUNDS_CF.toString     -> Set(BOUNDS_CF).asJava))
   }
 
-  override def createSchema(featureType: SimpleFeatureType) {
-    createTablesForType(featureType, featureEncoding)
-    writeMetadata(featureType, featureEncoding, indexSchemaFormat)
+  // Computes the schema, checking for the "DEFAULT" flag
+  def computeSchema(featureName: String, maxShard: Int) =
+    if(indexSchemaFormat.equalsIgnoreCase("DEFAULT"))
+      buildDefaultSchema(featureName, maxShard)
+    else
+      indexSchemaFormat
+
+  // Create the Schema and write it to the metadata catalog for this feature
+  def createSchema(featureType: SimpleFeatureType, maxShard: Int) {
+    val computedSchema = computeSchema(getFeatureName(featureType), maxShard)
+    createTablesForType(featureType, featureEncoding, maxShard)
+    writeMetadata(featureType, featureEncoding, computedSchema)
   }
 
+  override def createSchema(featureType: SimpleFeatureType) = createSchema(featureType, DEFAULT_MAX_SHARD)
 
   /**
    * Handles creating a mutation for writing metadata
@@ -252,7 +260,7 @@ class AccumuloDataStore(val connector: Connector,
    */
   private def checkMetadata(featureName: String) = {
     // validate that visibilities and schema have not changed
-    val errors = List((SCHEMA_CF,         buildDefaultSchema(featureName)),
+    val errors = List((SCHEMA_CF,         computeSchema(featureName, DEFAULT_MAX_SHARD)),
                       (VISIBILITIES_CF,   writeVisibilities)).map {
       case (cf, expectedValue) =>
         val existing = readMetadataItem(featureName, cf).getOrElse("")
