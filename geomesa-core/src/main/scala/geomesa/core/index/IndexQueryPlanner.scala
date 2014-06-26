@@ -169,18 +169,20 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     new CloseableIterator[Entry[Key, Value]] {
       val attrScanner = dataStore.createAttrIdxScanner(featureType)
 
-      val spatial = filterVisitor.spatialPredicate
-      val temporal = filterVisitor.temporalPredicate
+      val spatialOpt =
+        for {
+            sp    <- Option(filterVisitor.spatialPredicate)
+            env  = sp.getEnvelopeInternal
+            bbox = List(env.getMinX, env.getMinY, env.getMaxX, env.getMaxY).mkString(",")
+        } yield AttributeIndexFilteringIterator.BBOX_KEY -> bbox
 
-      if(spatial != null || temporal != null) {
-        // standardize the two key query arguments: polygon and date-range
-        val poly = netPolygon(spatial)
-        val interval = netInterval(temporal)
-
-        val opoly = IndexSchema.somewhere(poly)
-        val oint = IndexSchema.somewhen(interval)
-
-        configureAttrFilteringIterator(attrScanner, opoly, oint)
+      val dtgOpt = Option(filterVisitor.temporalPredicate).map(AttributeIndexFilteringIterator.INTERVAL_KEY -> _.toString)
+      val opts = List(spatialOpt, dtgOpt).flatten.toMap
+      if(!opts.isEmpty) {
+        val cfg = new IteratorSetting(iteratorPriority_AttributeIndexFilteringIterator,
+          "attrIndexFilter",
+          classOf[AttributeIndexFilteringIterator].getCanonicalName, opts)
+        attrScanner.addScanIterator(cfg)
       }
 
       logger.debug("Range for attribute scan : " + range.toString)
@@ -209,21 +211,6 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
 
       override def hasNext: Boolean = iter.hasNext
     }
-
-  def configureAttrFilteringIterator(scanner: Scanner, poly: Option[Polygon], interval: Option[Interval]) = {
-    val cfg = new IteratorSetting(iteratorPriority_AttributeIndexFilteringIterator,
-      "attrIndexFilter",
-      classOf[AttributeIndexFilteringIterator] )
-
-    // TODO deal with multiple geoms and intervals
-    poly.foreach { p =>
-      val env = p.getEnvelopeInternal
-      def bboxString = Array(env.getMinX, env.getMinY, env.getMaxX, env.getMaxY).mkString(",")
-      cfg.addOption(AttributeIndexFilteringIterator.BBOX_KEY, bboxString)
-    }
-    interval.foreach { int => cfg.addOption(AttributeIndexFilteringIterator.INTERVAL_KEY, int.toString) }
-    scanner.addScanIterator(cfg)
-  }
 
   def stIdxQuery(ds: AccumuloDataStore, query: Query, rewrittenCQL: Filter, filterVisitor: FilterToAccumulo) = {
 
