@@ -3,12 +3,15 @@ package geomesa.core.iterators
 import java.text.SimpleDateFormat
 import java.util.TimeZone
 
+import com.vividsolutions.jts.geom.Geometry
 import geomesa.core.data.{AccumuloFeatureStore, AccumuloDataStore}
 import geomesa.utils.text.WKTUtils
-import org.geotools.data.{DataUtilities, DataStoreFinder}
+import org.geotools.data.{Query, DataUtilities, DataStoreFinder}
 import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureBuilder
+import org.geotools.filter.text.cql2.CQL
+import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.{DateTimeZone, DateTime}
 import org.junit.runner.RunWith
 import org.opengis.filter.Filter
@@ -65,14 +68,30 @@ class AttributeIndexFilteringIteratorTest extends Specification {
 
   fs.addFeatures(featureCollection)
 
+  val ff = CommonFactoryFinder.getFilterFactory2
+
   "AttributeIndexFilteringIterator" should {
     "handle like queries" in {
-      val ff = CommonFactoryFinder.getFilterFactory2
       fs.getFeatures(ff.like(ff.property("name"),"%")).features.size should equalTo(8)
       fs.getFeatures(ff.like(ff.property("name"),"%a")).features.size should equalTo(4)
       fs.getFeatures(ff.like(ff.property("name"),"%a%")).features.size should equalTo(4)
       fs.getFeatures(ff.like(ff.property("name"),"a%")).features.size should equalTo(4)
     }
+
+    "handle transforms" in {
+      val query = new Query(sftName, ECQL.toFilter("name <> 'a'"), Array("geom"))
+      val features = fs.getFeatures(query)
+
+      features.size should equalTo(4)
+      features.features.foreach { sf =>
+        sf.getAttributeCount should equalTo(1)
+        sf.getAttribute(0) should beAnInstanceOf[Geometry]
+      }
+    }
+
+
   }
+
+
 
 }
