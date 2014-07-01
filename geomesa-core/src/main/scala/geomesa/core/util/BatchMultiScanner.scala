@@ -3,13 +3,13 @@ package geomesa.core.util
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
 
-import com.google.common.collect.{Lists, Queues}
+import com.google.common.collect.Queues
 import com.typesafe.scalalogging.slf4j.Logging
+import geomesa.core.index.IndexQueryPlanner.CloseableIterator
 import org.apache.accumulo.core.client.{BatchScanner, Scanner}
 import org.apache.accumulo.core.data.{Key, Value, Range => AccRange}
 
 import scala.collection.JavaConversions._
-import scala.collection.mutable.ListBuffer
 
 class BatchMultiScanner(in: Scanner,
                         out: BatchScanner,
@@ -19,51 +19,51 @@ class BatchMultiScanner(in: Scanner,
   type E = java.util.Map.Entry[Key, Value]
   val inExecutor  = Executors.newSingleThreadExecutor()
   val outExecutor = Executors.newSingleThreadExecutor()
-  val inQ  = Queues.newLinkedBlockingQueue[AccRange]()
+  val inQ  = Queues.newLinkedBlockingQueue[E](2048)
   val outQ = Queues.newArrayBlockingQueue[E](2048)
-  var inDone = new AtomicBoolean(false)
-  var outDone = new AtomicBoolean(false)
+  val inDone  = new AtomicBoolean(false)
+  val outDone = new AtomicBoolean(false)
 
   inExecutor.submit(new Runnable {
     override def run(): Unit = {
-      //in.iterator().foreach(inQ.put)
-      val itr = in.iterator()
-      while(itr.hasNext){
-        inQ.add(joinFn(itr.next()))
-      }
-      in.close()
-      inDone.set(true)
-      if(!inQ.isEmpty) {
-        logger.info(f"Found ${inQ.size}%d items in reverse index")
-        sub
-      }
-      else {
-        outDone.set(true)
+      try {
+        in.iterator().foreach(inQ.put)
+      } finally {
+        inDone.set(true)
       }
     }
   })
 
   def notDone = !inDone.get
-  def inQNonEmpty = !inQ.isEmpty
 
-  // TODO parallelize so we can read while consuming the incoming itr - currently this fails tests
-  def sub = outExecutor.submit(new Runnable {
+  outExecutor.submit(new Runnable {
     override def run(): Unit = {
-      // Todo can we not do a list buffer maybe with a fold
-      val allRanges = new ListBuffer[AccRange]
-      while(notDone || inQNonEmpty) {
-        allRanges += inQ.take()
+      try {
+        while (notDone) {
+          val entry = inQ.take()
+          if(entry != null) {
+            val entries = new collection.mutable.ListBuffer[E]()
+            val count = inQ.drainTo(entries)
+            if (count > 0) {
+              val ranges = (List(entry) ++ entries).map(joinFn)
+              out.setRanges(ranges)
+              out.iterator().foreach(e => outQ.put(e))
+            }
+          }
+        }
+        outDone.set(true)
+        out.close()
+      } catch {
+        case _: InterruptedException =>
+      } finally {
+        outDone.set(true)
       }
-      out.setRanges(allRanges)
-      outDone.set(true) // this must come before things are added to the outQ
-      out.iterator().foreach(outQ.add)
-      out.close()
     }
   })
 
   override def iterator: Iterator[java.util.Map.Entry[Key, Value]] = new Iterator[E] {
     override def hasNext: Boolean = {
-      val ret = !(outDone.get && outQ.isEmpty)
+      val ret = !(outQ.peek() == null && inDone.get() && outDone.get())
       if(!ret) {
         inExecutor.shutdownNow()
         outExecutor.shutdownNow()

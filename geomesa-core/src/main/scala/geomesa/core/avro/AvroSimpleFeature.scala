@@ -220,13 +220,13 @@ object AvroSimpleFeature {
   final val VERSION: Int = 1
   final val AVRO_NAMESPACE: String = "org.geomesa"
 
-  def encode(s: String): String = "_" + Hex.encodeHexString(s.getBytes("UTF8"))
+//  def encode(s: String): String = "_" + Hex.encodeHexString(s.getBytes("UTF8"))
 
-  def decode(s: String): String = new String(Hex.decodeHex(s.substring(1).toCharArray), "UTF8")
+//  def decode(s: String): String = new String(Hex.decodeHex(s.substring(1).toCharArray), "UTF8")
 
-  def encodeAttributeName(s: String): String = attributeNameLookUp.getOrElseUpdate(s, encode(s))
+  def encodeAttributeName(s: String): String = s //attributeNameLookUp.getOrElseUpdate(s, encode(s))
 
-  def decodeAttributeName(s: String): String = attributeNameLookUp.getOrElseUpdate(s, decode(s))
+  def decodeAttributeName(s: String): String = s //attributeNameLookUp.getOrElseUpdate(s, decode(s))
 
   def generateSchema(sft: SimpleFeatureType): Schema = {
     val initialAssembler: SchemaBuilder.FieldAssembler[Schema] =

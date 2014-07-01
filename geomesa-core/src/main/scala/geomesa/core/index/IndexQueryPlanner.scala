@@ -81,21 +81,23 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
   def getIterator(ds: AccumuloDataStore, query: Query) : CloseableIterator[Entry[Key,Value]] = {
 
     val ff = CommonFactoryFinder.getFilterFactory2
+    val isDensity = query.getHints.containsKey(BBOX_KEY)
     val derivedQuery =
-      if (query.getHints.containsKey(BBOX_KEY)) {
+      if (isDensity) {
         val env = query.getHints.get(BBOX_KEY).asInstanceOf[ReferencedEnvelope]
         val q1 = new Query(featureType.getTypeName, ff.bbox(ff.property(featureType.getGeometryDescriptor.getLocalName), env))
         DataUtilities.mixQueries(q1, query, "geomesa.mixed.query")
       } else query
 
+
     val sourceSimpleFeatureType = DataUtilities.encodeType(featureType)
 
     val filterVisitor = new FilterToAccumulo(featureType)
     filterVisitor.visit(derivedQuery) match {
-      case isEqualTo: PropertyIsEqualTo =>
+      case isEqualTo: PropertyIsEqualTo if !isDensity =>
         attrIdxEqualToQuery(ds, derivedQuery, isEqualTo, filterVisitor)
 
-      case like: PropertyIsLike =>
+      case like: PropertyIsLike if !isDensity =>
         if(likeEligible(like))
           attrIdxLikeQuery(ds, derivedQuery, like, filterVisitor)
         else
