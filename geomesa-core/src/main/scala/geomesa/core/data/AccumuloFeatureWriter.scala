@@ -14,26 +14,29 @@
  * limitations under the License.
  */
 
-
 package geomesa.core.data
 
-import collection.JavaConversions._
-import collection.JavaConverters._
-import com.typesafe.scalalogging.slf4j.Logging
-import geomesa.core.index._
 import java.nio.charset.StandardCharsets
 import java.util.UUID
+
+import com.typesafe.scalalogging.slf4j.Logging
+import geomesa.core.index._
+import geomesa.feature.{AvroSimpleFeature, AvroSimpleFeatureFactory}
 import org.apache.accumulo.core.client.{BatchWriterConfig, Connector}
-import org.apache.accumulo.core.data.{Mutation, Value, Key, Range => ARange}
+import org.apache.accumulo.core.data.{Key, Mutation, Value, Range => ARange}
+import org.apache.accumulo.core.security.ColumnVisibility
 import org.apache.hadoop.io.Text
-import org.apache.hadoop.mapred.{Reporter, RecordWriter}
+import org.apache.hadoop.mapred.{RecordWriter, Reporter}
 import org.apache.hadoop.mapreduce.TaskInputOutputContext
 import org.geotools.data.DataUtilities
 import org.geotools.data.simple.SimpleFeatureWriter
-import org.geotools.factory.Hints
+import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.feature.simple.SimpleFeatureBuilder
+import org.geotools.filter.identity.FeatureIdImpl
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.apache.accumulo.core.security.ColumnVisibility
+
+import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 object AccumuloFeatureWriter {
 
@@ -85,7 +88,9 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
   /* Return a String representing nextId - use UUID.random for universal uniqueness across multiple ingest nodes */
   protected def nextFeatureId = UUID.randomUUID().toString
 
-  protected val builder = new SimpleFeatureBuilder(featureType)
+  protected val hints = new Hints(Hints.FEATURE_FACTORY, classOf[AvroSimpleFeatureFactory])
+  protected val featureFactory = CommonFactoryFinder.getFeatureFactory(hints)
+  protected val builder = new SimpleFeatureBuilder(featureType, featureFactory)
 
   protected def writeToAccumulo(feature: SimpleFeature) = {
     // see if there's a suggested ID to use for this feature
@@ -158,8 +163,6 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
   def hasNext: Boolean = false
 }
 
-
-
 class AppendAccumuloFeatureWriter(featureType: SimpleFeatureType,
                                   indexer: IndexSchema,
                                   connector: Connector,
@@ -170,13 +173,14 @@ class AppendAccumuloFeatureWriter(featureType: SimpleFeatureType,
 
   var currentFeature: SimpleFeature = null
 
+
   def write() {
     if (currentFeature != null) writeToAccumulo(currentFeature)
     currentFeature = null
   }
 
   def next(): SimpleFeature = {
-    currentFeature = SimpleFeatureBuilder.template(featureType, nextFeatureId)
+    currentFeature = new AvroSimpleFeature(new FeatureIdImpl(nextFeatureId), featureType)
     currentFeature
   }
 
