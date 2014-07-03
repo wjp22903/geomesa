@@ -1,36 +1,35 @@
-package geomesa.core.avro
+package geomesa.feature
 
-import collection.JavaConversions._
-import com.google.common.cache.{CacheLoader, LoadingCache, CacheBuilder}
-import com.vividsolutions.jts.geom.Geometry
 import java.io.OutputStream
-import java.lang._
 import java.nio._
-import java.util
 import java.util.concurrent.TimeUnit
-import java.util.{Date, UUID, List => JList}
-import org.apache.avro.generic.{GenericDatumWriter, GenericData, GenericRecord}
+import java.util.{Date, UUID, Collection => JCollection, List => JList}
+
+import com.google.common.cache.{CacheBuilder, CacheLoader, LoadingCache}
+import com.google.common.collect.Maps
+import com.vividsolutions.jts.geom.Geometry
+import org.apache.avro.generic.{GenericData, GenericDatumWriter, GenericRecord}
 import org.apache.avro.io.{BinaryEncoder, EncoderFactory}
-import org.apache.avro.{SchemaBuilder, Schema}
+import org.apache.avro.{Schema, SchemaBuilder}
 import org.apache.commons.codec.binary.Hex
 import org.geotools.data.DataUtilities
+import org.geotools.feature.`type`.{AttributeDescriptorImpl, Types}
 import org.geotools.feature.{AttributeImpl, GeometryAttributeImpl}
-import org.geotools.feature.`type`.AttributeDescriptorImpl
-import org.geotools.feature.`type`.Types
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.util.Converters
-import org.opengis.feature.`type`.AttributeDescriptor
-import org.opengis.feature.`type`.Name
-import org.opengis.feature.simple.{SimpleFeatureType, SimpleFeature}
-import org.opengis.feature.{Property, GeometryAttribute}
+import org.opengis.feature.`type`.{AttributeDescriptor, Name}
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.feature.{GeometryAttribute, Property}
 import org.opengis.filter.identity.FeatureId
 import org.opengis.geometry.BoundingBox
+
+import scala.collection.JavaConversions._
 import scala.util.Try
 
 
 class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType) extends SimpleFeature {
 
-  import AvroSimpleFeature._
+  import geomesa.feature.AvroSimpleFeature._
 
   val values    = Array.ofDim[AnyRef](sft.getAttributeCount)
   val userData  = collection.mutable.HashMap.empty[AnyRef, AnyRef]
@@ -134,15 +133,15 @@ class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType) extends SimpleFea
       setDefaultGeometry(null)
   }
 
-  def getProperties: util.Collection[Property] = ???
-  def getProperties(name: Name): util.Collection[Property] = ???
-  def getProperties(name: String): util.Collection[Property] = ???
+  def getProperties: JCollection[Property] = ???
+  def getProperties(name: Name): JCollection[Property] = ???
+  def getProperties(name: String): JCollection[Property] = ???
   def getProperty(name: Name): Property = getProperty(name.getLocalPart)
   def getProperty(name: String): Property = new AttributeImpl(getAttribute(name), sft.getDescriptor(name), id)
 
-  def getValue: util.Collection[_ <: Property] = getProperties
+  def getValue: JCollection[_ <: Property] = getProperties
 
-  def setValue(values: util.Collection[Property]) = values.zipWithIndex.foreach { case (p, idx) =>
+  def setValue(values: JCollection[Property]) = values.zipWithIndex.foreach { case (p, idx) =>
     this.values(idx) = p.getValue}
 
   def getDescriptor: AttributeDescriptor = new AttributeDescriptorImpl(sft, sft.getName, 0, Int.MaxValue, true, null)
@@ -153,7 +152,7 @@ class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType) extends SimpleFea
 
   def isNillable = true
 
-  def setValue(newValue: Object) = setValue (newValue.asInstanceOf[util.Collection[Property]])
+  def setValue(newValue: Object) = setValue (newValue.asInstanceOf[JCollection[Property]])
 
   def validate = values.zipWithIndex.foreach { case (v, idx) => Types.validate(getType.getDescriptor(idx), v) }
 }
@@ -172,10 +171,15 @@ object AvroSimpleFeature {
   val primitiveTypes =
     List(
       classOf[String],
-      classOf[Integer],
+      classOf[java.lang.Integer],
+      classOf[Int],
+      classOf[java.lang.Long],
       classOf[Long],
+      classOf[java.lang.Double],
       classOf[Double],
+      classOf[java.lang.Float],
       classOf[Float],
+      classOf[java.lang.Boolean],
       classOf[Boolean]
     )
 
@@ -213,20 +217,20 @@ object AvroSimpleFeature {
       new GenericDatumWriter[GenericRecord](avroSchemaCache.get(sft))
     }
 
-  val attributeNameLookUp = scala.collection.mutable.Map[String, String]()
+  val attributeNameLookUp = Maps.newConcurrentMap[String, String]()
 
   final val FEATURE_ID_AVRO_FIELD_NAME: String = "__fid__"
   final val AVRO_SIMPLE_FEATURE_VERSION: String = "__version__"
   final val VERSION: Int = 1
   final val AVRO_NAMESPACE: String = "org.geomesa"
 
-//  def encode(s: String): String = "_" + Hex.encodeHexString(s.getBytes("UTF8"))
+  def encode(s: String): String = "_" + Hex.encodeHexString(s.getBytes("UTF8"))
 
-//  def decode(s: String): String = new String(Hex.decodeHex(s.substring(1).toCharArray), "UTF8")
+  def decode(s: String): String = new String(Hex.decodeHex(s.substring(1).toCharArray), "UTF8")
 
-  def encodeAttributeName(s: String): String = s //attributeNameLookUp.getOrElseUpdate(s, encode(s))
+  def encodeAttributeName(s: String): String = attributeNameLookUp.getOrElseUpdate(s, encode(s))
 
-  def decodeAttributeName(s: String): String = s //attributeNameLookUp.getOrElseUpdate(s, decode(s))
+  def decodeAttributeName(s: String): String = attributeNameLookUp.getOrElseUpdate(s, decode(s))
 
   def generateSchema(sft: SimpleFeatureType): Schema = {
     val initialAssembler: SchemaBuilder.FieldAssembler[Schema] =
@@ -250,15 +254,15 @@ object AvroSimpleFeature {
                nillable: Boolean): SchemaBuilder.FieldAssembler[Schema] = {
     val baseType = if (nillable) assembler.name(name).`type`.nullable() else assembler.name(name).`type`
     ct match {
-      case c if classOf[String].isAssignableFrom(c)   => baseType.stringType().noDefault()
-      case c if classOf[Integer].isAssignableFrom(c)  => baseType.intType.noDefault
-      case c if classOf[Long].isAssignableFrom(c)     => baseType.longType.noDefault
-      case c if classOf[Double].isAssignableFrom(c)   => baseType.doubleType.noDefault
-      case c if classOf[Float].isAssignableFrom(c)    => baseType.floatType.noDefault
-      case c if classOf[Boolean].isAssignableFrom(c)  => baseType.booleanType.noDefault
-      case c if classOf[UUID].isAssignableFrom(c)     => baseType.bytesType.noDefault
-      case c if classOf[Date].isAssignableFrom(c)     => baseType.longType.noDefault
-      case c if classOf[Geometry].isAssignableFrom(c) => baseType.stringType.noDefault
+      case c if classOf[String].isAssignableFrom(c)             => baseType.stringType().noDefault()
+      case c if classOf[java.lang.Integer].isAssignableFrom(c)  => baseType.intType.noDefault
+      case c if classOf[java.lang.Long].isAssignableFrom(c)     => baseType.longType.noDefault
+      case c if classOf[java.lang.Double].isAssignableFrom(c)   => baseType.doubleType.noDefault
+      case c if classOf[java.lang.Float].isAssignableFrom(c)    => baseType.floatType.noDefault
+      case c if classOf[java.lang.Boolean].isAssignableFrom(c)  => baseType.booleanType.noDefault
+      case c if classOf[UUID].isAssignableFrom(c)               => baseType.bytesType.noDefault
+      case c if classOf[Date].isAssignableFrom(c)               => baseType.longType.noDefault
+      case c if classOf[Geometry].isAssignableFrom(c)           => baseType.stringType.noDefault
     }
   }
 

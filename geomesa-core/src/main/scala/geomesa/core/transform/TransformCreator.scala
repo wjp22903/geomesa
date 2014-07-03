@@ -1,7 +1,8 @@
 package geomesa.core.transform
 
+import geomesa.feature.AvroSimpleFeature
+
 import collection.JavaConversions._
-import geomesa.core.avro.AvroSimpleFeature
 import geomesa.core.data.{FeatureEncoding, SimpleFeatureEncoder}
 import org.apache.accumulo.core.data.Value
 import org.geotools.feature.simple.SimpleFeatureBuilder
