@@ -19,8 +19,8 @@ class BatchMultiScanner(in: Scanner,
   type E = java.util.Map.Entry[Key, Value]
   val inExecutor  = Executors.newSingleThreadExecutor()
   val outExecutor = Executors.newSingleThreadExecutor()
-  val inQ  = Queues.newLinkedBlockingQueue[E](2048)
-  val outQ = Queues.newArrayBlockingQueue[E](2048)
+  val inQ  = Queues.newLinkedBlockingQueue[E](32768)
+  val outQ = Queues.newArrayBlockingQueue[E](32768)
   val inDone  = new AtomicBoolean(false)
   val outDone = new AtomicBoolean(false)
 
