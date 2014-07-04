@@ -4,25 +4,20 @@ import java.text.SimpleDateFormat
 import java.util.TimeZone
 
 import com.vividsolutions.jts.geom.Geometry
-import geomesa.core.data.{AccumuloFeatureStore, AccumuloDataStore}
+import geomesa.core.data.{AccumuloDataStore, AccumuloFeatureStore}
+import geomesa.feature.AvroSimpleFeatureFactory
+import geomesa.utils.geotools.Conversions._
 import geomesa.utils.text.WKTUtils
-import org.geotools.data.{Query, DataUtilities, DataStoreFinder}
+import org.geotools.data.{DataStoreFinder, DataUtilities, Query}
 import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.feature.DefaultFeatureCollection
-import org.geotools.feature.simple.SimpleFeatureBuilder
-import org.geotools.filter.text.cql2.CQL
 import org.geotools.filter.text.ecql.ECQL
-import org.joda.time.{DateTimeZone, DateTime}
+import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
-import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-
-import geomesa.utils.geotools.Conversions._
-
 import scala.collection.JavaConversions._
-import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
 class AttributeIndexFilteringIteratorTest extends Specification {
@@ -57,7 +52,7 @@ class AttributeIndexFilteringIteratorTest extends Specification {
 
   List("a", "b").foreach { name =>
     List(1, 2, 3, 4).zip(List(45, 46, 47, 48)).foreach { case (i, lat) =>
-      val sf = SimpleFeatureBuilder.build(sft, List(), name + i.toString)
+      val sf = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), name + i.toString)
       sf.setDefaultGeometry(WKTUtils.read(f"POINT($lat%d $lat%d)"))
       sf.setAttribute("dtg", new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
       sf.setAttribute("name", name)

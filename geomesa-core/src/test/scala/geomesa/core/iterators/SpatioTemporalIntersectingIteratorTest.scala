@@ -22,6 +22,7 @@ import com.vividsolutions.jts.geom.{Geometry, Polygon}
 import geomesa.core.data.{AccumuloDataStore, SimpleFeatureEncoderFactory}
 import geomesa.core.index._
 import geomesa.core.security.DefaultAuthorizationsProvider
+import geomesa.feature.AvroSimpleFeatureFactory
 import geomesa.utils.text.WKTUtils
 import org.apache.accumulo.core.Constants
 import org.apache.accumulo.core.client.mock.MockInstance
@@ -84,7 +85,12 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
     def createObject(id: String, wkt: String, dt: DateTime = null): List[(Key, Value)] = {
       val geomType: String = wkt.split( """\(""").head
       val geometry: Geometry = WKTUtils.read(wkt)
-      val entry = SimpleFeatureBuilder.build(featureType, List(null, null, null, null, geometry, dt.toDate, dt.toDate), s"|data|$id")
+      val entry =
+        AvroSimpleFeatureFactory.buildAvroFeature(
+          featureType,
+          List(null, null, null, null, geometry, dt.toDate, dt.toDate),
+          s"|data|$id")
+
       entry.setAttribute(geomType, id)
       entry.setAttribute("attr2", "2nd" + id)
       index.encode(entry).toList

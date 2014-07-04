@@ -253,7 +253,7 @@ class ModifyAccumuloFeatureWriter(featureType: SimpleFeatureType,
         builder.init(original)
         builder.buildFeature(original.getID)
       } else {
-        SimpleFeatureBuilder.template(featureType, nextFeatureId)
+        builder.buildFeature(nextFeatureId)
       }
     live
   }

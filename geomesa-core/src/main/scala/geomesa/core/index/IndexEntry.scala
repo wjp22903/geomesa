@@ -124,7 +124,5 @@ case class IndexEntryDecoder(ghDecoder: GeohashDecoder,
                              dtDecoder: Option[DateDecoder]) {
 
   def decode(key: Key) =
-    SimpleFeatureBuilder.build(indexSFT,
-      List(ghDecoder.decode(key).geom, dtDecoder.map(_.decode(key))),
-      "")
+    SimpleFeatureBuilder.build(indexSFT, List(ghDecoder.decode(key).geom, dtDecoder.map(_.decode(key))), "")
 }

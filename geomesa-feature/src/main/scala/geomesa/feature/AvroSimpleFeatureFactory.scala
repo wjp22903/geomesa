@@ -1,7 +1,8 @@
 package geomesa.feature
 
-import org.geotools.factory.{GeoTools, Hints}
+import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.feature.AbstractFeatureFactoryImpl
+import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.identity.FeatureIdImpl
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -29,4 +30,16 @@ object AvroSimpleFeatureFactory {
   def init = {
     Hints.putSystemDefault(Hints.FEATURE_FACTORY, classOf[AvroSimpleFeatureFactory])
   }
+
+  private val hints = new Hints(Hints.FEATURE_FACTORY, classOf[AvroSimpleFeatureFactory])
+  private val featureFactory = CommonFactoryFinder.getFeatureFactory(hints)
+
+  def buildAvroFeature(sft: SimpleFeatureType, attrs: Seq[AnyRef], id: String) = {
+    val builder = new SimpleFeatureBuilder(sft, featureFactory)
+    builder.addAll(attrs)
+    builder.buildFeature(id)
+  }
+
+  def featureBuilder(sft: SimpleFeatureType) = new SimpleFeatureBuilder(sft, featureFactory)
+
 }
