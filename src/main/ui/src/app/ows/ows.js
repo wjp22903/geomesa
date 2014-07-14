@@ -109,9 +109,9 @@ angular.module('stealth.ows.ows', [])
             },
 
             // (GetFeature)
-            getFeature: function (url, typeName, paramOverrides) {
+            getFeature: function (url, typeName, paramOverrides, omitProxy) {
                 // TODO validate the url.
-                var uri = $filter('endpoint')(url, 'wfs');
+                var uri = $filter('endpoint')(url, 'wfs', omitProxy);
                 return getFeature(uri, typeName, paramOverrides);
             }
         };

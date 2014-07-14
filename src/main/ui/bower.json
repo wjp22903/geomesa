@@ -16,7 +16,7 @@
     "ui.bootstrap": "~0.10.0",
     "angular-ui-bootstrap-bower": "~0.10.0",
     "momentjs": "~2.5.1",
-    "angular-ui-layout": "~0.0.0",
+    "angular-ui-layout": "0.0.1",
     "angular-ui-utils": "~0.1.1"
   }
 }

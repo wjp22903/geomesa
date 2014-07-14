@@ -3,7 +3,7 @@
 @import 'vars'
 
 // the list of sites in the left nav pane.
-.sites-list, .targets-list
+.sites-list, .targets-list, .rank-list
     li
         clearfix()
         border-bottom 1px solid #BBB
@@ -15,7 +15,7 @@
         div
             font-size 12px
             float left
-            margin 0 6px 3px 0
+            margin 0 3px 1px 0
             padding-right 6px
             border-right 2px solid #CCC
             strong
@@ -45,3 +45,13 @@
 .workspace-layers
     > li:first-of-type
         padding-top 4px
+
+.list-hover
+    &:hover
+        background-color #F6E5D5
+
+.list-selected
+    background-color #E8F3FF
+
+.rank-bar
+    transition width 2s linear

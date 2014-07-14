@@ -13,7 +13,15 @@
                 <a href="#/targetRank">
                     <i class="fa fa-crosshairs fa-lg"></i>
                     Targets
-                    <span class="badge">{{targetRank.numTargets}}</span>
+                    <span class="badge">{{targetRank.targets.length}}</span>
+                </a>
+            </li>
+            <li ng-show="CONFIG.imagery.support && CONFIG.imagery.servers.length > 0"
+                ng-class="{active: targetRank.leftPaneView==='imagery'}"
+                ng-click="targetRank.leftPaneView='imagery'">
+                <a href="#/targetRank">
+                    <i class="fa fa-image fa-lg"></i>
+                    Imagery
                 </a>
             </li>
         </ul>
@@ -23,26 +31,45 @@
             <!-- Analysis panel -->
             <div class="tab-pane" ng-show="targetRank.leftPaneView === 'analysis'">
                 <div class="instructions alert alert-info"
-                    ng-show="!targetRank.sites">
+                    ng-show="!targetRank.loadingSites && targetRank.sites.length < 1">
                     <i class="fa fa-info-circle fa-3x"></i>
                     <span>Select an input source and enter a query to begin.</span>
                     <button class="btn btn-default"
                         ng-click="addSites.showWindow()">Get Started</button>
                 </div>
                 <ui-layout options="{flow: 'row'}"
-                    ng-show="targetRank.sites">
+                    ng-show="targetRank.loadingSites || targetRank.sites.length > 0">
                     <section id="sites-section">
                         <header>
                             <i class="fa fa-map-marker fa-lg"></i>
                             {{targetRank.inputData.display ? targetRank.inputData.display : 'Input'}}
-                            <span class="badge">{{targetRank.numSites}}</span>
-                            <button class="btn btn-default btn-xs pull-right"
-                                ng-click="addSites.showWindow()">
-                                Change {{targetRank.inputData.display ? targetRank.inputData.display : 'Input'}}
-                            </button>
+                            <span class="badge">{{targetRank.sites.length}}</span>
+                            <span class="pull-right">
+                                <button class="btn btn-default btn-xs"
+                                        ng-disabled="targetRank.inputList.currentPage == 1"
+                                        ng-click="targetRank.inputList.currentPage=targetRank.inputList.currentPage-1">
+                                    <i class="fa fa-chevron-left"></i>
+                                </button>
+                                <input type="number" size="3" style="max-width:40px;" ng-model="targetRank.inputList.currentPage">/{{targetRank.inputList.numberOfPages()}}
+                                <button style="margin-right:15px;" class="btn btn-default btn-xs"
+                                        ng-disabled="targetRank.inputList.currentPage >= targetRank.sites.length/targetRank.inputList.pageSize"
+                                        ng-click="targetRank.inputList.currentPage=targetRank.inputList.currentPage+1">
+                                    <i class="fa fa-chevron-right"></i>
+                                </button>
+                                <button class="btn btn-primary btn-xs"
+                                        ng-click="addSites.showWindow()">
+                                    Change {{targetRank.inputData.display ? targetRank.inputData.display : 'Input'}}
+                                </button>
+                            </span>
                         </header>
-                        <ul class="sites-list list-unstyled">
-                            <li ng-repeat="site in targetRank.sites">
+                        <ul ng-show="targetRank.loadingSites">
+                            <li>
+                                <i class="fa fa-2x fa-spinner fa-spin"></i>
+                            </li>
+                        </ul>
+                        <ul class="sites-list list-unstyled" ng-hide="targetRank.loadingSites">
+                            <li class="list-hover"
+                                ng-repeat="site in targetRank.sites | startFrom:(targetRank.inputList.currentPage-1)*targetRank.inputList.pageSize | limitTo:targetRank.inputList.pageSize">
                                 <h4 ng-show="site.id">{{ site.id }}</h4>
                                 <div class="property"
                                     ng-repeat="(key, val) in site.properties">
@@ -76,7 +103,7 @@
                                 <label ng-if="layers.length > 1"
                                     class="header-label">
                                     <input type="checkbox"
-                                        ng-click="targetRank.updateNumData()"
+                                        ng-click="targetRank.updateNumData(200)"
                                         group-checkbox="layers.isSelected"> {{ellipsis(workspace, 60)}}
                                 </label>
 
@@ -101,39 +128,84 @@
                     <section id="options-section">
                         <header>
                             <i class="fa fa-cog fa-lg"></i> Options
-                            <button class="btn btn-danger btn-xs pull-right" ng-click="targetRank.run()">
-                                Run
+                            <button style="margin-left:6px;" class="btn btn-danger btn-xs pull-right" ng-click="targetRank.doRank()">
+                                Rank
+                            </button>
+                            <button class="btn btn-success btn-xs pull-right" ng-click="targetRank.doProximity()">
+                                Map
                             </button>
                         </header>
                         <ul ng-switch="targetRank.inputData.type">
                             <form ng-switch-default>
-                                <label for="">Proximity (meters)</label>
-                                <div class="input-group">
-                                    <input type="text" class="form-control input-sm" name="proximityMeters"
-                                           ng-model="options.proximityMeters" style="width:50px;">
-                                </div>
-                                <label for="">Start time (yyyy-MM-ddTHH:mm:ss.sssZ)</label>
-                                <div class="input-group">
-                                    <input type="text" class="form-control input-sm" name="startTime"
-                                           ng-model="options.startTime" style="width:200px;">
-                                </div>
-                                <label for="">End time (yyyy-MM-ddTHH:mm:ss.sssZ)</label>
-                                <div class="input-group">
-                                    <input type="text" class="form-control input-sm" name="endTime"
-                                           ng-model="options.endTime" style="width:200px;">
-                                </div>
+                                <table style="border-collapse:separate;border-spacing:0px 1px;">
+                                    <tr><td style="padding-right:15px;">
+                                        Proximity
+                                    </td><td>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control input-sm" name="proximityMeters"
+                                                   ng-model="options.proximityMeters" style="width:50px;">
+                                            <span style="position:absolute;bottom:6px;">&nbsp;&nbsp;&nbsp;meters</span>
+                                        </div>
+                                    </td></tr>
+                                    <tr><td style="padding-right:15px;">
+                                        Start Date/Time
+                                    </td><td>
+                                        <p class="input-group">
+                                            <input datepicker-popup datepicker-append-to-body="true" size="11" type="text" class="form-control input-sm" is-open="targetRank.optionsForm.startDateOpen" ng-model="options.startDate">
+                                            <span class="input-group-btn">
+                                                <button type="button" class="btn btn-default btn-sm" ng-click="targetRank.optionsForm.startDateOpen = targetRank.optionsForm.toggleDateOpen($event, targetRank.optionsForm.startDateOpen)"><i class="glyphicon glyphicon-calendar"></i></button>
+                                            </span>
+                                        </p>
+                                    </td><td style="padding-left:15px;">
+                                        <timepicker class="input-sm timepicker-sm" ng-model="options.startTime" show-meridian="false"></timepicker>
+                                    </td><td style="padding-left:5px;">
+                                        Z
+                                    </td><td style="padding-left:15px;">
+                                        <button class="btn btn-primary btn-xs" ng-click="targetRank.optionsForm.clearStartDatetime()">
+                                            <i class="fa fa-eraser"></i> Clear
+                                        </button>
+                                    </td></tr>
+                                    <tr><td style="padding-right:15px;">
+                                        End Date/Time
+                                    </td><td>
+                                        <p class="input-group">
+                                            <input datepicker-popup datepicker-append-to-body="true" size="11" type="text" class="form-control input-sm" is-open="targetRank.optionsForm.endDateOpen" ng-model="options.endDate">
+                                            <span class="input-group-btn">
+                                                <button type="button" class="btn btn-default btn-sm" ng-click="targetRank.optionsForm.endDateOpen = targetRank.optionsForm.toggleDateOpen($event, targetRank.optionsForm.endDateOpen)"><i class="glyphicon glyphicon-calendar"></i></button>
+                                            </span>
+                                        </p>
+                                    </td><td style="padding-left:15px;">
+                                        <timepicker class="input-sm timepicker-sm" ng-model="options.endTime" show-meridian="false"></timepicker>
+                                    </td><td style="padding-left:5px;">
+                                        Z
+                                    </td><td style="padding-left:15px;">
+                                        <button class="btn btn-primary btn-xs" ng-click="targetRank.optionsForm.clearEndDatetime()">
+                                            <i class="fa fa-eraser"></i> Clear
+                                        </button>
+                                    </td></tr>
+                                </table>
                             </form>
                             <form ng-switch-when="track">
-                                <label for="">Maximum speed (m/s)</label>
-                                <div class="input-group">
-                                    <input type="text" class="form-control input-sm" name="maxSpeedMps"
-                                           ng-model="options.maxSpeedMps" style="width:70px;">
-                                </div>
-                                <label for="">Maximum time (s)</label>
-                                <div class="input-group">
-                                    <input type="text" class="form-control input-sm" name="maxTimeSec"
-                                           ng-model="options.maxTimeSec" style="width:70px;">
-                                </div>
+                                <table style="border-collapse:separate;border-spacing:0px 4px;">
+                                    <tr><td style="padding-right:15px;">
+                                        Max Speed
+                                    </td><td>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control input-sm" name="maxSpeedMps"
+                                                   ng-model="options.maxSpeedMps" style="width:70px;">
+                                            <span style="position:absolute;bottom:6px;">&nbsp;&nbsp;&nbsp;meters/second</span>
+                                        </div>
+                                    </td></tr>
+                                    <tr><td style="padding-right:15px;">
+                                        Max Time
+                                    </td><td>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control input-sm" name="maxTimeSec"
+                                                   ng-model="options.maxTimeSec" style="width:70px;">
+                                            <span style="position:absolute;bottom:6px;">&nbsp;&nbsp;&nbsp;seconds</span>
+                                        </div>
+                                    </td></tr>
+                                </table>
                             </form>
                         </ul>
                     </section>
@@ -142,7 +214,60 @@
 
             <!-- Targets panel -->
             <div class="tab-pane" ng-show="targetRank.leftPaneView === 'targets'">
-                targets
+                <div class="instructions alert alert-danger"
+                     ng-show="!targetRank.targetList.loadingTargets && targetRank.targetList.errorMessage">
+                    <i class="fa fa-exclamation-triangle fa-3x"></i>
+                    <span>{{targetRank.targetList.errorMessage}}</span>
+                </div>
+                <ul ng-show="targetRank.targetList.loadingTargets">
+                    <i class="fa fa-2x fa-spinner fa-spin"></i>
+                </ul>
+                <ui-layout options="{flow: 'row'}"
+                           ng-show="targetRank.targets.length > 0 && !targetRank.targetList.loadingTargets">
+                    <section>
+                        <header>
+                            <i class="fa fa-crosshairs fa-lg"></i> Target Rankings
+                            <span class="pull-right">
+                                <button class="btn btn-default btn-xs"
+                                        ng-disabled="targetRank.targetList.currentPage == 1"
+                                        ng-click="targetRank.targetList.currentPage=targetRank.targetList.currentPage-1">
+                                    <i class="fa fa-chevron-left"></i>
+                                </button>
+                                <input type="number" size="3" style="max-width:40px;" ng-model="targetRank.targetList.currentPage">/{{targetRank.targetList.numberOfPages()}}
+                                <button style="margin-right:15px;" class="btn btn-default btn-xs"
+                                        ng-disabled="targetRank.targetList.currentPage >= targetRank.targets.length/targetRank.targetList.pageSize"
+                                        ng-click="targetRank.targetList.currentPage=targetRank.targetList.currentPage+1">
+                                    <i class="fa fa-chevron-right"></i>
+                                </button>
+                                <button class="btn btn-danger btn-xs" ng-click="targetRank.targetList.sendSelectedToSiteRank()">
+                                    <i class="fa fa-share"></i> Send to Site Nomination
+                                </button>
+                            </span>
+                        </header>
+                        <ul class="rank-list list-unstyled">
+                            <li class="list-hover" ng-class-even="'list-striped-alt'" ng-class="{'list-selected': target.isSelected}"
+                                ng-repeat="target in targetRank.targets | startFrom:(targetRank.targetList.currentPage-1)*targetRank.targetList.pageSize | limitTo:targetRank.targetList.pageSize"
+                                style="padding:5px 0;">
+                                <div>
+                                    <input type="checkbox" ng-model="target.isSelected">
+                                </div>
+                                <span>{{target.target}}</span>
+                                <button class="pull-right btn btn-primary btn-xs" style="margin-right:5px;" ng-click="targetRank.targetList.showHistory(target)">Show</button>
+                                <div class="pull-right" style="height:18px;width:200px;">
+                                    <div class="pull-right btn-success rank-bar" style="height:100%;border:none;width:0px;"
+                                         ng-style="{width: (target.score/targetRank.targetMeta.maxScore)*100 + '%'}">
+                                    </div>
+                                </div>
+                                <span class="pull-right" style="padding-right:10px;">{{(target.score/targetRank.targetMeta.maxScore)*100 | number:1}}</span>
+                            </li>
+                        </ul>
+                    </section>
+                </ui-layout>
+            </div>
+
+            <!-- Imagery panel -->
+            <div class="tab-pane"  ng-show="targetRank.leftPaneView === 'imagery'">
+                <imagery-form></imagery-form>
             </div>
         </div>
     </left-pane>

@@ -13,7 +13,15 @@
                 <a href="#/siteRank">
                     <i class="fa fa-map-marker fa-lg"></i>
                     Sites
-                    <span class="badge">{{siteRank.numSites}}</span>
+                    <span class="badge">{{siteRank.sites.length}}</span>
+                </a>
+            </li>
+            <li ng-show="CONFIG.imagery.support && CONFIG.imagery.servers.length > 0"
+                ng-class="{active: siteRank.leftPaneView==='imagery'}"
+                ng-click="siteRank.leftPaneView='imagery'">
+                <a href="#/siteRank">
+                    <i class="fa fa-image fa-lg"></i>
+                    Imagery
                 </a>
             </li>
         </ul>
@@ -33,15 +41,29 @@
                            ng-show="siteRank.targets.length > 0">
                     <section id="targets-section">
                         <header>
-                            <i class="fa fa-crosshair fa-lg"></i>Targets
+                            <i class="fa fa-crosshairs fa-lg"></i>Targets
                             <span class="badge">{{siteRank.targets.length}}</span>
-                            <button class="btn btn-default btn-xs pull-right"
-                                    ng-click="addTargets.showWindow()">
-                                Add Target
-                            </button>
+                            <span class="pull-right">
+                                <button class="btn btn-default btn-xs"
+                                        ng-disabled="siteRank.targetList.currentPage == 1"
+                                        ng-click="siteRank.targetList.currentPage=siteRank.targetList.currentPage-1">
+                                    <i class="fa fa-chevron-left"></i>
+                                </button>
+                                <input type="number" size="3" style="max-width:40px;" ng-model="siteRank.targetList.currentPage">/{{siteRank.targetList.numberOfPages()}}
+                                <button style="margin-right:15px;" class="btn btn-default btn-xs"
+                                        ng-disabled="siteRank.targetList.currentPage >= siteRank.targets.length/siteRank.targetList.pageSize"
+                                        ng-click="siteRank.targetList.currentPage=siteRank.targetList.currentPage+1">
+                                    <i class="fa fa-chevron-right"></i>
+                                </button>
+                                <button class="btn btn-default btn-xs"
+                                        ng-click="addTargets.showWindow()">
+                                    Add Target
+                                </button>
+                            </span>
                         </header>
                         <ul class="targets-list list-unstyled">
-                            <li ng-repeat="target in siteRank.targets" style="padding:5px 0;">
+                            <li ng-repeat="target in siteRank.targets | startFrom:(siteRank.targetList.currentPage-1)*siteRank.targetList.pageSize | limitTo:siteRank.targetList.pageSize"
+                                style="padding:5px 0;">
                                 <div>
                                     <i class="fa fa-times btn btn-default btn-xs" ng-click="siteRank.removeTarget(target)"></i>
                                 </div>
@@ -57,7 +79,7 @@
                     <section id="sites-section">
                         <header>
                             <i class="fa fa-database fa-lg"></i> Site Layers
-                            <span class="badge">{{siteRank.numSites}}</span>
+                            <span class="badge">{{siteRank.numSiteLayers}}</span>
                         </header>
                         <ul class="list-unstyled data-layers">
                             <li class="checkbox"
@@ -66,7 +88,7 @@
                                 <div ng-if="layers.length === 1">
                                     <label class="header-label">
                                         <input type="checkbox"
-                                               ng-change="siteRank.updateNumSites()"
+                                               ng-change="siteRank.updateNumSiteLayers()"
                                                ng-model="layers[0].isSelected"> {{ellipsis(layers[0].name, 60)}}
                                     </label>
                                     <i class="fa fa-lg pull-right spatial-query-status"
@@ -78,7 +100,7 @@
                                 <label ng-if="layers.length > 1"
                                        class="header-label">
                                     <input type="checkbox"
-                                           ng-click="siteRank.updateNumSites()"
+                                           ng-click="siteRank.updateNumSiteLayers(200)"
                                            group-checkbox="layers.isSelected"> {{ellipsis(workspace, 60)}}
                                 </label>
 
@@ -87,7 +109,7 @@
                                     <li class="checkbox" ng-repeat="layer in layers">
                                         <label>
                                             <input type="checkbox"
-                                                   ng-change="siteRank.updateNumSites()"
+                                                   ng-change="siteRank.updateNumSiteLayers()"
                                                    ng-model="layer.isSelected"> {{ellipsis(layer.name, 60)}}
                                         </label>
                                         <i class="fa fa-lg pull-right spatial-query-status"
@@ -103,28 +125,61 @@
                     <section id="options-section">
                         <header>
                             <i class="fa fa-cog fa-lg"></i> Options
-                            <button class="btn btn-danger btn-xs pull-right" ng-click="siteRank.run()">
-                                Run
+                            <button style="margin-left:6px;" class="btn btn-danger btn-xs pull-right" ng-click="siteRank.doRank()">
+                                Rank
+                            </button>
+                            <button class="btn btn-success btn-xs pull-right" ng-click="siteRank.doMapOps()">
+                                Map
                             </button>
                         </header>
                         <ul>
-                            <div>
-                                <label for="">Proximity (meters)</label>
-                                <div class="input-group">
-                                    <input type="text" class="form-control input-sm" name="proximityMeters"
-                                           ng-model="siteRank.options.proximityMeters" style="width:50px;">
-                                </div>
-                                <label for="">Start time (yyyy-MM-ddTHH:mm:ss.sssZ)</label>
-                                <div class="input-group">
-                                    <input type="text" class="form-control input-sm" name="startTime"
-                                           ng-model="siteRank.options.startTime" style="width:200px;">
-                                </div>
-                                <label for="">End time (yyyy-MM-ddTHH:mm:ss.sssZ)</label>
-                                <div class="input-group">
-                                    <input type="text" class="form-control input-sm" name="endTime"
-                                           ng-model="siteRank.options.endTime" style="width:200px;">
-                                </div>
-                            </div>
+                            <table style="border-collapse:separate;border-spacing:0px 1px;">
+                                <tr><td style="padding-right:15px;">
+                                    Proximity
+                                </td><td>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control input-sm" name="proximityMeters"
+                                               ng-model="siteRank.options.proximityMeters" style="width:50px;">
+                                        <span style="position:absolute;bottom:6px;">&nbsp;&nbsp;&nbsp;meters</span>
+                                    </div>
+                                </td></tr>
+                                <tr><td style="padding-right:15px;">
+                                    Start Date/Time
+                                </td><td>
+                                    <p class="input-group">
+                                        <input datepicker-popup datepicker-append-to-body="true" size="11" type="text" class="form-control input-sm" is-open="siteRank.optionsForm.startDateOpen" ng-model="siteRank.options.startDate">
+                                            <span class="input-group-btn">
+                                                <button type="button" class="btn btn-default btn-sm" ng-click="siteRank.optionsForm.startDateOpen = siteRank.optionsForm.toggleDateOpen($event, siteRank.optionsForm.startDateOpen)"><i class="glyphicon glyphicon-calendar"></i></button>
+                                            </span>
+                                    </p>
+                                </td><td style="padding-left:15px;">
+                                    <timepicker class="input-sm timepicker-sm" ng-model="siteRank.options.startTime" show-meridian="false"></timepicker>
+                                </td><td style="padding-left:5px;">
+                                    Z
+                                </td><td style="padding-left:15px;">
+                                    <button class="btn btn-primary btn-xs" ng-click="siteRank.optionsForm.clearStartDatetime()">
+                                        <i class="fa fa-eraser"></i> Clear
+                                    </button>
+                                </td></tr>
+                                <tr><td style="padding-right:15px;">
+                                    End Date/Time
+                                </td><td>
+                                    <p class="input-group">
+                                        <input datepicker-popup datepicker-append-to-body="true" size="11" type="text" class="form-control input-sm" is-open="siteRank.optionsForm.endDateOpen" ng-model="siteRank.options.endDate">
+                                            <span class="input-group-btn">
+                                                <button type="button" class="btn btn-default btn-sm" ng-click="siteRank.optionsForm.endDateOpen = siteRank.optionsForm.toggleDateOpen($event, siteRank.optionsForm.endDateOpen)"><i class="glyphicon glyphicon-calendar"></i></button>
+                                            </span>
+                                    </p>
+                                </td><td style="padding-left:15px;">
+                                    <timepicker class="input-sm timepicker-sm" ng-model="siteRank.options.endTime" show-meridian="false"></timepicker>
+                                </td><td style="padding-left:5px;">
+                                    Z
+                                </td><td style="padding-left:15px;">
+                                    <button class="btn btn-primary btn-xs" ng-click="siteRank.optionsForm.clearEndDatetime()">
+                                        <i class="fa fa-eraser"></i> Clear
+                                    </button>
+                                </td></tr>
+                            </table>
                         </ul>
                     </section>
                 </ui-layout>
@@ -132,7 +187,59 @@
 
             <!-- Sites panel -->
             <div class="tab-pane" ng-show="siteRank.leftPaneView === 'sites'">
-                sites
+                <div class="instructions alert alert-danger"
+                     ng-show="!siteRank.siteList.loadingTargets && siteRank.siteList.errorMessage">
+                    <i class="fa fa-exclamation-triangle fa-3x"></i>
+                    <span>{{siteRank.siteList.errorMessage}}</span>
+                </div>
+                <ul ng-show="siteRank.siteList.loadingSites">
+                    <i class="fa fa-2x fa-spinner fa-spin"></i>
+                </ul>
+                <ui-layout options="{flow: 'row'}"
+                           ng-show="siteRank.sites.length > 0 && !siteRank.siteList.loadingSites">
+                    <section>
+                        <header>
+                            <i class="fa fa-map-marker fa-lg"></i> Site Rankings
+                            <span class="pull-right">
+                                <button class="btn btn-default btn-xs"
+                                        ng-disabled="siteRank.siteList.currentPage == 1"
+                                        ng-click="siteRank.siteList.currentPage=siteRank.siteList.currentPage-1">
+                                    <i class="fa fa-chevron-left"></i>
+                                </button>
+                                <input type="number" size="3" style="max-width:40px;" ng-model="siteRank.siteList.currentPage">/{{siteRank.siteList.numberOfPages()}}
+                                <button style="margin-right:15px;" class="btn btn-default btn-xs"
+                                        ng-disabled="siteRank.siteList.currentPage >= siteRank.sites.length/siteRank.siteList.pageSize"
+                                        ng-click="siteRank.siteList.currentPage=siteRank.siteList.currentPage+1">
+                                    <i class="fa fa-chevron-right"></i>
+                                </button>
+                                <!--button class="btn btn-danger btn-xs" ng-click="siteRank.siteList.sendSelectedToTargetRank()">
+                                    <i class="fa fa-share"></i> Send to Target Prioritization
+                                </button-->
+                            </span>
+                        </header>
+                        <ul class="rank-list list-unstyled">
+                            <li class="list-hover" ng-class-even="'list-striped-alt'" ng-class="{'list-selected': site.isSelected}"
+                                ng-repeat="site in siteRank.sites | startFrom:(siteRank.siteList.currentPage-1)*siteRank.siteList.pageSize | limitTo:siteRank.siteList.pageSize"
+                                style="padding:5px 0;">
+                                <div>
+                                    <input type="checkbox" ng-model="site.isSelected">
+                                </div>
+                                <span>{{site[CONFIG.solr.siteDedupField]}}</span>
+                                <div class="pull-right" style="height:18px;width:200px;border:none;">
+                                    <div class="pull-right btn-success rank-bar" style="height:100%;border:none;width:0px;"
+                                         ng-style="{width: (site.score/siteRank.siteMeta.maxScore)*100 + '%'}">
+                                    </div>
+                                </div>
+                                <span class="pull-right" style="padding-right:10px;">{{(site.score/siteRank.siteMeta.maxScore)*100 | number:1}}</span>
+                            </li>
+                        </ul>
+                    </section>
+                </ui-layout>
+            </div>
+
+            <!-- Imagery panel -->
+            <div class="tab-pane" ng-show="siteRank.leftPaneView === 'imagery'">
+                <imagery-form></imagery-form>
             </div>
         </div>
     </left-pane>

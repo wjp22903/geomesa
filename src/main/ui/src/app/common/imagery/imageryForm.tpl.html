@@ -1,0 +1,218 @@
+<div ng-controller="ImageryManagerController">
+    <section class="stretch" ng-show="step === 1">
+        <header>
+            <i class="fa fa-search fa-lg"></i> Find Imagery to Overlay
+            <button class="btn btn-danger btn-xs pull-right" ng-click="search.findImagery()">
+                Search <i class="fa fa-chevron-right"></i>
+            </button>
+        </header>
+        <ul>
+            <form style="padding:5px 15px 0px 15px;" class="form-horizontal" role="form">
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">Source</label>
+                    <div class="col-sm-9">
+                        <select class="form-control input-sm"
+                                ng-model="search.criteria.server"
+                                ng-init="CONFIG.imagery.servers[0].name"
+                                ng-options="server.name for server in CONFIG.imagery.servers">
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">Bounding Box</label>
+                    <div class="col-sm-9">
+                        <table style="border-collapse:separate;border-spacing:1px;"><tr>
+                            <td colspan="2" align="center">
+                                <div style="width:50%;" class="input-group">
+                                    <input type="number" class="form-control input-sm" size="20" placeholder="max lat" ng-model="search.criteria.maxLat">
+                                    <span style="display:table-cell;vertical-align:top;">&deg;</span>
+                                </div>
+                            </td>
+                            <td rowspan="3" style="padding-left:10px;">
+                                <button class="btn btn-primary btn-xs" ng-click="search.form.useMapExtent()">
+                                    Use map extent
+                                </button>
+                                <button style="margin-top:4px;" class="btn btn-primary btn-xs" ng-click="search.form.clearBoundingBox()">
+                                    <i class="fa fa-eraser"></i> Clear
+                                </button>
+                            </td>
+                        </tr><tr>
+                            <td style="padding-right:10px;">
+                                <div class="input-group">
+                                    <input type="number" class="form-control input-sm" size="21" placeholder="min lon" ng-model="search.criteria.minLon">
+                                    <span style="display:table-cell;vertical-align:top;">&deg;</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="input-group">
+                                    <input type="number" class="form-control input-sm" size="21" placeholder="max lon" ng-model="search.criteria.maxLon">
+                                    <span style="display:table-cell;vertical-align:top;">&deg;</span>
+                                </div>
+                            </td>
+                        </tr><tr>
+                            <td colspan="2" align="center">
+                                <div style="width:50%;" class="input-group">
+                                    <input type="number" class="form-control input-sm" size="20" placeholder="min lat" ng-model="search.criteria.minLat">
+                                    <span style="display:table-cell;vertical-align:top;">&deg;</span>
+                                </div>
+                            </td>
+                        </tr></table>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">Date/Time Range</label>
+                    <div class="col-sm-9">
+                        <table style="border-collapse:separate;border-spacing:3px 1px;"><tr>
+                            <td>Start</td>
+                            <td>
+                                <p class="input-group">
+                                    <input datepicker-popup datepicker-append-to-body="true" size="10" type="text" class="form-control input-sm" is-open="search.form.startDateOpen" ng-model="search.criteria.startDate">
+                                    <span class="input-group-btn">
+                                        <button type="button" class="btn btn-default btn-sm" ng-click="search.form.startDateOpen = search.form.toggleDateOpen($event, search.form.startDateOpen)"><i class="glyphicon glyphicon-calendar"></i></button>
+                                    </span>
+                                </p>
+                            </td>
+                            <td>
+                                <timepicker class="input-sm timepicker-sm" ng-model="search.criteria.startTime" show-meridian="false"></timepicker>
+                            </td>
+                            <td>Z</td>
+                            <td>
+                                <button style="margin-left:10px;" class="btn btn-primary btn-xs" ng-click="search.form.clearStartDatetime()">
+                                    <i class="fa fa-eraser"></i> Clear
+                                </button>
+                            </td>
+                        </tr><tr>
+                            <td>End</td>
+                            <td>
+                                <p class="input-group">
+                                    <input datepicker-popup datepicker-append-to-body="true" size="10" type="text" class="form-control input-sm" is-open="search.form.endDateOpen" ng-model="search.criteria.endDate">
+                                    <span class="input-group-btn">
+                                        <button type="button" class="btn btn-default btn-sm" ng-click="search.form.endDateOpen = search.form.toggleDateOpen($event, search.form.endDateOpen)"><i class="glyphicon glyphicon-calendar"></i></button>
+                                    </span>
+                                </p>
+                            </td>
+                            <td>
+                                <timepicker class="input-sm timepicker-sm" ng-model="search.criteria.endTime" show-meridian="false"></timepicker>
+                            </td>
+                            <td>Z</td>
+                            <td>
+                                <button style="margin-left:10px;" class="btn btn-primary btn-xs" ng-click="search.form.clearEndDatetime()">
+                                    <i class="fa fa-eraser"></i> Clear
+                                </button>
+                            </td>
+                        </tr></table>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">Metadata</label>
+                    <div class="col-sm-10">
+                        <table style="border-collapse:separate;border-spacing:3px 1px;">
+                            <tr>
+                                <td style="white-space:nowrap;">{{CONFIG.imagery.metadata.fields.a.display}}</td>
+                                <td><input type="text" class="form-control input-sm" ng-model="search.criteria.a"></td>
+                                <td style="padding-left:4px;white-space:nowrap;">{{CONFIG.imagery.metadata.fields.b.display}}</td>
+                                <td><input type="text" class="form-control input-sm" ng-model="search.criteria.b"></td>
+                            </tr><tr>
+                                <td style="white-space:nowrap;">{{CONFIG.imagery.metadata.fields.c.display}}</td>
+                                <td><input type="text" class="form-control input-sm" ng-model="search.criteria.c"></td>
+                                <td style="padding-left:4px;white-space:nowrap;">{{CONFIG.imagery.metadata.fields.d.display}}</td>
+                                <td><input type="text" class="form-control input-sm" ng-model="search.criteria.d"></td>
+                            </tr><tr>
+                                <td style="white-space:nowrap;">{{CONFIG.imagery.metadata.fields.e.display}}</td>
+                                <td><input type="text" class="form-control input-sm" ng-model="search.criteria.e"></td>
+                                <td style="padding-left:4px;white-space:nowrap;">{{CONFIG.imagery.metadata.fields.f.display}}</td>
+                                <td><input type="text" class="form-control input-sm" ng-model="search.criteria.f"></td>
+                            </tr><tr>
+                                <td style="white-space:nowrap;">Filename</td>
+                                <td colspan="3"><input type="text" class="form-control input-sm" ng-model="search.criteria.filename"></td>
+                            </tr><tr>
+                                <td style="white-space:nowrap;">CQL Filter</td>
+                                <td colspan="3"><textarea style="resize:none;" rows="2" class="form-control input-sm" ng-model="search.criteria.cqlFilter"></textarea></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">Sort</label>
+                    <div class="col-sm-9">
+                        <table style="border-collapse:separate;border-spacing:3px;"><tr>
+                            <td style="white-space:nowrap;">Field</td>
+                            <td><input type="text" class="form-control input-sm" ng-model="search.criteria.sortField"></td>
+                            <td style="padding-left:4px;white-space:nowrap;">Order</td>
+                            <td>
+                                <select class="form-control input-sm"
+                                        ng-model="search.criteria.sortOrder"
+                                        ng-init="search.criteria.sortOrder">
+                                    <option>D</option>
+                                    <option>A</option>
+                                </select>
+                            </td>
+                        </tr></table>
+                    </div>
+                </div>
+            </form>
+        </ul>
+    </section>
+    <section class="stretch" ng-show="step === 2">
+        <header>
+            Select Imagery
+            <span class="pull-right">
+                <button class="btn btn-default btn-xs" ng-disabled="select.currentPage == 1" ng-click="select.currentPage=select.currentPage-1">
+                    <i class="fa fa-chevron-left"></i>
+                </button>
+                <input type="number" size="1" style="max-width:40px;" ng-maxlength="3" ng-minlength="1" ng-model="select.currentPage">/{{select.numberOfPages()}}
+                <button style="margin-right:5px;" class="btn btn-default btn-xs" ng-disabled="select.currentPage >= search.results.length/select.pageSize" ng-click="select.currentPage=select.currentPage+1">
+                    <i class="fa fa-chevron-right"></i>
+                </button>
+                <button class="btn btn-danger btn-xs" ng-click="step=1">
+                    <i class="fa fa-chevron-left"></i> Search
+                </button>
+                <button class="btn btn-primary btn-xs" ng-click="select.zoomToCoverage()">
+                    <i class="fa fa-search-plus"></i> Zoom to all
+                </button>
+                <button class="btn btn-primary btn-xs" ng-class="{active: select.coverageLayerVisible}" ng-click="select.toggleCoverage()">
+                    <i class="fa fa-square-o"></i> Toggle coverage
+                </button>
+            </span>
+        </header>
+        <ul ng-show="search.running">
+            <i style="padding:10px;" class="fa fa-spinner fa-lg fa-spin"></i>
+        </ul>
+        <ul ng-hide="search.running" class="sites-list list-unstyled">
+            <li class="list-hover"
+                ng-repeat="image in search.results | startFrom:(select.currentPage-1)*select.pageSize | limitTo:select.pageSize"
+                ng-class="{'list-selected': image.isSelected}"
+                ng-mouseover="select.imageMouseenter(image)"
+                ng-mouseleave="select.imageMouseleave(image)">
+                <img style="margin:1px;border:1px solid gray;padding:1px;float:right;"
+                     ng-src="{{search.criteria.server.url}}/thumbnail/show/{{image.attributes.image_id}}?size=128&projectionType=imagespace">
+                <h4 style="font-size:12px;">
+                    {{image.attributes.image_id}}
+                    <span class="pull-right">
+                        <span class="btn-group" data-toggle="buttons">
+                            <label class="btn btn-primary btn-xs"
+                                   ng-class="{active: image.isSelected}">
+                                <input type="checkbox"
+                                       ng-model="image.isSelected"
+                                       ng-change="select.toggleImage(image)"> Map
+                            </label>
+                            <label class="btn btn-primary btn-xs"
+                                   ng-class="{active: image.isSelected && image.isVisible}"
+                                   ng-disabled="!image.isSelected">
+                                <input type="checkbox"
+                                       ng-model="image.isVisible"
+                                       ng-change="select.updateImageVis(image)"> Show
+                            </label>
+                        </span><br/>
+                        <button style=" margin-top:4px;"class="btn btn-primary btn-xs" ng-click="select.zoomToImage(image)">
+                            <i class="fa fa-search-plus"></i> Zoom to
+                        </button>
+                    </span>
+                </h4>
+                <div ng-repeat="(key, val) in select.filterImageAttributes(image.attributes)">
+                    <strong>{{ key }}:</strong> {{ val }}
+                </div>
+            </li>
+        </ul>
+    </section>
+</div>

@@ -6,12 +6,7 @@ angular.module('stealth.airdomain.airDomain',[])
             });
         }
     ])
-    .controller('AirDomainController',
-        ['$scope', function($scope) {
-             $scope.airDomain = {
-                 isLeftPaneVisible: false,
-                 leftPaneView: 'allTraffic'
-             };
-             //TODO: Add tracks message passing
-        }]
-    );
+    .controller('AirDomainController', ['$scope', '$sce', 'CONFIG', function ($scope, $sce, CONFIG) {
+        $scope.frameUrl = $sce.trustAsResourceUrl(CONFIG.whiptail.url);
+    }])
+;

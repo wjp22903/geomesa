@@ -1,7 +1,7 @@
 // Main stylus file.
 @import '../../vendor/bower/bootstrap/dist/css/bootstrap.min.css'
 @import '../../vendor/bower/font-awesome/css/font-awesome.min.css'
-@import '../../vendor/bower/angular-ui-layout/ui-layout.css'
+@import '../../vendor/bower/angular-ui-layout/src/ui-layout.css'
 // http://visionmedia.github.io/nib/
 @import 'nib'
 // applicaton files imports
@@ -75,6 +75,7 @@ body
             border 1px solid #E0E4E6
             border-radius 4px
             header
+                z-index 600
                 position fixed
                 height 50px
                 width sidePaneWidth - 27px
@@ -253,3 +254,25 @@ center-pane
             margin-left 4px
             -webkit-transform scale(-1, 1)
             transform scale(-1, 1)
+
+.timepicker-sm
+    margin-top -10px
+    .btn
+        padding 0 12px
+        border none
+
+#targetRank, #siteRank
+    .timepicker-sm
+        .btn
+            font-size 10px
+        a[ng-click^=decrement]
+            vertical-align top
+        a[ng-click^=increment]
+            vertical-align bottom
+
+.body-targetRank, .body-siteRank
+    ul[datepicker-popup-wrap]
+        top auto !important
+        bottom 25px !important
+        left 255px !important
+
