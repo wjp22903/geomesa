@@ -8,6 +8,7 @@ angular.module('stealth.targetrank.targetRank', [
     'stealth.common.panes.centerTop',
     'stealth.common.panes.centerRight',
     'stealth.common.groupCheckbox',
+    'stealth.common.layermanager.openlayersManager',
     'stealth.common.rank',
     'stealth.ows.ows',
     'ui.layout',

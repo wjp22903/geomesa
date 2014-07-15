@@ -33,7 +33,6 @@ angular.module('stealth.common.map.openlayersMap', [
                     numZoomLevels: 24,
                     controls: [
                         new OpenLayers.Control.ZoomPanel(),
-                        new OpenLayers.Control.LayerSwitcher(),
                         new OpenLayers.Control.MousePosition(),
                         new OpenLayers.Control.NavToolbar()
                     ],

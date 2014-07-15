@@ -1,5 +1,18 @@
 angular.module('stealth.siterank.siteRank', [
-    'stealth.common.utils'
+    'stealth.common.imagery.imageryManager',
+    'stealth.common.proximity',
+    'stealth.common.utils',
+    'stealth.common.map.openlayersMap',
+    'stealth.common.panes.centerPane',
+    'stealth.common.panes.leftPane',
+    'stealth.common.panes.centerTop',
+    'stealth.common.panes.centerRight',
+    'stealth.common.groupCheckbox',
+    'stealth.common.layermanager.openlayersManager',
+    'stealth.common.rank',
+    'stealth.ows.ows',
+    'ui.layout',
+    'ui.bootstrap.buttons'
 ])
 
     .config(['$routeProvider', function ($routeProvider) {

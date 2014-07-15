@@ -226,8 +226,8 @@ angular.module('stealth.common.imagery.imageryManager', [
             }
         };
 
-        $rootScope.$emit("ReplaceVectorMapLayers", ['imagery_coverage'], {
-            name: 'imagery_coverage',
+        $rootScope.$emit("ReplaceVectorMapLayers", ['Imagery Coverage'], {
+            name: 'Imagery Coverage',
             styleMap: new OpenLayers.StyleMap({
                 default: new OpenLayers.Style({
                     fillOpacity: 0,
@@ -247,7 +247,13 @@ angular.module('stealth.common.imagery.imageryManager', [
             displayInLayerSwitcher: false,
             layerAddedCallback: function (map, layer) {
                 $scope.select.coverageLayer = layer;
-                map.setLayerIndex(layer, 0); //push coverage layer to bottom
+                var numBaseLayers = _.reduce(map.layers, function (count, l) {
+                    if (l.isBaseLayer) {
+                        count++;
+                    }
+                    return count;
+                }, 0);
+                map.setLayerIndex(layer, numBaseLayers); //push coverage layer to bottom
             }
         });
     }])

@@ -16,12 +16,18 @@
                     <span class="badge">{{targetRank.targets.length}}</span>
                 </a>
             </li>
-            <li ng-show="CONFIG.imagery.support && CONFIG.imagery.servers.length > 0"
+            <li ng-if="CONFIG.imagery.support && CONFIG.imagery.servers.length > 0"
                 ng-class="{active: targetRank.leftPaneView==='imagery'}"
                 ng-click="targetRank.leftPaneView='imagery'">
                 <a href="#/targetRank">
                     <i class="fa fa-image fa-lg"></i>
                     Imagery
+                </a>
+            </li>
+            <li ng-class="{active: targetRank.leftPaneView==='layers'}" ng-click="targetRank.leftPaneView='layers'">
+                <a href="#/targetRank">
+                    <i class="fa fa-globe fa-lg"></i>
+                    Map Layers
                 </a>
             </li>
         </ul>
@@ -266,14 +272,20 @@
             </div>
 
             <!-- Imagery panel -->
-            <div class="tab-pane"  ng-show="targetRank.leftPaneView === 'imagery'">
+            <div class="tab-pane" ng-if="CONFIG.imagery.support && CONFIG.imagery.servers.length > 0"
+                 ng-show="targetRank.leftPaneView === 'imagery'">
                 <imagery-form></imagery-form>
+            </div>
+
+            <!-- Layer manager panel -->
+            <div class="tab-pane" ng-show="targetRank.leftPaneView === 'layers'">
+                <div openlayers-manager map="targetRank.map" class="anchorTop anchorBottom anchorLeft anchorRight"></div>
             </div>
         </div>
     </left-pane>
 
     <!-- Map -->
     <center-pane is-full-width="!targetRank.isLeftPaneVisible">
-        <openlayers-map id="targetRankMap" map="map"></openlayers-map>
+        <openlayers-map id="targetRankMap" map="targetRank.map"></openlayers-map>
     </center-pane>
 </div>

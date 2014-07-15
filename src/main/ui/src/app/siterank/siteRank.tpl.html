@@ -16,12 +16,18 @@
                     <span class="badge">{{siteRank.sites.length}}</span>
                 </a>
             </li>
-            <li ng-show="CONFIG.imagery.support && CONFIG.imagery.servers.length > 0"
+            <li ng-if="CONFIG.imagery.support && CONFIG.imagery.servers.length > 0"
                 ng-class="{active: siteRank.leftPaneView==='imagery'}"
                 ng-click="siteRank.leftPaneView='imagery'">
                 <a href="#/siteRank">
                     <i class="fa fa-image fa-lg"></i>
                     Imagery
+                </a>
+            </li>
+            <li ng-class="{active: siteRank.leftPaneView==='layers'}" ng-click="siteRank.leftPaneView='layers'">
+                <a href="#/siteRank">
+                    <i class="fa fa-globe fa-lg"></i>
+                    Map Layers
                 </a>
             </li>
         </ul>
@@ -238,12 +244,20 @@
             </div>
 
             <!-- Imagery panel -->
-            <div class="tab-pane" ng-show="siteRank.leftPaneView === 'imagery'">
+            <div class="tab-pane" ng-if="CONFIG.imagery.support && CONFIG.imagery.servers.length > 0"
+                 ng-show="siteRank.leftPaneView === 'imagery'">
                 <imagery-form></imagery-form>
+            </div>
+
+            <!-- Layer manager panel -->
+            <div class="tab-pane" ng-show="siteRank.leftPaneView === 'layers'">
+                <div openlayers-manager map="siteRank.map" class="anchorTop anchorBottom anchorLeft anchorRight"></div>
             </div>
         </div>
     </left-pane>
+
+    <!-- Map -->
     <center-pane is-full-width="!siteRank.isLeftPaneVisible">
-        <openlayers-map id="siteRankMap" map="map"></openlayers-map>
+        <openlayers-map id="siteRankMap" map="siteRank.map"></openlayers-map>
     </center-pane>
 </div>
