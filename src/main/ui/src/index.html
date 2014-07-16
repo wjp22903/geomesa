@@ -11,9 +11,9 @@
 
     <title ng-bind="app.title"></title>
     [% styles.forEach(function(file) { %]
-    <link rel="stylesheet" href="[%= file %]">[% }); %]
+    <link rel="stylesheet" href="[%= file %]?[%= datetime %]">[% }); %]
     [% scripts.forEach(function(file) { %]
-    <script src="[%= file %]"></script>[% }); %]
+    <script src="[%= file %]?[%= datetime %]"></script>[% }); %]
     <script type="text/javascript">
         var STEALTH = STEALTH || {};
         STEALTH.config = ${ unescape(config) };

@@ -127,7 +127,7 @@ module.exports = function (grunt) {
             expr: true
         }
     });
-    
+
     grunt.config('karmaconfig', {
         spec: {
             src: ['<%= vendorFiles.js %>', '<%= testFiles.js %>', '<%= html2js.app.dest %>', '<%= buildDir %>/templates-jst.js']
@@ -232,7 +232,7 @@ module.exports = function (grunt) {
         });
     }
 
-    // To avoid potential conflicts with Scalate ssp templates, 
+    // To avoid potential conflicts with Scalate ssp templates,
     // replace template delimiters: <% %> to [% %].
     grunt.template.addDelimiters('squareBrackets', '[%', '%]');
 
@@ -261,6 +261,7 @@ module.exports = function (grunt) {
                 process: function ( contents, path ) {
                     return grunt.template.process( contents, {
                         data: {
+                            datetime: grunt.template.today('UTC:yyyymmddHHMM'),
                             scripts: jsFiles,
                             styles: cssFiles
                         },
