@@ -1,4 +1,4 @@
-package com.ccri.stealth.web;
+package com.ccri.stealth.servlet;
 
 import org.eclipse.jetty.client.Address;
 import org.eclipse.jetty.client.HttpClient;

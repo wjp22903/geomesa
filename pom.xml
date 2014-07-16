@@ -31,26 +31,37 @@
     -->
 
     <properties>
-        <scalatra.version>2.2.0</scalatra.version>
+        <whiptail.version>1.0.0-SNAPSHOT</whiptail.version>
+        <scalatra.version>2.2.2</scalatra.version>
         <logback-classic.version>1.0.13</logback-classic.version>
-        <spray-json.version>1.2.3</spray-json.version>
-        <scala.version>2.10.0</scala.version>
-        <uidir.pathname>${project.basedir}/src/main/ui</uidir.pathname>
+        <spray-json.version>1.2.6</spray-json.version>
+        <scala.version>2.10.4</scala.version>
+        <kafka.version>0.8.0</kafka.version>
+        <curator-x-discovery.version>2.4.0</curator-x-discovery.version>
 
+        <kafka.zookeepers>dzoo1,dzoo2,dzoo3</kafka.zookeepers>
+        <kafka.topics>tracks</kafka.topics>
+
+        <tracker.styles.zookeepers>dzoo1,dzoo2,dzoo3</tracker.styles.zookeepers>
+        <tracker.styles.basePath>/trackers</tracker.styles.basePath>
+
+        <uidir.pathname>${project.basedir}/src/main/ui</uidir.pathname>
         <nodejs.local.dir>${uidir.pathname}/nodejs</nodejs.local.dir>
         <nodejs.version>v0.10.28</nodejs.version>
         <nodejs.classifier>INVALID</nodejs.classifier>
         <phantomjs.local.dir>${uidir.pathname}/node_modules/karma-phantomjs-launcher/node_modules/phantomjs/lib/phantom</phantomjs.local.dir>
         <phantomjs.version>1.9.7</phantomjs.version>
         <phantomjs.classifier>INVALID</phantomjs.classifier>
+        <jetty.version>8.1.15.v20140411</jetty.version>
 
         <app.title>Stealth</app.title>
+        <app.context.path>/stealth</app.context.path>
+        <app.hideNavBar>false</app.hideNavBar>
         <app.tabs>["targetRank", "siteRank", "airDomain"]</app.tabs>
         <app.default.tab>targetRank</app.default.tab>
 
         <solr.url>cors/http://localhost:8983/solr</solr.url>
         <solr.siteDedupField>location</solr.siteDedupField>
-        <whiptail.url>http://someserver:9999/whiptail</whiptail.url>
 
         <geoserver.url>http://dgeo:8080/geoserver</geoserver.url>
         <geoserver.workspaces.data>["stealth-devdata"]</geoserver.workspaces.data>
@@ -61,8 +72,10 @@
         <geoserver.output.store>stealth-output</geoserver.output.store>
 
         <openlayers.imagepath>vendor/bower/openlayers/img/</openlayers.imagepath>
+
         <map.restricted.extent></map.restricted.extent>
         <map.max.extent></map.max.extent>
+
         <basemap.url>${geoserver.url}/wms</basemap.url>
         <basemap.layers>mapproxy:globe.osm.toner</basemap.layers>
         <basemap.format>image/png</basemap.format>
@@ -78,6 +91,12 @@
 
         <security.anonymous.access>true</security.anonymous.access>
         <security.allowed.userDns>["CN=Guest User guest,O=CCRI,L=Charlottesville,ST=Virginia,C=US"]</security.allowed.userDns>
+        <security.keystore.path>${basedir}/src/test/resources/certs/server.p12</security.keystore.path>
+        <security.keystore.type>PKCS12</security.keystore.type>
+        <security.keystore.password>password</security.keystore.password>
+        <security.keystore.keyPassword>password</security.keystore.keyPassword>
+        <security.truststore.path>${basedir}/src/test/resources/certs/truststore.jks</security.truststore.path>
+        <security.truststore.password>password</security.truststore.password>
         <dataSources>{}</dataSources>
 
         <!-- proxy config -->
@@ -127,6 +146,11 @@
                 <artifactId>maven-war-plugin</artifactId>
                 <version>2.4</version>
                 <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>Runner</mainClass>
+                        </manifest>
+                    </archive>
                     <webResources>
                         <resource>
                             <directory>src/main/webResources-filter</directory>
@@ -147,11 +171,15 @@
             <plugin>
                 <groupId>org.mortbay.jetty</groupId>
                 <artifactId>jetty-maven-plugin</artifactId>
-                <version>8.1.15.v20140411</version>
+                <version>${jetty.version}</version>
                 <configuration>
+                    <stopKey>foo</stopKey>
+                    <stopPort>9999</stopPort>
+                    <useTestScope>true</useTestScope>
+                    <useTestClasspath>true</useTestClasspath>
                     <scanIntervalSeconds>10</scanIntervalSeconds>
                     <webApp>
-                        <contextPath>/stealth</contextPath>
+                        <contextPath>${app.context.path}</contextPath>
                         <baseResource implementation="org.eclipse.jetty.util.resource.ResourceCollection">
                             <resourcesAsCSV>${project.build.directory}/${project.artifactId}-${project.version}</resourcesAsCSV>
                         </baseResource>
@@ -166,17 +194,38 @@
                         <connector implementation="org.eclipse.jetty.server.ssl.SslSelectChannelConnector">
                             <port>8443</port>
                             <maxIdleTime>60000</maxIdleTime>
-                            <keystore>${basedir}/src/test/resources/certs/server.p12</keystore>
-                            <keystoreType>PKCS12</keystoreType>
-                            <password>password</password>
-                            <keyPassword>password</keyPassword>
-                            <truststore>${truststore.path}</truststore>
-                            <trustPassword>${truststore.password}</trustPassword>
+                            <keystore>${security.keystore.path}</keystore>
+                            <keystoreType>${security.keystore.type}</keystoreType>
+                            <password>${security.keystore.password}</password>
+                            <keyPassword>${security.keystore.keyPassword}</keyPassword>
+                            <truststore>${security.truststore.path}</truststore>
+                            <trustPassword>${security.truststore.password}</trustPassword>
                             <wantClientAuth>false</wantClientAuth>
                             <needClientAuth>true</needClientAuth>
                         </connector>
                     </connectors>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>jetty-classpath</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>unpack-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <includeGroupIds>org.eclipse.jetty,javax.servlet,com.typesafe</includeGroupIds>
+                            <excludeArtifactIds>jsp-api,jstl,akka-actor_2.10</excludeArtifactIds>
+                            <excludes>META-INF/ECLIPSEF.*</excludes>
+                            <outputDirectory>
+                                ${project.build.directory}/${project.artifactId}-${project.version}
+                            </outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>net.alchim31.maven</groupId>
@@ -231,6 +280,23 @@
                             <goal>run</goal>
                         </goals>
                     </execution>
+                    <execution>
+                        <id>main-class-placement</id>
+                        <phase>prepare-package</phase>
+                        <configuration>
+                            <tasks>
+                                <copy todir="${project.build.directory}/${project.artifactId}-${project.version}/">
+                                    <fileset dir="${project.build.directory}/classes/">
+                                        <include name="Runner.class" />
+                                        <include name="application.conf" />
+                                    </fileset>
+                                </copy>
+                            </tasks>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
                 </executions>
             </plugin>
         </plugins>
@@ -238,13 +304,18 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.scala-lang</groupId>
-            <artifactId>scala-library</artifactId>
-            <version>${scala.version}</version>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.2.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.typesafe</groupId>
+            <artifactId>config</artifactId>
+            <version>1.2.1</version>
         </dependency>
         <dependency>
             <groupId>org.scala-lang</groupId>
-            <artifactId>scala-reflect</artifactId>
+            <artifactId>scala-library</artifactId>
             <version>${scala.version}</version>
         </dependency>
         <dependency>
@@ -259,6 +330,22 @@
         </dependency>
         <dependency>
             <groupId>org.scalatra</groupId>
+            <artifactId>scalatra-atmosphere_2.10</artifactId>
+            <version>${scalatra.version}</version>
+        </dependency>
+        <dependency>
+            <!-- explicitly override version of akka for atmosphere -->
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-actor_2.10</artifactId>
+            <version>2.1.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.scalatra</groupId>
+            <artifactId>scalatra-json_2.10</artifactId>
+            <version>${scalatra.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.scalatra</groupId>
             <artifactId>scalatra-scalate_2.10</artifactId>
             <version>${scalatra.version}</version>
         </dependency>
@@ -268,20 +355,88 @@
             <version>${scalatra.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.json4s</groupId>
+            <artifactId>json4s-jackson_2.10</artifactId>
+            <version>3.2.6</version>
+        </dependency>
+        <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
-            <version>3.1.0</version>
+            <version>3.0.1</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-servlets</artifactId>
-            <version>8.1.15.v20140411</version>
+            <version>${jetty.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-websocket</artifactId>
+            <version>${jetty.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-server</artifactId>
+            <version>${jetty.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-webapp</artifactId>
+            <version>${jetty.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-jsp</artifactId>
+            <version>${jetty.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka_2.10</artifactId>
+            <version>${kafka.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.scala-lang</groupId>
+                    <artifactId>scala-library</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.scala-lang</groupId>
+                    <artifactId>scala-compiler</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.sun.jdmk</groupId>
+                    <artifactId>jmxtools</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.sun.jmx</groupId>
+                    <artifactId>jmxri</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.zookeeper</groupId>
+                    <artifactId>zookeeper</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
             <version>${logback-classic.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.ccri.whiptail</groupId>
+            <artifactId>whiptail-tracker</artifactId>
+            <version>${whiptail.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-x-discovery</artifactId>
+            <version>${curator-x-discovery.version}</version>
         </dependency>
     </dependencies>
 

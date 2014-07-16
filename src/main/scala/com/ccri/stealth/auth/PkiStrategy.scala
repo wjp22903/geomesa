@@ -12,9 +12,9 @@ class PkiStrategy(protected val app: ScalatraBase)(implicit request: HttpServlet
   val logger = LoggerFactory.getLogger(getClass)
 
   override def name: String = "Pki"
-  override def isValid: Boolean = true
+  override def isValid(implicit request: HttpServletRequest): Boolean = true
 
-  def authenticate(): Option[User] = {
+  def authenticate()(implicit request: HttpServletRequest, response: HttpServletResponse): Option[User] = {
     val certs = request.getAttribute("javax.servlet.request.X509Certificate").asInstanceOf[Array[X509Certificate]]
     if (certs != null && certs.length > 0) {
       Some(User(certs.head.getSubjectX500Principal.getName))

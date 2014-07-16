@@ -1,6 +1,7 @@
 // Main stylus file.
 @import '../../vendor/bower/bootstrap/dist/css/bootstrap.min.css'
 @import '../../vendor/bower/font-awesome/css/font-awesome.min.css'
+@import '../../vendor/bower/leaflet-dist/leaflet.css'
 @import '../../vendor/bower/angular-ui-layout/ui-layout.css'
 // http://visionmedia.github.io/nib/
 @import 'nib'
@@ -256,6 +257,41 @@ center-pane
             -webkit-transform scale(-1, 1)
             transform scale(-1, 1)
 
+.leaflet-map
+    position absolute
+    top 0px
+    left 0px
+    right 0px
+    bottom 0px
+
+.leaflet-control-layers
+	box-shadow 0 1px 5px rgba(0,0,0,0.0)
+	background #e0ffd1
+	border-radius 5px
+	border 10px #000000
+
+.leaflet-container
+       font  16px/1.5 "Helvetica Neue", Arial, Helvetica, sans-serif
+
+.info
+    padding 20px
+    font 16px/1.5 "Helvetica Neue", Arial, Helvetica, sans-serif
+    background #999999
+    box-shadow 0 1px 15px rgba(0,0,0,0.0)
+    border-radius 5px
+
+.legend
+    line-height 18px
+    color #000000
+
+.legend i
+    width 25px
+    height 25px
+    float left
+    margin-right 8px
+    opacity 1.0
+    padding 0px
+
 .timepicker-sm
     margin-top -10px
     .btn
@@ -276,4 +312,3 @@ center-pane
         top auto !important
         bottom 25px !important
         left 255px !important
-

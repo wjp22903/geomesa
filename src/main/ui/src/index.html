@@ -1,5 +1,6 @@
 <%@ var config: spray.json.JsValue %>
 <%@ var userCn: String %>
+<%@ var trackStyles: spray.json.JsValue %>
 <!DOCTYPE html>
 <html lang="en" ng-app="stealth" ng-controller="AppController">
 <head>
@@ -18,15 +19,20 @@
         var STEALTH = STEALTH || {};
         STEALTH.config = ${ unescape(config) };
         STEALTH.userCn = '${ userCn }';
+        STEALTH.trackStyles = ${ unescape(trackStyles) };
     </script>
 </head>
 
-<body ng-class="{'body-targetRank': isActiveNavItem('/targetRank'), 'body-siteRank': isActiveNavItem('/siteRank')}">
-    <div class="anchorTop classBanner {{app.classification.level}}" ng-bind="app.classification.text"></div>
-    <div class="betweenClassBanners">
-        <div ng-include="'common/nav/navBar.tpl.html'"></div>
-        <div ng-view style="position:absolute;top:50px;bottom:0;left:0;right:0;"></div>
+<body>
+    <div class="anchorTop classBanner {{app.classification.level}}"
+         ng-bind="app.classification.text" ng-style="app.classBannerStyle"></div>
+    <div class="betweenClassBanners" ng-style="app.betweenClassBannersStyle">
+        <div ng-include="'common/nav/navBar.tpl.html'"
+             ng-style="app.navBarStyle" ng-if="!CONFIG.app.hideNavBar"></div>
+        <div ng-view style="position:absolute;bottom:0;left:0;right:0;"
+             ng-style="app.viewStyle"></div>
     </div>
-    <div class="anchorBottom classBanner {{app.classification.level}}" ng-bind="app.classification.text"></div>
+    <div class="anchorBottom classBanner {{app.classification.level}}"
+         ng-bind="app.classification.text" ng-style="app.classBannerStyle"></div>
 </body>
 </html>

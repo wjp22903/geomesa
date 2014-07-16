@@ -18,7 +18,7 @@
 
     <servlet>
         <servlet-name>CorsProxy</servlet-name>
-        <servlet-class>com.ccri.stealth.web.CorsProxyServlet</servlet-class>
+        <servlet-class>com.ccri.stealth.servlet.CorsProxyServlet</servlet-class>
         <load-on-startup>1</load-on-startup>
         <async-supported>true</async-supported>
         <init-param>

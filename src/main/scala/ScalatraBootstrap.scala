@@ -1,57 +1,25 @@
-import com.ccri.stealth.auth.PkiAuthenticationSupport
-import com.typesafe.config.{ConfigFactory, ConfigRenderOptions}
+import com.ccri.stealth.servlet.{DiscovererConfig, DefaultServlet, KafkaConfig, TrackController}
+import com.typesafe.config.ConfigFactory
 import javax.servlet.ServletContext
-import org.scalatra.scalate.ScalateSupport
-import org.scalatra.{LifeCycle, ScalatraServlet}
-import org.slf4j.LoggerFactory
-import spray.json._
-
-class DefaultServlet extends ScalatraServlet with ScalateSupport with DefaultJsonProtocol with PkiAuthenticationSupport {
-  val logger = LoggerFactory.getLogger(getClass)
-  val conf = ConfigFactory.load().getConfig("stealth")
-
-  get("/") {
-    val userCn = pkiAuth
-    logger.info("Access Granted: " + userCn)
-    contentType = "text/html; charset=UTF-8"
-    response.setHeader("X-UA-Compatible", "IE=edge")
-    ssp(
-      "index",
-      "userCn" -> userCn,
-      "config" -> JsonParser(conf.root().withoutKey("private").render(
-          ConfigRenderOptions.defaults()
-            .setJson(true)
-            .setComments(false)
-            .setOriginComments(false)
-      ))
-    )
-  }
-
-  protected def pkiAuth() = {
-    val user = scentry.authenticate("Pki")
-    if (conf.getValue("private.security.anonymous").unwrapped.asInstanceOf[Boolean]) {
-      if (user.isEmpty) "Anonymous"
-      else getCn(user.get.dn)
-    } else {
-      if (user.isEmpty) {
-        logger.warn("Access Denied: Anonymous")
-        halt(403, "Access Denied: Please use HTTPS and present a valid certificate")
-      } else {
-        if (conf.getValue("private.security.userDns").unwrapped.asInstanceOf[java.util.List[String]].contains(user.get.dn)) {
-          getCn(user.get.dn)
-        } else {
-          logger.warn("Access Denied: " + user.get.dn)
-          halt(403, "Access Denied: Contact administrator for access. Your DN is [" + user.get.dn + "]")
-        }
-      }
-    }
-  }
-
-  protected def getCn(dn:String) = dn.split(",").find((rdn) => rdn.startsWith("CN=")).get.substring(3)
-}
+import org.scalatra.LifeCycle
 
 class ScalatraBootstrap extends LifeCycle {
+  val conf      = ConfigFactory.load().getConfig("stealth")
+  val kafkaConf = conf.getConfig("kafka")
+  val trackerStylesConf = conf.getConfig("trackerStyles")
+
+  trait StylesConfig extends DiscovererConfig {
+    override def zookeepers  = trackerStylesConf.getString("zookeepers")
+    override def basePath    = trackerStylesConf.getString("basePath")
+  }
+
+  trait TrackConfig extends KafkaConfig {
+    override def topicsRegex = kafkaConf.getString("topicsRegex")
+    override def zookeepers  = kafkaConf.getString("zookeepers")
+  }
+
   override def init(context: ServletContext) {
-    context.mount(new DefaultServlet, "/", "stealth")
+    context.mount(new DefaultServlet with StylesConfig, "/")
+    context.mount(new TrackController with TrackConfig, "/tracks")
   }
 }

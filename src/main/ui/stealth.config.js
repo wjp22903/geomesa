@@ -14,7 +14,7 @@ module.exports = {
         js : [ 'src/**/*.js', '!src/**/*.spec.js', '!src/assets/**/*.js' ],
         specs: [ 'src/**/*.spec.js' ],
         tpl: [ 'src/app/**/*.tpl.html' ],
-        html: [ 'src/index.html', 'src/sandbox.html' ],
+        html: [ 'src/index.html' ],
         stylus: 'src/stylus/main.styl'
     },
 
@@ -36,6 +36,9 @@ module.exports = {
             'vendor/bower/angular/angular.js',
             'vendor/bower/angular-route/angular-route.js',
             'vendor/bower/angular-animate/angular-animate.js',
+            'vendor/bower/leaflet-dist/leaflet.js',
+            'vendor/bower/leaflet-providers/leaflet-providers.js',
+            'vendor/bower/atmosphere/atmosphere.js',
             'vendor/bower/angular-resource/angular-resource.js',
             'vendor/bower/angular-ui-layout/ui-layout.js',
             'vendor/bower/angular-ui-utils/ui-utils.js',

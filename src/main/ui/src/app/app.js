@@ -15,6 +15,7 @@ angular.module('stealth', [
         // via scalate. Copy that object as an injectable angular constant here.
         var config = angular.copy(window.STEALTH.config);
         config.userCn = window.STEALTH.userCn;
+        config.trackStyles = window.STEALTH.trackStyles;
         $provide.constant('CONFIG', config);
     }])
 
@@ -46,9 +47,21 @@ angular.module('stealth', [
             }
         });
 
+        var classBannerHeight = ((_.isEmpty(CONFIG.classification)) || (_.isEmpty(CONFIG.classification.text) && _.isEmpty(CONFIG.classification.level))) ? 0 : 15,
+            navBarHeight = CONFIG.app.hideNavBar ? 0 : 50;
         $scope.app = {
             title: CONFIG.app.title,
             classification: CONFIG.classification,
+            classBannerStyle: {
+                height: classBannerHeight + 'px'
+            },
+            betweenClassBannersStyle: {
+                top: classBannerHeight + 'px',
+                bottom: classBannerHeight + 'px'
+            },
+            viewStyle: {
+                top: navBarHeight + 'px'
+            },
             userCn: CONFIG.userCn
         };
         $scope.isActiveNavItem = function (viewLocation) {
