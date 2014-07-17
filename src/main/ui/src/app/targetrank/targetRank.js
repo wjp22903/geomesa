@@ -60,7 +60,7 @@ angular.module('stealth.targetrank.targetRank', [
                     if (_.isUndefined(target.dataSource)) {
                         throw new Error('No datasource for target ' + target.target);
                     }
-                    $rootScope.$emit('ShowTargetHistory', $filter('endpoint')($scope.serverData.currentGeoserverUrl, 'wms', true),
+                    $rootScope.$emit('ShowTargetHistory', $filter('endpoint')($scope.targetRank.serverData.currentGeoserverUrl, 'wms', true),
                         CONFIG.dataSources.targets[target.dataSource].idField,
                         target.target, target.dataSource);
                 },
@@ -71,7 +71,7 @@ angular.module('stealth.targetrank.targetRank', [
                                 throw new Error('No datasource for target ' + target.target);
                             }
                             return {
-                                geoserverUrl: $scope.serverData.currentGeoserverUrl,
+                                geoserverUrl: $scope.targetRank.serverData.currentGeoserverUrl,
                                 layer: {
                                     name: target.dataSource
                                 },
@@ -88,21 +88,21 @@ angular.module('stealth.targetrank.targetRank', [
             //Input Data for current analysis, not what's on the add form
             inputData: {},
             numData: 0,
-            matchGeoserverWorkspace: function (layer) {
-                return _.some(CONFIG.geoserver.workspaces[$scope.inputData.type], function (workspace) {
-                    var str = workspace + ':';
-                    return layer.name.substring(0, str.length) === str;
-                });
-            },
             updateNumData: function (delay) {
                 $timeout(function () {
-                    $scope.targetRank.numData = _.chain($scope.dataLayers).values().flatten().reduce(function (count, dataLayer) {
+                    $scope.targetRank.numData = _.chain($scope.targetRank.dataLayers).values().flatten().reduce(function (count, dataLayer) {
                         if (dataLayer.isSelected) {
                             count++;
                         }
                         return count;
                     }, 0).value();
                 }, delay);
+            },
+            options: {
+                startDate: aWeekAgo,
+                startTime: _.cloneDeep(aWeekAgo),
+                endDate: now,
+                endTime: _.cloneDeep(now)
             },
             optionsForm: {
                 startDateOpen: false,
@@ -113,12 +113,12 @@ angular.module('stealth.targetrank.targetRank', [
                     return !open;
                 },
                 clearStartDatetime: function () {
-                    $scope.options.startDate = null;
-                    $scope.options.startTime = _.cloneDeep(noTime);
+                    $scope.targetRank.options.startDate = null;
+                    $scope.targetRank.options.startTime = _.cloneDeep(noTime);
                 },
                 clearEndDatetime: function () {
-                    $scope.options.endDate = null;
-                    $scope.options.endTime = _.cloneDeep(noTime);
+                    $scope.targetRank.options.endDate = null;
+                    $scope.targetRank.options.endTime = _.cloneDeep(noTime);
                 }
             },
             doRank: function () {
@@ -129,7 +129,7 @@ angular.module('stealth.targetrank.targetRank', [
                 $scope.targetRank.leftPaneView = 'targets'; //switch tabs
                 switch ($scope.targetRank.inputData.type) {
                     case 'site':
-                        RankService.getTargetRanksForSites(_.pluck(_.pluck($scope.targetRank.sites, 'properties'), CONFIG.dataSources.sites[$scope.layerData.currentLayer.name].idField), $scope.options.startDate, $scope.options.endDate)
+                        RankService.getTargetRanksForSites(_.pluck(_.pluck($scope.targetRank.sites, 'properties'), CONFIG.dataSources.sites[$scope.targetRank.layerData.currentLayer.name].idField), $scope.targetRank.options.startDate, $scope.targetRank.options.endDate)
                             .then(function (response) {
                                 $scope.targetRank.targets = _.map(_.uniq(response.data.response.docs, 'target'), //remove dups, only show top rank for each
                                     function (target) {
@@ -150,8 +150,8 @@ angular.module('stealth.targetrank.targetRank', [
                             });
                         break;
                     case 'track':
-                        RankService.getTargetRanksForTrack($scope.serverData.currentGeoserverUrl,
-                            _.map(_.chain($scope.dataLayers).values().flatten().filter(function (dataLayer) {
+                        RankService.getTargetRanksForTrack($scope.targetRank.serverData.currentGeoserverUrl,
+                            _.map(_.chain($scope.targetRank.dataLayers).values().flatten().filter(function (dataLayer) {
                                 return dataLayer.isSelected;
                             }).value(), function (dataLayer) {
                                 return {
@@ -159,10 +159,10 @@ angular.module('stealth.targetrank.targetRank', [
                                     idField: CONFIG.dataSources.targets[dataLayer.name].idField
                                 };
                             }), {
-                                inputLayer: $scope.layerData.currentLayer.name,
-                                inputLayerFilter: $scope.filterData.cql,
-                                maxSpeedMps: $scope.options.maxSpeedMps,
-                                maxTimeSec: $scope.options.maxTimeSec
+                                inputLayer: $scope.targetRank.layerData.currentLayer.name,
+                                inputLayerFilter: $scope.targetRank.filterData.cql,
+                                maxSpeedMps: $scope.targetRank.options.maxSpeedMps,
+                                maxTimeSec: $scope.targetRank.options.maxTimeSec
                             }
                         )
                             .then(function (response) {
@@ -182,8 +182,8 @@ angular.module('stealth.targetrank.targetRank', [
                             });
                         break;
                     case 'route':
-                        RankService.getTargetRanksForRoute($scope.serverData.currentGeoserverUrl,
-                            _.map(_.chain($scope.dataLayers).values().flatten().filter(function (dataLayer) {
+                        RankService.getTargetRanksForRoute($scope.targetRank.serverData.currentGeoserverUrl,
+                            _.map(_.chain($scope.targetRank.dataLayers).values().flatten().filter(function (dataLayer) {
                                 return dataLayer.isSelected;
                             }).value(), function (dataLayer) {
                                 return {
@@ -191,12 +191,12 @@ angular.module('stealth.targetrank.targetRank', [
                                     idField: CONFIG.dataSources.targets[dataLayer.name].idField
                                 };
                             }), {
-                                inputLayer: $scope.layerData.currentLayer.name,
-                                inputLayerFilter: $scope.filterData.cql,
+                                inputLayer: $scope.targetRank.layerData.currentLayer.name,
+                                inputLayerFilter: $scope.targetRank.filterData.cql,
                                 dataLayerFilter: '(dtg > ' +
-                                    moment($scope.options.startDate).format('YYYY-MM-DD') + 'T' + moment($scope.options.startTime).format('HH:mm:ss.SSS') +
-                                    'Z) AND (dtg < ' + moment($scope.options.endDate).format('YYYY-MM-DD') + 'T' + moment($scope.options.endTime).format('HH:mm:ss.SSS') + 'Z)',
-                                bufferMeters: $scope.options.proximityMeters
+                                    moment($scope.targetRank.options.startDate).format('YYYY-MM-DD') + 'T' + moment($scope.targetRank.options.startTime).format('HH:mm:ss.SSS') +
+                                    'Z) AND (dtg < ' + moment($scope.targetRank.options.endDate).format('YYYY-MM-DD') + 'T' + moment($scope.targetRank.options.endTime).format('HH:mm:ss.SSS') + 'Z)',
+                                bufferMeters: $scope.targetRank.options.proximityMeters
                             }
                         )
                             .then(function (response) {
@@ -218,76 +218,67 @@ angular.module('stealth.targetrank.targetRank', [
                     default:
                         alert('Error: No ranking process available for this input type');
                 }
+            },
+            doProximity: function () {
+                var proxFn, proxArg = {
+                    style: 'stealth_dataPoints',
+                    geoserverUrl: $scope.targetRank.serverData.currentGeoserverUrl,
+                    inputLayer: $scope.targetRank.layerData.currentLayer.name,
+                    inputLayerFilter: $scope.targetRank.filterData.cql
+                };
+                switch ($scope.targetRank.inputData.type) {
+                    case 'site':
+                    case 'route':
+                        proxFn = ProximityService.doLayerProximity;
+                        proxArg = _.merge(proxArg, {
+                            dataLayerFilter: '(dtg > ' +
+                                moment($scope.targetRank.options.startDate).format('YYYY-MM-DD') + 'T' + moment($scope.targetRank.options.startTime).format('HH:mm:ss.SSS') +
+                                'Z) AND (dtg < ' + moment($scope.targetRank.options.endDate).format('YYYY-MM-DD') + 'T' + moment($scope.targetRank.options.endTime).format('HH:mm:ss.SSS') + 'Z)',
+                            bufferMeters: $scope.targetRank.options.proximityMeters
+                        });
+                        break;
+                    case 'track':
+                        proxFn = ProximityService.doTrackProximity;
+                        proxArg = _.merge(proxArg, {
+                            maxSpeedMps: $scope.targetRank.options.maxSpeedMps,
+                            maxTimeSec: $scope.targetRank.options.maxTimeSec
+                        });
+                        break;
+                    default:
+                        alert('Error: No proximity search available for this input type');
+                }
+
+                if (_.isFunction(proxFn)) {
+                    Utils.currentBrightColorIndex = 0;
+                    _.chain($scope.targetRank.dataLayers).values().flatten().filter(function (dataLayer) {
+                        delete dataLayer.spatialQueryStatus;
+                        return dataLayer.isSelected;
+                    }).forEach(function (dataLayer) {
+                        proxArg.dataLayer = dataLayer.name;
+                        proxArg.env = 'color:' + Utils.getBrightColor().substring(1);
+                        dataLayer.spatialQueryStatus = 'running';
+                        proxFn(proxArg).then(function () {
+                            $rootScope.$emit('RaiseLayers', _.pluck($scope.addSites.types, 'display'), 1);
+                            dataLayer.spatialQueryStatus = 'done';
+                        }, function () {
+                            dataLayer.spatialQueryStatus = 'error';
+                        });
+                    });
+                }
             }
         };
 
-        $scope.targetRank.doProximity = function () {
-            var proxFn, proxArg = {
-                style: 'stealth_dataPoints',
-                geoserverUrl: $scope.serverData.currentGeoserverUrl,
-                inputLayer: $scope.layerData.currentLayer.name,
-                inputLayerFilter: $scope.filterData.cql
-            };
-            switch ($scope.targetRank.inputData.type) {
-                case 'site':
-                case 'route':
-                    proxFn = ProximityService.doLayerProximity;
-                    proxArg = _.merge(proxArg, {
-                        dataLayerFilter: '(dtg > ' +
-                            moment($scope.options.startDate).format('YYYY-MM-DD') + 'T' + moment($scope.options.startTime).format('HH:mm:ss.SSS') +
-                            'Z) AND (dtg < ' + moment($scope.options.endDate).format('YYYY-MM-DD') + 'T' + moment($scope.options.endTime).format('HH:mm:ss.SSS') + 'Z)',
-                        bufferMeters: $scope.options.proximityMeters
-                    });
-                    break;
-                case 'track':
-                    proxFn = ProximityService.doTrackProximity;
-                    proxArg = _.merge(proxArg, {
-                        maxSpeedMps: $scope.options.maxSpeedMps,
-                        maxTimeSec: $scope.options.maxTimeSec
-                    });
-                    break;
-                default:
-                    alert('Error: No proximity search available for this input type');
-            }
-
-            if (_.isFunction(proxFn)) {
-                Utils.currentBrightColorIndex = 0;
-                _.chain($scope.dataLayers).values().flatten().filter(function (dataLayer) {
-                    delete dataLayer.spatialQueryStatus;
-                    return dataLayer.isSelected;
-                }).forEach(function (dataLayer) {
-                    proxArg.dataLayer = dataLayer.name;
-                    proxArg.env = 'color:' + Utils.getBrightColor().substring(1);
-                    dataLayer.spatialQueryStatus = 'running';
-                    proxFn(proxArg).then(function () {
-                        $rootScope.$emit('RaiseLayers', _.pluck($scope.addSites.types, 'display'), 1);
-                        dataLayer.spatialQueryStatus = 'done';
-                    }, function () {
-                        dataLayer.spatialQueryStatus = 'error';
-                    });
-                });
-            }
-        };
-
-        // Geoserver url
-        $scope.serverData = {
-            // The value the user enters into the form.
-            proposedGeoserverUrl: CONFIG.geoserver.defaultUrl,
-            // The value after the users clicks 'Choose'.
-            currentGeoserverUrl: null
-        };
-
-        $scope.options = {
-            startDate: aWeekAgo,
-            startTime: _.cloneDeep(aWeekAgo),
-            endDate: now,
-            endTime: _.cloneDeep(now)
-        };
-        $scope.dataLayers = {};
-        $scope.layerData = {};
-        $scope.inputData = {};
-        $scope.filterData = {};
         $scope.addSites = {
+            serverData: {
+                // The value the user enters into the form.
+                proposedGeoserverUrl: CONFIG.geoserver.defaultUrl,
+                // The value after the users clicks 'Choose'.
+                currentGeoserverUrl: null
+            },
+            dataLayers: {},
+            layerData: {},
+            inputData: {},
+            filterData: {},
             types: [{
                 key: 'site',
                 display: 'Sites'
@@ -297,18 +288,24 @@ angular.module('stealth.targetrank.targetRank', [
             }, {
                 key: 'route',
                 display: 'Route'
-            }]
+            }],
+            matchGeoserverWorkspace: function (layer) {
+                return _.some(CONFIG.geoserver.workspaces[$scope.addSites.inputData.type], function (workspace) {
+                    var str = workspace + ':';
+                    return layer.name.substring(0, str.length) === str;
+                });
+            }
         };
 
         // Used to display form fields in a step-by-step manner.
         $scope.addSites.formStep = function () {
             var step = 1; // Show the server url input
-            if ($scope.serverData.currentGeoserverUrl && !$scope.serverData.error &&
-                    $scope.layerData && $scope.layerData.layers) {
+            if ($scope.addSites.serverData.currentGeoserverUrl && !$scope.addSites.serverData.error &&
+                    $scope.addSites.layerData && $scope.addSites.layerData.layers) {
                 step = 2; // Show the input type select
-                if ($scope.inputData.type) {
+                if ($scope.addSites.inputData.type) {
                     step = 3; // Show the layer select input
-                    if($scope.layerData.currentLayer && !$scope.layerData.error && $scope.featureTypeData) {
+                    if($scope.addSites.layerData.currentLayer && !$scope.addSites.layerData.error && $scope.featureTypeData) {
                         step = 4; // Show the layer details and cql query input
                     }
                 }
@@ -317,37 +314,37 @@ angular.module('stealth.targetrank.targetRank', [
         };
 
         // When the user changes the input data type, switch display value
-        $scope.$watch('inputData.type', function (newVal, oldVal) {
+        $scope.$watch('addSites.inputData.type', function (newVal, oldVal) {
             $scope.addSites.showSpinner = true;
             if (newVal !== oldVal) {
-                if ($scope.inputData.type) {
-                    $scope.inputData.display = _.find($scope.addSites.types, function (type) {
-                        return type.key === $scope.inputData.type;
+                if ($scope.addSites.inputData.type) {
+                    $scope.addSites.inputData.display = _.find($scope.addSites.types, function (type) {
+                        return type.key === $scope.addSites.inputData.type;
                     }).display;
                 } else {
-                    $scope.inputData.display = null;
+                    $scope.addSites.inputData.display = null;
                 }
-                $scope.layerData.currentLayer = null;
+                $scope.addSites.layerData.currentLayer = null;
             }
             $scope.addSites.showSpinner = false;
         });
 
         // Invoked when the user clicks the 'Choose' button on the server url field.
         $scope.addSites.updateServer = function () {
-            $scope.serverData.error = null;
+            $scope.addSites.serverData.error = null;
             $scope.addSites.showSpinner = true;
-            $scope.serverData.currentGeoserverUrl = $scope.serverData.proposedGeoserverUrl;
-            $scope.inputData = {};
-            $scope.layerData = {};
-            $scope.filterData = {};
+            $scope.addSites.serverData.currentGeoserverUrl = $scope.addSites.serverData.proposedGeoserverUrl;
+            $scope.addSites.inputData = {};
+            $scope.addSites.layerData = {};
+            $scope.addSites.filterData = {};
 
             // Get the layer list from the GetCapabilities WMS operation.
-            WMS.getCapabilities($scope.serverData.currentGeoserverUrl).then(function (data) {
+            WMS.getCapabilities($scope.addSites.serverData.currentGeoserverUrl).then(function (data) {
                 var layers = data.capability.layers;
-                $scope.serverData.error = null;
-                $scope.layerData.layers = layers;
+                $scope.addSites.serverData.error = null;
+                $scope.addSites.layerData.layers = layers;
 
-                $scope.dataLayers = _.chain(_.filter(layers, function (layer) {
+                $scope.addSites.dataLayers = _.chain(_.filter(layers, function (layer) {
                     return _.contains(_.keys(CONFIG.dataSources.targets), layer.name);
                 }))
                     // Streamline the properties we are including.
@@ -361,7 +358,7 @@ angular.module('stealth.targetrank.targetRank', [
                     .value();
             }, function (reason) {
                 // The GetCapabilites request failed.
-                $scope.serverData.error = 'GetCapabilities request failed. Error: ' + reason.status + ' ' + reason.statusText;
+                $scope.addSites.serverData.error = 'GetCapabilities request failed. Error: ' + reason.status + ' ' + reason.statusText;
             }).finally(function () {
                 $scope.addSites.showSpinner = false;
             });
@@ -369,28 +366,28 @@ angular.module('stealth.targetrank.targetRank', [
 
         // Invoked when the current selected layer changes.
         $scope.addSites.getFeatureTypeDescription = function () {
-            $scope.layerData.error = null;
+            $scope.addSites.layerData.error = null;
             $scope.addSites.showSpinner = true;
-            $scope.filterData = {};
+            $scope.addSites.filterData = {};
             $scope.featureTypeData = null;
 
-            WFS.getFeatureTypeDescription($scope.serverData.currentGeoserverUrl, $scope.layerData.currentLayer.name).then(function (data) {
+            WFS.getFeatureTypeDescription($scope.addSites.serverData.currentGeoserverUrl, $scope.addSites.layerData.currentLayer.name).then(function (data) {
                 $scope.featureTypeData = data;
                 if (data.error) {
                     $scope.featureTypeData = 'unavailable';
                     // Response is successful, but no description is found for the type.
                 }
             }, function (reason) {
-                $scope.serverData.error = 'GetFeatureTypeDescription request failed. Error: ' + reason.status + ' ' + reason.statusText;
+                $scope.addSites.serverData.error = 'GetFeatureTypeDescription request failed. Error: ' + reason.status + ' ' + reason.statusText;
             }).finally(function () {
                 $scope.addSites.showSpinner = false;
             });
         };
 
         $scope.addSites.getFeature = function () {
-            var url = $scope.serverData.currentGeoserverUrl,
-                layerName = $scope.layerData.currentLayer.name,
-                cql = _.isEmpty($scope.filterData.cql) ? null : $scope.filterData.cql;
+            var url = $scope.addSites.serverData.currentGeoserverUrl,
+                layerName = $scope.addSites.layerData.currentLayer.name,
+                cql = _.isEmpty($scope.addSites.filterData.cql) ? null : $scope.addSites.filterData.cql;
             $scope.targetRank.loadingSites = true;
             $scope.targetRank.inputList.currentPage = 1;
 
@@ -398,7 +395,7 @@ angular.module('stealth.targetrank.targetRank', [
 
             WFS.getFeature(url, layerName, {
                 cql_filter: cql,
-                sortBy: $scope.targetRank.inputData.type === 'track' ? 'dtg' : null
+                sortBy: $scope.addSites.inputData.type === 'track' ? 'dtg' : null
             }).then(function (response) {
                 $scope.targetRank.sites = response.data.features;
                 if (!_.isArray($scope.targetRank.sites)) {
@@ -407,7 +404,7 @@ angular.module('stealth.targetrank.targetRank', [
                 if ($scope.targetRank.sites.length < 1) {
                     alert('No results found.');
                 } else {
-                    $scope.options = {
+                    $scope.targetRank.options = {
                         startDate: aWeekAgo,
                         startTime: _.cloneDeep(aWeekAgo),
                         endDate: now,
@@ -427,10 +424,10 @@ angular.module('stealth.targetrank.targetRank', [
                     // Update the map.
                     $rootScope.$emit('SetMapDataLayerZoomState', false);
                     $rootScope.$emit("ReplaceWmsMapLayers", _.pluck($scope.addSites.types, 'display'), {
-                        name: $scope.targetRank.inputData.display,
+                        name: $scope.addSites.inputData.display,
                         url: $filter('endpoint')(url, 'wms', true),
                         layers: [layerName],
-                        styles: $scope.targetRank.inputData.type === 'route' ? 'stealth_tpInput_line' : 'stealth_tpInput_point',
+                        styles: $scope.addSites.inputData.type === 'route' ? 'stealth_tpInput_line' : 'stealth_tpInput_point',
                         cql_filter: cql,
                         extent: extent
                     });
@@ -441,7 +438,11 @@ angular.module('stealth.targetrank.targetRank', [
         };
 
         $scope.addSites.submit = function () {
-            $scope.targetRank.inputData = angular.copy($scope.inputData);
+            $scope.targetRank.serverData = angular.copy($scope.addSites.serverData);
+            $scope.targetRank.dataLayers = angular.copy($scope.addSites.dataLayers);
+            $scope.targetRank.layerData = angular.copy($scope.addSites.layerData);
+            $scope.targetRank.inputData = angular.copy($scope.addSites.inputData);
+            $scope.targetRank.filterData = angular.copy($scope.addSites.filterData);
             $scope.addSites.getFeature();
         };
 

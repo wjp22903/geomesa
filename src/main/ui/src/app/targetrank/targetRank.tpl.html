@@ -92,7 +92,7 @@
                         </header>
                         <ul class="list-unstyled data-layers">
                             <li class="checkbox"
-                                ng-repeat="(workspace, layers) in dataLayers">
+                                ng-repeat="(workspace, layers) in targetRank.dataLayers">
 
                                 <div ng-if="layers.length === 1">
                                     <label class="header-label">
@@ -149,7 +149,7 @@
                                     </td><td>
                                         <div class="input-group">
                                             <input type="text" class="form-control input-sm" name="proximityMeters"
-                                                   ng-model="options.proximityMeters" style="width:50px;">
+                                                   ng-model="targetRank.options.proximityMeters" style="width:50px;">
                                             <span style="position:absolute;bottom:6px;">&nbsp;&nbsp;&nbsp;meters</span>
                                         </div>
                                     </td></tr>
@@ -157,13 +157,13 @@
                                         Start Date/Time
                                     </td><td>
                                         <p class="input-group">
-                                            <input datepicker-popup datepicker-append-to-body="true" size="11" type="text" class="form-control input-sm" is-open="targetRank.optionsForm.startDateOpen" ng-model="options.startDate">
+                                            <input datepicker-popup datepicker-append-to-body="true" size="11" type="text" class="form-control input-sm" is-open="targetRank.optionsForm.startDateOpen" ng-model="targetRank.options.startDate">
                                             <span class="input-group-btn">
                                                 <button type="button" class="btn btn-default btn-sm" ng-click="targetRank.optionsForm.startDateOpen = targetRank.optionsForm.toggleDateOpen($event, targetRank.optionsForm.startDateOpen)"><i class="glyphicon glyphicon-calendar"></i></button>
                                             </span>
                                         </p>
                                     </td><td style="padding-left:15px;">
-                                        <timepicker class="input-sm timepicker-sm" ng-model="options.startTime" show-meridian="false"></timepicker>
+                                        <timepicker class="input-sm timepicker-sm" ng-model="targetRank.options.startTime" show-meridian="false"></timepicker>
                                     </td><td style="padding-left:5px;">
                                         Z
                                     </td><td style="padding-left:15px;">
@@ -175,13 +175,13 @@
                                         End Date/Time
                                     </td><td>
                                         <p class="input-group">
-                                            <input datepicker-popup datepicker-append-to-body="true" size="11" type="text" class="form-control input-sm" is-open="targetRank.optionsForm.endDateOpen" ng-model="options.endDate">
+                                            <input datepicker-popup datepicker-append-to-body="true" size="11" type="text" class="form-control input-sm" is-open="targetRank.optionsForm.endDateOpen" ng-model="targetRank.options.endDate">
                                             <span class="input-group-btn">
                                                 <button type="button" class="btn btn-default btn-sm" ng-click="targetRank.optionsForm.endDateOpen = targetRank.optionsForm.toggleDateOpen($event, targetRank.optionsForm.endDateOpen)"><i class="glyphicon glyphicon-calendar"></i></button>
                                             </span>
                                         </p>
                                     </td><td style="padding-left:15px;">
-                                        <timepicker class="input-sm timepicker-sm" ng-model="options.endTime" show-meridian="false"></timepicker>
+                                        <timepicker class="input-sm timepicker-sm" ng-model="targetRank.options.endTime" show-meridian="false"></timepicker>
                                     </td><td style="padding-left:5px;">
                                         Z
                                     </td><td style="padding-left:15px;">
@@ -198,7 +198,7 @@
                                     </td><td>
                                         <div class="input-group">
                                             <input type="text" class="form-control input-sm" name="maxSpeedMps"
-                                                   ng-model="options.maxSpeedMps" style="width:70px;">
+                                                   ng-model="targetRank.options.maxSpeedMps" style="width:70px;">
                                             <span style="position:absolute;bottom:6px;">&nbsp;&nbsp;&nbsp;meters/second</span>
                                         </div>
                                     </td></tr>
@@ -207,7 +207,7 @@
                                     </td><td>
                                         <div class="input-group">
                                             <input type="text" class="form-control input-sm" name="maxTimeSec"
-                                                   ng-model="options.maxTimeSec" style="width:70px;">
+                                                   ng-model="targetRank.options.maxTimeSec" style="width:70px;">
                                             <span style="position:absolute;bottom:6px;">&nbsp;&nbsp;&nbsp;seconds</span>
                                         </div>
                                     </td></tr>

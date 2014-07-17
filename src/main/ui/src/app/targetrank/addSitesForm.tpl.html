@@ -4,11 +4,11 @@
 </div>
 <form ng-submit="addSites.submit()">
     <div class="modal-body">
-        <div class="form-group" ng-class="{ 'has-error': serverData.error }">
+        <div class="form-group" ng-class="{ 'has-error': addSites.serverData.error }">
             <label for=""><span class="form-step">1</span> Enter a server url</label>
             <div class="input-group">
                 <input type="text" class="form-control input-sm" name="geoserverUrl"
-                    ng-model="serverData.proposedGeoserverUrl"
+                    ng-model="addSites.serverData.proposedGeoserverUrl"
                     ng-keypress="$event.keyCode == 13 ? addSites.updateServer() : false">
 
                 <span class="input-group-btn">
@@ -17,33 +17,33 @@
                         class="btn btn-default btn-sm">Choose</button>
                 </span>
             </div>
-            <div class="alert alert-danger" ng-show="serverData.error">
+            <div class="alert alert-danger" ng-show="addSites.serverData.error">
                 <i class="fa fa-warning"></i>
-                {{ serverData.error }}
+                {{ addSites.serverData.error }}
             </div>
         </div>
 
         <div class="form-group" ng-show="addSites.formStep() > 1">
             <label for=""><span class="form-step">2</span> Choose an input type:</label>
             <div class="btn-group">
-                <label class="btn btn-default" ng-repeat="type in addSites.types" ng-model="inputData.type" btn-radio="'{{type.key}}'">{{type.display}}</label>
+                <label class="btn btn-default" ng-repeat="type in addSites.types" ng-model="addSites.inputData.type" btn-radio="'{{type.key}}'">{{type.display}}</label>
             </div>
         </div>
 
         <div class="form-group" ng-show="addSites.formStep() > 2">
-            <label for=""><span class="form-step">3</span> Select a layer from: <span class="label label-success">{{serverData.currentGeoserverUrl}}</span></label>
+            <label for=""><span class="form-step">3</span> Select a layer from: <span class="label label-success">{{addSites.serverData.currentGeoserverUrl}}</span></label>
             <select class="form-control input-sm"
-                ng-model="layerData.currentLayer"
-                ng-init="layerData.currentLayer"
+                ng-model="addSites.layerData.currentLayer"
+                ng-init="addSites.layerData.currentLayer"
                 ng-change="addSites.getFeatureTypeDescription()"
-                ng-options="layer.name for layer in layerData.layers | orderBy:'name' | filter:targetRank.matchGeoserverWorkspace">
+                ng-options="layer.name for layer in addSites.layerData.layers | orderBy:'name' | filter:addSites.matchGeoserverWorkspace">
             </select>
         </div>
 
         <div class="form-group" ng-show="addSites.formStep() > 3">
             <blockquote class="feature-type-data-container">
-                <h4>{{ layerData.currentLayer.title }}</h4>
-                <p>{{ layerData.currentLayer.abstract }}</p>
+                <h4>{{ addSites.layerData.currentLayer.title }}</h4>
+                <p>{{ addSites.layerData.currentLayer.abstract }}</p>
 
                 <div ng-switch="featureTypeData">
                     <div ng-switch-when="unavailable" class="alert alert-warning">
@@ -65,7 +65,7 @@
             </blockquote>
             <label for=""><span class="form-step">4</span> Enter CQL</label>
             <input type="text" class="form-control input-sm" name="siteCql" placeholder="Enter CQL"
-                ng-model="filterData.cql">
+                ng-model="addSites.filterData.cql">
         </div>
 
         <div class="form-group" ng-show="addSites.showSpinner">
