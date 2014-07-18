@@ -1,4 +1,4 @@
-![GeoMesa Logo](https://raw.githubusercontent.com/geomesa/geomesa.github.io/master/img/geomesa.png)
+![GeoMesa Logo](https://raw.githubusercontent.com/geomesa/geomesa.github.io/master/img/geomesa-2x.png) | ![LocationTech Logo](https://pbs.twimg.com/profile_images/2552421256/hv2oas84tv7n3maianiq_400x400.png)
 
 ### Build Status
 
@@ -28,15 +28,7 @@ This project contains the implementations of the core indexing structures, Accum
 
 ##### Scala console via scala-maven-plugin
 
-To test and interact with core functionality, the Scala console can be invoked in a couple of ways.
-
-From the root directory by specifying geomesa-core
-```geomesa> mvn -pl geomesa-core scala:console```
-
-Or from the sub-project's directory
-```geomesa-core> mvn scala:console```
-
-By default, all of the project packages in ```core``` are loaded along with JavaConversions, JavaConverters.
+To test and interact with core functionality, the Scala console can be invoked in a couple of ways.  From the root directory by specifying geomesa-core ```geomesa> mvn -pl geomesa-core scala:console```.  Or from the sub-project's directory ```geomesa-core> mvn scala:console```.  By default, all of the project packages in ```core``` are loaded along with JavaConversions, JavaConverters.
 
 #### geomesa-distributed-runtime
 
@@ -45,23 +37,15 @@ directory or to an HDFS directory where Accumulo's VFSClassLoader can pick it up
 
 #### geomesa-plugin
 
-This sub-project creates a plugin which provides WFS and WMS support.
-
-The JAR named geomesa-plugin-<Version>-geoserver-plugin.jar is ready to be deployed in GeoServer by
-copying it into geoserver/WEB-INF/lib/
+This sub-project creates a plugin which provides WFS and WMS support.  The JAR named geomesa-plugin-<Version>-geoserver-plugin.jar is ready to be deployed in GeoServer by copying it into geoserver/WEB-INF/lib/
 
 #### geomesa-utils
 
-This sub-project stores our GeoHash implementation and other general library functions unrelated to
-Accumulo.
-
-This sub-project contains any helper tools for geomesa.  Some of these tools such as
-the GeneralShapefileIngest have Map/Reduce components, so the geomesa-utils JAR lives on HDFS.
+This sub-project stores our GeoHash implementation and other general library functions unrelated to Accumulo. This sub-project contains any helper tools for geomesa.  Some of these tools such as the GeneralShapefileIngest have Map/Reduce components, so the geomesa-utils JAR lives on HDFS.
 
 #### geomesa-dist
 
-This sub-project contains the distribution-ready TAR-ball as well as the
-documentation (in DocBook form, rendered to PDF).
+This sub-project contains the distribution-ready TAR-ball as well as the documentation (in DocBook form, rendered to PDF).
 
 ####  Checkout out and build GeoMesa
 
