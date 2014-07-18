@@ -1,4 +1,4 @@
-![GeoMesa Logo](https://raw.githubusercontent.com/geomesa/geomesa.github.io/master/img/geomesa-2x.png) | ![LocationTech Logo](https://pbs.twimg.com/profile_images/2552421256/hv2oas84tv7n3maianiq_400x400.png)
+![GeoMesa Logo](https://raw.githubusercontent.com/geomesa/geomesa.github.io/master/img/geomesa-2x.png) | ![LocationTech Logo](https://pbs.twimg.com/profile_images/2552421256/hv2oas84tv7n3maianiq_400x400.png =50x50)
 
 ### Build Status
 
