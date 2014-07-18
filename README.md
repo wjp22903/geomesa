@@ -1,11 +1,11 @@
-![GeoMesa Logo](https://raw.githubusercontent.com/geomesa/geomesa.github.io/master/img/geomesa-2x.png) 
+<p align="center">![GeoMesa Logo](https://raw.githubusercontent.com/geomesa/geomesa.github.io/master/img/geomesa-2x.png)</p>
 
 ### Build Status
 
 Version | Status
 ------ | -----
 | 1.x for Accumulo 1.4.x | [![Build Status](https://travis-ci.org/locationtech/geomesa.svg?branch=accumulo1.4%2F1.x)](https://travis-ci.org/locationtech/geomesa)  	| 
-| 1.x for Accumulo 1.5.x | [![Build Status](https://travis-ci.org/locationtech/geomesa.svg?branch=accumulo1.5%2F1.x)](https://travis-ci.org/locationtech/geomesa)  	| 
+| 1.x for Accumulo 1.5.x | [![Build Status](https://travis-ci.org/locationtech/geomesa.svg?branch=accumulo1.5.x%2F1.x)](https://travis-ci.org/locationtech/geomesa)  	| 
 
 ## GeoMesa
 
@@ -14,6 +14,15 @@ Version | Status
 GeoMesa is an open-source, distributed, spatio-temporal database built on top of the Apache Accumulo column family store. GeoMesa implements standard Geotools interfaces to provide geospatial functionality over very large data sets to application developers.  GeoMesa provides plugins for exposing geospatial data stored in Accumulo via standards-based OGC HTTP services and cluster monitoring and management tools within the GeoServer administrative interface.  
 
 #### ![LocationTech](https://pbs.twimg.com/profile_images/2552421256/hv2oas84tv7n3maianiq_normal.png) GeoMesa is a member of the [LocationTech](http://www.locationtech.org) working group of the Eclipse Foundation.
+
+
+#### Building Instructions
+
+This project is managed by Maven, and builds with the command
+
+```geomesa> mvn clean install```
+
+From the root directory, this builds each sub-project with its additional dependencies-included JAR.
 
 ## Documentation
 
@@ -53,12 +62,4 @@ This sub-project contains the distribution-ready TAR-ball as well as the documen
 
 * Navigate to where you would like to download this project.
 * git clone git@github.com:geomesa/geomesa.git
-
-#### Building Instructions
-
-This project is managed by Maven, and builds with the command
-
-```geomesa> mvn clean install```
-
-From the root directory, this builds each sub-project with its additional dependencies-included JAR.
 
