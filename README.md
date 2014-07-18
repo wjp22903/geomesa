@@ -1,4 +1,4 @@
-<img align="center" src="https://raw.githubusercontent.com/geomesa/geomesa.github.io/master/img/geomesa-2x.png"></img>
+<p align="center"><img src="https://raw.githubusercontent.com/geomesa/geomesa.github.io/master/img/geomesa-2x.png"></img></p>
 
 ### Build Status
 
