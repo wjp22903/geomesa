@@ -4,8 +4,8 @@
 
 Version | Status
 ------ | -----
-| 1.x (Accumulo 1.4.x) | [![Build Status](https://travis-ci.org/locationtech/geomesa.svg?branch=accumulo1.4%2F1.x)](https://travis-ci.org/locationtech/geomesa)  	| 
-| 1.x (Accumulo 1.5.x) | [![Build Status](https://travis-ci.org/locationtech/geomesa.svg?branch=accumulo1.5%2F1.x)](https://travis-ci.org/locationtech/geomesa)  	| 
+| 1.x for Accumulo 1.4.x | [![Build Status](https://travis-ci.org/locationtech/geomesa.svg?branch=accumulo1.4%2F1.x)](https://travis-ci.org/locationtech/geomesa)  	| 
+| 1.x for Accumulo 1.5.x | [![Build Status](https://travis-ci.org/locationtech/geomesa.svg?branch=accumulo1.5%2F1.x)](https://travis-ci.org/locationtech/geomesa)  	| 
 
 ## GeoMesa
 
