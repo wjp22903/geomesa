@@ -13,10 +13,13 @@ Version | Status
 
 GeoMesa is an open-source, distributed, spatio-temporal database built on top of the Apache Accumulo column family store. GeoMesa implements standard Geotools interfaces to provide geospatial functionality over very large data sets to application developers.  GeoMesa provides plugins for exposing geospatial data stored in Accumulo via standards-based OGC HTTP services and cluster monitoring and management tools within the GeoServer administrative interface.  
 
-#### ![LocationTech](https://pbs.twimg.com/profile_images/2552421256/hv2oas84tv7n3maianiq_normal.png) GeoMesa is a member of the [LocationTech](http://www.locationtech.org) working group of the Eclipse Foundation.
+### ![LocationTech](https://pbs.twimg.com/profile_images/2552421256/hv2oas84tv7n3maianiq_normal.png) GeoMesa is a member of the [LocationTech](http://www.locationtech.org) working group of the Eclipse Foundation.
 
 
 #### Building Instructions
+
+* Navigate to where you would like to download this project.
+* git clone git@github.com:geomesa/geomesa.git
 
 This project is managed by Maven, and builds with the command
 
@@ -57,9 +60,4 @@ This sub-project stores our GeoHash implementation and other general library fun
 #### geomesa-dist
 
 This sub-project contains the distribution-ready TAR-ball as well as the documentation (in DocBook form, rendered to PDF).
-
-####  Checkout out and build GeoMesa
-
-* Navigate to where you would like to download this project.
-* git clone git@github.com:geomesa/geomesa.git
 
