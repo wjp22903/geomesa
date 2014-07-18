@@ -1,5 +1,4 @@
 ![GeoMesa Logo](https://raw.githubusercontent.com/geomesa/geomesa.github.io/master/img/geomesa-2x.png) 
-![LocationTech Logo](https://pbs.twimg.com/profile_images/2552421256/hv2oas84tv7n3maianiq_normal.png)
 
 ### Build Status
 
@@ -12,7 +11,7 @@ Version | Status
 
 ![Splash](http://geomesa.github.io/img/geomesa-overview-848x250.png)
 
-GeoMesa is an open-source, distributed, spatio-temporal database built on top of the Apache Accumulo column family store. GeoMesa implements standard Geotools interfaces to provide geospatial functionality over very large data sets to application developers.  GeoMesa provides plugins for exposing geospatial data stored in Accumulo via standards-based OGC HTTP services and cluster monitoring and management tools within the GeoServer administrative interface.
+GeoMesa is an open-source, distributed, spatio-temporal database built on top of the Apache Accumulo column family store. GeoMesa implements standard Geotools interfaces to provide geospatial functionality over very large data sets to application developers.  GeoMesa provides plugins for exposing geospatial data stored in Accumulo via standards-based OGC HTTP services and cluster monitoring and management tools within the GeoServer administrative interface.  GeoMesa is a member of the [LocationTech](https://pbs.twimg.com/profile_images/2552421256/hv2oas84tv7n3maianiq_normal.png) working group of the Eclipse Foundation.
 
 ## Documentation
 
@@ -25,7 +24,7 @@ GeoMesa is an open-source, distributed, spatio-temporal database built on top of
 
 #### geomesa-core
 
-This project contains the implementations of the core indexing structures, Accumulo iterators, and the GeoTools interfaces for exposing the functionality as a ```DataStore``` to both application developers and GeoServer.
+This project contains the implementations of the core indexing structures, Accumulo iterators, and the GeoTools interfaces for exposing the functionalit yas a ```DataStore``` to both application developers and GeoServer.
 
 ##### Scala console via scala-maven-plugin
 
