@@ -764,24 +764,29 @@ object GeohashUtils
 
       // generate all combinations of GeoHash strings of
       // the desired length
-      def generateAll(prefix: String): Seq[String] =
-        if (prefix.length < bits) {
-          val charSeqs = List.fill(bits - prefix.length)(base32seq)
-          CartesianProductIterable(charSeqs).toList.map(prefix + _.mkString)
-        } else Seq(prefix)
+      def generateAll(prefix: String): Seq[String] = {
+        val prefixHash = GeoHash.fromBinaryString(prefix).hash
+        if (prefixHash.length < bits) {
+          val charSeqs = List.fill(bits - prefixHash.length)(base32seq)
+          CartesianProductIterable(charSeqs).toList.map(prefixHash + _.mkString)
+        } else Seq(prefixHash)
+      }
 
       def generateSome: Seq[String] = {
         prefixes.foldLeft(HashSet[String]())((ghsSoFar, prefix) => {
           // fill out this prefix to the next 5-bit boundaries
-          val bitsToBoundary = prefix.length % 5
+          val bitsToBoundary = (65 - prefix.length) % 5
           val bases =
             if (bitsToBoundary == 0) Seq(prefix)
             else {
-              val fillers = List.fill(prefix.length % 5)(Seq('0', '1'))
-              CartesianProductIterable(fillers).toList.map(prefix + _.mkString)
+              val fillers = List.fill(bitsToBoundary)(Seq('0', '1'))
+              val result = CartesianProductIterable(fillers).toList.map(prefix + _.mkString)
+              result
             }
           bases.foldLeft(ghsSoFar)((ghs, base) => {
-            ghs ++ generateAll(base)
+            val baseTrimmed = base.drop(minBits)
+            val newSubs = generateAll(baseTrimmed)
+            ghs ++ newSubs
           })
         }).toSeq
       }
@@ -796,7 +801,9 @@ object GeohashUtils
     def considerCandidate(candidate: GeoHash) {
       val bitString = candidate.toBinaryString
 
-      if (poly.covers(candidate.geom) || (bitString.size == maxBits && candidate.geom.intersects(poly))) {
+      if (!poly.intersects(candidate.geom)) return;
+
+      if (poly.covers(candidate.geom) || (bitString.size == maxBits)) {
         BitPrefixes.add(bitString)
       } else {
         if (bitString.size < maxBits) {
