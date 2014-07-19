@@ -759,10 +759,10 @@ object GeohashUtils
     }
 
     // find the qualifying GeoHashes within these covering rectangles
-    coverings.foreach { coveringPatch =>
+    coverings.foreach { coveringGH =>
       // how many characters total are left within this patch?
-      val numCharsLeft = offset + bits - coveringPatch.hash.length
-      consider(GH(coveringPatch), numCharsLeft)
+      val numCharsLeft = offset + bits - coveringGH.hash.length
+      consider(GH(coveringGH), numCharsLeft)
     }
 
     // add dotted versions, if appropriate (to match decomposed GeoHashes that
