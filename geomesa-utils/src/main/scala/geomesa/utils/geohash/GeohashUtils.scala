@@ -109,25 +109,6 @@ object GeohashUtils
   // default factory for WGS84
   val defaultGeometryFactory : GeometryFactory = new GeometryFactory(defaultPrecisionModel, 4326)
 
-  /**
-   * Converts a GeoHash to a geometry by way of WKT.
-   *
-   * @param gh the GeoHash -- rectangle -- to convert
-   * @return the Geometry version of this GeoHash
-   */
-  def getGeohashGeom(gh:GeoHash) : Geometry = {
-    val ring : LinearRing = defaultGeometryFactory.createLinearRing(
-      Array(
-        new Coordinate(gh.bbox.ll.getX, gh.bbox.ll.getY),
-        new Coordinate(gh.bbox.ll.getX, gh.bbox.ur.getY),
-        new Coordinate(gh.bbox.ur.getX, gh.bbox.ur.getY),
-        new Coordinate(gh.bbox.ur.getX, gh.bbox.ll.getY),
-        new Coordinate(gh.bbox.ll.getX, gh.bbox.ll.getY)
-      )
-    )
-    defaultGeometryFactory.createPolygon(ring, null)
-  }
-
   def getGeohashPoints(gh:GeoHash) : (Point, Point, Point, Point, Point, Point) = {
     // the bounding box is the basis for all of these points
     val bbox = gh.bbox
@@ -245,7 +226,7 @@ object GeohashUtils
 
     // validate that you found a usable result
     val gh = ghOpt.getOrElse(GeoHash(centroid.getX, centroid.getY, resolutions.minBitsResolution))
-    if (!gh.contains(env))
+    if (!(gh.contains(env) || gh.geom.equals(env)))
       throw new Exception("ERROR:  Could not find a suitable " +
         resolutions.minBitsResolution + "-bit MBR for the target geometry:  " +
         geom)

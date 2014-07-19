@@ -133,4 +133,33 @@ class GeohashUtilsTest extends Specification with Logging {
       }
     }
   }
+
+  "performance test for getUniqueGeohashSubstringsInPolygon" should {
+    "collect timing data" in {
+      val poly = wkt2geom("POLYGON((-170 -80, -170 0, -170 80, 0 80, 170 80, 170 0, 170 -80, 0 -80, -170 -80))").asInstanceOf[Polygon]
+      val burnInTrials = 10
+      val collectTrials = 100
+      val expectedResults = 9159
+
+      println(s"[TIMING POLYGON] $poly")
+
+      def runTest(label: String, count: Int, maxCount: Int) = {
+        println(s"[TIMING.$label] $count / $maxCount ...")
+        val ghs = getUniqueGeohashSubstringsInPolygon(poly, 0, 3, 1 << 15)
+        if (ghs.size != expectedResults)
+          throw new Exception(s"Wrong number of GeoHash sub-string results:  ${ghs.size} (expected $expectedResults)")
+      }
+
+      // perform a few trials to get everything warmed up
+      (0 until burnInTrials).foreach(i => runTest("BURN-IN", i, burnInTrials))
+
+      // perform the trials you want to time
+      val msStart = System.currentTimeMillis()
+      (0 until collectTrials).foreach(i => runTest("COLLECT", i, collectTrials))
+      val msStop = System.currentTimeMillis()
+
+      // output results
+      println(s"\n[TIMING SUBSTRINGS] $collectTrials at ${(msStop - msStart) / 1000.0} seconds\n\n")
+    }
+  }
 }
