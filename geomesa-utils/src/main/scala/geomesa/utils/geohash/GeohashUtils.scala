@@ -16,6 +16,8 @@
 
 package geomesa.utils.geohash
 
+import geomesa.utils.CartesianProductIterable
+
 import collection.BitSet
 import collection.immutable.Range.Inclusive
 import collection.mutable.{HashSet => MutableHashSet}
@@ -23,6 +25,7 @@ import com.spatial4j.core.context.jts.JtsSpatialContext
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom._
 import geomesa.utils.text.WKTUtils
+import scala.collection.immutable.HashSet
 import scala.util.control.Exception.catching
 
 /**
@@ -722,56 +725,139 @@ object GeohashUtils
                                           bits: Int,
                                           MAX_KEYS_IN_LIST: Int = Int.MaxValue): Seq[String] = {
 
-    // decompose the polygon (to avoid median-crossing polygons
-    // that can require a HUGE amount of unnecessary work)
-    val coverings = decomposeGeometry(
-      poly, 4, ResolutionRange(0, Math.min(35, 5 * (offset + bits)), 5))
-
-    // mutable!
-    val memoized = MutableHashSet.empty[String]
-
+    val allResolutions = ResolutionRange(0, Math.min(35, 5 * (offset + bits)), 1)
     val maxKeys = Math.min(1 << (bits * 5), MAX_KEYS_IN_LIST)
+    val maxBits = (offset + bits) * 5
+    val minBits = offset * 5
 
-    // utility class only needed within this method
-    case class GH(gh: GeoHash) {
-      def hash = gh.hash
-      def bbox = gh.bbox
-      lazy val subHash: Option[String] = {
-        if (gh.hash.length >= (offset+bits))
-          Option(gh.hash.drop(offset).take(bits))
-        else None
+    // find the smallest GeoHash you can that covers the target geometry
+    val ghMBR = getMinimumBoundingGeohash(poly, allResolutions)
+
+    // mutable state containing the set of unique bit-string prefixes
+    // that are wholly contained in the target geometry
+    object BitPrefixes {
+      val prefixes = collection.mutable.HashSet[String]()
+      var entailedSize: Int = 0
+      var usesAll = false
+
+      def add(prefix: String) =
+        if (prefix.length <= maxBits) {
+          prefixes.add(prefix)
+          if (prefix.length <= minBits) usesAll = true
+          entailedSize = entailedSize + (1 << (maxBits - prefix.length))
+        }
+
+      // the number of (compatible) prefixes stored
+      def size: Int = prefixes.size
+
+      // the loose inequality is so that we can detect overflow
+      def hasRoom = entailedSize <= maxKeys
+
+      def notDone = !usesAll && hasRoom
+
+      def overflowed =
+        if (usesAll) {
+          (1 << maxBits) > maxKeys
+        } else {
+          entailedSize > maxKeys
+        }
+
+      // generate all combinations of GeoHash strings of
+      // the desired length
+      def generateAll(prefix: String): Seq[String] =
+        if (prefix.length < bits) {
+          val charSeqs = List.fill(bits - prefix.length)(base32seq)
+          CartesianProductIterable(charSeqs).toList.map(prefix + _.mkString)
+        } else Seq()
+
+      def generateSome: Seq[String] = {
+        prefixes.foldLeft(HashSet[String]())((ghsSoFar, prefix) => {
+          // fill out this prefix to the next 5-bit boundaries
+          val fillers = List.fill(prefix.length % 5)(Seq('0', '1'))
+          val bases = CartesianProductIterable(fillers).toList.map(prefix + _.mkString)
+          bases.foldLeft(ghsSoFar)((ghs, base) => ghs ++ generateAll(base))
+        }).toSeq
       }
-      def canProceed = !subHash.isDefined ||
-        (memoized.size < maxKeys && !memoized.contains(subHash.get) && poly.intersects(bbox.geom))
+
+      def toSeq: Seq[String] =
+        if (usesAll) generateAll("")
+        else generateSome
     }
 
-    def consider(gh: GH, charsLeft: Int) {
-      if (memoized.size < maxKeys) {
-        if (charsLeft > 0) {
-          for {
-            newChar <- base32seq
-            newGH = GH(GeoHash(gh.hash + newChar)) if newGH.canProceed
-          } yield consider(newGH, charsLeft - 1)
-        } else {
-          memoized.add(gh.subHash.get)
+    // assume that this method is never called on a GeoHash
+    // whose binary-string encoding is too long
+    def considerCandidate(candidate: GeoHash) {
+      val bitString = candidate.toBinaryString
+
+      if (poly.covers(candidate.geom)) {
+        BitPrefixes.add(bitString)
+      } else {
+        if (bitString.size < maxBits) {
+          // recurse into both children of this GeoHash
+          if (BitPrefixes.notDone) considerCandidate(GeoHash.fromBinaryString(bitString + "0"))
+          if (BitPrefixes.notDone) considerCandidate(GeoHash.fromBinaryString(bitString + "1"))
         }
       }
     }
 
-    // find the qualifying GeoHashes within these covering rectangles
-    coverings.foreach { coveringGH =>
-      // how many characters total are left within this patch?
-      val numCharsLeft = offset + bits - coveringGH.hash.length
-      consider(GH(coveringGH), numCharsLeft)
-    }
+    // compute the list of acceptable prefixes
+    if (ghMBR.prec < maxBits) considerCandidate(ghMBR)
 
-    // add dotted versions, if appropriate (to match decomposed GeoHashes that
-    // may be encoded at less than a full 35-bits precision)
-    if (memoized.size < maxKeys) {
-      // STOP as soon as you've exceeded the maximum allowable entries
-      val keepers = getGeohashStringDottingIterator(
-        memoized, MAX_KEYS_IN_LIST).toSet
-      if (keepers.size <= MAX_KEYS_IN_LIST) keepers.toSeq else Seq()
-    } else Seq()
+    // detect overflow
+    if (BitPrefixes.overflowed) return Seq()
+
+    // not having overflowed, turn the collection of disjoint prefixes
+    // into a list of full geohash substrings
+    BitPrefixes.toSeq
+
+//    // decompose the polygon (to avoid median-crossing polygons
+//    // that can require a HUGE amount of unnecessary work)
+//    val coverings = decomposeGeometry(
+//      poly, 4, ResolutionRange(0, Math.min(35, 5 * (offset + bits)), 5))
+//
+//    // mutable!
+//    val memoized = MutableHashSet.empty[String]
+//
+//    // utility class only needed within this method
+//    case class GH(gh: GeoHash) {
+//      def hash = gh.hash
+//      def bbox = gh.bbox
+//      lazy val subHash: Option[String] = {
+//        if (gh.hash.length >= (offset+bits))
+//          Option(gh.hash.drop(offset).take(bits))
+//        else None
+//      }
+//      def canProceed = !subHash.isDefined ||
+//        (memoized.size < maxKeys && !memoized.contains(subHash.get) && poly.intersects(bbox.geom))
+//    }
+//
+//    def consider(gh: GH, charsLeft: Int) {
+//      if (memoized.size < maxKeys) {
+//        if (charsLeft > 0) {
+//          for {
+//            newChar <- base32seq
+//            newGH = GH(GeoHash(gh.hash + newChar)) if newGH.canProceed
+//          } yield consider(newGH, charsLeft - 1)
+//        } else {
+//          memoized.add(gh.subHash.get)
+//        }
+//      }
+//    }
+//
+//    // find the qualifying GeoHashes within these covering rectangles
+//    coverings.foreach { coveringGH =>
+//      // how many characters total are left within this patch?
+//      val numCharsLeft = offset + bits - coveringGH.hash.length
+//      consider(GH(coveringGH), numCharsLeft)
+//    }
+//
+//    // add dotted versions, if appropriate (to match decomposed GeoHashes that
+//    // may be encoded at less than a full 35-bits precision)
+//    if (memoized.size < maxKeys) {
+//      // STOP as soon as you've exceeded the maximum allowable entries
+//      val keepers = getGeohashStringDottingIterator(
+//        memoized, MAX_KEYS_IN_LIST).toSet
+//      if (keepers.size <= MAX_KEYS_IN_LIST) keepers.toSeq else Seq()
+//    } else Seq()
   }
 }
