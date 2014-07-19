@@ -100,18 +100,64 @@ class GeohashUtilsTest extends Specification with Logging {
     }
   })
 
+  def validateGeohashSubstrings(geom: Geometry, offset: Int, bits: Int, subs: Seq[String]) {
+    import java.io._
+    val file = File.createTempFile("subhashes_", ".txt", new File("/tmp"))
+    val pw = new PrintWriter(new BufferedWriter(new FileWriter(file)))
+    pw.println(s"wkt\tweight")
+
+    // write out the target geometry
+    pw.println(WKTUtils.write(geom) + "\t1")
+
+    // write out the covering GeoHashes at this precision,
+    val rghi = RectangleGeoHashIterator(geom, (offset + bits) * 5)
+    val iteratedSubs = rghi.map { gh =>
+      pw.println(WKTUtils.write(gh.geom) + "\t2")
+      gh.hash.drop(offset).take(bits)
+    }.toSet
+
+    println("\n[VALIDATE GEOHASH SUBS]")
+    println(s"  Geometry:  " + WKTUtils.write(geom))
+    println(s"  Range sought:  ($offset, $bits)")
+    println(s"  Iterated:  " + iteratedSubs.size + " unique sub-strings")
+    println(s"  Computed:  " + subs.size + " unique sub-strings")
+    println(s"  Mismatches")
+    println(s"    i - c:  " + (iteratedSubs -- subs.toSet).size)
+    println(s"    c - i:  " + (subs.toSet -- iteratedSubs).size)
+
+    pw.close()
+  }
+
   "getUniqueGeohashSubstringsInPolygon" should {
-    "do something useful" in {
-      val polygonCharlottesville = wkt2geom(testData(
-        "[POLYGON] Charlottesville")._4).asInstanceOf[Polygon]
+    val polygonCharlottesville = wkt2geom(testData(
+      "[POLYGON] Charlottesville")._4).asInstanceOf[Polygon]
+
+    def testGeohashSubstringsInCharlottesville(offset: Int, bits: Int): Int = {
       val ghSubstrings = getUniqueGeohashSubstringsInPolygon(
-        polygonCharlottesville, 2, 3, 1<<15)
+        polygonCharlottesville, offset, bits, 1<<15)
 
       if (DEBUG_OUTPUT)
         ghSubstrings.foreach { gh => logger.debug("[unique Charlottesville gh(2,3)] " + gh)}
 
-      //@TODO fix!
-      //ghSubstrings.size must be equalTo(9)
+      validateGeohashSubstrings(polygonCharlottesville, offset, bits, ghSubstrings)
+
+      ghSubstrings.size
+    }
+
+    "compute (0,2) correctly for Charlottesville" in {
+      testGeohashSubstringsInCharlottesville(0, 2) must be equalTo 1
+    }
+
+    "compute (2,3) correctly for Charlottesville" in {
+      testGeohashSubstringsInCharlottesville(2, 3) must be equalTo 6
+    }
+
+    "compute (0,3) correctly for Charlottesville" in {
+      testGeohashSubstringsInCharlottesville(0, 3) must be equalTo 1
+    }
+
+    "compute (3,2) correctly for Charlottesville" in {
+      testGeohashSubstringsInCharlottesville(3, 2) must be equalTo 6
     }
   }
 
@@ -140,16 +186,14 @@ class GeohashUtilsTest extends Specification with Logging {
       val poly = wkt2geom("POLYGON((-170 -80, -170 0, -170 80, 0 80, 170 80, 170 0, 170 -80, 0 -80, -170 -80))").asInstanceOf[Polygon]
       val burnInTrials = 10
       val collectTrials = 100
-      val expectedResults = 9159
+      val expectedResults = 27588
 
       println(s"[TIMING POLYGON] $poly")
 
       def runTest(label: String, count: Int, maxCount: Int) = {
-        println(s"[TIMING.$label] $count / $maxCount ...")
         val ghs = getUniqueGeohashSubstringsInPolygon(poly, 0, 3, 1 << 15)
-        //@TODO fix!
-        //if (ghs.size != expectedResults)
-        //  throw new Exception(s"Wrong number of GeoHash sub-string results:  ${ghs.size} (expected $expectedResults)")
+        if (ghs.size != expectedResults)
+          throw new Exception(s"Wrong number of GeoHash sub-string results:  ${ghs.size} (expected $expectedResults)")
       }
 
       // perform a few trials to get everything warmed up

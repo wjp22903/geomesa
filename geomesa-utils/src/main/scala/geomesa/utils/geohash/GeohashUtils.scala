@@ -703,12 +703,34 @@ object GeohashUtils
    * The full GeoHashes from which the sub-strings are extracted are computed
    * at 35 bits.
    *
-   * NB:  If the query-polygon crosses one of the principal mid-points (0
-   * latitude or longitude), you may end up with a 0-bit GeoHash being the
-   * best choice for minimum-bounding GeoHash, and computing the "%3,2#gh"
-   * with that covering can be prohibitively slow.  To combat that problem,
-   * we first decompose the polygon into its four (or fewer) best covering
-   * GeoHash rectangles, and build up the list from those patches.
+   * Computing all of the 35-bit GeoHashes that intersect with the target
+   * geometry can take too long.  Instead, we start with the minimum-bounding
+   * GeoHash (which might be 0 bits), and recursively dividing it in two
+   * while remembering those GeoHashes that are completely contained in the
+   * target geometry.  This has a few advantages:
+   *
+   * 1.  we can stop recursing into GeoHashes at the coarsest
+   *     level (largest geometry) possible when they stop intersecting
+   *     the target geometry;
+   * 2.  instead of enumerating all of the GeoHashes that intersect, we
+   *     can stop as soon as we know that all possible children are known
+   *     to be inside the target geometry; that is, if a 13-bit GeoHash
+   *     is covered by the target, then we know that all 15-bit GeoHashes
+  *     that are its children will also be covered by the target
+   * 3.  if we ever find a GeoHash that is entirely covered by the target
+   *     geometry whose precision is no more than 5 times the "offset"
+   *     parameter's number of bits, then we can stop, because all possible
+   *     combinations are known to be used
+   *
+   * As an example, consider trying to enumerate the (3, 2) sub-strings of
+   * GeoHashes in a polygon that is only slightly inset within the
+   * Southern hemisphere.  This implicates a large number of 25-bit
+   * GeoHashes, but as soon as one of the GeoHashes that has 15 or fewer
+   * bits is found that is covered by the target, the search can stop
+   * for unique prefixes, because all of its 25-bit children will be
+   * distinct and will also be covered by the target.
+   *
+   * This is easier to explain with pictures.
    *
    * @param poly the query-polygon that must intersect candidate GeoHashes
    * @param offset how many of the left-most GeoHash characters to skip
@@ -815,7 +837,8 @@ object GeohashUtils
     }
 
     // compute the list of acceptable prefixes
-    if (ghMBR.prec < maxBits) considerCandidate(ghMBR)
+    if (ghMBR.prec <= maxBits) considerCandidate(ghMBR)
+    else BitPrefixes.add(ghMBR.toBinaryString.drop(minBits).take(bits * 5))
 
     // detect overflow
     if (BitPrefixes.overflowed) return Seq()
@@ -823,55 +846,5 @@ object GeohashUtils
     // not having overflowed, turn the collection of disjoint prefixes
     // into a list of full geohash substrings
     BitPrefixes.toSeq
-
-//    // decompose the polygon (to avoid median-crossing polygons
-//    // that can require a HUGE amount of unnecessary work)
-//    val coverings = decomposeGeometry(
-//      poly, 4, ResolutionRange(0, Math.min(35, 5 * (offset + bits)), 5))
-//
-//    // mutable!
-//    val memoized = MutableHashSet.empty[String]
-//
-//    // utility class only needed within this method
-//    case class GH(gh: GeoHash) {
-//      def hash = gh.hash
-//      def bbox = gh.bbox
-//      lazy val subHash: Option[String] = {
-//        if (gh.hash.length >= (offset+bits))
-//          Option(gh.hash.drop(offset).take(bits))
-//        else None
-//      }
-//      def canProceed = !subHash.isDefined ||
-//        (memoized.size < maxKeys && !memoized.contains(subHash.get) && poly.intersects(bbox.geom))
-//    }
-//
-//    def consider(gh: GH, charsLeft: Int) {
-//      if (memoized.size < maxKeys) {
-//        if (charsLeft > 0) {
-//          for {
-//            newChar <- base32seq
-//            newGH = GH(GeoHash(gh.hash + newChar)) if newGH.canProceed
-//          } yield consider(newGH, charsLeft - 1)
-//        } else {
-//          memoized.add(gh.subHash.get)
-//        }
-//      }
-//    }
-//
-//    // find the qualifying GeoHashes within these covering rectangles
-//    coverings.foreach { coveringGH =>
-//      // how many characters total are left within this patch?
-//      val numCharsLeft = offset + bits - coveringGH.hash.length
-//      consider(GH(coveringGH), numCharsLeft)
-//    }
-//
-//    // add dotted versions, if appropriate (to match decomposed GeoHashes that
-//    // may be encoded at less than a full 35-bits precision)
-//    if (memoized.size < maxKeys) {
-//      // STOP as soon as you've exceeded the maximum allowable entries
-//      val keepers = getGeohashStringDottingIterator(
-//        memoized, MAX_KEYS_IN_LIST).toSet
-//      if (keepers.size <= MAX_KEYS_IN_LIST) keepers.toSeq else Seq()
-//    } else Seq()
   }
 }
