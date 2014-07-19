@@ -768,14 +768,21 @@ object GeohashUtils
         if (prefix.length < bits) {
           val charSeqs = List.fill(bits - prefix.length)(base32seq)
           CartesianProductIterable(charSeqs).toList.map(prefix + _.mkString)
-        } else Seq()
+        } else Seq(prefix)
 
       def generateSome: Seq[String] = {
         prefixes.foldLeft(HashSet[String]())((ghsSoFar, prefix) => {
           // fill out this prefix to the next 5-bit boundaries
-          val fillers = List.fill(prefix.length % 5)(Seq('0', '1'))
-          val bases = CartesianProductIterable(fillers).toList.map(prefix + _.mkString)
-          bases.foldLeft(ghsSoFar)((ghs, base) => ghs ++ generateAll(base))
+          val bitsToBoundary = prefix.length % 5
+          val bases =
+            if (bitsToBoundary == 0) Seq(prefix)
+            else {
+              val fillers = List.fill(prefix.length % 5)(Seq('0', '1'))
+              CartesianProductIterable(fillers).toList.map(prefix + _.mkString)
+            }
+          bases.foldLeft(ghsSoFar)((ghs, base) => {
+            ghs ++ generateAll(base)
+          })
         }).toSeq
       }
 
@@ -789,7 +796,7 @@ object GeohashUtils
     def considerCandidate(candidate: GeoHash) {
       val bitString = candidate.toBinaryString
 
-      if (poly.covers(candidate.geom)) {
+      if (poly.covers(candidate.geom) || (bitString.size == maxBits && candidate.geom.intersects(poly))) {
         BitPrefixes.add(bitString)
       } else {
         if (bitString.size < maxBits) {
