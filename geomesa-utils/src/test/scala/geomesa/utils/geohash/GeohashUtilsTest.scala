@@ -116,14 +116,14 @@ class GeohashUtilsTest extends Specification with Logging {
       gh.hash.drop(offset).take(bits)
     }.toSet
 
-    println("\n[VALIDATE GEOHASH SUBS]")
-    println(s"  Geometry:  " + WKTUtils.write(geom))
-    println(s"  Range sought:  ($offset, $bits)")
-    println(s"  Iterated:  " + iteratedSubs.size + " unique sub-strings")
-    println(s"  Computed:  " + subs.size + " unique sub-strings")
-    println(s"  Mismatches")
-    println(s"    i - c:  " + (iteratedSubs -- subs.toSet).size)
-    println(s"    c - i:  " + (subs.toSet -- iteratedSubs).size)
+    logger.debug("\n[VALIDATE GEOHASH SUBS]")
+    logger.debug(s"  Geometry:  " + WKTUtils.write(geom))
+    logger.debug(s"  Range sought:  ($offset, $bits)")
+    logger.debug(s"  Iterated:  " + iteratedSubs.size + " unique sub-strings")
+    logger.debug(s"  Computed:  " + subs.size + " unique sub-strings")
+    logger.debug(s"  Mismatches")
+    logger.debug(s"    i - c:  " + (iteratedSubs -- subs.toSet).size)
+    logger.debug(s"    c - i:  " + (subs.toSet -- iteratedSubs).size)
 
     pw.close()
   }
@@ -188,7 +188,7 @@ class GeohashUtilsTest extends Specification with Logging {
       val collectTrials = 100
       val expectedResults = 27588
 
-      println(s"[TIMING POLYGON] $poly")
+      logger.debug(s"[TIMING POLYGON] $poly")
 
       def runTest(label: String, count: Int, maxCount: Int) = {
         val ghs = getUniqueGeohashSubstringsInPolygon(poly, 0, 3, 1 << 15)
@@ -203,9 +203,13 @@ class GeohashUtilsTest extends Specification with Logging {
       val msStart = System.currentTimeMillis()
       (0 until collectTrials).foreach(i => runTest("COLLECT", i, collectTrials))
       val msStop = System.currentTimeMillis()
+      val msElapsed = msStop - msStart
 
       // output results
-      println(s"\n[TIMING SUBSTRINGS] $collectTrials at ${(msStop - msStart) / 1000.0} seconds\n\n")
+      logger.debug(s"\n[TIMING SUBSTRINGS] $collectTrials invocations over " +
+        (msElapsed / 1000.0) + " seconds" +
+        " -> " + (msElapsed / collectTrials) + " ms/invocation\n\n"
+      )
     }
   }
 }

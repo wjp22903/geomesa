@@ -758,9 +758,14 @@ object GeohashUtils
     // mutable state containing the set of unique bit-string prefixes
     // that are wholly contained in the target geometry
     object BitPrefixes {
+      // mutable state
       val prefixes = collection.mutable.HashSet[String]()
       var entailedSize: Int = 0
       var usesAll = false
+
+      // pre-compute a few items that can be re-used later
+      val base32Padding = (0 to 7).map(i => List.fill(i)(base32seq))
+      val binaryPadding = (0 to 4).map(i => List.fill(i)(Seq('0', '1')))
 
       def add(prefix: String) =
         if (prefix.length <= maxBits) {
@@ -789,7 +794,7 @@ object GeohashUtils
       def generateAll(prefix: String): Seq[String] = {
         val prefixHash = GeoHash.fromBinaryString(prefix).hash
         if (prefixHash.length < bits) {
-          val charSeqs = List.fill(bits - prefixHash.length)(base32seq)
+          val charSeqs = base32Padding(bits - prefixHash.length)
           CartesianProductIterable(charSeqs).toList.map(prefixHash + _.mkString)
         } else Seq(prefixHash)
       }
@@ -801,7 +806,7 @@ object GeohashUtils
           val bases =
             if (bitsToBoundary == 0) Seq(prefix)
             else {
-              val fillers = List.fill(bitsToBoundary)(Seq('0', '1'))
+              val fillers = binaryPadding(bitsToBoundary)
               val result = CartesianProductIterable(fillers).toList.map(prefix + _.mkString)
               result
             }
