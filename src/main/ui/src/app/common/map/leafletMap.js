@@ -2,7 +2,7 @@ angular.module('stealth.common.map.leafletMap', [
     'stealth.common.map.leafletLayerStyle'
 ])
     .directive('leafletMap',
-    ['CONFIG', 'LayerStyle', function (CONFIG, LayerStyle) {
+    ['$interval', 'CONFIG', 'LayerStyle', function ($interval, CONFIG, LayerStyle) {
 
         return {
             restrict: 'E',
@@ -26,17 +26,22 @@ angular.module('stealth.common.map.leafletMap', [
                         layers: CONFIG.map.baseLayers,
                         format: CONFIG.map.format,
                         crs: L.CRS.EPSG4326
-                    })
-                    .addTo(map);
+                    });
 
                 /*
                  * https://github.com/Leaflet/Leaflet/issues/941
                  * workaround to deal with Angular<->Leaflet issue
-                 * layer will load wrong the 1st time.  invalidate map and reload.
+                 * Wait until element is displayed, then invalidate map size
+                 * and load baselayer.
                  */
-                base.once('load', function () {
-                    map.invalidateSize();
-                });
+                var checkDisplay = $interval(function () {
+                    var display = element.css('display');
+                    if (display !== 'none') {
+                        $interval.cancel(checkDisplay); //cancel further checks
+                        map.invalidateSize();
+                        base.addTo(map);
+                    }
+                }, 100);
 
                 var trackers = {};
                 var trackerGroup = {};

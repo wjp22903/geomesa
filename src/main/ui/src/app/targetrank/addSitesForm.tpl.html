@@ -4,8 +4,15 @@
 </div>
 <form ng-submit="addSites.submit()">
     <div class="modal-body">
-        <div class="form-group" ng-class="{ 'has-error': addSites.serverData.error }">
-            <label for=""><span class="form-step">1</span> Enter a server url</label>
+        <div class="form-group">
+            <label for=""><span class="form-step">1</span> Choose an input type:</label>
+            <div class="btn-group">
+                <label class="btn btn-default" ng-repeat="type in addSites.types" ng-model="addSites.inputData.type" btn-radio="'{{type.key}}'">{{type.display}}</label>
+            </div>
+        </div>
+
+        <div class="form-group" ng-show="addSites.formStep() > 1" ng-class="{ 'has-error': addSites.serverData.error }">
+            <label for=""><span class="form-step">2</span> Enter a server url</label>
             <div class="input-group">
                 <input type="text" class="form-control input-sm" name="geoserverUrl"
                     ng-model="addSites.serverData.proposedGeoserverUrl"
@@ -23,20 +30,13 @@
             </div>
         </div>
 
-        <div class="form-group" ng-show="addSites.formStep() > 1">
-            <label for=""><span class="form-step">2</span> Choose an input type:</label>
-            <div class="btn-group">
-                <label class="btn btn-default" ng-repeat="type in addSites.types" ng-model="addSites.inputData.type" btn-radio="'{{type.key}}'">{{type.display}}</label>
-            </div>
-        </div>
-
         <div class="form-group" ng-show="addSites.formStep() > 2">
             <label for=""><span class="form-step">3</span> Select a layer from: <span class="label label-success">{{addSites.serverData.currentGeoserverUrl}}</span></label>
             <select class="form-control input-sm"
                 ng-model="addSites.layerData.currentLayer"
                 ng-init="addSites.layerData.currentLayer"
                 ng-change="addSites.getFeatureTypeDescription()"
-                ng-options="layer.name for layer in addSites.layerData.layers | orderBy:'name' | filter:addSites.matchGeoserverWorkspace">
+                ng-options="layer.name for layer in addSites.layerData.layers | orderBy:'name'">
             </select>
         </div>
 

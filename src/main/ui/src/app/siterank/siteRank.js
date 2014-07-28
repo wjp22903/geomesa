@@ -22,8 +22,8 @@ angular.module('stealth.siterank.siteRank', [
     }])
 
     .controller('SiteRankController', [
-    '$scope', '$rootScope', '$modal', '$filter', '$http', '$timeout', 'WMS', 'WFS', 'ProximityService', 'RankService', 'CONFIG', 'Utils',
-    function($scope, $rootScope, $modal, $filter, $http, $timeout, WMS, WFS, ProximityService, RankService, CONFIG, Utils) {
+    '$scope', '$rootScope', '$modal', '$filter', '$http', '$timeout', 'WFS', 'ProximityService', 'RankService', 'CONFIG', 'Utils',
+    function($scope, $rootScope, $modal, $filter, $http, $timeout, WFS, ProximityService, RankService, CONFIG, Utils) {
         var now = new Date(),
             aWeekAgo = new Date(),
             noTime = new Date(),
@@ -258,24 +258,14 @@ angular.module('stealth.siterank.siteRank', [
                 $scope.addTargets.targetData = {};
                 $scope.addTargets.layerData = {};
 
-                // Get the layer list from the GetCapabilities WMS operation.
-                WMS.getCapabilities($scope.addTargets.serverData.currentGeoserverUrl).then(function (data) {
-                    var layers = data.capability.layers;
+                // Get the layer list from the GetCapabilities WFS operation.
+                WFS.getCapabilities(
+                    _.map(CONFIG.geoserver.workspaces.data, function (workspace) {
+                        return $scope.addTargets.serverData.currentGeoserverUrl + '/' + workspace;
+                    })
+                ).then(function (data) {
                     $scope.addTargets.serverData.error = null;
-                    $scope.addTargets.layerData.layers = layers;
-
-                    $scope.addTargets.siteLayers = _.chain(_.filter(layers, function (layer) {
-                        return _.contains(_.keys(CONFIG.dataSources.sites), layer.name);
-                    }))
-                        // Streamline the properties we are including.
-                        .map(function (workspace) {
-                            return _.pick(workspace, ['name', 'prefix']);
-                        })
-                        // Build a map of workspaces
-                        .groupBy('prefix')
-                        // Only include the workspaces specified in the config.
-                        .pick(CONFIG.geoserver.workspaces.data)
-                        .value();
+                    $scope.addTargets.layerData.layers = _.flatten(_.pluck(_.pluck(data, 'featureTypeList'), 'featureTypes'), true);
                 }, function (reason) {
                     // The GetCapabilites request failed.
                     $scope.addTargets.serverData.error = 'GetCapabilities request failed. Error: ' + reason.status + ' ' + reason.statusText;

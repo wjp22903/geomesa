@@ -14,16 +14,17 @@ angular.module('stealth.ows.ows', [])
     })
 
     // WMS Utilities
-    .factory('WMS', ['$q', '$http', '$filter', 'CONFIG', function ($q, $http, $filter, CONFIG) {
-        var parser = new OpenLayers.Format.WMSCapabilities(),
+    .factory('WMS', ['$q', '$http', '$filter', function ($q, $http, $filter) {
+        var parser = new OpenLayers.Format.WMSCapabilities.v1_3_0(),
             capabilities = {};
 
         // Requests the wms capabilities from geoserver and returns a promise.
         function requestCapabilities (url) {
             return $http.get(url, {
                 params: {
-                    SERVICE: 'WMS',
-                    REQUEST: 'GetCapabilities'
+                    service: 'WMS',
+                    version: '1.3.0',
+                    request: 'GetCapabilities'
                 },
                 timeout: 30000
             }).then(function (response) {
@@ -53,8 +54,26 @@ angular.module('stealth.ows.ows', [])
     }])
 
     // WFS Utilities.
-    .factory('WFS', ['$q', '$http', '$filter', 'CONFIG', function ($q, $http, $filter, CONFIG) {
-        var descriptions = {};
+    .factory('WFS', ['$q', '$http', '$filter', function ($q, $http, $filter) {
+        var descriptions = {},
+            parser = new OpenLayers.Format.WFSCapabilities.v1_1_0_custom(),
+            capabilities = {};
+
+        // Requests the WFS capabilities from geoserver and returns a promise.
+        function requestCapabilities (url) {
+            return $http.get(url, {
+                params: {
+                    service: 'WFS',
+                    version: '1.1.0',
+                    request: 'GetCapabilities'
+                },
+                timeout: 30000
+            }).then(function (response) {
+                if (response && response.data) {
+                    return parser.read(response.data);
+                }
+            });
+        }
 
         // Makes a DescribeFeatureType request to GeoServer and returns a promise.
         function requestFeatureTypeDescription (url, typeName) {
@@ -113,7 +132,39 @@ angular.module('stealth.ows.ows', [])
                 // TODO validate the url.
                 var uri = $filter('endpoint')(url, 'wfs', omitProxy);
                 return getFeature(uri, typeName, paramOverrides);
+            },
+
+            // Requests capabilities (or returns the cached version) as a promise.
+            getCapabilities: function (urls) {
+                if (!_.isArray(urls)) {
+                    urls = [urls];
+                }
+
+                return $q.all(_.map(urls, function (url) {
+                    var uri = $filter('endpoint')(url, 'wfs');
+
+                    if(angular.isDefined(capabilities[uri])) {
+                        return $q.when(capabilities[uri]);
+                    }
+
+                    return requestCapabilities(uri).then(function (data) {
+                        capabilities[uri] = data;
+                        return capabilities[uri];
+                    }, function (reason) {
+                        return {
+                            error: true,
+                            reason: reason
+                        };
+                    });
+                })).then(function (data) {
+                    //Did every request fail?
+                    if (_.every(data, 'error')) {
+                        return $q.reject(data[0].reason); //return 1st reason
+                    } else {
+                        return _.reject(data, 'error'); //return results without failures
+                    }
+                });
             }
         };
-    }]);
-
+    }])
+;

@@ -90,7 +90,18 @@
                             <i class="fa fa-database fa-lg"></i> Data Layers
                             <span class="badge">{{targetRank.numData}}</span>
                         </header>
-                        <ul class="list-unstyled data-layers">
+                        <ul ng-show="targetRank.loadingDataLayers">
+                            <li>
+                                <i class="fa fa-2x fa-spinner fa-spin"></i>
+                            </li>
+                        </ul>
+                        <ul class="alert alert-danger" style="margin-left:10px;margin-right:10px;" ng-show="targetRank.dataLayersError">
+                            <li>
+                                <i class="fa fa-warning"></i>
+                                {{ targetRank.dataLayersError }}
+                            </li>
+                        </ul>
+                        <ul class="list-unstyled data-layers" ng-hide="targetRank.loadingDataLayers || targetRank.dataLayersError">
                             <li class="checkbox"
                                 ng-repeat="(workspace, layers) in targetRank.dataLayers">
 

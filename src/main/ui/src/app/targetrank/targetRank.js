@@ -22,8 +22,8 @@ angular.module('stealth.targetrank.targetRank', [
     }])
 
     .controller('TargetRankController', [
-    '$scope', '$rootScope', '$modal', '$filter', '$timeout', '$location', 'WMS', 'WFS', 'CONFIG', 'ProximityService', 'RankService', 'Utils',
-    function($scope, $rootScope, $modal, $filter, $timeout, $location, WMS, WFS, CONFIG, ProximityService, RankService, Utils) {
+    '$scope', '$rootScope', '$modal', '$filter', '$timeout', '$location', 'WFS', 'CONFIG', 'ProximityService', 'RankService', 'Utils',
+    function($scope, $rootScope, $modal, $filter, $timeout, $location, WFS, CONFIG, ProximityService, RankService, Utils) {
         var now = new Date(),
             aWeekAgo = new Date(),
             noTime = new Date(),
@@ -288,24 +288,18 @@ angular.module('stealth.targetrank.targetRank', [
             }, {
                 key: 'route',
                 display: 'Route'
-            }],
-            matchGeoserverWorkspace: function (layer) {
-                return _.some(CONFIG.geoserver.workspaces[$scope.addSites.inputData.type], function (workspace) {
-                    var str = workspace + ':';
-                    return layer.name.substring(0, str.length) === str;
-                });
-            }
+            }]
         };
 
         // Used to display form fields in a step-by-step manner.
         $scope.addSites.formStep = function () {
-            var step = 1; // Show the server url input
-            if ($scope.addSites.serverData.currentGeoserverUrl && !$scope.addSites.serverData.error &&
+            var step = 1; // Show the input type select
+            if ($scope.addSites.inputData.type) {
+                step = 2; // Show the server url input
+                if ($scope.addSites.serverData.currentGeoserverUrl && !$scope.addSites.serverData.error &&
                     $scope.addSites.layerData && $scope.addSites.layerData.layers) {
-                step = 2; // Show the input type select
-                if ($scope.addSites.inputData.type) {
                     step = 3; // Show the layer select input
-                    if($scope.addSites.layerData.currentLayer && !$scope.addSites.layerData.error && $scope.featureTypeData) {
+                    if ($scope.addSites.layerData.currentLayer && !$scope.addSites.layerData.error && $scope.featureTypeData) {
                         step = 4; // Show the layer details and cql query input
                     }
                 }
@@ -317,6 +311,9 @@ angular.module('stealth.targetrank.targetRank', [
         $scope.$watch('addSites.inputData.type', function (newVal, oldVal) {
             $scope.addSites.showSpinner = true;
             if (newVal !== oldVal) {
+                $scope.addSites.serverData.error = null;
+                $scope.addSites.layerData = {};
+                $scope.addSites.filterData = {};
                 if ($scope.addSites.inputData.type) {
                     $scope.addSites.inputData.display = _.find($scope.addSites.types, function (type) {
                         return type.key === $scope.addSites.inputData.type;
@@ -334,28 +331,17 @@ angular.module('stealth.targetrank.targetRank', [
             $scope.addSites.serverData.error = null;
             $scope.addSites.showSpinner = true;
             $scope.addSites.serverData.currentGeoserverUrl = $scope.addSites.serverData.proposedGeoserverUrl;
-            $scope.addSites.inputData = {};
             $scope.addSites.layerData = {};
             $scope.addSites.filterData = {};
 
-            // Get the layer list from the GetCapabilities WMS operation.
-            WMS.getCapabilities($scope.addSites.serverData.currentGeoserverUrl).then(function (data) {
-                var layers = data.capability.layers;
+            // Get the layer list from the GetCapabilities WFS operation.
+            WFS.getCapabilities(
+                _.map(CONFIG.geoserver.workspaces[$scope.addSites.inputData.type], function (workspace) {
+                    return $scope.addSites.serverData.currentGeoserverUrl + '/' + workspace;
+                })
+            ).then(function (data) {
                 $scope.addSites.serverData.error = null;
-                $scope.addSites.layerData.layers = layers;
-
-                $scope.addSites.dataLayers = _.chain(_.filter(layers, function (layer) {
-                    return _.contains(_.keys(CONFIG.dataSources.targets), layer.name);
-                }))
-                    // Streamline the properties we are including.
-                    .map(function (workspace) {
-                        return _.pick(workspace, ['name', 'prefix']);
-                    })
-                    // Build a map of workspaces
-                    .groupBy('prefix')
-                    // Only include the workspaces specified in the config.
-                    .pick(CONFIG.geoserver.workspaces.data)
-                    .value();
+                $scope.addSites.layerData.layers = _.flatten(_.pluck(_.pluck(data, 'featureTypeList'), 'featureTypes'), true);
             }, function (reason) {
                 // The GetCapabilites request failed.
                 $scope.addSites.serverData.error = 'GetCapabilities request failed. Error: ' + reason.status + ' ' + reason.statusText;
@@ -439,11 +425,38 @@ angular.module('stealth.targetrank.targetRank', [
 
         $scope.addSites.submit = function () {
             $scope.targetRank.serverData = angular.copy($scope.addSites.serverData);
-            $scope.targetRank.dataLayers = angular.copy($scope.addSites.dataLayers);
             $scope.targetRank.layerData = angular.copy($scope.addSites.layerData);
             $scope.targetRank.inputData = angular.copy($scope.addSites.inputData);
             $scope.targetRank.filterData = angular.copy($scope.addSites.filterData);
             $scope.addSites.getFeature();
+
+            $scope.targetRank.loadingDataLayers = true;
+            // Get the layer list from the GetCapabilities WFS operation.
+            WFS.getCapabilities(
+                _.map(CONFIG.geoserver.workspaces.data, function (workspace) {
+                    return $scope.targetRank.serverData.currentGeoserverUrl + '/' + workspace;
+                })
+            ).then(function (data) {
+                $scope.targetRank.dataLayersError = null;
+                var layers = _.flatten(_.pluck(_.pluck(data, 'featureTypeList'), 'featureTypes'), true);
+                $scope.targetRank.dataLayers = _.chain(_.filter(layers, function (layer) {
+                    return _.contains(_.keys(CONFIG.dataSources.targets), layer.name);
+                }))
+                    // Streamline the properties we are including.
+                    .map(function (workspace) {
+                        return _.pick(workspace, ['name', 'prefix']);
+                    })
+                    // Build a map of workspaces
+                    .groupBy('prefix')
+                    // Only include the workspaces specified in the config.
+                    .pick(CONFIG.geoserver.workspaces.data)
+                    .value();
+            }, function (reason) {
+                // The GetCapabilites request failed.
+                $scope.targetRank.dataLayersError = 'GetCapabilities request failed. Error: ' + reason.status + ' ' + reason.statusText;
+            }).finally(function () {
+                $scope.targetRank.loadingDataLayers = false;
+            });
         };
 
         $scope.addSites.showWindow = function () {
