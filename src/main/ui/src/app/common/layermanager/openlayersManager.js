@@ -48,7 +48,6 @@ angular.module('stealth.common.layermanager.openlayersManager', [
                         $scope.query.getCapabilitiesError = null;
                         $scope.query.layerData.layers = layers;
                         $scope.query.layerData.currentLayerFriendlyName = null;
-                        console.log(layers);
                     });
                 };
 
@@ -61,7 +60,6 @@ angular.module('stealth.common.layermanager.openlayersManager', [
 
                     WFS.getFeatureTypeDescription($scope.query.serverData.currentGeoserverUrl, $scope.query.layerData.currentLayer.name).then(function (data) {
                         $scope.query.featureTypeData = data;
-                        console.log(data);
                         if (data.error) {
                             $scope.query.featureTypeData = 'unavailable';
                             // Response is successful, but no description is found for the type.

@@ -13,8 +13,7 @@ angular.module('stealth.common.proximity', [
                             url: $filter('endpoint')(geoserverUrl, 'wms', true),
                             layers: [data],
                             styles: style,
-                            env: env,
-                            addGetInfoControl: true
+                            env: env
                         });
                         deferred.resolve();
                     } else {

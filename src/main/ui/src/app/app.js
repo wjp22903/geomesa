@@ -32,7 +32,7 @@ angular.module('stealth', [
             alert(text);
         };
         $rootScope.ellipsis = function (text, length) {
-            return text.length > length ? text.substr(0, length-3) + '...' : text;
+            return ((_.isString(text)) && (text.length > length)) ? text.substr(0, length-3) + '...' : text;
         };
 
         //Block location changes to disallowed or non-existent routes

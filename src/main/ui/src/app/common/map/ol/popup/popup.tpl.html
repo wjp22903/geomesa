@@ -1,0 +1,36 @@
+<div class="modal-header">
+    <i class="fa fa-info-circle fa-lg"></i> Feature Information
+    <span class="pull-right">
+        <button class="btn btn-default btn-xs"
+                ng-disabled="mapPopup.list.currentPage == 1"
+                ng-click="mapPopup.list.currentPage=mapPopup.list.currentPage-1">
+            <i class="fa fa-chevron-left"></i>
+        </button>
+        <input type="number" size="3" style="max-width:40px;" ng-model="mapPopup.list.currentPage">/{{mapPopup.list.numberOfPages()}}
+        <button style="margin-right:15px;" class="btn btn-default btn-xs"
+                ng-disabled="mapPopup.list.currentPage >= mapPopup.features.length/mapPopup.list.pageSize"
+                ng-click="mapPopup.list.currentPage=mapPopup.list.currentPage+1">
+            <i class="fa fa-chevron-right"></i>
+        </button>
+        <i class="fa fa-times btn btn-default btn-sm" ng-click="modal.cancel()"></i>
+    </span>
+</div>
+<div class="modal-body" style="max-height:700px;overflow-y:auto;">
+    <ul class="sites-list list-unstyled">
+        <li class="list-hover"
+            ng-repeat='feature in mapPopup.features | startFrom:(mapPopup.list.currentPage-1)*mapPopup.list.pageSize | limitTo:mapPopup.list.pageSize'>
+            <h4 style="font-size:12px;">
+                {{feature.curLayer.name}} | {{feature.id}} | {{feature.properties[feature.targetDataSource.idField]}}
+                    <span class="pull-right">
+                        <button ng-show="feature.targetDataSource" type="button" class="btn btn-primary btn-xs"
+                                ng-click="mapPopup.showHistory(feature.targetDataSource.idField, feature.properties, feature.curLayer.url, feature.curDataLayer)">
+                            Show All
+                        </button>
+                    </span>
+            </h4>
+            <div ng-repeat="(key, val) in feature.properties">
+                <strong>{{ key }}:</strong> {{ val }}
+            </div>
+        </li>
+    </ul>
+</div>

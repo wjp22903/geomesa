@@ -191,7 +191,13 @@ angular.module('stealth.common.imagery.imageryManager', [
                         url: $filter('endpoint')($scope.search.criteria.server.url, 'ogc/wms', true),
                         layers: [image.attributes.image_id],
                         layerAddedCallback: function (map, layer) {
-                            map.setLayerIndex(layer, 0); //push imagery to bottom, below coverage layer
+                            var numBaseLayers = _.reduce(map.layers, function (count, l) {
+                                if (l.isBaseLayer) {
+                                    count++;
+                                }
+                                return count;
+                            }, 0);
+                            map.setLayerIndex(layer, numBaseLayers); //push imagery to bottom, below coverage layer
                         }
                     });
                     image.isVisible = true;

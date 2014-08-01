@@ -1,17 +1,17 @@
-angular.module('stealth.common.map.openlayersMap', [
-    'stealth.common.utils',
+angular.module('stealth.common.map.ol.map', [
     'stealth.ows.ows'
 ])
 
     .directive(
-    'openlayersMap', ['$rootScope', '$timeout', '$filter', '$compile', '$modal', 'CONFIG', 'Utils',
-    function ($rootScope, $timeout, $filter, $compile, $modal, CONFIG, Utils) {
+    'openlayersMap', ['$rootScope', '$timeout', '$filter', 'CONFIG',
+    function ($rootScope, $timeout, $filter, CONFIG) {
         return {
             restrict: 'E',
             replace: true,
             scope: {
                 map: '='
             },
+            transclude: true,
             template: '<div class="anchorTop anchorBottom anchorLeft anchorRight map">' +
                           '<div class="mapSpinner" ng-show="loading.count > 0">' +
                               '<div class="fa-stack fa-lg">' +
@@ -19,8 +19,14 @@ angular.module('stealth.common.map.openlayersMap', [
                                   '<span class="fa fa-stack-text fa-stack-1x">{{loading.count}}</span>' +
                               '</div>' +
                           '</div>' +
+                          '<div ng-transclude></div>' +
                       '</div>',
             link: function (scope, element, attrs) {
+                scope.map.render(attrs.id);
+            },
+            controller: function ($scope) {
+                var self = this;
+                var scope = $scope;
                 var restrictedExtent = _.isEmpty(CONFIG.map.restrictedExtent) ? new OpenLayers.Bounds(-360, -90, 360, 90) : OpenLayers.Bounds.fromString(CONFIG.map.restrictedExtent),
                     maxExtent = _.isEmpty(CONFIG.map.maxExtent) ? new OpenLayers.Bounds(-360, -90, 360, 90) : OpenLayers.Bounds.fromString(CONFIG.map.maxExtent);
                 scope.loading = {
@@ -29,67 +35,32 @@ angular.module('stealth.common.map.openlayersMap', [
                 scope.state = {
                     zoomedToDataLayer: false
                 };
-                scope.map = new OpenLayers.Map(attrs.id, _.merge(_.isEmpty(CONFIG.map.maxExtent) ? {} : {maxExtent: maxExtent}, {
+
+                var navCtrl = new OpenLayers.Control.Navigation({
+                        autoActivate: true,
+                        title: 'Navigate & Get Info'
+                    }),
+                    olToolbar = new OpenLayers.Control.Panel({
+                        defaultControl: navCtrl
+                    });
+                olToolbar.addControls([navCtrl]);
+                scope.map = new OpenLayers.Map(_.merge(_.isEmpty(CONFIG.map.maxExtent) ? {} : {maxExtent: maxExtent}, {
                     numZoomLevels: 24,
                     controls: [
-                        new OpenLayers.Control.ZoomPanel(),
+                        olToolbar,
+                        new OpenLayers.Control.Zoom(),
                         new OpenLayers.Control.MousePosition(),
-                        new OpenLayers.Control.NavToolbar()
+                        new OpenLayers.Control.Graticule({visible: false, displayInLayerSwitcher: false}),
+                        new OpenLayers.Control.ScaleLine()
                     ],
                     projection: CONFIG.map.crs,
                     restrictedExtent: restrictedExtent
                 }));
-                scope.mapPopup = {
-                    list: {
-                        currentPage: 1,
-                        pageSize: 10,
-                        numberOfPages: function () {
-                            if (scope.featureColl && scope.featureColl.features) {
-                                return Math.ceil(scope.featureColl.features.length/scope.mapPopup.list.pageSize);
-                            }
-                            return 0;
-                        }
-                    },
-                    showWindow: function () {
-                        scope.mapPopup.list.currentPage = 1;
-                        $modal.open({
-                            scope: scope,
-                            backdrop: 'static',
-                            templateUrl: 'common/map/mapPopup.tpl.html',
-                            controller: function ($scope, $modalInstance) {
-                                $scope.modal = {
-                                    cancel: function () {
-                                        $modalInstance.dismiss('cancel');
-                                    }
-                                };
-                            }
-                        });
-                    },
-                    showHistory: function (idField, props) {
-                        showHistory(scope.curLayer.url.substring(5), idField, props[idField], scope.curDataLayer);
-                    }
-                };
 
-                function showHistory (url, idField, idValue, layerCsv) {
-                    scope.map.raiseLayer(replaceWmsLayers([idValue], {
-                        name: idValue,
-                        url: url,
-                        cql_filter: idField + " = '" + idValue + "'",
-                        layers: layerCsv,
-                        styles: 'stealth_dataPoints',
-                        env: 'color:' + Utils.getBrightColor().substring(1)
-                    }), -1);
-                    scope.map.raiseLayer(replaceWmsLayers([idValue + '_heatmap'], {
-                        name: idValue + '_heatmap',
-                        url: url,
-                        cql_filter: idField + " = '" + idValue + "'",
-                        layers: layerCsv,
-                        styles: 'stealth_heatmap',
-                        singleTile: true,
-                        dontShow: true
-                    }), -1);
-                }
-                function addLayer (layer, extent, loadStartCallback, loadEndCallback, layerAddedCallback) {
+                this.getMap = function () {
+                    return scope.map;
+                };
+                this.addLayer = function (layer, extent, loadStartCallback, loadEndCallback, layerAddedCallback) {
                     layer.events.register('loadstart', null, function (event) {
                         $timeout(function () {
                             scope.loading.count++;
@@ -120,8 +91,9 @@ angular.module('stealth.common.map.openlayersMap', [
                     if (_.isFunction(layerAddedCallback)) {
                         layerAddedCallback(scope.map, layer);
                     }
-                }
-                function addWmsLayer (layerConfig) {
+                    return layer;
+                };
+                this.addWmsLayer = function (layerConfig) {
                     var layer,
                         config = _.merge({
                             format: 'image/png',
@@ -137,46 +109,18 @@ angular.module('stealth.common.map.openlayersMap', [
                     }
 
                     layer = new OpenLayers.Layer.WMS(layerConfig.name, layerConfig.url, config, {singleTile: config.singleTile, wrapDateLine: true, visibility: !layerConfig.dontShow});
-                    addLayer(layer, layerConfig.extent, layerConfig.loadStartCallback, layerConfig.loadEndCallback, layerConfig.layerAddedCallback);
-                    if (layerConfig.addGetInfoControl) {
-                        addGetInfoControl(layer, layerConfig);
+                    self.addLayer(layer, layerConfig.extent, layerConfig.loadStartCallback, layerConfig.loadEndCallback, layerConfig.layerAddedCallback);
+                    if (!layerConfig.noGetInfoControl && !layer.isBaseLayer) {
+                        $rootScope.$emit('AddGetInfoControl', layer, config);
                     }
                     return layer;
-                }
-                function addVectorLayer (layerConfig) {
+                };
+                this.addVectorLayer = function (layerConfig) {
                     var layer = new OpenLayers.Layer.Vector(layerConfig.name, layerConfig);
-                    addLayer(layer, layerConfig.extent, layerConfig.loadStartCallback, layerConfig.loadEndCallback, layerConfig.layerAddedCallback);
+                    self.addLayer(layer, layerConfig.extent, layerConfig.loadStartCallback, layerConfig.loadEndCallback, layerConfig.layerAddedCallback);
                     return layer;
-                }
-                function addGetInfoControl(layer, layerConfig) {
-                    var ctrl = new OpenLayers.Control.WMSGetFeatureInfo({
-                        url: $filter('endpoint')(layerConfig.url, 'wms'),
-                        title: 'Hover',
-                        layers: [layer],
-                        layerUrls: [layerConfig.url],
-                        infoFormat: 'application/json',
-                        maxFeatures: 100,
-                        queryVisible: true
-                    });
-                    ctrl.events.register("getfeatureinfo", null, function (evt) {
-                        $timeout(function () {
-                            scope.curLayer = evt.object.layers[0];
-                            scope.curDataLayer = scope.curLayer.name.replace(/proximity_\w*_(\w*)___(\w)/, "$1:$2");
-                            try {
-                                scope.featureColl = JSON.parse(evt.text);
-                                if (!_.isEmpty(scope.featureColl.features)) {
-                                    scope.mapPopup.showWindow();
-                                }
-                            } catch (e) {
-                                //fail silently, for now
-                                console.log(e.message);
-                            }
-                        });
-                    });
-                    scope.map.addControl(ctrl);
-                    ctrl.activate();
-                }
-                function removeLayersByName (names) {
+                };
+                this.removeLayersByName = function (names) {
                     if (!_.isArray(names)) {
                         names = [names];
                     }
@@ -185,47 +129,47 @@ angular.module('stealth.common.map.openlayersMap', [
                             scope.map.removeLayer(layer);
                         });
                     });
-                }
-                function replaceWmsLayers (namesToRemove, layerConfigToAdd) {
+                };
+                this.replaceWmsLayers = function (namesToRemove, layerConfigToAdd) {
                     if (!_.isArray(namesToRemove)) {
                         namesToRemove = [namesToRemove];
                     }
                     _.each(namesToRemove, function (name) {
-                        removeLayersByName(name);
+                        self.removeLayersByName(name);
                     });
-                    return addWmsLayer(layerConfigToAdd);
-                }
-                function replaceVectorLayers (namesToRemove, layerConfigToAdd) {
+                    return self.addWmsLayer(layerConfigToAdd);
+                };
+                this.replaceVectorLayers = function (namesToRemove, layerConfigToAdd) {
                     if (!_.isArray(namesToRemove)) {
                         namesToRemove = [namesToRemove];
                     }
                     _.each(namesToRemove, function (name) {
-                        removeLayersByName(name);
+                        self.removeLayersByName(name);
                     });
-                    return addVectorLayer(layerConfigToAdd);
-                }
+                    return self.addVectorLayer(layerConfigToAdd);
+                };
 
-                addLayer(new OpenLayers.Layer.WMS(
+                scope.map.setLayerIndex(this.addLayer(new OpenLayers.Layer.WMS(
                     "Base Map", CONFIG.map.url,
                     {layers: CONFIG.map.baseLayers, format: CONFIG.map.format, bgcolor: '0xa7b599'},
                     {wrapDateLine: true, opacity: 0.5}
-                ));
+                )), 0);
                 scope.map.zoomToExtent(restrictedExtent);
 
                 $rootScope.$on("AddWmsMapLayer", function (event, layerConfig) {
-                    addWmsLayer(layerConfig);
+                    self.addWmsLayer(layerConfig);
                 });
                 $rootScope.$on("RemoveMapLayers", function (event, names) {
                     if (!_.isArray(names)) {
                         names = [names];
                     }
-                    removeLayersByName(names);
+                    self.removeLayersByName(names);
                 });
                 $rootScope.$on("ReplaceWmsMapLayers", function (event, namesToRemove, layerConfigToAdd) {
-                    replaceWmsLayers(namesToRemove, layerConfigToAdd);
+                    self.replaceWmsLayers(namesToRemove, layerConfigToAdd);
                 });
                 $rootScope.$on("ReplaceVectorMapLayers", function (event, namesToRemove, layerConfigToAdd) {
-                    replaceVectorLayers(namesToRemove, layerConfigToAdd);
+                    self.replaceVectorLayers(namesToRemove, layerConfigToAdd);
                 });
                 $rootScope.$on("CenterPaneFullWidthChange", function (event, fullWidth) {
                     scope.map.updateSize();
@@ -247,9 +191,6 @@ angular.module('stealth.common.map.openlayersMap', [
                             scope.map.raiseLayer(layer, delta);
                         });
                     });
-                });
-                $rootScope.$on('ShowTargetHistory', function (event, url, idField, idValue, layerCsv) {
-                    showHistory(url, idField, idValue, _.isArray(layerCsv) ? layerCsv.join(',') : layerCsv);
                 });
             }
         };
