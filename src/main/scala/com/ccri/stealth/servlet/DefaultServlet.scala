@@ -23,7 +23,12 @@ trait DefaultServlet extends ScalatraServlet
   with DiscovererConfig {
   val logger = LoggerFactory.getLogger(getClass)
   val conf = ConfigFactory.load().getConfig("stealth")
-  val discoverer = startServiceDiscovery()
+  val activeTabs = conf.getConfig("app").getStringList("tabs")
+  val discoverer =
+    if (activeTabs.contains("airDomain"))
+      startServiceDiscovery()
+    else
+      null
 
   get("/") {
     val userCn = pkiAuth
@@ -81,11 +86,15 @@ trait DefaultServlet extends ScalatraServlet
   }
 
   protected def styles = {
-    import collection.JavaConversions._
-    import com.ccri.stealth.servlet.DiscoverableStyleJsonProtocol._
+    if (activeTabs.contains("airDomain")) {
+      import collection.JavaConversions._
+      import com.ccri.stealth.servlet.DiscoverableStyleJsonProtocol._
 
-    val names = discoverer.queryForNames().toList
-    val instances = names.flatMap(discoverer.queryForInstances)
-    instances.map(_.getPayload.asInstanceOf[DiscoverableStyle]).toJson
+      val names = discoverer.queryForNames().toList
+      val instances = names.flatMap(discoverer.queryForInstances)
+      instances.map(_.getPayload.asInstanceOf[DiscoverableStyle]).toJson
+    }
+    else
+      JsObject()
   }
 }

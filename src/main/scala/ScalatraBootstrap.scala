@@ -5,8 +5,22 @@ import org.scalatra.LifeCycle
 
 class ScalatraBootstrap extends LifeCycle {
   val conf      = ConfigFactory.load().getConfig("stealth")
+  val activeTabs = conf.getConfig("app").getStringList("tabs")
   val kafkaConf = conf.getConfig("kafka")
-  val trackerStylesConf = conf.getConfig("trackerStyles")
+
+  val stylesFallback =
+    """
+      | trackerStyles: {
+      |   zookeepers:         "zookeeper"
+      |   basePath:           "/trackers"
+      | }
+    """.stripMargin
+
+  val trackerStylesConf =
+    if (conf.hasPath("trackerStyles"))
+      conf.getConfig("trackerStyles")
+    else
+      ConfigFactory.parseString(stylesFallback).getConfig("trackerStyles")
 
   trait StylesConfig extends DiscovererConfig {
     override def zookeepers  = trackerStylesConf.getString("zookeepers")
@@ -20,6 +34,7 @@ class ScalatraBootstrap extends LifeCycle {
 
   override def init(context: ServletContext) {
     context.mount(new DefaultServlet with StylesConfig, "/")
-    context.mount(new TrackController with TrackConfig, "/tracks")
+    if (activeTabs.contains("airDomain"))
+      context.mount(new TrackController with TrackConfig, "/tracks")
   }
 }
