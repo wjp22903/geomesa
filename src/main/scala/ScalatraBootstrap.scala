@@ -7,24 +7,25 @@ class ScalatraBootstrap extends LifeCycle {
   val conf      = ConfigFactory.load().getConfig("stealth")
   val activeTabs = conf.getConfig("app").getStringList("tabs")
   val kafkaConf = conf.getConfig("kafka")
+  val airTrackerConf = conf.getConfig("airTracker")
 
   val stylesFallback =
     """
-      | trackerStyles: {
+      | styles: {
       |   zookeepers:         "zookeeper"
       |   basePath:           "/trackers"
       | }
     """.stripMargin
 
-  val trackerStylesConf =
-    if (conf.hasPath("trackerStyles"))
-      conf.getConfig("trackerStyles")
+  val airTrackerStylesConf =
+    if (airTrackerConf.hasPath("styles"))
+      airTrackerConf.getConfig("styles")
     else
-      ConfigFactory.parseString(stylesFallback).getConfig("trackerStyles")
+      ConfigFactory.parseString(stylesFallback).getConfig("styles")
 
   trait StylesConfig extends DiscovererConfig {
-    override def zookeepers  = trackerStylesConf.getString("zookeepers")
-    override def basePath    = trackerStylesConf.getString("basePath")
+    override def zookeepers  = airTrackerStylesConf.getString("zookeepers")
+    override def basePath    = airTrackerStylesConf.getString("basePath")
   }
 
   trait TrackConfig extends KafkaConfig {

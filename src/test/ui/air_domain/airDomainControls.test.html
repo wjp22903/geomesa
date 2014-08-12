@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="utf-8">
+    <title>Air Domain Controls Test</title>
+
+    <link rel="stylesheet" href="../../../main/ui/vendor/bower/leaflet-dist/leaflet.css">
+    <link rel="stylesheet" href="../../../../target/stealth-1.0.0-SNAPSHOT/css/style.css">
+
+    <script type="text/javascript" src="../../../main/ui/vendor/bower/leaflet-dist/leaflet.js"></script>
+    <script type="text/javascript" src="../../../main/ui/vendor/bower/angular/angular.js"></script>
+    <script type="text/javascript" src="../../../main/ui/vendor/bower/lodash/dist/lodash.js"></script>
+    <script type="text/javascript" src="../../../main/ui/vendor/bower/openlayers/lib/OpenLayers.js"></script>
+
+    <script type="text/javascript" src="../../../main/ui/src/app/ows/OpenLayers/Format/WFSCapabilities/v1_1_0_custom.js"></script>
+    <script type="text/javascript" src="../../../main/ui/src/app/ows/ows.js"></script>
+    <script type="text/javascript" src="../../../main/ui/src/app/ows/airTrackHistory.js"></script>
+    <script type="text/javascript" src="../../../main/ui/src/app/common/control/airTrackInfoControl.js"></script>
+    <script type="text/javascript" src="../../../main/ui/src/app/common/control/airTrackerLayersControl.js"></script>
+    <script type="text/javascript" src="../../../main/ui/src/app/common/map/leaflet/utils.js"></script>
+    <script type="text/javascript" src="../../../main/ui/src/app/common/map/leaflet/leafletMap.js"></script>
+</head>
+<body>
+    <div ng-app="airDomainControlsTest">
+        <tracker-controls-test>
+            <leaflet-map id="testMap"></leaflet-map>
+        </tracker-controls-test>
+    </div>
+
+        <script type="text/javascript">
+
+            angular.module('airDomainControlsTest', [
+                'stealth.common.map.leaflet.leafletMap',
+            ])
+
+                .config(['$provide', function ($provide) {
+                    var proxyUrl = "http://localhost:9900/geoserver";
+                    var config = {
+                        geoserver: {
+                            defaultUrl: proxyUrl,
+                            omitProxy: true
+                        },
+                        map: {
+                            url: proxyUrl + "/wms",
+                            baseLayers: "mapproxy:globe.osm.toner",
+                            format: "image/png",
+                            lon: "51.505",
+                            lat: "-0.09",
+                            zoom: "9",
+                            maxZoom: "18"
+                        },
+                        airTracker: {
+                            data: {
+                                layer: "whiptail:fr",
+                                threadingKey: "hexid"
+                            }
+                        },
+                        trackStyles: [
+                            {
+                                contributor: "ADSB",
+                                labelName: "Radar 24",
+                                color: "#ff7800",
+                                weight: 8,
+                                opacity: 1.0,
+                                numSegments: 8
+                            },
+                            {
+                                contributor: "Other",
+                                labelName: "Other",
+                                color: "#000000",
+                                weight: 3,
+                                opacity: 1.0,
+                                numSegments: 5
+                            }
+                        ]
+                    };
+                    $provide.constant('CONFIG', config);
+                }])
+
+                .directive('trackerControlsTest', [
+                    '$rootScope', '$http', 'CONFIG', function ($rootScope, $http, CONFIG) {
+                        return {
+                            restrict: 'E',
+                            replace: true,
+                            transclude: true,
+                            template: '<div ng-transclude></div>',
+                            link: function (scope, element, attrs) {
+                                console.log('(trackerControlsTest) Starting Test');
+
+                                // Assumes 3A24C5 is a valid hexid for observations
+                                // stored in GeoMesa served by a GeoServer plugin.
+                                var feature1 = buildLineString("3A24C5", [
+                                    [-0.09, 51.505],
+                                    [-0.20, 51.555],
+                                    [-0.00, 51.300],
+                                    [ 0.15, 51.350],
+                                    [-0.25, 51.470],
+                                    [-0.31, 51.310],
+                                    [-0.33, 51.320],
+                                    [-0.40, 51.310],
+                                    [-0.30, 51.300],
+                                    [-0.50, 51.290],
+                                    [-0.45, 51.250],
+                                    [-0.60, 51.450]
+                                ]);
+
+                                // To test when query returns no results.
+                                var feature2 = buildLineString("bogus-id", [
+                                    [-0.30, 51.605],
+                                    [-0.40, 51.655],
+                                    [-0.50, 51.600]
+                                ]);
+
+                                // To test auto-removal of "short" line strings.
+                                var feature3 = buildLineString("shorty", [
+                                    [-0.35, 51.405],
+                                    [-0.45, 51.455]
+                                ]);
+
+                                $rootScope.$broadcast('new track', feature1);
+                                $rootScope.$broadcast('new track', feature2);
+                                $rootScope.$broadcast('new track', feature3);
+
+                                function buildLineString(id, coords) {
+                                    var lineString = {
+                                        "type": "Feature",
+                                        "geometry": {
+                                            "type": "LineString",
+                                            "coordinates": coords,
+                                        },
+                                        "properties": {
+                                            "trackId": id,
+                                            "hexid": id,
+                                            "isInteresting": false,
+                                            "isMultisource": false,
+                                            "contributor": "ADSB"
+                                        },
+                                        "id": id
+                                    };
+                                    return lineString;
+                                };
+
+                                // TODO: Use this function to simulate
+                                // realtime tracks for testing.
+                                // (Maybe move it to a separate test html file.)
+                                function broadcastTracks() {
+                                    var coords = [];
+                                    var numPoints = 0;
+                                    var broadcast = true;
+                                    $http
+                                    .get('http://localhost:9900/test_tracks/track_3A24C5.json')
+                                    .success(function (data, status) {
+                                        var points = data.features;
+                                        _.each(points, function (point) {
+                                            if (numPoints < 20) {
+                                                coords.push(point.geometry.coordinates);
+                                                numPoints++;
+                                            } else {
+                                                var id = point.properties.hexid;
+                                                var ls = buildLineString(id, coords);
+                                                $rootScope.$broadcast('new track', ls);
+                                                numPoints = 0;
+                                                coords = [];
+                                            }
+                                        });
+                                    });
+                                }
+
+                            }//END of link function
+                        };
+                    }
+                ])
+            ;
+
+        </script>
+    </div>
+
+</body>
+</html>

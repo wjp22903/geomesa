@@ -1,5 +1,5 @@
 angular.module('stealth.airdomain.airDomain',[
-    'stealth.common.map.leafletMap'
+    'stealth.common.map.leaflet.leafletMap'
 ])
     .config(['$routeProvider',
         function($routeProvider) {

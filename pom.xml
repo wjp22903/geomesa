@@ -42,8 +42,10 @@
         <kafka.zookeepers>dzoo1,dzoo2,dzoo3</kafka.zookeepers>
         <kafka.topics>tracks</kafka.topics>
 
-        <tracker.styles.zookeepers>dzoo1,dzoo2,dzoo3</tracker.styles.zookeepers>
-        <tracker.styles.basePath>/trackers</tracker.styles.basePath>
+        <airTracker.styles.zookeepers>dzoo1,dzoo2,dzoo3</airTracker.styles.zookeepers>
+        <airTracker.styles.basePath>/trackers</airTracker.styles.basePath>
+        <airTracker.data.layer>whiptail:fr</airTracker.data.layer>
+        <airTracker.data.threadingKey>hexid</airTracker.data.threadingKey>
 
         <uidir.pathname>${project.basedir}/src/main/ui</uidir.pathname>
         <nodejs.local.dir>${uidir.pathname}/nodejs</nodejs.local.dir>
@@ -80,6 +82,10 @@
         <basemap.layers>mapproxy:globe.osm.toner</basemap.layers>
         <basemap.format>image/png</basemap.format>
         <basemap.crs>EPSG:4326</basemap.crs>
+        <basemap.lon>0</basemap.lon>
+        <basemap.lat>0</basemap.lat>
+        <basemap.zoom>6</basemap.zoom>
+        <basemap.maxZoom>9</basemap.maxZoom>
 
         <imagery.support>true</imagery.support>
         <imagery.servers>[]</imagery.servers>

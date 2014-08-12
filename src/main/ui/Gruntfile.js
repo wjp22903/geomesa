@@ -117,14 +117,7 @@ module.exports = function (grunt) {
             'Gruntfile.js'
         ],
         options: {
-            curly: true,
-            immed: true,
-            newcap: true,
-            noarg: true,
-            sub: true,
-            boss: true,
-            eqnull: true,
-            expr: true
+            jshintrc: true
         }
     });
 
@@ -213,6 +206,73 @@ module.exports = function (grunt) {
         jst: {
             files: ['src/templates/**/*.jst.*'],
             tasks: ['jst:compile']
+        }
+    });
+
+    grunt.config('connect', {
+        localTestFilesServer: {
+            options: {
+                port: 9901,
+                base: '../../test/ui'
+            }
+        },
+        options: {
+            port: 9900,
+            hostname: 'localhost',
+            debug: true
+        },
+        dgeo: {
+            proxies: [
+                {
+                    context: ['/geoserver'],
+                    host: 'dgeo',
+                    port: 8080,
+                },
+                {
+                    context: ['/'],
+                    host: 'localhost',
+                    port: 9901,
+                },
+            ]
+        },
+        geo: {
+            appendProxies: false,
+            proxies: [{
+                context: ['/geoserver'],
+                host: 'geo',
+                port: 8080
+            }]
+        },
+        livereload: {
+            options : {
+                middleware: function (connect, options) {
+                    var middlewares = [];
+
+                    if (!Array.isArray(options.base)) {
+                        options.base = [options.base];
+                    }
+
+                    // Enable CORS by setting response headers
+                    middlewares.unshift(function(req, res, next) {
+                        res.setHeader('Access-Control-Allow-Origin', '*');
+                        res.setHeader('Access-Control-Allow-Methods', '*');
+                        res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+                        return next();
+                    });
+
+                    // Setup the proxy
+                    middlewares.push(
+                        require('grunt-connect-proxy/lib/utils')
+                            .proxyRequest);
+
+                    // Serve static files
+                    options.base.forEach(function (base) {
+                        middlewares.push(connect.static(base));
+                    });
+
+                    return middlewares;
+                }
+            }
         }
     });
 
@@ -307,5 +367,17 @@ module.exports = function (grunt) {
         'copy:build_vendorjs',
         'copy:build_vendorassets_nested',
         'index:build'
+    ]);
+
+    grunt.registerTask('proxy-dgeo',[
+        'configureProxies:dgeo',
+        'connect:localTestFilesServer',
+        'connect:livereload',
+        'watch'
+    ]);
+
+    grunt.registerTask('proxy-geo',[
+        'configureProxies:geo',
+        'connect:livereload'
     ]);
 };
