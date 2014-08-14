@@ -27,7 +27,7 @@
                             <wps:Input>
                                 <ows:Identifier>filter</ows:Identifier>
                                 <wps:Data>
-                                    <wps:ComplexData mimeType="text/plain; subtype=cql"><![CDATA[{{inputLayer_filter}}]]></wps:ComplexData>
+                                    <wps:ComplexData mimeType="text/plain; subtype=cql"><![CDATA[{{inputLayerFilter}}]]></wps:ComplexData>
                                 </wps:Data>
                             </wps:Input>
                         </wps:DataInputs>
