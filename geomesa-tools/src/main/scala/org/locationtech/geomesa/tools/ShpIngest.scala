@@ -3,12 +3,17 @@ package org.locationtech.geomesa.tools
 import java.io.File
 
 import com.typesafe.scalalogging.slf4j.Logging
+import com.vividsolutions.jts.geom.Geometry
 import org.geotools.data.shapefile.ShapefileDataStoreFactory
 import org.geotools.data.{DataStoreFinder, Transaction}
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.identity.FeatureIdImpl
+import org.geotools.geometry.jts.JTS
+import org.geotools.referencing.CRS
+import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.opengis.feature.simple.SimpleFeature
+import org.opengis.referencing.operation.MathTransform
 
 import scala.collection.JavaConversions._
 
@@ -20,6 +25,9 @@ object ShpIngest extends Logging {
     val shpDataStore = DataStoreFinder.getDataStore(params)
     val featureTypeName = shpDataStore.getTypeNames.head
     val feature = shpDataStore.getFeatureSource(featureTypeName)
+    val sourceCRS = feature.getSchema.getCoordinateReferenceSystem
+    val targetCRS = DefaultGeographicCRS.WGS84
+    val transform = CRS.findMathTransform(sourceCRS, targetCRS, true)
 
     val ds = DataStoreFinder.getDataStore(dsConf)
 
@@ -42,7 +50,7 @@ object ShpIngest extends Logging {
       val writer = ds.getFeatureWriterAppend(targetTypeName, Transaction.AUTO_COMMIT)
       feature.getFeatures.features().foreach { f =>
         val toWrite = writer.next()
-        copyFeature(f, toWrite)
+        copyFeature(f, toWrite, transform)
         writer.write()
       }
       writer.close()
@@ -50,9 +58,9 @@ object ShpIngest extends Logging {
     }
   }
 
-  def copyFeature(from: SimpleFeature, to: SimpleFeature): Unit = {
+  def copyFeature(from: SimpleFeature, to: SimpleFeature, transform: MathTransform): Unit = {
     from.getAttributes.zipWithIndex.foreach { case (attr, idx) => to.setAttribute(idx, attr) }
-    to.setDefaultGeometry(from.getDefaultGeometry)
+    to.setDefaultGeometry(JTS.transform(from.getDefaultGeometry.asInstanceOf[Geometry], transform))
     to.getIdentifier.asInstanceOf[FeatureIdImpl].setID(from.getID)
   }
   

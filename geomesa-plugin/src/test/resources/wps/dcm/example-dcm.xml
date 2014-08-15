@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wps:Execute version="1.0.0" service="WPS" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.opengis.net/wps/1.0.0" xmlns:wfs="http://www.opengis.net/wfs" xmlns:wps="http://www.opengis.net/wps/1.0.0" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:gml="http://www.opengis.net/gml" xmlns:ogc="http://www.opengis.net/ogc" xmlns:wcs="http://www.opengis.net/wcs/1.1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd">
+  <ows:Identifier>gs:Import</ows:Identifier>
+  <wps:DataInputs>
+    <wps:Input>
+      <ows:Identifier>coverage</ows:Identifier>
+      <wps:Reference mimeType="image/tiff" xlink:href="http://geoserver/wps" method="POST">
+        <wps:Body>
+          <wps:Execute version="1.0.0" service="WPS">
+            <ows:Identifier>geomesa:DCM</ows:Identifier>
+            <wps:DataInputs>
+              <wps:Input><ows:Identifier>width</ows:Identifier><wps:Data><wps:LiteralData>1024</wps:LiteralData></wps:Data></wps:Input>
+              <wps:Input><ows:Identifier>height</ows:Identifier><wps:Data><wps:LiteralData>1024</wps:LiteralData></wps:Data></wps:Input>
+
+              <wps:Input><ows:Identifier>predictiveFeatures</ows:Identifier><wps:Data><wps:LiteralData>geomesa:dpt_bike_network</wps:LiteralData></wps:Data></wps:Input>
+              <wps:Input><ows:Identifier>predictiveFeatures</ows:Identifier><wps:Data><wps:LiteralData>geomesa:dpt_bluezones</wps:LiteralData></wps:Data></wps:Input>
+              <wps:Input><ows:Identifier>predictiveFeatures</ows:Identifier><wps:Data><wps:LiteralData>geomesa:phys_waterbodies</wps:LiteralData></wps:Data></wps:Input>
+              <wps:Input><ows:Identifier>predictiveFeatures</ows:Identifier><wps:Data><wps:LiteralData>geomesa:schools_private</wps:LiteralData></wps:Data></wps:Input>
+              <wps:Input><ows:Identifier>predictiveFeatures</ows:Identifier><wps:Data><wps:LiteralData>geomesa:schools_public</wps:LiteralData></wps:Data></wps:Input>
+              <wps:Input><ows:Identifier>predictiveFeatures</ows:Identifier><wps:Data><wps:LiteralData>geomesa:sffacs_public_all</wps:LiteralData></wps:Data></wps:Input>
+              <wps:Input><ows:Identifier>predictiveFeatures</ows:Identifier><wps:Data><wps:LiteralData>geomesa:sfha_properties</wps:LiteralData></wps:Data></wps:Input>
+              <wps:Input><ows:Identifier>predictiveFeatures</ows:Identifier><wps:Data><wps:LiteralData>geomesa:sflnds_public</wps:LiteralData></wps:Data></wps:Input>
+              <wps:Input><ows:Identifier>predictiveFeatures</ows:Identifier><wps:Data><wps:LiteralData>geomesa:sfpd_stations</wps:LiteralData></wps:Data></wps:Input>
+              <wps:Input><ows:Identifier>predictiveFeatures</ows:Identifier><wps:Data><wps:LiteralData>geomesa:sfpost_offices</wps:LiteralData></wps:Data></wps:Input>
+              <wps:Input><ows:Identifier>predictiveFeatures</ows:Identifier><wps:Data><wps:LiteralData>geomesa:StClines_Arterial</wps:LiteralData></wps:Data></wps:Input>
+              <wps:Input><ows:Identifier>predictiveFeatures</ows:Identifier><wps:Data><wps:LiteralData>geomesa:STCLINES_FREEWAYS</wps:LiteralData></wps:Data></wps:Input>
+              <wps:Input><ows:Identifier>predictiveFeatures</ows:Identifier><wps:Data><wps:LiteralData>geomesa:stclines_highways</wps:LiteralData></wps:Data></wps:Input>
+<!--
+              <wps:Input><ows:Identifier>predictiveFeatures</ows:Identifier><wps:Data><wps:LiteralData>geomesa:StClines</wps:LiteralData></wps:Data></wps:Input>
+-->
+              <wps:Input>
+                <ows:Identifier>events</ows:Identifier>
+                <wps:Reference mimeType="text/xml" xlink:href="http://geoserver/wps" method="POST">
+                  <wps:Body>
+                    <wps:Execute version="1.0.0" service="WPS">
+                      <ows:Identifier>gs:Query</ows:Identifier>
+                      <wps:DataInputs>
+                        <wps:Input>
+                          <ows:Identifier>features</ows:Identifier>
+                          <wps:Reference mimeType="text/xml" xlink:href="http://geoserver/wfs" method="POST">
+                            <wps:Body>
+                              <wfs:GetFeature service="WFS" version="1.0.0" outputFormat="GML2" xmlns:geomesa="http://geomesa">
+                                <wfs:Query typeName="geomesa:sfpd">
+                                  <ogc:PropertyIsBetween>
+                                    <ogc:PropertyName>datetime</ogc:PropertyName>
+                                    <ogc:LowerBoundary><ogc:Literal>2013-06-01T00:00:00.000Z</ogc:Literal></ogc:LowerBoundary>
+                                    <ogc:UpperBoundary><ogc:Literal>2013-08-31T00:00:00.000Z</ogc:Literal></ogc:UpperBoundary>
+                                  </ogc:PropertyIsBetween>
+                                </wfs:Query>
+                              </wfs:GetFeature>
+                            </wps:Body>
+                          </wps:Reference>
+                        </wps:Input>
+                      </wps:DataInputs>
+                      <wps:ResponseForm>
+                        <wps:RawDataOutput mimeType="text/xml; subtype=wfs-collection/1.0">
+                          <ows:Identifier>geomesa:incidents</ows:Identifier>
+                        </wps:RawDataOutput>
+                      </wps:ResponseForm>
+                    </wps:Execute>
+                  </wps:Body>
+                </wps:Reference>
+              </wps:Input>
+            </wps:DataInputs>
+            <wps:ResponseForm>
+              <wps:RawDataOutput mimeType="image/tiff">
+                <ows:Identifier>prediction</ows:Identifier>
+              </wps:RawDataOutput>
+            </wps:ResponseForm>
+          </wps:Execute>
+        </wps:Body>
+      </wps:Reference>
+    </wps:Input>
+    <wps:Input>
+      <ows:Identifier>workspace</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>nurc</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    <wps:Input>
+      <ows:Identifier>name</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>threat8</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    <wps:Input>
+      <ows:Identifier>srs</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>EPSG:4326</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+  </wps:DataInputs>
+  <wps:ResponseForm>
+    <wps:RawDataOutput>
+      <ows:Identifier>layerName</ows:Identifier>
+    </wps:RawDataOutput>
+  </wps:ResponseForm>
+</wps:Execute>

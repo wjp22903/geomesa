@@ -46,7 +46,7 @@ class GridSnap(env: Envelope, xSize: Int, ySize: Int) {
    * @return the Y ordinate of the row
    */
   def y(j: Int) =
-    if (j >= ySize - 1) env.getMaxY()
+    if (j >= ySize - 1) env.getMaxY
     else env.getMinY + j * dy
 
   /**
@@ -87,7 +87,7 @@ class GridSnap(env: Envelope, xSize: Int, ySize: Int) {
       def iter = new Iterator[Coordinate] {
         var (xT, yT) = (x0, y0)
         var error = (if (deltaX > deltaY) deltaX else -deltaY) / 2
-        def next = {
+        def next() = {
           val errorT = error
           if(errorT > -deltaX){ error -= deltaY; xT += stepX }
           if(errorT < deltaY){ error += deltaX; yT += stepY }
