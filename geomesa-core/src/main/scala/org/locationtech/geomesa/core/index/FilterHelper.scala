@@ -25,7 +25,7 @@ import org.locationtech.geomesa.utils.geohash.GeohashUtils
 import org.locationtech.geomesa.utils.geohash.GeohashUtils._
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.Filter
+import org.opengis.filter.{PropertyIsBetween, Filter}
 import org.opengis.filter.expression.{Literal, PropertyName}
 import org.opengis.filter.spatial._
 import org.opengis.filter.temporal.{During, Before, After}
@@ -119,10 +119,6 @@ object FilterHelper {
   }
 
   def extractTemporal(filters: Seq[Filter]) = {
-    var int = IndexSchema.everywhen
-
-    filters.foreach { f => int = int.overlap(extractInterval(f)) }
-
     def extractInterval(filter: Filter): Interval = {
       filter match {
         case after: After =>
@@ -136,8 +132,13 @@ object FilterHelper {
           val start = p.getBeginning.getPosition.getDate
           val end = p.getEnding.getPosition.getDate
           new Interval(start.getTime, end.getTime)
+        case between: PropertyIsBetween =>
+          val start = between.getLowerBoundary.evaluate(null, classOf[Date])
+          val end = between.getUpperBoundary.evaluate(null, classOf[Date])
+          new Interval(start.getTime, end.getTime)
       }
     }
-    int
+
+    filters.map(extractInterval).reduce( _.overlap(_))
   }
 }
