@@ -36,8 +36,9 @@ import scala.util.Random
 @RunWith(classOf[JUnitRunner])
 class DeciderTest extends Specification {
 
-  val sft = TestData.getFeatureType
 
+  val sft = SimpleFeatureTypes.createType("feature", "id:Integer:index=false,*geom:Point:srid=4326:index=true,dtg:Date,attr1:String:index=false,attr2:String:index=true")
+  sft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
 
   def getStrategy(filter: Filter): Strategy = {
     val query = new Query(sft.getTypeName)
@@ -66,6 +67,18 @@ class DeciderTest extends Specification {
       strategy.isInstanceOf[AttributeEqualsIdxStrategy] must beTrue
     }
   }
+
+  "Attribute filters" should {
+    "get the attribute equals strategy" in {
+      val fs = "attr1 = val56"
+      val filter = ECQL.toFilter(fs)
+
+      val strategy = getStrategy(filter)
+
+      strategy.isInstanceOf[StIdxStrategy] must beTrue
+    }
+  }
+
   "Attribute filters" should {
     "get the attribute likes strategy" in {
       val fs = "attr2 ILIKE '2nd1%'"
@@ -76,6 +89,18 @@ class DeciderTest extends Specification {
       strategy.isInstanceOf[AttributeLikeIdxStrategy] must beTrue
     }
   }
+
+  "Attribute filters" should {
+    "get the stidx strategy if attribute non-indexed" in {
+      val fs = "attr1 ILIKE '2nd1%'"
+      val filter = ECQL.toFilter(fs)
+
+      val strategy = getStrategy(filter)
+
+      strategy.isInstanceOf[StIdxStrategy] must beTrue
+    }
+  }
+
 
 
   "Id filters" should {
