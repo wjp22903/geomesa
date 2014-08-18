@@ -58,6 +58,9 @@
     <bean id="geomesaImportProcess" class="org.locationtech.geomesa.plugin.process.ImportProcess">
         <constructor-arg index="0" ref="catalog"/>
     </bean>
+    <bean id="geomesaDCMProcess" class="org.locationtech.geomesa.plugin.process.DCMProcess">
+        <constructor-arg index="0" ref="catalog"/>
+    </bean>
 
     <!-- Link category for grouping GeoMesa pages -->
     <bean id="geoMesaCategory" class="org.geoserver.web.Category">
