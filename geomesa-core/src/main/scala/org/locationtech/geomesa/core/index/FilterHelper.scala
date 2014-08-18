@@ -139,6 +139,6 @@ object FilterHelper {
       }
     }
 
-    filters.map(extractInterval).reduce( _.overlap(_))
+    filters.map(extractInterval).fold(IndexSchema.everywhen)( _.overlap(_))
   }
 }
