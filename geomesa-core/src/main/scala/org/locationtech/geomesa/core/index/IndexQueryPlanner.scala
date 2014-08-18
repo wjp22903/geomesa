@@ -147,46 +147,51 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
                        sft: SimpleFeatureType,
                        derivedQuery: Query,
                        isDensity: Boolean,
-                       output: ExplainerOutputType) = {
+                       output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = {
     val filterVisitor = new FilterToAccumulo(featureType)
     val rewrittenFilter = filterVisitor.visit(derivedQuery)
-    if(acc.catalogTableFormat(sft)){
-      // If we have attr index table try it
-      runAttrIdxQuery(acc, derivedQuery, rewrittenFilter, filterVisitor, isDensity, output)
-    } else {
-      // datastore doesn't support attr index use spatiotemporal only
-      stIdxQuery(acc, derivedQuery, filterVisitor, output)
-    }
+
+    val strategy = Decider.chooseStrategy(acc, this, sft, derivedQuery, isDensity, output)
+
+    strategy.execute(acc, sft, derivedQuery, filterVisitor, output)
+
+//    if(acc.catalogTableFormat(sft)){
+//      // If we have attr index table try it
+//      runAttrIdxQuery(acc, derivedQuery, rewrittenFilter, filterVisitor, isDensity, output)
+//    } else {
+//      // datastore doesn't support attr index use spatiotemporal only
+//      stIdxQuery(acc, derivedQuery, filterVisitor, output)
+//    }
   }
 
   /**
    * Attempt to run a query against the attribute index if it can be satisfied 
    * there...if not run against the SpatioTemporal
    */
-  def runAttrIdxQuery(acc: AccumuloConnectorCreator,
-                      derivedQuery: Query,
-                      rewrittenFilter: Filter,
-                      filterVisitor: FilterToAccumulo,
-                      isDensity: Boolean,
-                      output: ExplainerOutputType) = {
-
-    rewrittenFilter match {
-      case isEqualTo: PropertyIsEqualTo if !isDensity && attrIdxQueryEligible(isEqualTo) =>
-        attrIdxEqualToQuery(acc, derivedQuery, isEqualTo, filterVisitor, output)
-
-      case like: PropertyIsLike if !isDensity =>
-        if(attrIdxQueryEligible(like) && likeEligible(like))
-          attrIdxLikeQuery(acc, derivedQuery, like, filterVisitor, output)
-        else
-          stIdxQuery(acc, derivedQuery, filterVisitor, output)
-
-      case idFilter: Id =>
-        recordIdFilter(acc, idFilter, output)
-
-      case cql =>
-        stIdxQuery(acc, derivedQuery, filterVisitor, output)
-    }
-  }
+//  def runAttrIdxQuery(acc: AccumuloConnectorCreator,
+//                      derivedQuery: Query,
+//                      rewrittenFilter: Filter,
+//                      filterVisitor: FilterToAccumulo,
+//                      isDensity: Boolean,
+//                      output: ExplainerOutputType) = {
+//
+//    rewrittenFilter match {
+//      case isEqualTo: PropertyIsEqualTo if !isDensity && attrIdxQueryEligible(isEqualTo) =>
+//        attrIdxEqualToQuery(acc, derivedQuery, isEqualTo, filterVisitor, output)
+//
+//      case like: PropertyIsLike if !isDensity =>
+//        if(attrIdxQueryEligible(like) && likeEligible(like))
+//          attrIdxLikeQuery(acc, derivedQuery, like, filterVisitor, output)
+//        else
+//          stIdxQuery(acc, derivedQuery, filterVisitor, output)
+//
+//      case idFilter: Id =>
+//        recordIdFilter(acc, idFilter, output)
+//
+//      case cql =>
+//        stIdxQuery(acc, derivedQuery, filterVisitor, output)
+//    }
+//  }
 
   def recordIdFilter(acc: AccumuloConnectorCreator,
                      idFilter: Id,
@@ -351,118 +356,118 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     case _ => Some(ff.and(filters))
   }
 
-  def buildSTIdxQueryPlan(query: Query,
-                          filterVisitor: FilterToAccumulo,
-                          output: ExplainerOutputType) = {
-    output(s"Scanning ST index table for feature type ${featureType.getTypeName}")
-
-    val spatial = filterVisitor.spatialPredicate
-    val temporal = filterVisitor.temporalPredicate
-
-    // TODO: Select only the geometry filters which involve the indexed geometry type.
-    // https://geomesa.atlassian.net/browse/GEOMESA-200
-    // Simiarly, we should only extract temporal filters for the index date field.
-    val (geomFilters, otherFilters) = partitionGeom(query.getFilter)
-    val (temporalFilters, ecqlFilters: Seq[Filter]) = partitionTemporal(otherFilters)
-
-    val tweakedEcqlFilters = ecqlFilters.map(updateTopologicalFilters(_, featureType))
-
-    val ecql = filterListAsAnd(tweakedEcqlFilters).map(ECQL.toCQL)
-
-    output(s"The geom filters are $geomFilters.\nThe temporal filters are $temporalFilters.")
-
-    val tweakedGeoms = geomFilters.map(updateTopologicalFilters(_, featureType))
-
-    output(s"Tweaked geom filters are $tweakedGeoms")
-
-    // standardize the two key query arguments:  polygon and date-range
-    val geomsToCover = tweakedGeoms.flatMap {
-      case bbox: BBOX =>
-        val bboxPoly = bbox.getExpression2.asInstanceOf[Literal].evaluate(null, classOf[Geometry])
-        Seq(bboxPoly)
-      case gf: BinarySpatialOperator =>
-        extractGeometry(gf)
-      case _ => Seq()
-    }
-
-    val collectionToCover: Geometry = geomsToCover match {
-      case Nil => null
-      case seq: Seq[Geometry] => new GeometryCollection(geomsToCover.toArray, geomsToCover.head.getFactory)
-    }
-
-    val interval = netInterval(temporal)
-    val geometryToCover = netGeom(collectionToCover)
-    val filter = buildFilter(geometryToCover, interval)
-
-    output(s"GeomsToCover $geomsToCover.")
-
-    val ofilter = filterListAsAnd(geomFilters ++ temporalFilters)
-    if(ofilter.isEmpty) logger.warn(s"Querying Accumulo without ST filter.")
-
-    val oint  = IndexSchema.somewhen(interval)
-
-    // set up row ranges and regular expression filter
-    val qp = planQuery(filter, output)
-
-    output("Configuring batch scanner for ST table: \n" +
-      s"  Filter ${query.getFilter}\n" +
-      s"  STII Filter: ${ofilter.getOrElse("No STII Filter")}\n" +
-      s"  Interval:  ${oint.getOrElse("No interval")}\n" +
-      s"  Filter: ${Option(filter).getOrElse("No Filter")}\n" +
-      s"  ECQL: ${Option(ecql).getOrElse("No ecql")}\n" +
-      s"Query: ${Option(query).getOrElse("no query")}.")
-
-    val iteratorConfig = IteratorTrigger.chooseIterator(ecql, query, featureType)
-
-    val stIdxIterCfg =
-      iteratorConfig.iterator match {
-        case IndexOnlyIterator  =>
-          val transformedSFType = transformedSimpleFeatureType(query).getOrElse(featureType)
-          configureIndexIterator(ofilter, query, transformedSFType)
-        case SpatioTemporalIterator =>
-          val isDensity = query.getHints.containsKey(DENSITY_KEY)
-          configureSpatioTemporalIntersectingIterator(ofilter, featureType, isDensity)
-      }
-
-    val sffiIterCfg =
-      if (iteratorConfig.useSFFI) {
-        Some(configureSimpleFeatureFilteringIterator(featureType, ecql, query))
-      } else None
-
-    val topIterCfg = if(query.getHints.containsKey(DENSITY_KEY)) {
-      val clazz = classOf[DensityIterator]
-
-      val cfg = new IteratorSetting(iteratorPriority_AnalysisIterator,
-        "topfilter-" + randomPrintableString(5),
-        clazz)
-
-      val width = query.getHints.get(WIDTH_KEY).asInstanceOf[Int]
-      val height =  query.getHints.get(HEIGHT_KEY).asInstanceOf[Int]
-      val polygon = if(geometryToCover == null) null else geometryToCover.getEnvelope.asInstanceOf[Polygon]
-
-      DensityIterator.configure(cfg, polygon, width, height)
-
-      cfg.addOption(DEFAULT_SCHEMA_NAME, schema)
-      configureFeatureEncoding(cfg)
-      configureFeatureType(cfg, featureType)
-
-      Some(cfg)
-    } else None
-
-    qp.copy(iterators = qp.iterators ++ List(Some(stIdxIterCfg), sffiIterCfg, topIterCfg).flatten)
-  }
-
-  def stIdxQuery(acc: AccumuloConnectorCreator,
-                 query: Query,
-                 filterVisitor: FilterToAccumulo,
-                 output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = {
-    val bs = acc.createSTIdxScanner(featureType)
-    val qp = buildSTIdxQueryPlan(query, filterVisitor, output)
-    configureBatchScanner(bs, qp)
-    // NB: Since we are (potentially) gluing multiple batch scanner iterators together,
-    //  we wrap our calls in a SelfClosingBatchScanner.
-    SelfClosingBatchScanner(bs)
-  }
+//  def buildSTIdxQueryPlan(query: Query,
+//                          filterVisitor: FilterToAccumulo,
+//                          output: ExplainerOutputType) = {
+//    output(s"Scanning ST index table for feature type ${featureType.getTypeName}")
+//
+//    val spatial = filterVisitor.spatialPredicate
+//    val temporal = filterVisitor.temporalPredicate
+//
+//    // TODO: Select only the geometry filters which involve the indexed geometry type.
+//    // https://geomesa.atlassian.net/browse/GEOMESA-200
+//    // Simiarly, we should only extract temporal filters for the index date field.
+//    val (geomFilters, otherFilters) = partitionGeom(query.getFilter)
+//    val (temporalFilters, ecqlFilters: Seq[Filter]) = partitionTemporal(otherFilters)
+//
+//    val tweakedEcqlFilters = ecqlFilters.map(updateTopologicalFilters(_, featureType))
+//
+//    val ecql = filterListAsAnd(tweakedEcqlFilters).map(ECQL.toCQL)
+//
+//    output(s"The geom filters are $geomFilters.\nThe temporal filters are $temporalFilters.")
+//
+//    val tweakedGeoms = geomFilters.map(updateTopologicalFilters(_, featureType))
+//
+//    output(s"Tweaked geom filters are $tweakedGeoms")
+//
+//    // standardize the two key query arguments:  polygon and date-range
+//    val geomsToCover = tweakedGeoms.flatMap {
+//      case bbox: BBOX =>
+//        val bboxPoly = bbox.getExpression2.asInstanceOf[Literal].evaluate(null, classOf[Geometry])
+//        Seq(bboxPoly)
+//      case gf: BinarySpatialOperator =>
+//        extractGeometry(gf)
+//      case _ => Seq()
+//    }
+//
+//    val collectionToCover: Geometry = geomsToCover match {
+//      case Nil => null
+//      case seq: Seq[Geometry] => new GeometryCollection(geomsToCover.toArray, geomsToCover.head.getFactory)
+//    }
+//
+//    val interval = netInterval(temporal)
+//    val geometryToCover = netGeom(collectionToCover)
+//    val filter = buildFilter(geometryToCover, interval)
+//
+//    output(s"GeomsToCover $geomsToCover.")
+//
+//    val ofilter = filterListAsAnd(geomFilters ++ temporalFilters)
+//    if(ofilter.isEmpty) logger.warn(s"Querying Accumulo without ST filter.")
+//
+//    val oint  = IndexSchema.somewhen(interval)
+//
+//    // set up row ranges and regular expression filter
+//    val qp = planQuery(filter, output)
+//
+//    output("Configuring batch scanner for ST table: \n" +
+//      s"  Filter ${query.getFilter}\n" +
+//      s"  STII Filter: ${ofilter.getOrElse("No STII Filter")}\n" +
+//      s"  Interval:  ${oint.getOrElse("No interval")}\n" +
+//      s"  Filter: ${Option(filter).getOrElse("No Filter")}\n" +
+//      s"  ECQL: ${Option(ecql).getOrElse("No ecql")}\n" +
+//      s"Query: ${Option(query).getOrElse("no query")}.")
+//
+//    val iteratorConfig = IteratorTrigger.chooseIterator(ecql, query, featureType)
+//
+//    val stIdxIterCfg =
+//      iteratorConfig.iterator match {
+//        case IndexOnlyIterator  =>
+//          val transformedSFType = transformedSimpleFeatureType(query).getOrElse(featureType)
+//          configureIndexIterator(ofilter, query, transformedSFType)
+//        case SpatioTemporalIterator =>
+//          val isDensity = query.getHints.containsKey(DENSITY_KEY)
+//          configureSpatioTemporalIntersectingIterator(ofilter, featureType, isDensity)
+//      }
+//
+//    val sffiIterCfg =
+//      if (iteratorConfig.useSFFI) {
+//        Some(configureSimpleFeatureFilteringIterator(featureType, ecql, query))
+//      } else None
+//
+//    val topIterCfg = if(query.getHints.containsKey(DENSITY_KEY)) {
+//      val clazz = classOf[DensityIterator]
+//
+//      val cfg = new IteratorSetting(iteratorPriority_AnalysisIterator,
+//        "topfilter-" + randomPrintableString(5),
+//        clazz)
+//
+//      val width = query.getHints.get(WIDTH_KEY).asInstanceOf[Int]
+//      val height =  query.getHints.get(HEIGHT_KEY).asInstanceOf[Int]
+//      val polygon = if(geometryToCover == null) null else geometryToCover.getEnvelope.asInstanceOf[Polygon]
+//
+//      DensityIterator.configure(cfg, polygon, width, height)
+//
+//      cfg.addOption(DEFAULT_SCHEMA_NAME, schema)
+//      configureFeatureEncoding(cfg)
+//      configureFeatureType(cfg, featureType)
+//
+//      Some(cfg)
+//    } else None
+//
+//    qp.copy(iterators = qp.iterators ++ List(Some(stIdxIterCfg), sffiIterCfg, topIterCfg).flatten)
+//  }
+//
+//  def stIdxQuery(acc: AccumuloConnectorCreator,
+//                 query: Query,
+//                 filterVisitor: FilterToAccumulo,
+//                 output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = {
+//    val bs = acc.createSTIdxScanner(featureType)
+//    val qp = buildSTIdxQueryPlan(query, filterVisitor, output)
+//    configureBatchScanner(bs, qp)
+//    // NB: Since we are (potentially) gluing multiple batch scanner iterators together,
+//    //  we wrap our calls in a SelfClosingBatchScanner.
+//    SelfClosingBatchScanner(bs)
+//  }
 
   def configureBatchScanner(bs: BatchScanner, qp: QueryPlan): Unit = {
     qp.iterators.foreach { i => bs.addScanIterator(i) }
