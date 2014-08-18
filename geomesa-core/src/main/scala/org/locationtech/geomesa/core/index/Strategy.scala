@@ -59,18 +59,12 @@ import scala.collection.JavaConversions._
 import scala.util.Random
 
 trait Strategy {
-  def iqp: IndexQueryPlanner
-
-  def featureEncoder: SimpleFeatureEncoder = iqp.featureEncoder
-  def schema: String                       = iqp.schema
-  def cfPlanner: ColumnFamilyPlanner       = iqp.cfPlanner
-  def keyPlanner: KeyPlanner               = iqp.keyPlanner
-
   def execute(acc: AccumuloConnectorCreator,
-                     featureType: SimpleFeatureType,
-                     query: Query,
-                     filterVisitor: FilterToAccumulo,
-                     output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]]
+              iqp: IndexQueryPlanner,
+              featureType: SimpleFeatureType,
+              query: Query,
+              filterVisitor: FilterToAccumulo,
+              output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]]
 
   def configureBatchScanner(bs: BatchScanner, qp: QueryPlan): Unit = {
     qp.iterators.foreach { i => bs.addScanIterator(i) }
@@ -79,7 +73,7 @@ trait Strategy {
   }
 
 
-  def configureFeatureEncoding(cfg: IteratorSetting) =
+  def configureFeatureEncoding(cfg: IteratorSetting, featureEncoder: SimpleFeatureEncoder) =
     cfg.addOption(FEATURE_ENCODING, featureEncoder.getName)
 
   def configureFeatureType(cfg: IteratorSetting, featureType: SimpleFeatureType) {
@@ -119,12 +113,14 @@ trait Strategy {
   // 2) the DateTime intersects the query interval; this is a coarse-grained filter
   def configureIndexIterator(filter: Option[Filter],
                              query: Query,
+                             schema: String,
+                             featureEncoder: SimpleFeatureEncoder,
                              featureType: SimpleFeatureType): IteratorSetting = {
     val cfg = new IteratorSetting(iteratorPriority_SpatioTemporalIterator,
       "within-" + randomPrintableString(5),classOf[IndexIterator])
     IndexIterator.setOptions(cfg, schema, filter)
     configureFeatureType(cfg, featureType)
-    configureFeatureEncoding(cfg)
+    configureFeatureEncoding(cfg, featureEncoder)
     cfg
   }
 
@@ -133,6 +129,7 @@ trait Strategy {
   // 2) the DateTime intersects the query interval; this is a coarse-grained filter
   def configureSpatioTemporalIntersectingIterator(filter: Option[Filter],
                                                   featureType: SimpleFeatureType,
+                                                  schema: String,
                                                   isDensity: Boolean): IteratorSetting = {
     val cfg = new IteratorSetting(iteratorPriority_SpatioTemporalIterator,
       "within-" + randomPrintableString(5),
@@ -147,6 +144,8 @@ trait Strategy {
   // the values into a map of attribute, value pairs
   def configureSimpleFeatureFilteringIterator(simpleFeatureType: SimpleFeatureType,
                                               ecql: Option[String],
+                                              schema: String,
+                                              featureEncoder: SimpleFeatureEncoder,
                                               query: Query): IteratorSetting = {
 
     val density: Boolean = query.getHints.containsKey(DENSITY_KEY)
@@ -156,7 +155,7 @@ trait Strategy {
       classOf[SimpleFeatureFilteringIterator])
 
     cfg.addOption(DEFAULT_SCHEMA_NAME, schema)
-    configureFeatureEncoding(cfg)
+    configureFeatureEncoding(cfg, featureEncoder)
     configureTransforms(query,cfg)
     configureFeatureType(cfg, simpleFeatureType)
     ecql.foreach(SimpleFeatureFilteringIterator.setECQLFilter(cfg, _))
@@ -171,27 +170,34 @@ trait Strategy {
 
 }
 
-class StIdxStrategy(val iqp: IndexQueryPlanner) extends Strategy with Logging {
+class StIdxStrategy extends Strategy with Logging {
   //override def execute(acc: AccumuloConnectorCreator, sft: SimpleFeatureType, derivedQuery: Query, isDensity: Boolean, output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = ???
 
   def execute(acc: AccumuloConnectorCreator,
-                       featureType: SimpleFeatureType,
-                       query: Query,
-                       filterVisitor: FilterToAccumulo,
-                       output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = {
+              iqp: IndexQueryPlanner,
+              featureType: SimpleFeatureType,
+              query: Query,
+              filterVisitor: FilterToAccumulo,
+              output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = {
     val bs = acc.createSTIdxScanner(featureType)
-    val qp = buildSTIdxQueryPlan(query, filterVisitor, featureType, output)
+    val qp = buildSTIdxQueryPlan(query, filterVisitor, iqp, featureType, output)
     configureBatchScanner(bs, qp)
     // NB: Since we are (potentially) gluing multiple batch scanner iterators together,
     //  we wrap our calls in a SelfClosingBatchScanner.
     SelfClosingBatchScanner(bs)
-
   }
 
   def buildSTIdxQueryPlan(query: Query,
                           filterVisitor: FilterToAccumulo,
+                          iqp: IndexQueryPlanner,
                           featureType: SimpleFeatureType,
                           output: ExplainerOutputType) = {
+
+    val schema         = iqp.schema
+    val featureEncoder = iqp.featureEncoder
+    val keyPlanner     = iqp.keyPlanner
+    val cfPlanner      = iqp.cfPlanner
+
     output(s"Scanning ST index table for feature type ${featureType.getTypeName}")
 
     val spatial = filterVisitor.spatialPredicate
@@ -240,7 +246,7 @@ class StIdxStrategy(val iqp: IndexQueryPlanner) extends Strategy with Logging {
     val oint  = IndexSchema.somewhen(interval)
 
     // set up row ranges and regular expression filter
-    val qp = planQuery(filter, output)
+    val qp = planQuery(filter, output, keyPlanner, cfPlanner)
 
     output("Configuring batch scanner for ST table: \n" +
       s"  Filter ${query.getFilter}\n" +
@@ -256,15 +262,15 @@ class StIdxStrategy(val iqp: IndexQueryPlanner) extends Strategy with Logging {
       iteratorConfig.iterator match {
         case IndexOnlyIterator  =>
           val transformedSFType = transformedSimpleFeatureType(query).getOrElse(featureType)
-          configureIndexIterator(ofilter, query, transformedSFType)
+          configureIndexIterator(ofilter, query, schema, featureEncoder, transformedSFType)
         case SpatioTemporalIterator =>
           val isDensity = query.getHints.containsKey(DENSITY_KEY)
-          configureSpatioTemporalIntersectingIterator(ofilter, featureType, isDensity)
+          configureSpatioTemporalIntersectingIterator(ofilter, featureType, schema, isDensity)
       }
 
     val sffiIterCfg =
       if (iteratorConfig.useSFFI) {
-        Some(configureSimpleFeatureFilteringIterator(featureType, ecql, query))
+        Some(configureSimpleFeatureFilteringIterator(featureType, ecql, schema, featureEncoder, query))
       } else None
 
     val topIterCfg = if(query.getHints.containsKey(DENSITY_KEY)) {
@@ -281,7 +287,7 @@ class StIdxStrategy(val iqp: IndexQueryPlanner) extends Strategy with Logging {
       DensityIterator.configure(cfg, polygon, width, height)
 
       cfg.addOption(DEFAULT_SCHEMA_NAME, schema)
-      configureFeatureEncoding(cfg)
+      configureFeatureEncoding(cfg, featureEncoder)
       configureFeatureType(cfg, featureType)
 
       Some(cfg)
@@ -325,7 +331,7 @@ class StIdxStrategy(val iqp: IndexQueryPlanner) extends Strategy with Logging {
   }
 
 
-  def planQuery(filter: KeyPlanningFilter, output: ExplainerOutputType): QueryPlan = {
+  def planQuery(filter: KeyPlanningFilter, output: ExplainerOutputType, keyPlanner: KeyPlanner, cfPlanner: ColumnFamilyPlanner): QueryPlan = {
     output(s"Planning query")
     val keyPlan = keyPlanner.getKeyPlan(filter, output)
     output(s"Got keyplan ${keyPlan.toString.take(1000)}")
@@ -364,4 +370,19 @@ class StIdxStrategy(val iqp: IndexQueryPlanner) extends Strategy with Logging {
   //override def iqp: IndexQueryPlanner = ???
 
   //override def execute(acc: AccumuloConnectorCreator, sft: SimpleFeatureType, derivedQuery: Query, isDensity: Boolean, output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = ???
+}
+
+trait AttributeIdxStrategy extends Strategy {
+  //override def execute(acc: AccumuloConnectorCreator, featureType: SimpleFeatureType, query: Query, filterVisitor: FilterToAccumulo, output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = ???
+  override def execute(acc: AccumuloConnectorCreator, iqp: IndexQueryPlanner, featureType: SimpleFeatureType, query: Query, filterVisitor: FilterToAccumulo, output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = ???
+}
+
+class AttributeEqualsIdxStrategy extends AttributeIdxStrategy
+
+class AttributeLikeIdxStrategy extends AttributeIdxStrategy
+
+
+class RecordIdxStrategy extends Strategy {
+  //override def execute(acc: AccumuloConnectorCreator, featureType: SimpleFeatureType, query: Query, filterVisitor: FilterToAccumulo, output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = ???
+  override def execute(acc: AccumuloConnectorCreator, iqp: IndexQueryPlanner, featureType: SimpleFeatureType, query: Query, filterVisitor: FilterToAccumulo, output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = ???
 }

@@ -151,9 +151,10 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     val filterVisitor = new FilterToAccumulo(featureType)
     val rewrittenFilter = filterVisitor.visit(derivedQuery)
 
-    val strategy = Decider.chooseStrategy(acc, this, sft, derivedQuery, isDensity, output)
+    val strategy = Decider.chooseStrategy(acc, sft, derivedQuery)
 
-    strategy.execute(acc, sft, derivedQuery, filterVisitor, output)
+    output(s"Strategy: $strategy")
+    strategy.execute(acc, this, sft, derivedQuery, filterVisitor, output)
 
 //    if(acc.catalogTableFormat(sft)){
 //      // If we have attr index table try it
