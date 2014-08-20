@@ -1,24 +1,24 @@
 package org.locationtech.geomesa.plugin.process
 
-import java.awt.image._
 import java.util
+
 import org.geoserver.catalog.Catalog
 import org.geotools.coverage.CoverageFactoryFinder
 import org.geotools.coverage.grid.GridCoverage2D
-import org.geotools.data.simple.{SimpleFeatureSource, SimpleFeatureCollection}
-import org.geotools.factory.CommonFactoryFinder
+import org.geotools.data.DataUtilities
+import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
+import org.geotools.factory.{CommonFactoryFinder, GeoTools}
 import org.geotools.feature.NameImpl
 import org.geotools.geometry.DirectPosition2D
 import org.geotools.geometry.jts.{JTS, ReferencedEnvelope}
-import org.geotools.process.factory.{DescribeProcess, DescribeParameter, DescribeResult}
-import org.geotools.process.vector.HeatmapProcess
+import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.locationtech.geomesa.plugin.wps.GeomesaProcess
+import weka.classifiers.functions.Logistic
+import weka.core.{Attribute, FastVector, Instance, Instances}
+
 import scala.collection.JavaConversions._
 import scala.util.Random
-import weka.classifiers.functions.Logistic
-import weka.core.{FastVector, Attribute, Instances, Instance}
-import org.geotools.data.DataUtilities
 
 
 @DescribeProcess(
@@ -26,27 +26,6 @@ import org.geotools.data.DataUtilities
   description = "Prediction"
 )
 class DCMProcess(val catalog: Catalog) extends GeomesaProcess {
-
-  def createCoverage() = {
-    val gcf = CoverageFactoryFinder.getGridCoverageFactory(null)
-    val env = new ReferencedEnvelope(-80, -70, 30, 40, DefaultGeographicCRS.WGS84)
-    val raster = Raster.createBandedRaster(DataBuffer.TYPE_INT, 1024, 1024, 1, null)
-    val dataBuf = raster.getDataBuffer
-    val grid = gcf.create("grid", raster, env)
-
-    val nrows = 1024
-    val ncols = 1024
-
-    val xform = grid.getGridGeometry.getGridToCRS2D
-    val locs =
-      (0 until nrows).map { row =>
-        val vec = (0 until ncols).flatMap { col => Array[Double](col, row) }
-        val res = Array.fill[Double](2*ncols)(0.0)
-        xform.transform(vec.toArray, 0, res, 0, ncols)
-        res.sliding(2, 2).toArray
-      }
-    locs
-  }
 
   @DescribeResult(
     name = "prediction",
@@ -69,56 +48,78 @@ class DCMProcess(val catalog: Catalog) extends GeomesaProcess {
     val ff = CommonFactoryFinder.getFilterFactory2
     import org.locationtech.geomesa.utils.geotools.Conversions._
     val responseFeatures = response.features().toArray
-    val bounds = DataUtilities.bounds(DataUtilities.collection(responseFeatures))
+    val collection = DataUtilities.collection(responseFeatures)
+    val bounds = DataUtilities.bounds(collection)
     val Array(lx,ly) = bounds.getLowerCorner.getCoordinate
     val Array(ux,uy) = bounds.getUpperCorner.getCoordinate
     val dx = ux - lx
     val dy = uy - ly
-    val numAttrs = 1 + featureNames.size()
-    val heatmapProcess = new HeatmapProcess()
-    val coverages = featureNames.map { feature =>
+    val bufferedBounds = JTS.toGeometry(bounds).buffer(math.max(dx,dy)/100.0).getEnvelopeInternal
+    val densityBounds = JTS.toGeographic(bufferedBounds, DefaultGeographicCRS.WGS84).asInstanceOf[ReferencedEnvelope]
+    val fdProcess = new FeatureDistanceProcess()
+    val coverages = featureNames.flatMap { feature =>
       val Array(ns, fn) = feature.split(":")
       val fInfo = catalog.getFeatureTypeByName(ns, fn)
       val ds = fInfo.getStore.getDataStore(null)
       val fs = ds.getFeatureSource(new NameImpl(fn)).asInstanceOf[SimpleFeatureSource]
       val geomProp = fs.getSchema.getGeometryDescriptor.getLocalName
-      val q = ff.within(ff.property(geomProp), ff.literal(JTS.toGeometry(bounds)))
+      val q = ff.bbox(ff.property(geomProp), densityBounds)
       val features = fs.getFeatures(q)
-      heatmapProcess.execute(features, 2, null, 1, bounds, 512, 512, null)
+      if(features.size() == 0) None
+      else Some((feature, fdProcess.execute(features, densityBounds, 512, 512)))
     }
 
+    val numAttrs = 1 + coverages.size
+    val attributes = coverages.map { case (fn, _) => new Attribute(fn) }
+    val fv = new FastVector(numAttrs)
+    val instances = new Instances("data", fv, 0)
+    val classFv = new FastVector(2)
+    classFv.addElement("0")
+    classFv.addElement("1")
+    fv.addElement(new Attribute("class", classFv))
+    attributes.foreach(fv.addElement(_))
+    instances.setClassIndex(0)
 
-    val positiveVecs =
-      responseFeatures.map { f =>
-        val loc = f.point
-        val x = loc.getX
-        val y = loc.getY
-        val pos = new DirectPosition2D(x, y)
-        val vec = coverages.map { c => c.evaluate(pos).asInstanceOf[Float] }
-        val inst = new Instance(numAttrs)
-        inst.setClassValue(1.0)
-        vec.zipWithIndex.foreach { case (v, idx) => inst.setValue(idx, v.toDouble) }
-        inst
-      }
-    val negativeVecs =
-      List.fill(1000)((lx+Random.nextDouble()*dx, ly+Random.nextDouble()*dy)).map { case (x,y) =>
-        val pos = new DirectPosition2D(x, y)
-        val vec = coverages.map { c => c.evaluate(pos).asInstanceOf[Float] }
-        val inst = new Instance(numAttrs)
-        inst.setClassValue(0.0)
-        vec.zipWithIndex.foreach { case (v, idx) => inst.setValue(idx, v.toDouble) }
-        inst
-      }
+    responseFeatures.foreach { f =>
+      val loc = f.point
+      val x = loc.getX
+      val y = loc.getY
+      val pos = new DirectPosition2D(x, y)
+      val vec = coverages.map { case (_, c) => c.evaluate(pos).asInstanceOf[Array[Float]].head }
+      val inst = new Instance(numAttrs)
+      inst.setValue(0, 1.0)
+      vec.zipWithIndex.foreach { case (v, idx) => inst.setValue(idx+1, v.toDouble) }
+      instances.add(inst)
+    }
+    List.fill(1000)((lx+Random.nextDouble()*dx, ly+Random.nextDouble()*dy)).foreach { case (x,y) =>
+      val pos = new DirectPosition2D(x, y)
+      val vec = coverages.map { case (_, c) => c.evaluate(pos).asInstanceOf[Array[Float]].head }
+      val inst = new Instance(numAttrs)
+      inst.setValue(0, 0.0)
+      vec.zipWithIndex.foreach { case (v, idx) => inst.setValue(idx+1, v.toDouble) }
+      instances.add(inst)
+    }
 
     val classifier = new Logistic
-    val attributes = featureNames.map { fn => new Attribute(fn) }
-    val fv = new FastVector(numAttrs)
-    fv.addElement(new Attribute("class"))
-    attributes.foreach(fv.addElement(_))
-    val instances = new Instances("data", fv, positiveVecs.length + negativeVecs.length)
-    instances.setClassIndex(0)
-    (positiveVecs ++ negativeVecs).foreach { v => instances.add(v) }
     classifier.buildClassifier(instances)
-    null
+
+    val gt = new GridTransform(bounds, 512, 512)
+    val predictions =
+      (0 until 512).map { i =>
+        val x = gt.x(i)
+        (0 until 512).map { j =>
+          val y = gt.y(j)
+          val pos = new DirectPosition2D(x, y)
+          val vec = coverages.map { case (_, c) => c.evaluate(pos).asInstanceOf[Array[Float]].head }
+          val inst = new Instance(numAttrs)
+          inst.setValue(0, 0.0)
+          vec.zipWithIndex.foreach { case (v, idx) => inst.setValue(idx+1, v.toDouble) }
+          inst.setDataset(instances)
+          classifier.distributionForInstance(inst)(1).toFloat
+        }.toArray
+      }.toArray
+
+    val gcf = CoverageFactoryFinder.getGridCoverageFactory(GeoTools.getDefaultHints)
+    gcf.create("Process Results", predictions, densityBounds)
   }
 }
