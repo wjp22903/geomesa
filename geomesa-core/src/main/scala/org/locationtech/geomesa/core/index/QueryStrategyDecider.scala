@@ -20,7 +20,9 @@ import org.geotools.data.Query
 import org.locationtech.geomesa.core.index.QueryHints._
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.expression.PropertyName
-import org.opengis.filter.{Filter, Id, PropertyIsLike, PropertyIsEqualTo}
+import org.opengis.filter._
+
+import scala.collection.JavaConversions._
 
 object QueryStrategyDecider {
 
@@ -36,6 +38,10 @@ object QueryStrategyDecider {
     val filter = query.getFilter
     val isDensity = query.getHints.containsKey(BBOX_KEY)
 
+    chooseNewStrategy(filter, isDensity, sft)
+  }
+
+  def chooseNewStrategy(filter: Filter, isDensity: Boolean, sft: SimpleFeatureType): Strategy = {
     filter match {
       case isEqualTo: PropertyIsEqualTo if !isDensity && attrIdxQueryEligible(isEqualTo, sft) =>
         new AttributeEqualsIdxStrategy
@@ -49,9 +55,16 @@ object QueryStrategyDecider {
       case idFilter: Id =>
         new RecordIdxStrategy
 
+      case and: And => processAnd(and)
+
       case cql =>
         new STIdxStrategy
     }
+  }
+
+  private def processAnd(and: And): Strategy = {
+
+    if (and.getChildren.forall(chooseNewStrategy()
   }
 
   // TODO try to use wildcard values from the Filter itself (https://geomesa.atlassian.net/browse/GEOMESA-309)
