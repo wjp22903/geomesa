@@ -1,6 +1,6 @@
 package org.locationtech.geomesa.plugin.process
 
-import com.vividsolutions.jts.geom.{Coordinate, Envelope, Geometry}
+import com.vividsolutions.jts.geom.{Coordinate, Geometry}
 import com.vividsolutions.jts.index.strtree.{GeometryItemDistance, STRtree}
 import com.vividsolutions.jts.operation.distance.DistanceOp
 import org.geotools.coverage.CoverageFactoryFinder
@@ -12,6 +12,7 @@ import org.geotools.process.factory.{DescribeParameter, DescribeProcess, Describ
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.locationtech.geomesa.plugin.wps.GeomesaProcess
 import org.locationtech.geomesa.utils.geotools.Conversions._
+import org.locationtech.geomesa.utils.geotools.GridSnap
 
 @DescribeProcess(
   title = "Feature Distance Process",
@@ -50,14 +51,14 @@ class FeatureDistanceProcess extends GeomesaProcess {
     obsFeatures.features().foreach { f => index.insert(f.geometry.getEnvelopeInternal, f.geometry) }
     index.build()
 
-    val gt = new GridTransform(argOutputEnv, argOutputWidth, argOutputHeight)
+    val gt = new GridSnap(argOutputEnv, argOutputWidth, argOutputHeight)
     val geomFactory = JTSFactoryFinder.getGeometryFactory
     val distMeasure = new GeometryItemDistance
     val distances =
-      (0 until argOutputWidth).map { i =>
-        val rowCoord = new Coordinate(gt.x(i), 0)
-        (0 until argOutputHeight).map { j =>
-          rowCoord.setOrdinate(1, gt.y(j))
+      (0 until argOutputWidth).map { col =>
+        val rowCoord = new Coordinate(gt.x(col), 0)
+        (0 until argOutputHeight).map { row =>
+          rowCoord.setOrdinate(Coordinate.Y, gt.y(row))
           val pt = geomFactory.createPoint(rowCoord)
           val nearest = index.nearestNeighbour(pt.getEnvelopeInternal, pt, distMeasure)
           val closestOnTargetGeom = DistanceOp.nearestPoints(nearest.asInstanceOf[Geometry], pt).head
@@ -66,61 +67,22 @@ class FeatureDistanceProcess extends GeomesaProcess {
     }.toArray
 
     val gcf = CoverageFactoryFinder.getGridCoverageFactory(GeoTools.getDefaultHints)
-    gcf.create("Process Results", distances, argOutputEnv)
+    gcf.create("Process Results", GridUtils.flipXY(distances), argOutputEnv)
   }
+
 }
 
-class GridTransform(env: Envelope, xSize: Int, ySize: Int) {
-  val dx = env.getWidth / (xSize - 1)
-  val dy = env.getHeight / (ySize - 1)
-
-
-  /**
-   * Computes the X ordinate of the i'th grid column.
-   * @param i the index of a grid column
-   * @return the X ordinate of the column
-   */
-  def x(i: Int) =
-    if (i >= xSize - 1) env.getMaxX
-    else env.getMinX + i * dx
-
-  /**
-   * Computes the Y ordinate of the i'th grid row.
-   * @param j the index of a grid row
-   * @return the Y ordinate of the row
-   */
-  def y(j: Int) =
-    if (j >= ySize - 1) env.getMaxY
-    else env.getMinY + j * dy
-
-  /**
-   * Computes the column index of an X ordinate.
-   * @param x the X ordinate
-   * @return the column index
-   */
-  def i(x: Double) = x match {
-    case _ if x > env.getMaxX => xSize
-    case _ if x < env.getMinX => -1
-    case _ =>
-      val ii: Int = ((x - env.getMinX) / dx).toInt
-      // have already check x is in bounds, so ensure returning a valid value
-      if (ii >= xSize) xSize - 1
-      else ii
+object GridUtils {
+  def flipXY(grid: Array[Array[Float]]) =  {
+    val xsize = grid.length
+    val ysize = grid(0).length
+    val grid2 = Array.ofDim[Float](xsize, ysize)
+    (0 until xsize).foreach { ix =>
+      (0 until ysize).foreach { iy =>
+        val iy2 = ysize - iy - 1
+        grid2(iy2)(ix) = grid(ix)(iy)
+      }
+    }
+    grid2
   }
-
-  /**
-   * Computes the column index of an Y ordinate.
-   * @param y the Y ordinate
-   * @return the column index
-   */
-  def j(y: Double) = y match {
-    case _ if y > env.getMaxY => ySize
-    case _ if y < env.getMinY => -1
-    case _ =>
-      val jj: Int = ((y - env.getMinY) / dy).toInt
-      // have already check x is in bounds, so ensure returning a valid value
-      if (jj >= ySize) ySize - 1
-      else jj
-  }
-
 }

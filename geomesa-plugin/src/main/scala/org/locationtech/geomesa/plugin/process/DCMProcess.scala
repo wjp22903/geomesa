@@ -14,6 +14,7 @@ import org.geotools.geometry.jts.{JTS, ReferencedEnvelope}
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.locationtech.geomesa.plugin.wps.GeomesaProcess
+import org.locationtech.geomesa.utils.geotools.GridSnap
 import weka.classifiers.functions.Logistic
 import weka.core.{Attribute, FastVector, Instance, Instances}
 
@@ -43,7 +44,20 @@ class DCMProcess(val catalog: Catalog) extends GeomesaProcess {
                  name = "events",
                  description = "Predict against"
                )
-              response: SimpleFeatureCollection): GridCoverage2D = {
+               response: SimpleFeatureCollection,
+
+               @DescribeParameter(
+                 name = "width",
+                 description = "width"
+               )
+               width: Int,
+
+               @DescribeParameter(
+                 name = "height",
+                 description = "height"
+               )
+               height: Int
+               ): GridCoverage2D = {
 
     val ff = CommonFactoryFinder.getFilterFactory2
     import org.locationtech.geomesa.utils.geotools.Conversions._
@@ -66,7 +80,7 @@ class DCMProcess(val catalog: Catalog) extends GeomesaProcess {
       val q = ff.bbox(ff.property(geomProp), densityBounds)
       val features = fs.getFeatures(q)
       if(features.size() == 0) None
-      else Some((feature, fdProcess.execute(features, densityBounds, 512, 512)))
+      else Some((feature, fdProcess.execute(features, densityBounds, width, height)))
     }
 
     val numAttrs = 1 + coverages.size
@@ -103,11 +117,12 @@ class DCMProcess(val catalog: Catalog) extends GeomesaProcess {
     val classifier = new Logistic
     classifier.buildClassifier(instances)
 
-    val gt = new GridTransform(bounds, 512, 512)
+    val gt = new GridSnap(bounds, width, height)
+    var max = 0.0f
     val predictions =
-      (0 until 512).map { i =>
+      (0 until width).map { i =>
         val x = gt.x(i)
-        (0 until 512).map { j =>
+        (0 until height).map { j =>
           val y = gt.y(j)
           val pos = new DirectPosition2D(x, y)
           val vec = coverages.map { case (_, c) => c.evaluate(pos).asInstanceOf[Array[Float]].head }
@@ -115,11 +130,17 @@ class DCMProcess(val catalog: Catalog) extends GeomesaProcess {
           inst.setValue(0, 0.0)
           vec.zipWithIndex.foreach { case (v, idx) => inst.setValue(idx+1, v.toDouble) }
           inst.setDataset(instances)
-          classifier.distributionForInstance(inst)(1).toFloat
+          val res = classifier.distributionForInstance(inst)(1).toFloat
+          if(res > max) max = res
+          res
         }.toArray
       }.toArray
 
+    // normalize
+    val normalized =
+      predictions.map { row => row.map { v => v / max } }
+
     val gcf = CoverageFactoryFinder.getGridCoverageFactory(GeoTools.getDefaultHints)
-    gcf.create("Process Results", predictions, densityBounds)
+    gcf.create("Process Results", GridUtils.flipXY(normalized), densityBounds)
   }
 }

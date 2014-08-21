@@ -31,6 +31,8 @@ class ProcessFactory
     classOf[TubeSelectProcess],
     classOf[ProximitySearchProcess],
     classOf[QueryProcess],
-    classOf[DBSCANProcess]
+    classOf[DBSCANProcess],
+    classOf[FeatureDistanceProcess],
+    classOf[DCMProcess]
   )
 
