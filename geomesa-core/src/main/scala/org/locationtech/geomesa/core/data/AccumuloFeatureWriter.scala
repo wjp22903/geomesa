@@ -20,8 +20,7 @@ import java.util.UUID
 
 import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.client.{BatchWriter, BatchWriterConfig, Connector}
-import org.apache.accumulo.core.data.{Key, Mutation, PartialKey, Value, Range => ARange}
-import org.apache.accumulo.core.security.ColumnVisibility
+import org.apache.accumulo.core.data.{Key, Mutation, PartialKey, Value}
 import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapred.{RecordWriter, Reporter}
 import org.apache.hadoop.mapreduce.TaskInputOutputContext
@@ -29,13 +28,12 @@ import org.geotools.data.DataUtilities
 import org.geotools.data.simple.SimpleFeatureWriter
 import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
-import org.locationtech.geomesa.core.data.tables.{RecordTable, TableWriter}
+import org.locationtech.geomesa.core.data.tables.{AttributeTable, RecordTable}
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.feature.{AvroSimpleFeature, AvroSimpleFeatureFactory}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 
 object AccumuloFeatureWriter {
@@ -74,8 +72,6 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
   extends SimpleFeatureWriter
           with Logging {
 
-  import org.locationtech.geomesa.core.index.AttributeIndexEntry._
-
   val indexedAttributes = SimpleFeatureTypes.getIndexedAttributes(featureType)
 
   val connector = ds.connector
@@ -95,7 +91,7 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
         val attrTable = ds.getAttrIdxTableName(featureType)
         val recTable = ds.getRecordTableForType(featureType)
         List(
-          attrWriter(multiBWWriter.getBatchWriter(attrTable)),
+          AttributeTable.attrWriter(multiBWWriter.getBatchWriter(attrTable), indexedAttributes, visibility),
           RecordTable.recordWriter(multiBWWriter.getBatchWriter(recTable), encoder, visibility))
       } else {
         List.empty
@@ -136,15 +132,6 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
       val KVs = indexer.encode(feature)
       val m = KVs.groupBy { case (k, _) => k.getRow }.map { case (row, kvs) => kvsToMutations(row, kvs) }
       bw.addMutations(m.asJava)
-    }
-
-  /** Creates a function to write a feature to the attribute index **/
-  private def attrWriter(bw: BatchWriter): SimpleFeature => Unit =
-    (feature: SimpleFeature) => {
-      val mutations = getAttributeIndexMutations(feature,
-                                                 indexedAttributes,
-                                                 new ColumnVisibility(visibility))
-      bw.addMutations(mutations)
     }
 
   case class PutOrDeleteMutation(row: Array[Byte], cf: Text, cq: Text, v: Value)
@@ -195,8 +182,6 @@ class ModifyAccumuloFeatureWriter(featureType: SimpleFeatureType,
                                   dataStore: AccumuloDataStore)
   extends AccumuloFeatureWriter(featureType, indexer, encoder, dataStore, visibility) {
 
-  import org.locationtech.geomesa.core.index.AttributeIndexEntry._
-
   val reader = dataStore.getFeatureReader(featureType.getName.toString)
   var live: SimpleFeature = null      /* feature to let user modify   */
   var original: SimpleFeature = null  /* feature returned from reader */
@@ -215,7 +200,7 @@ class ModifyAccumuloFeatureWriter(featureType: SimpleFeatureType,
         val attrTable = dataStore.getAttrIdxTableName(featureType)
         val recTable = dataStore.getRecordTableForType(featureType)
         List(
-          removeAttrIdx(multiBWWriter.getBatchWriter(attrTable)),
+          AttributeTable.removeAttrIdx(multiBWWriter.getBatchWriter(attrTable), indexedAttributes, visibility),
           RecordTable.recordDeleter(multiBWWriter.getBatchWriter(recTable), encoder, visibility))
       } else {
         List.empty
@@ -232,16 +217,6 @@ class ModifyAccumuloFeatureWriter(featureType: SimpleFeatureType,
         m.putDelete(key.getColumnFamily, key.getColumnQualifier, key.getColumnVisibilityParsed)
         bw.addMutation(m)
       }
-    }
-
-  /** Creates a function to remove attribute index entries for a feature **/
-  private def removeAttrIdx(bw: BatchWriter): SimpleFeature => Unit =
-    (feature: SimpleFeature) => {
-      val mutations = getAttributeIndexMutations(feature,
-                                                 indexedAttributes,
-                                                 new ColumnVisibility(visibility),
-                                                 true)
-      bw.addMutations(mutations)
     }
 
   override def remove() =

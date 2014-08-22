@@ -27,6 +27,7 @@ import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.core.data.AccumuloConnectorCreator
 import org.locationtech.geomesa.core.DEFAULT_FILTER_PROPERTY_NAME
+import org.locationtech.geomesa.core.data.tables.AttributeTable
 import org.locationtech.geomesa.core.filter._
 import org.locationtech.geomesa.core.index.FilterHelper._
 import org.locationtech.geomesa.core.index.QueryPlanner._
@@ -124,9 +125,9 @@ trait AttributeIdxStrategy extends Strategy with Logging {
       } else {
         // type mismatch, encoding won't work b/c class is stored as part of the row
         // try to convert to the appropriate class
-        AttributeIndexEntry.convertType(value, actualBinding, expectedBinding)
+        AttributeTable.convertType(value, actualBinding, expectedBinding)
       }
-    AttributeIndexEntry.getAttributeIndexRow(prop, Some(typedValue))
+    AttributeTable.getAttributeIndexRow(prop, Some(typedValue))
   }
 }
 

@@ -20,6 +20,7 @@ import org.apache.accumulo.core.security.ColumnVisibility
 import org.geotools.data._
 import org.geotools.factory.Hints
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.core.data.tables.AttributeTable
 import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
@@ -28,7 +29,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class AttributeIndexEntryTest extends Specification {
+class AttributeTableTest extends Specification {
 
   val geotimeAttributes = org.locationtech.geomesa.core.index.spec
   val sftName = "mutableType"
@@ -47,7 +48,7 @@ class AttributeIndexEntryTest extends Specification {
         feature.setAttribute("age",50.asInstanceOf[Any])
         feature.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
 
-        val mutations = AttributeIndexEntry.getAttributeIndexMutations(feature,
+        val mutations = AttributeTable.getAttributeIndexMutations(feature,
                                                                        descriptors,
                                                                        new ColumnVisibility())
         mutations.size mustEqual descriptors.size()
@@ -65,7 +66,7 @@ class AttributeIndexEntryTest extends Specification {
         feature.setAttribute("age",50.asInstanceOf[Any])
         feature.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
 
-        val mutations = AttributeIndexEntry.getAttributeIndexMutations(feature,
+        val mutations = AttributeTable.getAttributeIndexMutations(feature,
                                                                        descriptors,
                                                                        new ColumnVisibility(),
                                                                        true)
