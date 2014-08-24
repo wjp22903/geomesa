@@ -41,7 +41,7 @@
         </dependency>
       <dependency>
           <groupId>org.locationtech.geomesa</groupId>
-          <artifactId>geomesa-jobs-accumulo1.5</artifactId>
+          <artifactId>geomesa-jobs-accumulo1.5-hadoop2.0</artifactId>
       </dependency>
         <dependency>
             <groupId>org.scala-lang</groupId>
@@ -89,9 +89,12 @@
             <version>3.6.11</version>
         </dependency>
         <dependency>
+            <groupId>com.typesafe</groupId>
+            <artifactId>scalalogging-slf4j_2.10</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>log4j</groupId>

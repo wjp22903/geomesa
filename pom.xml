@@ -282,12 +282,12 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-tools-accumulo1.5</artifactId>
+                <artifactId>geomesa-tools-accumulo1.5-hadoop2.0</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-jobs-accumulo1.5</artifactId>
+                <artifactId>geomesa-jobs-accumulo1.5-hadoop2.0</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
