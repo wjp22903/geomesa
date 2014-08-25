@@ -35,6 +35,7 @@ import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.factory.Hints
 import org.geotools.geometry.jts.ReferencedEnvelope
+import org.geotools.process.vector.TransformProcess
 import org.locationtech.geomesa.core
 import org.locationtech.geomesa.core.data.AccumuloDataStore._
 import org.locationtech.geomesa.core.data.FeatureEncoding.FeatureEncoding
@@ -47,7 +48,7 @@ import org.opengis.filter.Filter
 import org.opengis.referencing.crs.CoordinateReferenceSystem
 
 import scala.collection.JavaConversions._
-import scala.util.{Success, Failure, Try}
+import scala.util.{Failure, Success, Try}
 
 /**
  *
@@ -826,16 +827,31 @@ class AccumuloDataStore(val connector: Connector,
     }
 
   // Implementation of Abstract method
-  def getFeatureReader(featureName: String): AccumuloFeatureReader = getFeatureReader(featureName,
-                                                                                       Query.ALL)
+  def getFeatureReader(featureName: String) = getFeatureReader(featureName, Query.ALL)
 
   // This override is important as it allows us to optimize and plan our search with the Query.
   override def getFeatureReader(featureName: String, query: Query) = {
     validateMetadata(featureName)
+    val transformedQuery = transformQuery(featureName, query)
     val indexSchemaFmt = getIndexSchemaFmt(featureName)
     val sft = getSchema(featureName)
-    val fe = getFeatureEncoder(featureName)
-    new AccumuloFeatureReader(this, query, indexSchemaFmt, sft, fe)
+    val encoder = getFeatureEncoder(featureName)
+    new AccumuloFeatureReader(this, transformedQuery, indexSchemaFmt, sft, encoder)
+  }
+
+  def transformQuery(featureName: String, query: Query): Query = {
+    if(query.getProperties != null && query.getProperties.size > 0) {
+      val (transformProps, regularProps) = query.getPropertyNames.partition(_.contains('='))
+      val convertedRegularProps = regularProps.map { p => s"$p=$p" }
+      val allTransforms = convertedRegularProps ++ transformProps
+      val transforms = allTransforms.mkString(";")
+      val transformDefs = TransformProcess.toDefinition(transforms)
+      val derivedSchema = AccumuloFeatureStore.computeSchema(getSchema(featureName), transformDefs)
+      query.setProperties(Query.ALL_PROPERTIES)
+      query.getHints.put(TRANSFORMS, transforms)
+      query.getHints.put(TRANSFORM_SCHEMA, derivedSchema)
+    }
+    query
   }
 
   /* create a general purpose writer that is capable of insert, deletes, and updates */

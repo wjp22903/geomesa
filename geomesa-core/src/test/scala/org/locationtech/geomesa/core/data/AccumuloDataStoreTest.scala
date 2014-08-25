@@ -228,7 +228,9 @@ class AccumuloDataStoreTest extends Specification {
         featureCollection.add(liveFeature)
         fs.addFeatures(featureCollection)
 
-        val query = new Query("transformtest", Filter.INCLUDE,
+        val ff = CommonFactoryFinder.getFilterFactory2
+        val filter = ff.bbox("geom", 44, 48, 46, 50, "EPSG:4326")
+        val query = new Query("transformtest", filter,
           Array("name", "derived=strConcat('hello',name)", "geom"))
 
         // Let's read out what we wrote.
@@ -545,7 +547,7 @@ class AccumuloDataStoreTest extends Specification {
       val sftName = "schematest"
 
       val query = new Query(sftName, Filter.INCLUDE)
-      val fr = ds.getFeatureReader(sftName)
+      val fr = ds.getFeatureReader(sftName).asInstanceOf[AccumuloFeatureReader]
       fr.explainQuery(query)
       fr should not be null
     }
