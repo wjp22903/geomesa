@@ -32,7 +32,6 @@ class ProcessFactory
     classOf[ProximitySearchProcess],
     classOf[QueryProcess],
     classOf[DBSCANProcess],
-    classOf[FeatureDistanceProcess],
-    classOf[DCMProcess]
+    classOf[FeatureDistanceProcess]
   )
 
