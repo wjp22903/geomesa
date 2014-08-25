@@ -23,6 +23,7 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.joda.time.DateTime
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.identity.FeatureId
 
@@ -39,7 +40,7 @@ package object index {
 
   def getDtgFieldName(sft: SimpleFeatureType) = Option(sft.getUserData.get(SF_PROPERTY_START_TIME)).map{_.toString}
   // wrapping function in option to protect against incorrect values in SF_PROPERTY_START_TIME
-  def getDtgDescriptor(sft: SimpleFeatureType) = getDtgFieldName(sft).flatMap{name => Option(sft.getDescriptor(name))}
+  def getDtgDescriptor(sft: SimpleFeatureType): Option[AttributeDescriptor] = getDtgFieldName(sft).flatMap{name => Option(sft.getDescriptor(name))}
   val spec = "geom:Geometry:srid=4326,dtg:Date,dtg_end_time:Date"
   val indexSFT = SimpleFeatureTypes.createType("geomesa-idx", spec)
 
