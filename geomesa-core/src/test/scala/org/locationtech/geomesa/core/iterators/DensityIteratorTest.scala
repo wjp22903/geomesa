@@ -78,7 +78,7 @@ class DensityIteratorTest extends Specification {
       userParam.key       -> "user",
       passwordParam.key   -> "pass",
       tableNameParam.key  -> "test",
-      idxSchemaParam.key  -> new IndexSchemaBuilder("~").randomNumber(3).constant("TEST").geoHash(0, 3).date("yyyyMMdd").nextPart().geoHash(3, 2).nextPart().id().build(),
+      //idxSchemaParam.key  -> new IndexSchemaBuilder("~").randomNumber(3).constant("TEST").geoHash(0, 3).date("yyyyMMdd").nextPart().geoHash(3, 2).nextPart().id().build(),
       mockParam.key       -> "true"))
     ds.createSchema(sft)
     ds
