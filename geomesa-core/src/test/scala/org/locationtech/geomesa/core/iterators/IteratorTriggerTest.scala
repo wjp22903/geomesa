@@ -80,8 +80,7 @@ class IteratorTriggerTest extends Specification {
           tableNameParam.key -> "test_table",
           mockParam.key -> "true",
           featureEncParam.key -> "avro"
-          //idxSchemaParam.key -> schemaEncoding
-        ))
+       ))
 
       ds.createSchema(testFeatureType)
       ds.getFeatureSource(featureName).asInstanceOf[SimpleFeatureStore]

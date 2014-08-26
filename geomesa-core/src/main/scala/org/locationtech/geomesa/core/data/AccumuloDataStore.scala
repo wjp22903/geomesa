@@ -73,7 +73,7 @@ class AccumuloDataStore(val connector: Connector,
     extends AbstractDataStore(true) with AccumuloConnectorCreator with Logging {
 
   // having at least as many shards as tservers provides optimal parallelism in queries
-  private val DEFAULT_MAX_SHARD = connector.instanceOperations().getTabletServers.size()
+  protected [core] val DEFAULT_MAX_SHARD = connector.instanceOperations().getTabletServers.size()
 
   // record scans are single-row ranges - increasing the threads too much actually causes performance to decrease
   private val recordScanThreads = recordThreadsConfig.getOrElse(10)
@@ -88,7 +88,7 @@ class AccumuloDataStore(val connector: Connector,
   private val MIN_QUERY_THREADS = 5
 
   // equivalent to: s"%~#s%$maxShard#r%${name}#cstr%0,3#gh%yyyyMMdd#d::%~#s%3,2#gh::%~#s%#id"
-  private def buildDefaultSpatioTemporalSchema(name: String, maxShard: Int) =
+  protected [data] def buildDefaultSpatioTemporalSchema(name: String, maxShard: Int) =
     new IndexSchemaBuilder("~")
       .randomNumber(maxShard)
       .constant(name)
@@ -354,9 +354,8 @@ class AccumuloDataStore(val connector: Connector,
     tableOps.setProperty(tableName, "table.bloom.enabled", "true")
   }
 
-  // Computes the schema, checking for the "DEFAULT" flag
+  // Retrieves or computes the indexSchema
   def computeSpatioTemporalSchema(sft: SimpleFeatureType, maxShard: Int): String = {
-    // JNH: Read IndexSchemaFormat from sft's userData
     val spatioTemporalIdxSchemaFmt: Option[String] = core.index.getIndexSchema(sft) // None // Implement
 
     spatioTemporalIdxSchemaFmt match {
@@ -530,25 +529,6 @@ class AccumuloDataStore(val connector: Connector,
       None
     }
   }
-
-//  /**
-//   * Checks the schema stored in the metadata table against the configuration of this data store.
-//   *
-//   * @param featureName
-//   * @return
-//   */
-//  private def checkSchemaMetadata(featureName: String): Option[String] = {
-//    // validate the index schema
-//    val configuredSchema = computeSpatioTemporalSchema(featureName, DEFAULT_MAX_SHARD)
-//    val storedSchema = readMetadataItem(featureName, SCHEMA_CF).getOrElse("")
-//    // if they did not specify a custom schema (e.g. indexSchemaFormat == DEFAULT), just use the
-//    // stored metadata
-//    if (storedSchema != configuredSchema && spatioTemporalIdxSchemaFmt.isDefined) {
-//      Some(s"$SCHEMA_CF = '$configuredSchema', should be '$storedSchema'")
-//    } else {
-//      None
-//    }
-//  }
 
   /**
    * Checks the feature encoding in the metadata against the configuration of this data store.

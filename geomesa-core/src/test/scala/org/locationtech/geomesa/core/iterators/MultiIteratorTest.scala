@@ -27,7 +27,7 @@ import org.joda.time.{DateTime, DateTimeZone, Interval}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core._
 import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory
-import org.locationtech.geomesa.core.index.{IndexSchema, IndexSchemaBuilder}
+import org.locationtech.geomesa.core.index.IndexSchema
 import org.locationtech.geomesa.core.iterators.TestData._
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
@@ -67,7 +67,6 @@ class MultiIteratorTest extends Specification with Logging {
         tableNameParam.key  -> tableName,
         mockParam.key       -> "true",
         featureEncParam.key -> "avro"))
-        //idxSchemaParam.key  -> new IndexSchemaBuilder("~").randomNumber(3).constant("TEST").geoHash(0, 3).date("yyyyMMdd").nextPart().geoHash(3, 2).nextPart().id().build()))
 
       ds.createSchema(TestData.featureType)
       val fs = ds.getFeatureSource(TestData.featureName).asInstanceOf[SimpleFeatureStore]
