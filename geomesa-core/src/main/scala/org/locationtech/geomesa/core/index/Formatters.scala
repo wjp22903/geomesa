@@ -101,7 +101,7 @@ case class PartitionTextFormatter[E <: SimpleFeature](numPartitions: Int) extend
     Math.abs(MurmurHash3.arrayHash(toHash) % (numPartitions + 1))
   }
 
-  def formatString(entry: E): Text = new Text(fmt(getIdHashPartition(entry)))
+  def formatString(entry: E) = fmt(getIdHashPartition(entry))
 }
 
 case class ConstantTextFormatter[E](constStr: String) extends TextFormatter[E] {
@@ -111,7 +111,7 @@ case class ConstantTextFormatter[E](constStr: String) extends TextFormatter[E] {
 }
 
 case class IdFormatter(maxLength: Int) extends TextFormatter[SimpleFeature] {
-  def formatString(entry: SimpleFeature): Text = new Text(entry.sid.padTo(maxLength, "_").mkString)
+  def formatString(entry: SimpleFeature) = entry.sid.padTo(maxLength, "_").mkString
   def numBits: Int = maxLength
 }
 

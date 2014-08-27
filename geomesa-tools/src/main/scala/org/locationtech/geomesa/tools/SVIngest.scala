@@ -170,7 +170,7 @@ class SVIngest(args: Args) extends Job(args) {
   def lineToFeature(line: String): Try[AvroSimpleFeature] = Try {
     // CsvReader is being used to just split the line up. this may be refactored out when
     // scalding support is added however it may be necessary for local only ingest
-    val reader = CSVParser.parse(line, delim)
+    val reader: CSVParser = CSVParser.parse(line, delim)
     val fields: Array[String] = try {
       reader.iterator.toArray.flatten
     } catch {
