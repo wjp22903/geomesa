@@ -134,9 +134,6 @@ class DCMProcess(val catalog: Catalog) extends GeomesaProcess {
       }.toArray
 
     val gcf = CoverageFactoryFinder.getGridCoverageFactory(GeoTools.getDefaultHints)
-    val cov = gcf.create(
-      "Process Results",
-      GridUtils.flipXY(predictions),
-      densityBounds)
+    gcf.create("Process Results", GridUtils.flipXY(predictions), densityBounds)
   }
 }
