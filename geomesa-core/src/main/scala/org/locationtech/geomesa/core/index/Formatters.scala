@@ -24,7 +24,8 @@ import org.opengis.feature.simple.SimpleFeature
 import scala.util.hashing.MurmurHash3
 
 trait TextFormatter[E] {
-  def format(entry: E): Text
+  def format(entry: E): Text = new Text(formatString(entry))
+  def formatString(entry: E): String
   def numBits: Int
 }
 
@@ -46,11 +47,11 @@ object TextFormatter {
  */
 
 case class GeoHashTextFormatter(offset: Int, numBits: Int) extends TextFormatter[SimpleFeature] {
-  def format(entry: SimpleFeature) = {
+  def formatString(entry: SimpleFeature) = {
     val hash = entry.gh.hash
     val padded = hash.padTo(7, ".").mkString
     val partial = padded.drop(offset).take(numBits)
-    new Text(partial)
+    partial
   }
 }
 
@@ -59,8 +60,8 @@ case class DateTextFormatter(f: String) extends TextFormatter[SimpleFeature] {
   val timeZone = DateTimeZone.forID("UTC")
   val numBits = f.length
   val formatter = org.joda.time.format.DateTimeFormat.forPattern(f)
-  def format(entry: SimpleFeature) =
-    new Text(formatter.print(entry.dt.getOrElse(new DateTime()).withZone(timeZone)))
+  def formatString(entry: SimpleFeature) =
+   formatter.print(entry.dt.getOrElse(new DateTime()).withZone(timeZone))
 }
 
 /**
@@ -100,23 +101,23 @@ case class PartitionTextFormatter[E <: SimpleFeature](numPartitions: Int) extend
     Math.abs(MurmurHash3.arrayHash(toHash) % (numPartitions + 1))
   }
 
-  def format(entry: E): Text = new Text(fmt(getIdHashPartition(entry)))
+  def formatString(entry: E): Text = new Text(fmt(getIdHashPartition(entry)))
 }
 
 case class ConstantTextFormatter[E](constStr: String) extends TextFormatter[E] {
   val constText = new Text(constStr)
-  def format(entry: E) = constText
+  def formatString(entry: E) = constStr
   def numBits = constStr.length
 }
 
 case class IdFormatter(maxLength: Int) extends TextFormatter[SimpleFeature] {
-  def format(entry: SimpleFeature): Text = new Text(entry.sid.padTo(maxLength, "_").mkString)
+  def formatString(entry: SimpleFeature): Text = new Text(entry.sid.padTo(maxLength, "_").mkString)
   def numBits: Int = maxLength
 }
 
 case class CompositeTextFormatter[E](lf: Seq[TextFormatter[E]], sep: String) extends TextFormatter[E] {
   val numBits = lf.map(_.numBits).sum
-  def format(entry: E) = new Text(lf.map { _.format(entry) }.mkString(sep))
+  def formatString(entry: E) = lf.map { _.formatString(entry) }.mkString(sep)
 }
 
 

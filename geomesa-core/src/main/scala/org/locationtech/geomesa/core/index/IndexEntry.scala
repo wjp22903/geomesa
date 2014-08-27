@@ -73,11 +73,11 @@ case class IndexEncoder(rowf: TextFormatter[SimpleFeature],
 
     logger.trace(s"decomposed geohashes: ${geohashes.map(_.hash).mkString(",")})}")
 
-    val origFeatureType = featureToEncode.getType
-    val origFeatureTypeSpec = SimpleFeatureTypes.encodeType(origFeatureType)
-    val decompFeatureTypeSpec = origFeatureTypeSpec.replaceAll(":(Point|MultiPoint|LineString|MultiLineString|MultiPolygon)",":Geometry")
-    val decompFeatureType = SimpleFeatureTypes.createType(origFeatureType.getName.toString, decompFeatureTypeSpec)
-    decompFeatureType.getUserData.putAll(origFeatureType.getUserData)  // for field annotations
+    val decompFeatureType = featureToEncode.getType
+//    val origFeatureTypeSpec = SimpleFeatureTypes.encodeType(origFeatureType)
+//    val decompFeatureTypeSpec = origFeatureTypeSpec.replaceAll(":(Point|MultiPoint|LineString|MultiLineString|MultiPolygon)",":Geometry")
+//    val decompFeatureType = SimpleFeatureTypes.createType(origFeatureType.getName.toString, decompFeatureTypeSpec)
+//    decompFeatureType.getUserData.putAll(origFeatureType.getUserData)  // for field annotations
     logger.trace(s"decomposed feature type geometry descriptor ${decompFeatureType.getGeometryDescriptor}")
 
     def setDefaultGeometry(sf: SimpleFeature, geom: Geometry) =
