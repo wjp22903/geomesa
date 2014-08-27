@@ -105,7 +105,7 @@ class DCMProcess(val catalog: Catalog) extends GeomesaProcess {
       vec.zipWithIndex.foreach { case (v, idx) => inst.setValue(idx+1, v.toDouble) }
       instances.add(inst)
     }
-    List.fill(1000)((lx+Random.nextDouble()*dx, ly+Random.nextDouble()*dy)).foreach { case (x,y) =>
+    List.fill(100 * responseFeatures.size)((lx+Random.nextDouble()*dx, ly+Random.nextDouble()*dy)).foreach { case (x,y) =>
       val pos = new DirectPosition2D(x, y)
       val vec = coverages.map { case (_, c) => c.evaluate(pos).asInstanceOf[Array[Float]].head }
       val inst = new Instance(numAttrs)
@@ -118,7 +118,6 @@ class DCMProcess(val catalog: Catalog) extends GeomesaProcess {
     classifier.buildClassifier(instances)
 
     val gt = new GridSnap(bounds, width, height)
-    var max = 0.0f
     val predictions =
       (0 until width).map { i =>
         val x = gt.x(i)
@@ -130,17 +129,14 @@ class DCMProcess(val catalog: Catalog) extends GeomesaProcess {
           inst.setValue(0, 0.0)
           vec.zipWithIndex.foreach { case (v, idx) => inst.setValue(idx+1, v.toDouble) }
           inst.setDataset(instances)
-          val res = classifier.distributionForInstance(inst)(1).toFloat
-          if(res > max) max = res
-          res
+          classifier.distributionForInstance(inst)(1).toFloat
         }.toArray
       }.toArray
 
-    // normalize
-    val normalized =
-      predictions.map { row => row.map { v => v / max } }
-
     val gcf = CoverageFactoryFinder.getGridCoverageFactory(GeoTools.getDefaultHints)
-    gcf.create("Process Results", GridUtils.flipXY(normalized), densityBounds)
+    val cov = gcf.create(
+      "Process Results",
+      GridUtils.flipXY(predictions),
+      densityBounds)
   }
 }
