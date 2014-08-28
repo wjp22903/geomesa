@@ -17,6 +17,7 @@
 package org.locationtech.geomesa.feature
 
 import java.io.OutputStream
+import java.lang.ThreadLocal
 import java.nio._
 import java.util.concurrent.TimeUnit
 import java.util.{Date, UUID, Collection => JCollection, List => JList}
@@ -24,6 +25,7 @@ import java.util.{Date, UUID, Collection => JCollection, List => JList}
 import com.google.common.cache.{CacheBuilder, CacheLoader, LoadingCache}
 import com.google.common.collect.Maps
 import com.vividsolutions.jts.geom.Geometry
+import com.vividsolutions.jts.io.WKBWriter
 import org.apache.avro.generic.{GenericData, GenericDatumWriter, GenericRecord}
 import org.apache.avro.io.{BinaryEncoder, EncoderFactory}
 import org.apache.avro.{Schema, SchemaBuilder}
@@ -170,6 +172,10 @@ class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType)
 
 object AvroSimpleFeature {
 
+  val wkbWriter = new ThreadLocal[WKBWriter] {
+    override def initialValue() = new WKBWriter
+  }
+
   def apply(sf: SimpleFeature) = {
     val asf = new AvroSimpleFeature(sf.getIdentifier, sf.getFeatureType)
     for (i <- 0 until sf.getAttributeCount) asf.setAttribute(i, sf.getAttribute(i))
@@ -227,7 +233,8 @@ object AvroSimpleFeature {
               (v: AnyRef) => v.asInstanceOf[Date].getTime
 
             case t if classOf[Geometry].isAssignableFrom(t) =>
-              (v: AnyRef) => ByteBuffer.wrap(WKBUtils.write(v.asInstanceOf[Geometry]))
+              // JNH: Skip the pool.
+              (v: AnyRef) => ByteBuffer.wrap(wkbWriter.get().write(v.asInstanceOf[Geometry]))
 
             case _ =>
               (v: AnyRef) =>

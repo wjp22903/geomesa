@@ -139,101 +139,99 @@ class SVIngest(args: Args) extends Job(args) with Logging {
     cfw.release()
   }
 
-  def ingestLine(fw: FeatureWriter[SimpleFeatureType, SimpleFeature], line: String): Unit = {
-    lineToFeature(line) match {
-      case Success(ft) =>
-        writeFeature(fw, ft) match {
-          case Success(wu) =>
-            successes += 1
-            if ( lineNumber % 10000 == 0 ) {
-              val successPvsS = if (successes == 1) "feature" else "features"
-              val failurePvsS = if (failures == 1) "feature" else "features"
-              logger.info(s"${DateTime.now} Ingest proceeding, on line number: $lineNumber," +
-                s" ingested: $successes $successPvsS, and failed to ingest: $failures $failurePvsS.")
-            }
-          case Failure(ex) =>
-            failures += 1
-            logger.info(s"Cannot ingest avro simple feature on line number: $lineNumber, with value $line ")
+  def ingestLine(fw: FeatureWriter[SimpleFeatureType, SimpleFeature], line: String) {
+    val toWrite = fw.next
+
+    val greatSuccess = Try {
+      val reader: CSVParser = CSVParser.parse(line, delim)
+      val fields: Array[String] = try {
+        reader.iterator.toArray.flatten
+      } catch {
+        case e: Exception => throw new Exception(s"Commons CSV could not parse " +
+          s"line number: $lineNumber \n\t with value: $line")
+      } finally {
+        reader.close()
+      }
+
+      val id = idBuilder(fields)
+      toWrite.getIdentifier.asInstanceOf[FeatureIdImpl].setID(id)
+      toWrite.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+
+      for (idx <- 0 until fields.length) {
+        toWrite.setAttribute(idx, fields(idx))
+      }
+
+      if (dtgField.isDefined && dateTimeFormatOverride) {
+        // override the feature dtgField
+        try {
+          val dtgFieldIndex = getAttributeIndexInLine(dtgField.get)
+          val date = dtBuilder(fields(dtgFieldIndex)).toDate
+          toWrite.setAttribute(dtgFieldIndex, date)
+        } catch {
+          case e: Exception => throw new Exception(s"Could not form Date object from field" +
+            s" using dt-format: $dtgFmt, on line number: $lineNumber \n\t With value of: $line")
         }
-      case Failure(ex) => failures +=1; logger.info(s"Could not write feature due to: ${ex.getLocalizedMessage}")
-    }
-  }
 
-  def lineToFeature(line: String): Try[AvroSimpleFeature] = Try {
-    val reader: CSVParser = CSVParser.parse(line, delim)
-    val fields: Array[String] = try {
-      reader.iterator.toArray.flatten
-    } catch {
-      case e: Exception => throw new Exception(s"Commons CSV could not parse " +
-        s"line number: $lineNumber \n\t with value: $line")
-    } finally {
-      reader.close()
-    }
+        //now try to build the date time object and set the dtgTargetField to the date value
+        val dtg = try {
+          dtBuilder(toWrite.getAttribute(dtgField.get))
+        } catch {
+          case e: Exception => throw new Exception(s"Could not find date-time field: '${dtgField}'," +
+            s" on line  number: $lineNumber \n\t With value of: $line")
+        }
 
-    val id = idBuilder(fields)
-    builder.reset()
-    builder.addAll(fields.asInstanceOf[Array[AnyRef]])
-    val feature = builder.buildFeature(id).asInstanceOf[AvroSimpleFeature]
-
-    if (dtgField.isDefined) {
-      // override the feature dtgField
-      try {
-        val dtgFieldIndex = getAttributeIndexInLine(dtgField.get)
-        val date = dtBuilder(fields(dtgFieldIndex)).toDate
-        feature.setAttribute(dtgField.get, date)
-      } catch {
-        case e: Exception => throw new Exception(s"Could not form Date object from field" +
-          s" using dt-format: $dtgFmt, on line number: $lineNumber \n\t With value of: $line")
-      }
-      //now try to build the date time object and set the dtgTargetField to the date value
-      val dtg = try {
-        dtBuilder(feature.getAttribute(dtgField.get))
-      } catch {
-        case e: Exception => throw new Exception(s"Could not find date-time field: '${dtgField}'," +
-          s" on line  number: $lineNumber \n\t With value of: $line")
+        toWrite.setAttribute(dtgTargetField, dtg.toDate)
       }
 
-      feature.setAttribute(dtgTargetField, dtg.toDate)
+      // Support for point data method
+      val lon = Option(toWrite.getAttribute(lonField)).map(_.asInstanceOf[Double])
+      val lat = Option(toWrite.getAttribute(latField)).map(_.asInstanceOf[Double])
+      (lon, lat) match {
+        case (Some(x), Some(y)) => toWrite.setDefaultGeometry(geomFactory.createPoint(new Coordinate(x, y)))
+        case _ => Nil
+      }
     }
 
-    // Support for point data method
-    val lon = Option(feature.getAttribute(lonField)).map(_.asInstanceOf[Double])
-    val lat = Option(feature.getAttribute(latField)).map(_.asInstanceOf[Double])
-    (lon, lat) match {
-      case (Some(x), Some(y)) => feature.setDefaultGeometry(geomFactory.createPoint(new Coordinate(x, y)))
-      case _                  => Nil
-    }
+    //val greatSuccess = true
+    val writeSuccess = for {
+      succ <- greatSuccess
+      write <- Try { fw.write() }
+    } yield write
 
-    feature
+    // if Successful,
+    if (writeSuccess.isSuccess) {
+      successes += 1
+      if (lineNumber % 10000 == 0) {
+        val successPvsS = if (successes == 1) "feature" else "features"
+        val failurePvsS = if (failures == 1) "feature" else "features"
+        logger.info(s"${DateTime.now} Ingest proceeding, on line number: $lineNumber," +
+          s" ingested: $successes $successPvsS, and failed to ingest: $failures $failurePvsS.")
+      }
+    } else {
+      failures += 1
+      logger.info(s"Cannot ingest avro simple feature on line number: $lineNumber, with value $line ")
+    }
   }
 
-  def writeFeature(fw: FeatureWriter[SimpleFeatureType, SimpleFeature], feature: AvroSimpleFeature) = Try {
-    val toWrite = fw.next()
-    sft.getAttributeDescriptors.foreach { ad =>
-      toWrite.setAttribute(ad.getName, feature.getAttribute(ad.getName))
-    }
-    toWrite.getIdentifier.asInstanceOf[FeatureIdImpl].setID(feature.getID)
-    toWrite.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-    fw.write()
-  }
+  def dateTimeFormatOverride = true       // JNH: TODO
 
   def getAttributeIndexInLine(attribute: String) = attributes.indexOf(sft.getDescriptor(attribute))
 
   def buildIDBuilder: (Array[String]) => String = {
     (idFields, doHash) match {
-       case (s: String, false) =>
-         val idSplit = idFields.split(",").map { f => sft.indexOf(f) }
-         attrs => idSplit.map { idx => attrs(idx) }.mkString("_")
-       case (s: String, true) =>
-         val hashFn = Hashing.md5()
-         val idSplit = idFields.split(",").map { f => sft.indexOf(f) }
-         attrs => hashFn.newHasher().putString(idSplit.map { idx => attrs(idx) }.mkString("_"),
-           Charset.defaultCharset()).hash().toString
-       case _         =>
-         val hashFn = Hashing.md5()
-         attrs => hashFn.newHasher().putString(attrs.mkString ("_"),
-           Charset.defaultCharset()).hash().toString
-     }
+      case (s: String, false) =>
+        val idSplit = idFields.split(",").map { f => sft.indexOf(f) }
+        attrs => idSplit.map { idx => attrs(idx) }.mkString("_")
+      case (s: String, true) =>
+        val hashFn = Hashing.md5()
+        val idSplit = idFields.split(",").map { f => sft.indexOf(f) }
+        attrs => hashFn.newHasher().putString(idSplit.map { idx => attrs(idx) }.mkString("_"),
+          Charset.defaultCharset()).hash().toString
+      case _         =>
+        val hashFn = Hashing.md5()
+        attrs => hashFn.newHasher().putString(attrs.mkString ("_"),
+          Charset.defaultCharset()).hash().toString
+    }
   }
 
   def buildDtBuilder: (AnyRef) => DateTime =
