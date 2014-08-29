@@ -53,8 +53,6 @@ case class IndexEncoder(rowf: TextFormatter,
   import org.locationtech.geomesa.core.index.IndexEntry._
   import org.locationtech.geomesa.utils.geohash.GeohashUtils._
 
-  val formats = Array(rowf,cff,cqf)
-
   // the resolutions are valid for decomposed objects are all 5-bit boundaries
   // between 5-bits and 35-bits (inclusive)
   lazy val decomposableResolutions: ResolutionRange = new ResolutionRange(0, 35, 5)

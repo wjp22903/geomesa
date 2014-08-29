@@ -120,6 +120,8 @@ class SVIngest(args: Args) extends Job(args) with Logging {
     def release(): Unit = { fw.close() }
   }
 
+  val valuesArray = new Array[String](attributes.size-1)
+
   // Check to see if this an actual ingest job or just a test.
   if ( runIngest.isDefined ) {
     // I am not sure if we want this warning in here or not ...
@@ -146,7 +148,17 @@ class SVIngest(args: Args) extends Job(args) with Logging {
       val reader: CSVParser = CSVParser.parse(line, delim)
       val fields: Array[String] = try {
         // JNH: Tweak this.
-        reader.iterator.toArray.flatten
+        val record: CSVRecord = reader.iterator.next  //.toArray.flatten
+
+       // if(record.size == attributes.size - 1) {
+          for(i <- 0 until record.size) {
+            valuesArray(i) = record.get(i)
+          }
+          valuesArray
+//        } else {
+//          println(s"attributes.size ${attributes.size} : record ${record.size}}")
+//          throw new Exception("That line sucks.")
+//        }
       } catch {
         case e: Exception => throw new Exception(s"Commons CSV could not parse " +
           s"line number: $lineNumber \n\t with value: $line")
@@ -218,7 +230,8 @@ class SVIngest(args: Args) extends Job(args) with Logging {
         }
       case Failure(ex) =>
         failures += 1
-        logger.info(s"Failure: $ex")
+        //ex.printStackTrace
+        //logger.info(s"Failure: $ex")
         logger.info(s"Cannot ingest avro simple feature on line number: $lineNumber, with value $line ")
     }
 
@@ -229,11 +242,18 @@ class SVIngest(args: Args) extends Job(args) with Logging {
 
   def getAttributeIndexInLine(attribute: String) = attributes.indexOf(sft.getDescriptor(attribute))
 
-  lazy val buildIDBuilder: (Array[String]) => String = {
+  def buildIDBuilder: (Array[String]) => String = {
     (idFields, doHash) match {
       case (s: String, false) =>
         val idSplit = idFields.split(",").map { f => sft.indexOf(f) }
-        attrs => idSplit.map { idx => attrs(idx) }.mkString("_")
+        val len = idSplit.length
+        val sb = new StringBuilder
+        attrs => {
+          sb.clear()
+          idSplit.foreach { idx => sb.append(attrs(idx)) }
+          sb.toString()
+        }
+//        attrs => idSplit.map { idx => attrs(idx) }.mkString("_")
       case (s: String, true) =>
         val hashFn = Hashing.md5()
         val idSplit = idFields.split(",").map { f => sft.indexOf(f) }

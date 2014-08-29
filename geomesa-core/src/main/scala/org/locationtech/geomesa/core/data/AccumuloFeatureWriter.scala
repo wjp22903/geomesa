@@ -138,8 +138,9 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
 
   def getFeatureType: SimpleFeatureType = featureType
 
+  protected val r = new java.util.Random
   /* Return a String representing nextId - use UUID.random for universal uniqueness across multiple ingest nodes */
-  protected def nextFeatureId = UUID.randomUUID().toString
+  protected def nextFeatureId = new UUID(r.nextLong, r.nextLong).toString //UUID.randomUUID().toString
 
   protected val builder = AvroSimpleFeatureFactory.featureBuilder(featureType)
 
