@@ -62,6 +62,13 @@ case class IndexEncoder(rowf: TextFormatter,
   // the maximum number of sub-units into which a geometry may be decomposed
   lazy val maximumDecompositions: Int = 5
 
+  val getRCFCQ = (geohash: GeoHash, dt: DateTime, featureToEncode: SimpleFeature) =>
+    Array(
+      rowf.format(geohash, dt, featureToEncode),
+      cff.format(geohash, dt, featureToEncode),
+      cqf.format(geohash, dt, featureToEncode)
+    )
+
   def encode(featureToEncode: SimpleFeature, visibility: String = ""): List[KeyValuePair] = {
 
     logger.trace(s"encoding feature: $featureToEncode")
@@ -76,31 +83,35 @@ case class IndexEncoder(rowf: TextFormatter,
     val v = new Text(visibility)
     val dt = featureToEncode.dt.getOrElse(new DateTime()).withZone(timeZone)
 
-    // remember the resulting index-entries
-    val keys = geohashes.map { gh =>
-      val Array(r, cf, cq) = formats.map { _.format(gh, dt, featureToEncode) }
-      new Key(r, cf, cq, v)
-    }
-    val rowIDs = keys.map(_.getRow)
     val id = new Text(featureToEncode.sid)
-
-    val indexValue = IndexSchema.encodeIndexValue(featureToEncode)
-    val iv = new Value(indexValue)
-    // the index entries are (key, FID) pairs
-    val indexEntries = keys.map { k => (k, iv) }
+    val iv = IndexSchema.encodeIndexValue(featureToEncode)
 
     // the (single) data value is the encoded (serialized-to-string) SimpleFeature
     val dataValue = new Value(featureEncoder.encode(featureToEncode))
 
+    // the index entries are (key, FID) pairs
+
     // data entries are stored separately (and independently) from the index entries;
     // each attribute gets its own data row (though currently, we use only one attribute
     // that represents the entire, encoded feature)
-    val dataEntries = rowIDs.map { rowID =>
-      val key = new Key(rowID, id, DATA_CQ, v)
-      (key, dataValue)
+    val ret = new Array[(Key, Value)](geohashes.size * 2)
+
+    for (i <- 0 until geohashes.size) {
+      val indexEntryIndex = i * 2
+      val dataEntryIndex = indexEntryIndex + 1
+
+      val gh = geohashes(i)
+
+      val Array(r, cf, cq) = getRCFCQ(gh, dt, featureToEncode)
+      val indexKey = new Key(r, cf, cq, v)
+
+      ret(indexEntryIndex) = (indexKey, iv)
+
+      val dataKey = new Key(r, id, DATA_CQ, v)
+      ret(dataEntryIndex) = (dataKey, dataValue)
     }
 
-    (indexEntries ++ dataEntries).toList
+    ret.toList
   }
 
 }

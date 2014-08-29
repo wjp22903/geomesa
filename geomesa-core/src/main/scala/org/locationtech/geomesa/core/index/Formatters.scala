@@ -114,5 +114,3 @@ case class CompositeTextFormatter(lf: Seq[TextFormatter], sep: String) extends T
   val numBits = lf.map(_.numBits).sum
   def formatString(gh: GeoHash, dt: DateTime, sf: SimpleFeature) = lf.map { _.formatString(gh, dt, sf) }.mkString(sep)
 }
-
-
