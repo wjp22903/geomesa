@@ -30,6 +30,7 @@ import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.cql2.CQLException
 import org.geotools.filter.text.ecql.ECQL
+import org.geotools.filter.text.cql2.CQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.data.AccumuloDataStore
 import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
@@ -43,6 +44,8 @@ import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
 class AttributeIndexStrategyTest extends Specification {
+
+  sequential
 
   val sftName = "AttributeIndexStrategyTest"
   val spec = "name:String:index=true,age:Integer:index=true,count:Long:index=true," +
