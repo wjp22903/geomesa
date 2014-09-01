@@ -16,11 +16,13 @@
 
 package org.locationtech.geomesa.core.data.tables
 
-import org.apache.accumulo.core.client.BatchWriter
+import org.apache.accumulo.core.client.{Connector, BatchDeleter, BatchWriter}
+import org.apache.accumulo.core.data
 import org.apache.accumulo.core.data.{Mutation, Value, Key}
 import org.apache.hadoop.io.Text
+import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.index.{IndexEntryEncoder, IndexSchema}
-import org.opengis.feature.simple.SimpleFeature
+import org.opengis.feature.simple.{SimpleFeatureType, SimpleFeature}
 import scala.collection.JavaConverters._
 
 object SpatioTemporalTable {
@@ -50,7 +52,44 @@ object SpatioTemporalTable {
       }
     }
 
+  def deleteFeaturesFromTable(conn: Connector, table: String, bd: BatchDeleter, sft: SimpleFeatureType): Unit = {
+    val MIN_START = "\u0000"
+    val MAX_END = "~"
 
+
+    val schema = getIndexSchema(sft)
+      .getOrElse(throw new Exception("Cannot delete ${sft.getTypeName}.  SFT does not have its index schema stored."))
+
+    val (rowf, _,_) = IndexSchema.parse(IndexSchema.formatter, schema).get
+    rowf.lf match {
+      case Seq(pf: PartitionTextFormatter[SimpleFeature], const: ConstantTextFormatter[SimpleFeature], r@_*) =>
+        // JNH: Build ranges using pf and const!
+        val rpp = RandomPartitionPlanner(pf.numPartitions)
+        val csp = ConstStringPlanner(const.constStr)
+
+        val planner =  CompositePlanner(Seq(rpp, csp), "~")
+        val kp = planner.getKeyPlan(AcceptEverythingFilter, ExplainPrintln)
+
+        val rs: Seq[data.Range] = kp match {
+          case KeyRanges(ranges) =>
+            ranges.map { r =>
+              new org.apache.accumulo.core.data.Range(r.start + "~" + MIN_START, r.end + "~" + MAX_END)
+            }
+          case _ => throw new Exception("Shouldn't get here")
+        }
+
+        println(s"Setting ranges $rs and deleting")
+        bd.setRanges(rs.asJavaCollection)
+        bd.delete()
+        bd.close()
+
+        // JNH: Do I need this?
+        //conn.tableOperations().compact(table, new Text(rs(0).getStartKey.toString), new Text(rs(0).getStartKey.toString), true, true)
+
+      case _ => throw new RuntimeException(s"Cannot delete ${sft.getTypeName}.  SFT has the wrong schema structure..")
+    }
+
+  }
 
 
 }

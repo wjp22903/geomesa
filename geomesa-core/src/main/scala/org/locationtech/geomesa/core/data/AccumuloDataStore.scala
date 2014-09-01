@@ -38,6 +38,7 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.core
 import org.locationtech.geomesa.core.data.AccumuloDataStore._
 import org.locationtech.geomesa.core.data.FeatureEncoding.FeatureEncoding
+import org.locationtech.geomesa.core.data.tables.SpatioTemporalTable
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -444,17 +445,34 @@ class AccumuloDataStore(val connector: Connector,
     val attrTableName = getAttrIdxTableName(sft)
     val recordTableName = getRecordTableForType(sft)
 
+    val numThreads = queryThreadsConfig.getOrElse(Math.min(MAX_QUERY_THREADS,
+      Math.max(MIN_QUERY_THREADS, getSpatioTemporalMaxShard(sft))))
+
     println(s"Deleting entries from the st table: $stTableName" )
+    val stBatchDeleter =
+      connector.createBatchDeleter(stTableName, authorizationsProvider.getAuthorizations, numThreads, metadataBWConfig)
+
+    SpatioTemporalTable.deleteFeaturesFromTable(connector, stTableName, stBatchDeleter, sft)
+
+    // JNH: Hacks
+    val row = new Text("0~feature2")
+    connector.tableOperations().compact(catalogTable, row, row, true, true)
+
     println(s"Deleting entries from the attr table: $attrTableName" )
     println(s"Deleting entries from the record table: $recordTableName" )
+//    Seq(
+//      getAttrIdxTableName(sft),
+//      getRecordTableForType(sft)
+//    ).filter(tableOps.exists).foreach(tableOps.delete)
+
   }
 
   private def deteleStandAloneTables(sft: SimpleFeatureType) =
     Seq(
       getSpatioTemporalIdxTableName(sft),
       getAttrIdxTableName(sft),
-      getRecordTableForType(sft),
-      getQueriesTableName(sft)
+      getRecordTableForType(sft) //,
+      //getQueriesTableName(sft)   // JNH: Never nuke old queries?
     ).filter(tableOps.exists).foreach(tableOps.delete)
 
   private def expireMetadataFromCache(featureName: String) = {
@@ -860,7 +878,8 @@ class AccumuloDataStore(val connector: Connector,
         val dtgField = readMetadataItem(featureName, DTGFIELD_CF)
           .getOrElse(core.DEFAULT_DTG_PROPERTY_NAME)
         val indexSchema = readMetadataItem(featureName, SCHEMA_CF).orNull
-        val sharingBoolean: String = readMetadataItem(featureName, SHARED_TABLES_CF).getOrElse("true")
+        // If no data is written, we default to 'false' in order to support old tables.
+        val sharingBoolean: String = readMetadataItem(featureName, SHARED_TABLES_CF).getOrElse("false")
 
         sft.getUserData.put(core.index.SF_PROPERTY_START_TIME, dtgField)
         sft.getUserData.put(core.index.SF_PROPERTY_END_TIME, dtgField)

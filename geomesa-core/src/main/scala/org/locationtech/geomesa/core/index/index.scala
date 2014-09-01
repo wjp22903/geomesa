@@ -54,7 +54,10 @@ package object index {
 
   def getTableSharing(sft: SimpleFeatureType) = {
     val stored = sft.getUserData.get(SF_TABLE_SHARING)
-    if(stored == null) throw new Exception("TESTING") //false  // If nothing is stored, assume we are *not* sharing in order to handle previous tables.
+    // JNH: This is quandary.
+    //  If no data is stored in Accumulo, it means we have an old table, so that means 'false'
+    //  If no user data is specified when creating a new SFT, we should default to 'true'.
+    if(stored == null) true // throw new Exception("TESTING") //false  // If nothing is stored, assume we are *not* sharing in order to handle previous tables.
     else stored.asInstanceOf[Boolean]
   }
 

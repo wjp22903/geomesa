@@ -61,6 +61,11 @@ class TableSharingTest extends Specification {
 
   // JNH: Add tests to check if the correct tables exist and if the metadata is all correct.
 
+  // JNH: Check the sft's indexschema
+
+  val retrievedSFT1 = ds.getSchema(sft1.getTypeName)
+  val sft1Schema = org.locationtech.geomesa.core.index.getIndexSchema(retrievedSFT1)
+  println(s"SFT1 schema: $sft1Schema")
 
   val list2: util.SortedSet[String] = c.tableOperations().list
   println(s"Tables after adding the features: $list2")
@@ -106,9 +111,8 @@ class TableSharingTest extends Specification {
 
   "all three queries" should {
 
-    val sft2Scanner = ds.createAttrIdxScanner(sft2)
-
-    sft2Scanner.iterator.foreach { e => println(s"Key: ${e.getKey}key, value: ${e.getValue}") }
+    val sft2AttrScanner = ds.createAttrIdxScanner(sft2)
+    sft2AttrScanner.iterator.take(10).foreach { e => println(s"Key: ${e.getKey}, value: ${e.getValue}") }
 
     "work for all three features (after setup) " >> {
       compare(id, 1)
@@ -119,11 +123,27 @@ class TableSharingTest extends Specification {
 
   // Delete one shared table feature to ensure that deleteSchema works.
   s"Removing ${sft2.getTypeName}" should {
+    val sft2Scanner = ds.createSpatioTemporalIdxScanner(sft2, 1)
+
     ds.removeSchema(sft2.getTypeName)
 
     println(s"Tables (after delete): ${c.tableOperations().list}")
 
     println(s"GetNames after delete ${ds.getNames}")
+
+    val sft1Scanner = ds.createSpatioTemporalIdxScanner(sft1, 1)
+    sft1Scanner.setRanges(Seq(new org.apache.accumulo.core.data.Range()))
+    sft1Scanner.iterator
+      .map(e => s"Key: ${e.getKey}, value: ${e.getValue}")
+      .filter(_.contains("feature1"))
+      .take(10).foreach { println }
+
+    //val sft2Scanner = ds.createSpatioTemporalIdxScanner(sft2, 1)
+    sft2Scanner.setRanges(Seq(new org.apache.accumulo.core.data.Range()))
+    sft2Scanner.iterator
+      .map(e => s"Key: ${e.getKey}, value: ${e.getValue}")
+      .filter(_.contains("feature2"))
+      .take(10).foreach { println }
 
     s"result in FeatureStore named ${sft2.getTypeName} being gone" >> {
       ds.getNames.contains(sft2.getTypeName) must beFalse
@@ -142,11 +162,12 @@ class TableSharingTest extends Specification {
   // Query again after recreating just the SFT for feature source 2.
   "all three queries" should {
     ds.createSchema(sft2)
+    val newfs2 = ds.getFeatureSource(sft2.getTypeName)
 
     "work for all three features (after recreating the schema for SFT2) " >> {
-      compare(id, 3)
-      compare(st, 3)
-      compare(at, 3)
+      compare(id, 3, newfs2)
+      compare(st, 3, newfs2)
+      compare(at, 3, newfs2)
     }
   }
 
