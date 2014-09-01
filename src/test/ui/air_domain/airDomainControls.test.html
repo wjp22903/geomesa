@@ -89,6 +89,7 @@
 
                                 // Assumes 3A24C5 is a valid hexid for observations
                                 // stored in GeoMesa served by a GeoServer plugin.
+                                // To test when the history crosses the date line.
                                 var feature1 = buildLineString("3A24C5", [
                                     [-0.09, 51.505],
                                     [-0.20, 51.555],
@@ -102,6 +103,17 @@
                                     [-0.50, 51.290],
                                     [-0.45, 51.250],
                                     [-0.60, 51.450]
+                                ]);
+
+                                // Assumes A2E0A5 is a valid hexid for observations
+                                // stored in GeoMesa served by a GeoServer plugin.
+                                // To test when the history does not cross the date line.
+                                var feature4 = buildLineString("A2E0A5", [
+                                    [-0.60, 51.505],
+                                    [-0.70, 51.503],
+                                    [-0.80, 51.501],
+                                    [-0.90, 51.499],
+                                    [-1.00, 51.497]
                                 ]);
 
                                 // To test when query returns no results.
@@ -120,6 +132,7 @@
                                 $rootScope.$broadcast('new track', feature1);
                                 $rootScope.$broadcast('new track', feature2);
                                 $rootScope.$broadcast('new track', feature3);
+                                $rootScope.$broadcast('new track', feature4);
 
                                 function buildLineString(id, coords) {
                                     var lineString = {
@@ -129,7 +142,6 @@
                                             "coordinates": coords,
                                         },
                                         "properties": {
-                                            "trackId": id,
                                             "hexid": id,
                                             "isInteresting": false,
                                             "isMultisource": false,

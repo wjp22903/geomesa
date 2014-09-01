@@ -170,7 +170,7 @@ angular.module('stealth.common.map.leaflet.leafletMap', [
                         var obj = addGeoJsonLayerToGroup(msg);
                         var group = obj.group;
                         var layers = obj.layers;
-                        var id = msg.properties.trackId;
+                        var id = msg.properties.hexid;
 
                         if (!trackers[id]) {
                             trackers[id] = [];
