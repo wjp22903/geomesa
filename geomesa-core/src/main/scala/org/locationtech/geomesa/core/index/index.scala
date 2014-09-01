@@ -43,10 +43,24 @@ package object index {
   // wrapping function in option to protect against incorrect values in SF_PROPERTY_START_TIME
   def getDtgDescriptor(sft: SimpleFeatureType) = getDtgFieldName(sft).flatMap{name => Option(sft.getDescriptor(name))}
 
+  def setDtgDescriptor(sft: SimpleFeatureType, dateFieldName: String) {
+    sft.getUserData.put(SF_PROPERTY_START_TIME, dateFieldName)
+  }
+
   def getIndexSchema(sft: SimpleFeatureType) = Option(sft.getUserData.get(SFT_INDEX_SCHEMA)).map { _.toString }
+  def setIndexSchema(sft: SimpleFeatureType, indexSchema: String) {
+    sft.getUserData.put(SFT_INDEX_SCHEMA, indexSchema)
+  }
 
-  def getTableSharing(sft: SimpleFeatureType) = false // true //sft.getUserData.get(SF_TABLE_SHARING)
+  def getTableSharing(sft: SimpleFeatureType) = {
+    val stored = sft.getUserData.get(SF_TABLE_SHARING)
+    if(stored == null) true  // If nothing is stored, assume we are sharing
+    else stored.asInstanceOf[Boolean]
+  }
 
+  def setTableSharing(sft: SimpleFeatureType, sharing: java.lang.Boolean) {
+    sft.getUserData.put(SF_TABLE_SHARING, sharing)
+  }
 
   val spec = "geom:Geometry:srid=4326,dtg:Date,dtg_end_time:Date"
   val indexSFT = SimpleFeatureTypes.createType("geomesa-idx", spec)

@@ -155,7 +155,7 @@ class AccumuloDataStore(val connector: Connector,
     val recordTableValue            = formatRecordTableName(catalogTable, sft)
     val queriesTableValue           = formatQueriesTableName(catalogTable, sft)
     val dtgFieldValue               = dtgValue.getOrElse(core.DEFAULT_DTG_PROPERTY_NAME)
-    val tableSharingValue           = false.toString
+    val tableSharingValue           = core.index.getTableSharing(sft).toString
 
     // store each metadata in the associated column family
     val attributeMap = Map(ATTRIBUTES_CF        -> attributesValue,
@@ -410,14 +410,29 @@ class AccumuloDataStore(val connector: Connector,
       // JNH: Check sharing.
       val featureType = getSchema(featureName)
 
-      Seq(getSpatioTemporalIdxTableName(featureType),
-          getAttrIdxTableName(featureType),
-          getRecordTableForType(featureType),
-          getQueriesTableName(featureType)).filter(tableOps.exists).foreach(tableOps.delete)
+      val shared = core.index.getTableSharing(featureType)
+
+      println(s"Deleting $featureName.  Sharing? $shared")
+
+      shared match {
+        case true =>  deleteSharedTables(featureType)
+        case false => deteleStandAloneTables(featureType)
+      }
 
       deleteMetadata(featureName, numThreads)
       expireMetadataFromCache(featureName)
     } else throw new RuntimeException("Cannot delete schema for this version of the data store")
+
+  // JNH: This function is gonna be fun.
+  private def deleteSharedTables(sft: SimpleFeatureType) = ???
+
+  private def deteleStandAloneTables(sft: SimpleFeatureType) =
+    Seq(
+      getSpatioTemporalIdxTableName(sft),
+      getAttrIdxTableName(sft),
+      getRecordTableForType(sft),
+      getQueriesTableName(sft)
+    ).filter(tableOps.exists).foreach(tableOps.delete)
 
   private def expireMetadataFromCache(featureName: String) = {
     metaDataCache.keys
@@ -827,7 +842,8 @@ class AccumuloDataStore(val connector: Connector,
         sft.getUserData.put(core.index.SF_PROPERTY_START_TIME, dtgField)
         sft.getUserData.put(core.index.SF_PROPERTY_END_TIME, dtgField)
         sft.getUserData.put(core.index.SFT_INDEX_SCHEMA, indexSchema)
-        sft.getUserData.put(core.index.SF_TABLE_SHARING, sharingBoolean)
+        core.index.setTableSharing(sft, new java.lang.Boolean(sharingBoolean))
+        //sft.getUserData.put(core.index.SF_TABLE_SHARING, sharingBoolean)
 
         sft
     }
