@@ -30,9 +30,9 @@ object Tools extends App with Logging with GetPassword {
     def passOpt = opt[String]('p', "password") action { (x, c) =>
       c.copy(password = x) } text "Accumulo password" optional()
     def instanceNameOpt = opt[String]('i', "instance-name") action { (x, c) =>
-      c.copy(instanceName = x) } text "Accumulo instance name" optional()
+      c.copy(instanceName = Option(x)) } text "Accumulo instance name" optional()
     def zookeepersOpt = opt[String]('z', "zookeepers") action { (x, c) =>
-      c.copy(zookeepers = x) } text "Zookeepers comma-separated instances string" optional()
+      c.copy(zookeepers = Option(x)) } text "Zookeepers comma-separated instances string" optional()
     def visibilitiesOpt = opt[String]('v', "visibilities") action { (x, c) =>
       c.copy(visibilities = x) } text "Accumulo visibilities string" optional()
     def authsOpt = opt[String]('a', "auths") action { (x, c) =>

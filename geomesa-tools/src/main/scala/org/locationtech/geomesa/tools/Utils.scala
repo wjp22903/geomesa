@@ -37,8 +37,8 @@ case class ScoptArguments(username: String = null,
                           param: String = null,
                           newValue: String = null,
                           suffix: String = null,
-                          instanceName: String = null,
-                          zookeepers: String = null,
+                          instanceName: Option[String] = None,
+                          zookeepers: Option[String] = None,
                           visibilities: String = null,
                           auths: String = null,
                           toStdOut: Boolean = false)
@@ -58,8 +58,8 @@ case class ExportArguments(username: String = null,
                            lonAttribute: Option[String] = None,
                            latAttribute: Option[String] = None,
                            query: String = null,
-                           instanceName: String = null,
-                           zookeepers: String = null,
+                           instanceName: Option[String] = None,
+                           zookeepers: Option[String] = None,
                            visibilities: String = null,
                            auths: String = null)
 
@@ -83,8 +83,8 @@ case class IngestArguments(username: String = null,
                            skipHeader: Boolean = false,
                            doHash: Boolean = false,
                            maxShards: Option[Int] = None,
-                           instanceName: String = null,
-                           zookeepers: String = null)
+                           instanceName: Option[String] = None,
+                           zookeepers: Option[String] = None)
 
 /* get password trait */
 trait GetPassword {
@@ -111,8 +111,8 @@ trait AccumuloProperties {
     .map(y => (y \ "value").text)
     .head)
     .getOrElse("/accumulo")
-  val instanceIdDir = Try(new Path(instanceDfsDir, "instance_id")).getOrElse(null)
-  val instanceIdStr = Try(ZooKeeperInstance.getInstanceIDFromHdfs(instanceIdDir)).getOrElse(null)
-  val instanceName = Try(new ZooKeeperInstance(UUID.fromString(instanceIdStr), zookeepers.orNull).getInstanceName)
+  lazy val instanceIdDir = Try(new Path(instanceDfsDir, "instance_id")).getOrElse(null)
+  lazy val instanceIdStr = Try(ZooKeeperInstance.getInstanceIDFromHdfs(instanceIdDir)).getOrElse(null)
+  lazy val instanceName = Try(new ZooKeeperInstance(UUID.fromString(instanceIdStr), zookeepers.orNull).getInstanceName).getOrElse(null)
 }
 

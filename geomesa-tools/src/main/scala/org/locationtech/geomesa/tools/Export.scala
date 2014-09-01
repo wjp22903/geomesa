@@ -30,7 +30,7 @@ import scala.util.Try
 
 class Export(config: ExportArguments, password: String) extends Logging with AccumuloProperties {
 
-  val instance = instanceName.getOrElse(config.instanceName)
+  val instance = config.instanceName.getOrElse(instanceName)
   val zookeepersString = zookeepers.getOrElse(config.zookeepers)
 
   val ds: AccumuloDataStore = Try({
@@ -128,9 +128,9 @@ object Export extends App with Logging with GetPassword {
     def passOpt = opt[String]('p', "password") action { (x, c) =>
       c.copy(password = x) } text "password for Accumulo. This can also be provided after entering a command." optional()
     def instanceNameOpt = opt[String]('i', "instance-name") action { (x, c) =>
-      c.copy(instanceName = x) } text "Accumulo instance name" optional()
+      c.copy(instanceName = Option(x)) } text "Accumulo instance name" optional()
     def zookeepersOpt = opt[String]('z', "zookeepers") action { (x, c) =>
-      c.copy(zookeepers = x) } text "Zookeepers comma-separated instances string" optional()
+      c.copy(zookeepers = Option(x)) } text "Zookeepers comma-separated instances string" optional()
     def visibilitiesOpt = opt[String]('v', "visibilities") action { (x, c) =>
       c.copy(visibilities = x) } text "Accumulo visibilities string" optional()
     def authsOpt = opt[String]('a', "auths") action { (x, c) =>

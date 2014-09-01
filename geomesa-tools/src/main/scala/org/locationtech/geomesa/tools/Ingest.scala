@@ -21,8 +21,8 @@ import com.typesafe.scalalogging.slf4j.Logging
 class Ingest extends Logging with AccumuloProperties {
 
   def getAccumuloDataStoreConf(config: IngestArguments, password: String) = {
-    val instance = instanceName.getOrElse(config.instanceName)
-    val zookeepersString = zookeepers.getOrElse(config.zookeepers)
+    val instance = config.instanceName.getOrElse(instanceName)
+    val zookeepersString = config.zookeepers.getOrElse(zookeepers)
 
     Map (
       "instanceId"        ->  instance,
@@ -108,9 +108,9 @@ object Ingest extends App with Logging with GetPassword {
     opt[String]("file").action { (s, c) =>
       c.copy(file = s, format = Option(getFileExtension(s))) } text "the file to be ingested" required()
     opt[String]('z', "zookeepers").action { (s, c) =>
-      c.copy(zookeepers = s) } text "Accumulo Zookeepers string" optional()
+      c.copy(zookeepers = Option(s)) } text "Accumulo Zookeepers string" optional()
     opt[String]("instance-name").action { (s, c) =>
-      c.copy(instanceName = s) } text "Accumulo instance name" optional()
+      c.copy(instanceName = Option(s)) } text "Accumulo instance name" optional()
     help("help").text("show help command")
     checkConfig { c =>
       if (c.maxShards.isDefined && c.indexSchemaFormat.isDefined) {
