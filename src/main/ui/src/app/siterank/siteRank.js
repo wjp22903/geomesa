@@ -4,6 +4,7 @@ angular.module('stealth.siterank.siteRank', [
     'stealth.common.utils',
     'stealth.common.map.ol.map',
     'stealth.common.map.ol.popup.popup',
+    'stealth.common.map.ol.draw.measure',
     'stealth.common.panes.centerPane',
     'stealth.common.panes.leftPane',
     'stealth.common.panes.centerTop',

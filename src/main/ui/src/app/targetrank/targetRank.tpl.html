@@ -1,6 +1,5 @@
 <div id="targetRank" ng-controller="TargetRankController">
-    <left-pane is-visible="targetRank.isLeftPaneVisible">
-
+    <left-pane is-visible="targetRank.isLeftPaneVisible" overlay-id="targetRankLeftPaneOverlay">
         <!-- Top tabs -->
         <ul class="nav nav-tabs">
             <li ng-class="{active: targetRank.leftPaneView==='analysis'}" ng-click="targetRank.leftPaneView='analysis'">
@@ -38,10 +37,18 @@
             <div class="tab-pane" ng-show="targetRank.leftPaneView === 'analysis'">
                 <div class="instructions alert alert-info"
                     ng-show="!targetRank.loadingSites && targetRank.sites.length < 1">
-                    <i class="fa fa-info-circle fa-3x"></i>
-                    <span>Select an input source and enter a query to begin.</span>
-                    <button class="btn btn-default"
-                        ng-click="addSites.showWindow()">Get Started</button>
+                    <i class="fa fa-info-circle fa-3x" style="vertical-align:top;"></i>
+                    <div style="display:inline-block;">
+                        <div>
+                            <span>Query an input source to begin.</span>
+                            <button class="btn btn-default"
+                                    ng-click="addSites.showWindow()">Query</button>
+                        </div>
+                        <div style="padding-left:100px;">Or</div>
+                        <div>
+                            <span>Create an input on the map with the tools on the right.</span>
+                        </div>
+                    </div>
                 </div>
                 <ui-layout options="{flow: 'row'}"
                     ng-show="targetRank.loadingSites || targetRank.sites.length > 0">
@@ -112,6 +119,7 @@
                                             ng-model="layers[0].isSelected"> {{ellipsis(layers[0].name, 60)}}
                                     </label>
                                     <i class="fa fa-lg pull-right spatial-query-status"
+                                       ng-click="targetRank.exportProximityLayer(layers[0])"
                                        ng-class="{'fa-globe': layers[0].spatialQueryStatus === 'done',
                                             'fa-exclamation-triangle': layers[0].spatialQueryStatus === 'error',
                                             'fa-spinner fa-spin': layers[0].spatialQueryStatus === 'running'}"></i>
@@ -133,6 +141,7 @@
                                                 ng-model="layer.isSelected"> {{ellipsis(layer.name, 60)}}
                                         </label>
                                         <i class="fa fa-lg pull-right spatial-query-status"
+                                           ng-click="targetRank.exportProximityLayer(layer)"
                                            ng-class="{'fa-globe': layer.spatialQueryStatus === 'done',
                                                 'fa-exclamation-triangle': layer.spatialQueryStatus === 'error',
                                                 'fa-spinner fa-spin': layer.spatialQueryStatus === 'running'}"></i>
@@ -152,7 +161,7 @@
                                 Map
                             </button>
                         </header>
-                        <ul ng-switch="targetRank.inputData.type">
+                        <ul ng-switch="targetRank.inputData.type.substr(0, 5)">
                             <form ng-switch-default>
                                 <table style="border-collapse:separate;border-spacing:0px 1px;">
                                     <tr><td style="padding-right:15px;">
@@ -299,6 +308,9 @@
     <center-pane is-full-width="!targetRank.isLeftPaneVisible">
         <openlayers-map id="targetRankMap" map="targetRank.map">
             <openlayers-popup></openlayers-popup>
+            <openlayers-measure></openlayers-measure>
+            <openlayers-draw-route></openlayers-draw-route>
+            <openlayers-draw-erase></openlayers-draw-erase>
         </openlayers-map>
     </center-pane>
 </div>

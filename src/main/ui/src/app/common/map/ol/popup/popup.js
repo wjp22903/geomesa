@@ -9,18 +9,28 @@ angular.module('stealth.common.map.ol.popup.popup', [
                 require: '^openlayersMap',
                 restrict: 'E',
                 link: function (scope, element, attrs, mapCtrl) {
-                    var map = mapCtrl.getMap();
-                    _.each(map.getControlsByClass('OpenLayers.Control.Navigation'), function (navCtrl) {
-                        navCtrl.events.register('activate', null, function () {
-                            _.each(map.getControlsByClass('OpenLayers.Control.WMSGetFeatureInfo'), function (getInfo) {
-                                getInfo.activate();
-                            });
+                    var map = mapCtrl.getMap(),
+                        button = new OpenLayers.Control.Button({
+                            type: OpenLayers.Control.TYPE_TOOL,
+                            designation: 'popup',
+                            displayClass: 'openlayersPopup',
+                            title: 'Get Info',
+                            eventListeners: {
+                                activate: function () {
+                                    _.each(map.getControlsByClass('OpenLayers.Control.WMSGetFeatureInfo'), function (getInfo) {
+                                        getInfo.activate();
+                                    });
+                                },
+                                deactivate: function () {
+                                    _.each(map.getControlsByClass('OpenLayers.Control.WMSGetFeatureInfo'), function (getInfo) {
+                                        getInfo.deactivate();
+                                    });
+                                }
+                            }
                         });
-                        navCtrl.events.register('deactivate', null, function () {
-                            _.each(map.getControlsByClass('OpenLayers.Control.WMSGetFeatureInfo'), function (getInfo) {
-                                getInfo.deactivate();
-                            });
-                        });
+                    _.each(map.getControlsBy('designation', 'toolbar'), function (toolbar) {
+                        toolbar.addControls([button]);
+                        toolbar.activateControl(button);  //active by default
                     });
 
                     scope.mapPopup = {
@@ -40,6 +50,7 @@ angular.module('stealth.common.map.ol.popup.popup', [
                                 var mp = $modal.open({
                                     scope: scope,
                                     backdrop: 'static',
+                                    size: 'lg',
                                     templateUrl: 'common/map/ol/popup/popup.tpl.html',
                                     controller: function ($scope, $modalInstance) {
                                         $scope.modal = {
@@ -84,7 +95,7 @@ angular.module('stealth.common.map.ol.popup.popup', [
                     }
                     function addGetInfoControl(layer, layerConfig) {
                         var ctrl = new OpenLayers.Control.WMSGetFeatureInfo({
-                            autoActivate: _.every(map.getControlsByClass('OpenLayers.Control.Navigation'), function (navCtrl) {
+                            autoActivate: _.every(map.getControlsBy('designation', 'popup'), function (navCtrl) {
                                 return navCtrl.active;
                             }),
                             url: $filter('endpoint')(layerConfig.url, 'wms'),
@@ -102,8 +113,9 @@ angular.module('stealth.common.map.ol.popup.popup', [
                                     if (!_.isEmpty(newFeatures) && _.isArray(newFeatures)) {
                                         _.each(newFeatures, function (newFeature) {
                                             newFeature.curLayer = evt.object.layers[0];
-                                            var name = newFeature.curLayer.params.LAYERS || newFeature.curLayer.params.layers;
-                                            newFeature.curDataLayer = name.toString().replace(/proximity_\w*_(\w*)___(\w)/, "$1:$2");
+                                            var layers = newFeature.curLayer.params.LAYERS || newFeature.curLayer.params.layers,
+                                                name = _.isArray(layers) ? layers[0] : layers;
+                                            newFeature.curDataLayer = name.toString().replace(/.*proximity_[0-9a-z]*_(\w*)___(\w)/, "$1:$2");
                                             newFeature.targetDataSource = CONFIG.dataSources.targets[newFeature.curDataLayer];
                                         });
                                         if (_.isArray(scope.mapPopup.features)) {

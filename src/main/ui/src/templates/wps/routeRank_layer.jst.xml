@@ -62,24 +62,6 @@
                 <wps:LiteralData>{{inputIdField}}</wps:LiteralData>
             </wps:Data>
         </wps:Input>
-        <!--wps:Input>
-            <ows:Identifier>skip</ows:Identifier>
-            <wps:Data>
-                <wps:LiteralData>0</wps:LiteralData>
-            </wps:Data>
-        </wps:Input>
-        <wps:Input>
-            <ows:Identifier>max</ows:Identifier>
-            <wps:Data>
-                <wps:LiteralData>0</wps:LiteralData>
-            </wps:Data>
-        </wps:Input>
-        <wps:Input>
-            <ows:Identifier>sortBy</ows:Identifier>
-            <wps:Data>
-                <wps:LiteralData>score</wps:LiteralData>
-            </wps:Data>
-        </wps:Input-->
     </wps:DataInputs>
     <wps:ResponseForm>
         <wps:RawDataOutput mimeType="application/json">

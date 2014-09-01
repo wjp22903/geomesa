@@ -36,20 +36,29 @@ angular.module('stealth.common.map.ol.map', [
                     zoomedToDataLayer: false
                 };
 
-                var navCtrl = new OpenLayers.Control.Navigation({
-                        autoActivate: true,
-                        title: 'Navigate & Get Info'
-                    }),
-                    olToolbar = new OpenLayers.Control.Panel({
-                        defaultControl: navCtrl
-                    });
-                olToolbar.addControls([navCtrl]);
                 scope.map = new OpenLayers.Map(_.merge(_.isEmpty(CONFIG.map.maxExtent) ? {} : {maxExtent: maxExtent}, {
                     numZoomLevels: 24,
                     controls: [
-                        olToolbar,
+                        new OpenLayers.Control.Panel({
+                            designation: 'toolbar'
+                        }),
+                        new OpenLayers.Control.Navigation(),
                         new OpenLayers.Control.Zoom(),
-                        new OpenLayers.Control.MousePosition(),
+                        new OpenLayers.Control.MousePosition({
+                            emptyString: '',
+                            formatOutput: function (lonLat) {
+                                var digits = parseInt(this.numDigits);
+                                var newHtml =
+                                    '<table><tr><td>Lat/Lon:&nbsp;&nbsp;</td><td>' +
+                                    lonLat.lat.toFixed(digits) + '</td><td>' + lonLat.lon.toFixed(digits) +
+                                    '</td></tr><tr><td>DMS:</td><td style="width:85px;">' +
+                                    OpenLayers.Util.getFormattedLonLat(lonLat.lat, 'lat', 'dms') +
+                                    '</td><td style="width:95px;">' +
+                                    OpenLayers.Util.getFormattedLonLat(lonLat.lon, 'lon', 'dms') +
+                                    '</td></tr></table>';
+                                return newHtml;
+                            }
+                        }),
                         new OpenLayers.Control.Graticule({visible: false, displayInLayerSwitcher: false}),
                         new OpenLayers.Control.ScaleLine()
                     ],
@@ -97,6 +106,7 @@ angular.module('stealth.common.map.ol.map', [
                     var layer,
                         config = _.merge({
                             format: 'image/png',
+                            buffer: 6, //reduce tiling effects
                             time: '2000/2050',
                             transparent: true
                         }, _.omit(layerConfig, function (value) {
@@ -172,7 +182,10 @@ angular.module('stealth.common.map.ol.map', [
                     self.replaceVectorLayers(namesToRemove, layerConfigToAdd);
                 });
                 $rootScope.$on("CenterPaneFullWidthChange", function (event, fullWidth) {
+                    var center = scope.map.getCenter(), //remember center
+                        zoom = scope.map.getZoom(); //remember zoom
                     scope.map.updateSize();
+                    scope.map.setCenter(center, zoom); //re-center and zoom
                 });
                 $rootScope.$on("SetMapDataLayerZoomState", function (event, zoomedToDataLayer) {
                     scope.state.zoomedToDataLayer = zoomedToDataLayer;

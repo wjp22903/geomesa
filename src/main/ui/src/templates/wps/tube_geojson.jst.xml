@@ -5,30 +5,48 @@
              xmlns:gml="http://www.opengis.net/gml" xmlns:ogc="http://www.opengis.net/ogc"
              xmlns:wcs="http://www.opengis.net/wcs/1.1.1" xmlns:xlink="http://www.w3.org/1999/xlink"
              xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd">
-    <ows:Identifier>geomesa:RouteRank</ows:Identifier>
+    <ows:Identifier>geomesa:Import</ows:Identifier>
     <wps:DataInputs>
         <wps:Input>
-            <ows:Identifier>inputFeatures</ows:Identifier>
+            <ows:Identifier>features</ows:Identifier>
             <wps:Reference mimeType="text/xml" xlink:href="http://geoserver/wps"
                            method="POST">
                 <wps:Body>
                     <wps:Execute version="1.0.0" service="WPS">
-                        <ows:Identifier>geomesa:Query</ows:Identifier>
+                        <ows:Identifier>geomesa:TubeSelect</ows:Identifier>
                         <wps:DataInputs>
                             <wps:Input>
-                                <ows:Identifier>features</ows:Identifier>
+                                <ows:Identifier>tubeFeatures</ows:Identifier>
+                                <wps:Data>
+                                    <wps:ComplexData mimeType="application/json"><![CDATA[{{tubeFeatures}}]]></wps:ComplexData>
+                                </wps:Data>
+                            </wps:Input>
+                            <wps:Input>
+                                <ows:Identifier>featureCollection</ows:Identifier>
                                 <wps:Reference mimeType="text/xml" xlink:href="http://geoserver/wfs" method="POST">
                                     <wps:Body>
                                         <wfs:GetFeature service="WFS" version="1.0.0" outputFormat="GML2">
-                                            <wfs:Query typeName="{{inputLayer}}"/>
+                                            <wfs:Query typeName="{{featureCollection}}"/>
                                         </wfs:GetFeature>
                                     </wps:Body>
                                 </wps:Reference>
                             </wps:Input>
                             <wps:Input>
-                                <ows:Identifier>filter</ows:Identifier>
+                                <ows:Identifier>maxSpeed</ows:Identifier>
                                 <wps:Data>
-                                    <wps:ComplexData mimeType="text/plain; subtype=cql"><![CDATA[{{inputLayerFilter}}]]></wps:ComplexData>
+                                    <wps:LiteralData>{{maxSpeedMps}}</wps:LiteralData>
+                                </wps:Data>
+                            </wps:Input>
+                            <wps:Input>
+                                <ows:Identifier>maxTime</ows:Identifier>
+                                <wps:Data>
+                                    <wps:LiteralData>{{maxTimeSec}}</wps:LiteralData>
+                                </wps:Data>
+                            </wps:Input>
+                            <wps:Input>
+                                <ows:Identifier>gapFill</ows:Identifier>
+                                <wps:Data>
+                                    <wps:LiteralData>line</wps:LiteralData>
                                 </wps:Data>
                             </wps:Input>
                         </wps:DataInputs>
@@ -42,54 +60,27 @@
             </wps:Reference>
         </wps:Input>
         <wps:Input>
-            <ows:Identifier>dataFeatures</ows:Identifier>
-            <wps:Reference mimeType="text/xml" xlink:href="http://geoserver/wps" method="POST">
-                <wps:Body>
-                    <wps:Execute version="1.0.0" service="WPS">
-                        <ows:Identifier>geomesa:Query</ows:Identifier>
-                        <wps:DataInputs>
-                            <wps:Input>
-                                <ows:Identifier>features</ows:Identifier>
-                                <wps:Reference mimeType="text/xml" xlink:href="http://geoserver/wfs" method="POST">
-                                    <wps:Body>
-                                        <wfs:GetFeature service="WFS" version="1.0.0" outputFormat="GML2">
-                                            <wfs:Query typeName="{{dataLayer}}"/>
-                                        </wfs:GetFeature>
-                                    </wps:Body>
-                                </wps:Reference>
-                            </wps:Input>
-                            <wps:Input>
-                                <ows:Identifier>filter</ows:Identifier>
-                                <wps:Data>
-                                    <wps:ComplexData mimeType="text/plain; subtype=cql"><![CDATA[{{dataLayerFilter}}]]></wps:ComplexData>
-                                </wps:Data>
-                            </wps:Input>
-                        </wps:DataInputs>
-                        <wps:ResponseForm>
-                            <wps:RawDataOutput mimeType="text/xml; subtype=wfs-collection/1.0">
-                                <ows:Identifier>result</ows:Identifier>
-                            </wps:RawDataOutput>
-                        </wps:ResponseForm>
-                    </wps:Execute>
-                </wps:Body>
-            </wps:Reference>
-        </wps:Input>
-        <wps:Input>
-            <ows:Identifier>bufferDistance</ows:Identifier>
+            <ows:Identifier>workspace</ows:Identifier>
             <wps:Data>
-                <wps:LiteralData>{{bufferMeters}}</wps:LiteralData>
+                <wps:LiteralData>{{output.workspace}}</wps:LiteralData>
             </wps:Data>
         </wps:Input>
         <wps:Input>
-            <ows:Identifier>keyField</ows:Identifier>
+            <ows:Identifier>store</ows:Identifier>
             <wps:Data>
-                <wps:LiteralData>{{inputIdField}}</wps:LiteralData>
+                <wps:LiteralData>{{output.store}}</wps:LiteralData>
+            </wps:Data>
+        </wps:Input>
+        <wps:Input>
+            <ows:Identifier>name</ows:Identifier>
+            <wps:Data>
+                <wps:LiteralData>{{output.name}}</wps:LiteralData>
             </wps:Data>
         </wps:Input>
     </wps:DataInputs>
     <wps:ResponseForm>
-        <wps:RawDataOutput mimeType="application/json">
-            <ows:Identifier>result</ows:Identifier>
+        <wps:RawDataOutput>
+            <ows:Identifier>layerName</ows:Identifier>
         </wps:RawDataOutput>
     </wps:ResponseForm>
 </wps:Execute>

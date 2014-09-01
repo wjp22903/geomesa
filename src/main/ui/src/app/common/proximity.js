@@ -15,7 +15,11 @@ angular.module('stealth.common.proximity', [
                             styles: style,
                             env: env
                         });
-                        deferred.resolve();
+                        deferred.resolve({
+                            url: geoserverUrl,
+                            workspace: workspace,
+                            layer: resultLayer
+                        });
                     } else {
                         deferred.reject('error'); //TODO - parse error from response
                     }
@@ -25,10 +29,15 @@ angular.module('stealth.common.proximity', [
                 });
             return deferred.promise;
         }
+        function buildProxLayerName (dataLayer) {
+            var timestamp = moment().utc().format('YYMMDDHHmmss'),
+                uuid = Utils.uuid().replace(/-/g, '').substr(0, 4);
+            return 'proximity_' + timestamp + uuid + "_" + dataLayer.replace(':','___');
+        }
 
         //arg contains geoserverUrl, inputLayer, inputLayerFilter, dataLayer, dataLayerFilter, bufferMeters
         this.doLayerProximity = function (arg) {
-            var resultLayer = 'proximity_' + Utils.uuid().replace(/-/g, '') + "_" + arg.dataLayer.replace(':','___'),
+            var resultLayer = buildProxLayerName(arg.dataLayer),
                 templateFn = _.isEmpty(arg.inputLayerFilter) ? stealth.jst['wps/proximity_layer.xml'] : stealth.jst['wps/proximity_layer-filter.xml'],
                 req = templateFn({
                     inputLayer: arg.inputLayer,
@@ -42,15 +51,31 @@ angular.module('stealth.common.proximity', [
                         name: resultLayer
                     }
                 });
-
             return submitWpsRequest(arg.geoserverUrl, req, CONFIG.geoserver.output.workspace, resultLayer, arg.dataLayer, arg.style, arg.env);
         };
-        //arg contains geoserverUrl, inputLayer, inputLayerFilter, dataLayer, maxSpeedMps, maxTimeSec
-        this.doTrackProximity = function (arg) {
-            var resultLayer = 'proximity_' + Utils.uuid().replace(/-/g, '') + "_" + arg.dataLayer.replace(':','___'),
-                templateFn = _.isEmpty(arg.inputLayerFilter) ? stealth.jst['wps/tube_layer.xml'] : stealth.jst['wps/tube_layer-filter.xml'],
+        //arg contains geoserverUrl, inputGeoJson, dataLayer, dataLayerFilter, bufferMeters
+        this.doGeoJsonProximity = function (arg) {
+            var resultLayer = buildProxLayerName(arg.dataLayer),
+                templateFn = stealth.jst['wps/proximity_geojson.xml'],
                 req = templateFn({
-                    tubeFeatures: arg.inputLayer,
+                    inputFeatures: arg.inputGeoJson,
+                    dataLayer: arg.dataLayer,
+                    dataLayerFilter: arg.dataLayerFilter,
+                    bufferMeters: arg.bufferMeters,
+                    output: {
+                        workspace: CONFIG.geoserver.output.workspace,
+                        store: CONFIG.geoserver.output.store,
+                        name: resultLayer
+                    }
+                });
+            return submitWpsRequest(arg.geoserverUrl, req, CONFIG.geoserver.output.workspace, resultLayer, arg.dataLayer, arg.style, arg.env);
+        };
+        //arg contains geoserverUrl, inputLayer (or inputGeoJson), inputLayerFilter, dataLayer, maxSpeedMps, maxTimeSec
+        this.doTrackProximity = function (arg) {
+            var resultLayer = buildProxLayerName(arg.dataLayer),
+                templateFn = _.isEmpty(arg.inputLayerFilter) ? (_.isEmpty(arg.inputGeoJson) ? stealth.jst['wps/tube_layer.xml'] : stealth.jst['wps/tube_geojson.xml']) : stealth.jst['wps/tube_layer-filter.xml'],
+                req = templateFn({
+                    tubeFeatures: _.isEmpty(arg.inputGeoJson) ? arg.inputLayer : arg.inputGeoJson,
                     tubeFeatures_filter: arg.inputLayerFilter,
                     featureCollection: arg.dataLayer,
                     maxSpeedMps: arg.maxSpeedMps,
@@ -61,7 +86,6 @@ angular.module('stealth.common.proximity', [
                         name: resultLayer
                     }
                 });
-
             return submitWpsRequest(arg.geoserverUrl, req, CONFIG.geoserver.output.workspace, resultLayer, arg.dataLayer, arg.style, arg.env);
         };
     }])

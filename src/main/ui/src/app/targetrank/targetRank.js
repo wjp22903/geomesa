@@ -4,6 +4,9 @@ angular.module('stealth.targetrank.targetRank', [
     'stealth.common.utils',
     'stealth.common.map.ol.map',
     'stealth.common.map.ol.popup.popup',
+    'stealth.common.map.ol.draw.measure',
+    'stealth.common.map.ol.draw.route',
+    'stealth.common.map.ol.draw.erase',
     'stealth.common.panes.centerPane',
     'stealth.common.panes.leftPane',
     'stealth.common.panes.centerTop',
@@ -23,8 +26,8 @@ angular.module('stealth.targetrank.targetRank', [
     }])
 
     .controller('TargetRankController', [
-    '$scope', '$rootScope', '$modal', '$filter', '$timeout', '$location', 'WFS', 'CONFIG', 'ProximityService', 'RankService', 'Utils',
-    function($scope, $rootScope, $modal, $filter, $timeout, $location, WFS, CONFIG, ProximityService, RankService, Utils) {
+    '$scope', '$rootScope', '$modal', '$filter', '$timeout', '$location', '$compile', 'WFS', 'CONFIG', 'ProximityService', 'RankService', 'Utils',
+    function($scope, $rootScope, $modal, $filter, $timeout, $location, $compile, WFS, CONFIG, ProximityService, RankService, Utils) {
         var now = new Date(),
             aWeekAgo = new Date(),
             noTime = new Date(),
@@ -128,7 +131,12 @@ angular.module('stealth.targetrank.targetRank', [
                 $scope.targetRank.targets = [];
                 $scope.targetRank.targetList.loadingTargets = true;
                 $scope.targetRank.leftPaneView = 'targets'; //switch tabs
+                var rankArg = {
+                    inputLayer: $scope.targetRank.layerData.currentLayer.name,
+                    inputLayerFilter: $scope.targetRank.filterData.cql
+                };
                 switch ($scope.targetRank.inputData.type) {
+                    /* Site-based ranking is no longer valid and needs re-implementation
                     case 'site':
                         RankService.getTargetRanksForSites(_.pluck(_.pluck($scope.targetRank.sites, 'properties'), CONFIG.dataSources.sites[$scope.targetRank.layerData.currentLayer.name].idField), $scope.targetRank.options.startDate, $scope.targetRank.options.endDate)
                             .then(function (response) {
@@ -149,7 +157,15 @@ angular.module('stealth.targetrank.targetRank', [
                             .finally(function () {
                                 $scope.targetRank.targetList.loadingTargets = false;
                             });
-                        break;
+                        break;*/
+                    case 'track_geojson':
+                        delete rankArg.inputLayer;
+                        delete rankArg.inputLayerFilter;
+                        rankArg.inputGeoJson = JSON.stringify({
+                            type: 'FeatureCollection',
+                            features: $scope.targetRank.sites
+                        });
+                        /* falls through */
                     case 'track':
                         RankService.getTargetRanksForTrack($scope.targetRank.serverData.currentGeoserverUrl,
                             _.map(_.chain($scope.targetRank.dataLayers).values().flatten().filter(function (dataLayer) {
@@ -159,12 +175,10 @@ angular.module('stealth.targetrank.targetRank', [
                                     name: dataLayer.name,
                                     idField: CONFIG.dataSources.targets[dataLayer.name].idField
                                 };
-                            }), {
-                                inputLayer: $scope.targetRank.layerData.currentLayer.name,
-                                inputLayerFilter: $scope.targetRank.filterData.cql,
+                            }), _.merge(rankArg, {
                                 maxSpeedMps: $scope.targetRank.options.maxSpeedMps,
                                 maxTimeSec: $scope.targetRank.options.maxTimeSec
-                            }
+                            })
                         )
                             .then(function (response) {
                                 $scope.targetRank.targets = _.map(response.results, function (target) {
@@ -182,7 +196,27 @@ angular.module('stealth.targetrank.targetRank', [
                                 $scope.targetRank.targetList.loadingTargets = false;
                             });
                         break;
+                    case 'route_geojson':
+                        delete rankArg.inputLayer;
+                        delete rankArg.inputLayerFilter;
+                        //Remove pointData; proximity search process can't handle it
+                        var clone = _.cloneDeep($scope.targetRank.sites);
+                        _.each(clone, function (cloneFeature) {
+                            delete cloneFeature.properties.pointData;
+                        });
+                        rankArg.inputGeoJson = JSON.stringify({
+                            type: 'FeatureCollection',
+                            features: clone
+                        });
+                        /* falls through */
                     case 'route':
+                        var timeFilter = '(1=1)';
+                        if (_.isDate($scope.targetRank.options.startDate)) {
+                            timeFilter += ' AND (dtg > ' + moment($scope.targetRank.options.startDate).format('YYYY-MM-DD') + 'T' + moment($scope.targetRank.options.startTime).format('HH:mm:ss.SSS') + 'Z)';
+                        }
+                        if (_.isDate($scope.targetRank.options.endDate)) {
+                            timeFilter += ' AND (dtg < ' + moment($scope.targetRank.options.endDate).format('YYYY-MM-DD') + 'T' + moment($scope.targetRank.options.endTime).format('HH:mm:ss.SSS') + 'Z)';
+                        }
                         RankService.getTargetRanksForRoute($scope.targetRank.serverData.currentGeoserverUrl,
                             _.map(_.chain($scope.targetRank.dataLayers).values().flatten().filter(function (dataLayer) {
                                 return dataLayer.isSelected;
@@ -191,14 +225,10 @@ angular.module('stealth.targetrank.targetRank', [
                                     name: dataLayer.name,
                                     idField: CONFIG.dataSources.targets[dataLayer.name].idField
                                 };
-                            }), {
-                                inputLayer: $scope.targetRank.layerData.currentLayer.name,
-                                inputLayerFilter: $scope.targetRank.filterData.cql,
-                                dataLayerFilter: '(dtg > ' +
-                                    moment($scope.targetRank.options.startDate).format('YYYY-MM-DD') + 'T' + moment($scope.targetRank.options.startTime).format('HH:mm:ss.SSS') +
-                                    'Z) AND (dtg < ' + moment($scope.targetRank.options.endDate).format('YYYY-MM-DD') + 'T' + moment($scope.targetRank.options.endTime).format('HH:mm:ss.SSS') + 'Z)',
+                            }), _.merge(rankArg, {
+                                dataLayerFilter: timeFilter,
                                 bufferMeters: $scope.targetRank.options.proximityMeters
-                            }
+                            })
                         )
                             .then(function (response) {
                                 $scope.targetRank.targets = _.map(response.results, function (target) {
@@ -217,7 +247,8 @@ angular.module('stealth.targetrank.targetRank', [
                             });
                         break;
                     default:
-                        alert('Error: No ranking process available for this input type');
+                        $scope.targetRank.targetList.errorMessage = 'Error: No ranking process available for this input type';
+                        $scope.targetRank.targetList.loadingTargets = false;
                 }
             },
             doProximity: function () {
@@ -227,17 +258,46 @@ angular.module('stealth.targetrank.targetRank', [
                     inputLayer: $scope.targetRank.layerData.currentLayer.name,
                     inputLayerFilter: $scope.targetRank.filterData.cql
                 };
+                var timeFilter = '(1=1)';
+                if (_.isDate($scope.targetRank.options.startDate)) {
+                    timeFilter += ' AND (dtg > ' + moment($scope.targetRank.options.startDate).format('YYYY-MM-DD') + 'T' + moment($scope.targetRank.options.startTime).format('HH:mm:ss.SSS') + 'Z)';
+                }
+                if (_.isDate($scope.targetRank.options.endDate)) {
+                    timeFilter += ' AND (dtg < ' + moment($scope.targetRank.options.endDate).format('YYYY-MM-DD') + 'T' + moment($scope.targetRank.options.endTime).format('HH:mm:ss.SSS') + 'Z)';
+                }
                 switch ($scope.targetRank.inputData.type) {
                     case 'site':
                     case 'route':
                         proxFn = ProximityService.doLayerProximity;
                         proxArg = _.merge(proxArg, {
-                            dataLayerFilter: '(dtg > ' +
-                                moment($scope.targetRank.options.startDate).format('YYYY-MM-DD') + 'T' + moment($scope.targetRank.options.startTime).format('HH:mm:ss.SSS') +
-                                'Z) AND (dtg < ' + moment($scope.targetRank.options.endDate).format('YYYY-MM-DD') + 'T' + moment($scope.targetRank.options.endTime).format('HH:mm:ss.SSS') + 'Z)',
+                            dataLayerFilter: timeFilter,
                             bufferMeters: $scope.targetRank.options.proximityMeters
                         });
                         break;
+                    case 'route_geojson':
+                        proxFn = ProximityService.doGeoJsonProximity;
+                        proxArg = _.merge(proxArg, {
+                            dataLayerFilter: timeFilter,
+                            bufferMeters: $scope.targetRank.options.proximityMeters
+                        });
+                        //Remove pointData; proximity search process can't handle it
+                        var clone = _.cloneDeep($scope.targetRank.sites);
+                        _.each(clone, function (cloneFeature) {
+                            delete cloneFeature.properties.pointData;
+                        });
+                        proxArg.inputGeoJson = JSON.stringify({
+                            type: 'FeatureCollection',
+                            features: clone
+                        });
+                        break;
+                    case 'track_geojson':
+                        delete proxArg.inputLayer;
+                        delete proxArg.inputLayerFilter;
+                        proxArg.inputGeoJson = JSON.stringify({
+                            type: 'FeatureCollection',
+                            features: $scope.targetRank.sites
+                        });
+                        /* falls through */
                     case 'track':
                         proxFn = ProximityService.doTrackProximity;
                         proxArg = _.merge(proxArg, {
@@ -258,13 +318,26 @@ angular.module('stealth.targetrank.targetRank', [
                         proxArg.dataLayer = dataLayer.name;
                         proxArg.env = 'color:' + Utils.getBrightColor().substring(1);
                         dataLayer.spatialQueryStatus = 'running';
-                        proxFn(proxArg).then(function () {
+                        proxFn(proxArg).then(function (result) {
                             $rootScope.$emit('RaiseLayers', _.pluck($scope.addSites.types, 'display'), 1);
                             dataLayer.spatialQueryStatus = 'done';
+                            dataLayer.spatialResult = result;
                         }, function () {
                             dataLayer.spatialQueryStatus = 'error';
                         });
                     });
+                }
+            },
+            exportProximityLayer: function (layer) {
+                if (layer.spatialQueryStatus === 'done') {
+                    var link = document.createElement('A');
+                    link.href = $filter('endpoint')(layer.spatialResult.url, 'wfs') +
+                        '?service=WFS&version=2.0.0&request=GetFeature&srsName=EPSG:4326&outputFormat=csv&typeName=' +
+                        layer.spatialResult.workspace + ':' + layer.spatialResult.layer;
+                    link.download = layer.spatialResult.layer + '.csv';
+                    var evt = document.createEvent('MouseEvents');
+                    evt.initMouseEvent('click', true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+                    link.dispatchEvent(evt);
                 }
             }
         };
@@ -424,12 +497,16 @@ angular.module('stealth.targetrank.targetRank', [
             });
         };
 
-        $scope.addSites.submit = function () {
+        $scope.addSites.submit = function (getFeatureFn) {
             $scope.targetRank.serverData = angular.copy($scope.addSites.serverData);
             $scope.targetRank.layerData = angular.copy($scope.addSites.layerData);
             $scope.targetRank.inputData = angular.copy($scope.addSites.inputData);
             $scope.targetRank.filterData = angular.copy($scope.addSites.filterData);
-            $scope.addSites.getFeature();
+            if (_.isFunction(getFeatureFn)) {
+                getFeatureFn();
+            } else {
+                $scope.addSites.getFeature();
+            }
 
             $scope.targetRank.loadingDataLayers = true;
             // Get the layer list from the GetCapabilities WFS operation.
@@ -474,4 +551,34 @@ angular.module('stealth.targetrank.targetRank', [
                 }
             });
         };
+
+        $rootScope.$on('SetInputRoute', function (event, routeGeoJsonObj) {
+            $scope.addSites.submit(function () {
+                $scope.targetRank.serverData.currentGeoserverUrl = $scope.targetRank.serverData.proposedGeoserverUrl;
+                $scope.targetRank.inputData.type = 'route_geojson';
+                $scope.targetRank.layerData.currentLayer = {name: 'geojson'};
+                $scope.targetRank.sites = [routeGeoJsonObj];
+            });
+            $scope.targetRank.leftPaneView = 'analysis';
+        });
+
+        $rootScope.$on('SetInputTrack', function (event, trackGeoJsonObjArr) {
+            $scope.addSites.submit(function () {
+                $scope.targetRank.serverData.currentGeoserverUrl = $scope.targetRank.serverData.proposedGeoserverUrl;
+                $scope.targetRank.inputData.type = 'track_geojson';
+                $scope.targetRank.layerData.currentLayer = {name: 'geojson'};
+                $scope.targetRank.sites = trackGeoJsonObjArr;
+            });
+            $scope.targetRank.leftPaneView = 'analysis';
+        });
+
+        $rootScope.$on('BeginTrackEdit', function (event, trackFeature) {
+            var editScope = $rootScope.$new();
+            editScope.feature = trackFeature;
+            $rootScope.$emit('ShowLeftPaneOverlay', $compile('<track-edit></track-edit>')(editScope));
+        });
+
+        $rootScope.$on('EndTrackEdit', function (event) {
+            $rootScope.$emit('HideLeftPaneOverlay', 'track-edit');
+        });
     }]);

@@ -35,8 +35,10 @@
 
         <div class="form-group" ng-show="addTargets.formStep() > 2">
             <blockquote class="feature-type-data-container">
-                <h4>{{ addTargets.layerData.currentLayer.title }}</h4>
-                <p>{{ addTargets.layerData.currentLayer.abstract }}</p>
+                <div class="feature-type-header-container">
+                    <h4>{{ addTargets.layerData.currentLayer.title }}</h4>
+                    <p>{{ addTargets.layerData.currentLayer.abstract }}</p>
+                </div>
 
                 <div ng-switch="addTargets.featureTypeData">
                     <div ng-switch-when="unavailable" class="alert alert-warning">

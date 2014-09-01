@@ -17,6 +17,7 @@
 @import 'layerManager'
 @import 'leaflet'
 @import 'airTrackers'
+@import 'trackEdit'
 
 @font-face
     font-family 'FontAwesome'
@@ -55,6 +56,43 @@ body
 
 .left-pane
     background white
+    position absolute
+    top 0
+    bottom 0
+    width sidePaneWidth
+    z-index 500
+    left -1 * (sidePaneWidth)
+    transition left 0.5s ease
+    border-right 1px solid #ccc
+    &.visible
+        left 0
+        .close-btn i
+            -webkit-transform scale(1, -1)
+            transform scale(1, -1)
+    .btn-container
+        position absolute
+        top 0
+        bottom 0
+        right 0
+        vertical-align middle
+    .close-btn
+        position absolute
+        transform translateY(-50%)
+        top 50%
+        width closeBtnWidth
+        height closeBtnHeight
+        border-radius 0 8px 8px 0
+        border 1px solid #CCC
+        border-left 0
+        user-select none
+        cursor pointer
+        background linear-gradient(left, white, '#F5F5F5')
+        i
+            display inline-block
+            line-height closeBtnHeight
+            margin-left 4px
+            -webkit-transform scale(-1, 1)
+            transform scale(-1, 1)
     ul.nav:first-of-type
         height 42px
         border-bottom 1px solid  #BBB
@@ -99,6 +137,16 @@ body
                 li.checkbox
                     margin-bottom 6px
 
+.leftPaneOverlay
+    background-color #707070
+    width sidePaneWidth - 1
+    position absolute
+    top 0
+    bottom 0
+    left -1 * (sidePaneWidth)
+    transition left 0.5s ease
+    &.visible
+        left 0
 
 label.header-label
     font-weight bold
@@ -134,47 +182,6 @@ center-pane
     left sidePaneWidth
     &.full-width
         left 0
-
-.left-pane
-    position absolute
-    top 0
-    //top mastheadHeight
-    bottom 0
-    width sidePaneWidth
-    z-index 500
-    left -1 * (sidePaneWidth)
-    transition left 0.5s ease
-    border-right 1px solid #ccc
-    //background white
-    &.visible
-        left 0
-        .close-btn i
-            -webkit-transform scale(1, -1)
-            transform scale(1, -1)
-    .btn-container
-        position absolute
-        top 0
-        bottom 0
-        right 0
-        vertical-align middle
-    .close-btn
-        position absolute
-        transform translateY(-50%)
-        top 50%
-        width closeBtnWidth
-        height closeBtnHeight
-        border-radius 0 8px 8px 0
-        border 1px solid #CCC
-        border-left 0
-        user-select none
-        cursor pointer
-        background linear-gradient(left, white, '#F5F5F5')
-        i
-            display inline-block
-            line-height closeBtnHeight
-            margin-left 4px
-            -webkit-transform scale(-1, 1)
-            transform scale(-1, 1)
 
 .center-top
     position absolute
@@ -279,3 +286,9 @@ center-pane
         top auto !important
         bottom 25px !important
         left 255px !important
+
+.outline-text-white
+    outline-text-white()
+
+.outline-text-black
+    outline-text-black()

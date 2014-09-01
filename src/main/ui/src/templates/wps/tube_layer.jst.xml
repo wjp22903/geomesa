@@ -37,12 +37,6 @@
                                     </wps:Body>
                                 </wps:Reference>
                             </wps:Input>
-                            <!--wps:Input>
-                                <ows:Identifier>bufferSize</ows:Identifier>
-                                <wps:Data>
-                                    <wps:LiteralData>2000</wps:LiteralData>
-                                </wps:Data>
-                            </wps:Input-->
                             <wps:Input>
                                 <ows:Identifier>maxSpeed</ows:Identifier>
                                 <wps:Data>
@@ -55,16 +49,10 @@
                                     <wps:LiteralData>{{maxTimeSec}}</wps:LiteralData>
                                 </wps:Data>
                             </wps:Input>
-                            <!--wps:Input>
-                                <ows:Identifier>maxBins</ows:Identifier>
-                                <wps:Data>
-                                    <wps:LiteralData>5</wps:LiteralData>
-                                </wps:Data>
-                            </wps:Input-->
                             <wps:Input>
                                 <ows:Identifier>gapFill</ows:Identifier>
                                 <wps:Data>
-                                    <wps:LiteralData>nofill</wps:LiteralData>
+                                    <wps:LiteralData>line</wps:LiteralData>
                                 </wps:Data>
                             </wps:Input>
                         </wps:DataInputs>

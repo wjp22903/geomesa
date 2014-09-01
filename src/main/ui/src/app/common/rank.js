@@ -137,10 +137,10 @@ angular.module('stealth.common.rank', [
             });
         };
 
-        //arg contains inputLayer, inputLayerFilter, dataLayerFilter, maxSpeedMps, maxTimeSec
+        //arg contains inputLayer (or inputGeoJson), inputLayerFilter, dataLayerFilter, maxSpeedMps, maxTimeSec
         this.getTargetRanksForTrack = function (geoserverUrl, dataLayerNameAndIdFields, arg) {
             var deferred = $q.defer(),
-                templateFn = _.isEmpty(arg.inputLayerFilter) ? stealth.jst['wps/trackRank_layer.xml'] : stealth.jst['wps/trackRank_layer-filter.xml'],
+                templateFn = _.isEmpty(arg.inputLayerFilter) ? (_.isEmpty(arg.inputGeoJson) ? stealth.jst['wps/trackRank_layer.xml'] : stealth.jst['wps/trackRank_geojson.xml']) : stealth.jst['wps/trackRank_layer-filter.xml'],
                 count = dataLayerNameAndIdFields.length,
                 results = {};
 
@@ -163,10 +163,10 @@ angular.module('stealth.common.rank', [
             }
         };
 
-        //arg contains inputLayer, inputLayerFilter, dataLayerFilter, bufferMeters
+        //arg contains inputLayer (or inputGeoJson), inputLayerFilter, dataLayerFilter, bufferMeters
         this.getTargetRanksForRoute = function (geoserverUrl, dataLayerNameAndIdFields, arg) {
             var deferred = $q.defer(),
-                templateFn = _.isEmpty(arg.inputLayerFilter) ? stealth.jst['wps/routeRank_layer.xml'] : stealth.jst['wps/routeRank_layer-filter.xml'],
+                templateFn = _.isEmpty(arg.inputLayerFilter) ? (_.isEmpty(arg.inputGeoJson) ? stealth.jst['wps/routeRank_layer.xml'] : stealth.jst['wps/routeRank_geojson.xml']) : stealth.jst['wps/routeRank_layer-filter.xml'],
                 count = dataLayerNameAndIdFields.length,
                 results = {};
 

@@ -1,0 +1,42 @@
+<div class="trackEditor form-inline">
+    <div class="interpolationPanel">
+        <div class="alert alert-danger pull-left" style="margin:0;padding:5px;"
+             ng-show="trackEdit.interpolationError">
+            <i class="fa fa-warning"></i>
+            {{trackEdit.interpolationError}}
+        </div>
+        <button ng-click="trackEdit.interpolateTimes()" class="btn btn-primary pull-right">Interpolate Times</button>
+    </div>
+    <div class="statsPanel outline-text-white">
+        <span>Total distance:&nbsp;&nbsp;{{trackEdit.totalDist[0].toFixed(3)}} {{trackEdit.totalDist[1]}}</span>
+        <span style="position:absolute;left:50%;">Avg Speed:&nbsp;&nbsp;{{trackEdit.avgSpeed}}</span>
+    </div>
+    <div class="pointContainer">
+        <div ng-repeat="point in feature.attributes.pointData.features"
+             ng-class="{dtgIsEmptyOrInterpolated: !point.properties.dtg || (point.properties.dtgIsInterpolated && point.properties.dtgIsInterpolated.toString() === 'true')}"
+             class="trackPoint"
+             ng-mouseover="trackEdit.showPoint(point)"
+             ng-mouseleave="trackEdit.stopShowPoint(point)">
+            <div class="pointNum pull-left">{{$index + 1}}</div>
+            <div style="padding-left:30px;padding-bottom:10px;">
+                <label>Lat:</label>{{trackEdit.decimalToDmsh(point.geometry.coordinates[1], 'lat')}}
+                <div ng-class="{'has-error': !point.properties.dtg}" class="form-group pull-right">
+                    <label ng-show="!point.properties.dtg" class="control-label">
+                        <i class="fa fa-warning"></i>Time needed
+                    </label>
+                    <input type="text" ng-model="point.properties.dtg"
+                           class="form-control input-sm"
+                           placeholder='YYYY-MM-DDTHH:mm:ss.sssZ' style="width:210px;">
+                </div>
+            </div>
+            <div style="padding-left:30px;">
+                <label>Lon:</label>{{trackEdit.decimalToDmsh(point.geometry.coordinates[0], 'lon')}}
+                <div class="pull-right">
+                    <label>Interpolated:</label>
+                    <input type="checkbox" ng-model="point.properties.dtgIsInterpolated"
+                           ng-true-value="true" ng-false-value="false">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

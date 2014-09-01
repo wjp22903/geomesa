@@ -35,8 +35,10 @@
 
         <div class="form-group" ng-show="query.formStep() > 2">
             <blockquote class="feature-type-data-container">
-                <h4>{{ query.layerData.currentLayer.title }}</h4>
-                <p>{{ query.layerData.currentLayer.abstract }}</p>
+                <div class="feature-type-header-container">
+                    <h4>{{ query.layerData.currentLayer.title }}</h4>
+                    <p>{{ query.layerData.currentLayer.abstract }}</p>
+                </div>
 
                 <div ng-switch="query.featureTypeData">
                     <div ng-switch-when="unavailable" class="alert alert-warning">

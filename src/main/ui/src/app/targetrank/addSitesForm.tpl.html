@@ -42,8 +42,10 @@
 
         <div class="form-group" ng-show="addSites.formStep() > 3">
             <blockquote class="feature-type-data-container">
-                <h4>{{ addSites.layerData.currentLayer.title }}</h4>
-                <p>{{ addSites.layerData.currentLayer.abstract }}</p>
+                <div class="feature-type-header-container">
+                    <h4>{{ addSites.layerData.currentLayer.title }}</h4>
+                    <p>{{ addSites.layerData.currentLayer.abstract }}</p>
+                </div>
 
                 <div ng-switch="featureTypeData">
                     <div ng-switch-when="unavailable" class="alert alert-warning">
