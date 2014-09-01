@@ -59,6 +59,8 @@ class TableSharingTest extends Specification {
   val fs2 = getFeatureStore(ds, sft2, mediumData2)
   val fs3 = getFeatureStore(ds, sft3, mediumData3)
 
+  // JNH: Add tests to check if the correct tables exist and if the metadata is all correct.
+
 
   val list2: util.SortedSet[String] = c.tableOperations().list
   println(s"Tables after adding the features: $list2")
@@ -103,6 +105,11 @@ class TableSharingTest extends Specification {
   }
 
   "all three queries" should {
+
+    val sft2Scanner = ds.createAttrIdxScanner(sft2)
+
+    sft2Scanner.iterator.foreach { e => println(s"Key: ${e.getKey}key, value: ${e.getValue}") }
+
     "work for all three features (after setup) " >> {
       compare(id, 1)
       compare(st, 1)

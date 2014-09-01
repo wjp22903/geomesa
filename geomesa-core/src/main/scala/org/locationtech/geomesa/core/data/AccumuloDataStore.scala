@@ -38,11 +38,11 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.core
 import org.locationtech.geomesa.core.data.AccumuloDataStore._
 import org.locationtech.geomesa.core.data.FeatureEncoding.FeatureEncoding
-import org.locationtech.geomesa.core.index.{IndexSchema, IndexSchemaBuilder, TemporalIndexCheck}
+import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{AttributeSpec, NonGeomAttributeSpec}
-import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.opengis.referencing.crs.CoordinateReferenceSystem
 
@@ -382,8 +382,23 @@ class AccumuloDataStore(val connector: Connector,
   // JNH: And here....
   def createSchema(featureType: SimpleFeatureType, maxShard: Int) {
     val spatioTemporalSchema = computeSpatioTemporalSchema(featureType, maxShard)
+
+    checkSchemaRequirements(featureType, spatioTemporalSchema)
     createTablesForType(featureType, maxShard)
     writeMetadata(featureType, featureEncoding, spatioTemporalSchema, maxShard)
+  }
+
+  def checkSchemaRequirements(featureType: SimpleFeatureType, schema: String) {
+    if(core.index.getTableSharing(featureType)) {
+      // Enforce shared ST schema requirements.
+      val (rowf, _,_) = IndexSchema.parse(IndexSchema.formatter, schema).get
+      rowf.lf match {
+        case Seq(pf: PartitionTextFormatter[SimpleFeature], const: ConstantTextFormatter[SimpleFeature], r@_*) =>
+        case _ => throw new RuntimeException(s"Failed to validate the schema requirements for " +
+          s"the feature ${featureType.getTypeName} for catalog table : $catalogTable.  " +
+          s"We require that features sharing a table have schema starting with a partition and a constant.")
+      }
+    }
   }
 
   /**
@@ -424,7 +439,15 @@ class AccumuloDataStore(val connector: Connector,
     } else throw new RuntimeException("Cannot delete schema for this version of the data store")
 
   // JNH: This function is gonna be fun.
-  private def deleteSharedTables(sft: SimpleFeatureType) = ???
+  private def deleteSharedTables(sft: SimpleFeatureType) = {
+    val stTableName = getSpatioTemporalIdxTableName(sft)
+    val attrTableName = getAttrIdxTableName(sft)
+    val recordTableName = getRecordTableForType(sft)
+
+    println(s"Deleting entries from the st table: $stTableName" )
+    println(s"Deleting entries from the attr table: $attrTableName" )
+    println(s"Deleting entries from the record table: $recordTableName" )
+  }
 
   private def deteleStandAloneTables(sft: SimpleFeatureType) =
     Seq(

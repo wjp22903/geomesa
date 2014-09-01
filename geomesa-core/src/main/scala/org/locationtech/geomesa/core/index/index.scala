@@ -54,7 +54,7 @@ package object index {
 
   def getTableSharing(sft: SimpleFeatureType) = {
     val stored = sft.getUserData.get(SF_TABLE_SHARING)
-    if(stored == null) true  // If nothing is stored, assume we are sharing
+    if(stored == null) throw new Exception("TESTING") //false  // If nothing is stored, assume we are *not* sharing in order to handle previous tables.
     else stored.asInstanceOf[Boolean]
   }
 
