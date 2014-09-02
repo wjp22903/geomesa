@@ -95,7 +95,9 @@ class BatchMultiScannerTest extends Specification {
     val attrIdxTable = AccumuloDataStore.formatAttrIdxTableName(catalogTable, sft)
     conn.tableOperations.exists(attrIdxTable) must beTrue
     val attrScanner = conn.createScanner(attrIdxTable, new Authorizations())
-    attrScanner.setRange(new ARange(AttributeTable.getAttributeIndexRow("", attr, Option(value))))
+
+    val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(sft)
+    attrScanner.setRange(new ARange(AttributeTable.getAttributeIndexRow(rowIdPrefix, attr, Option(value))))
 
     val recordTable = AccumuloDataStore.formatRecordTableName(catalogTable, sft)
     conn.tableOperations().exists(recordTable) must beTrue

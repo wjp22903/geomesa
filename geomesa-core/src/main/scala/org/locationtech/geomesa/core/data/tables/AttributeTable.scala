@@ -109,7 +109,7 @@ object AttributeTable extends GeoMesaTable with Logging {
    * @return
    */
   def getAttributeIndexRow(rowIdPrefix: String, attributeName: String, attributeValue: Option[Any]): String =
-    rowIdPrefix ++ getAttributeIndexRowPrefix(attributeName) ++ encode(attributeValue)
+    getAttributeIndexRowPrefix(rowIdPrefix, attributeName) ++ encode(attributeValue)
 
   /**
    * Gets a prefix for an attribute row - useful for ranges over a particular attribute
@@ -117,7 +117,7 @@ object AttributeTable extends GeoMesaTable with Logging {
    * @param attributeName
    * @return
    */
-  def getAttributeIndexRowPrefix(attributeName: String): String = attributeName ++ NULLBYTE
+  def getAttributeIndexRowPrefix(rowIdPrefix: String, attributeName: String): String = rowIdPrefix ++ attributeName ++ NULLBYTE
 
 
   /**

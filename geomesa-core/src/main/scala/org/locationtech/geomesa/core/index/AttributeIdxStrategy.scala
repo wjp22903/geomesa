@@ -267,25 +267,29 @@ class AttributeIdxRangeStrategy extends AttributeIdxStrategy {
   }
 
   private def greaterThanRange(featureType: SimpleFeatureType, prop: String, lit: AnyRef): AccRange = {
+    val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(featureType)
     val start = new Text(getEncodedAttrIdxRow(featureType, prop, lit))
-    val end = AccRange.followingPrefix(new Text(AttributeTable.getAttributeIndexRowPrefix(prop)))
+    val end = AccRange.followingPrefix(new Text(AttributeTable.getAttributeIndexRowPrefix(rowIdPrefix, prop)))
     new AccRange(start, false, end, false)
   }
 
   private def greaterThanOrEqualRange(featureType: SimpleFeatureType, prop: String, lit: AnyRef): AccRange = {
+    val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(featureType)
     val start = new Text(getEncodedAttrIdxRow(featureType, prop, lit))
-    val end = AccRange.followingPrefix(new Text(AttributeTable.getAttributeIndexRowPrefix(prop)))
+    val end = AccRange.followingPrefix(new Text(AttributeTable.getAttributeIndexRowPrefix(rowIdPrefix, prop)))
     new AccRange(start, true, end, false)
   }
 
   private def lessThanRange(featureType: SimpleFeatureType, prop: String, lit: AnyRef): AccRange = {
-    val start = AttributeTable.getAttributeIndexRowPrefix(prop)
+    val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(featureType)
+    val start = AttributeTable.getAttributeIndexRowPrefix(rowIdPrefix, prop)
     val end = getEncodedAttrIdxRow(featureType, prop, lit)
     new AccRange(start, false, end, false)
   }
 
   private def lessThanOrEqualRange(featureType: SimpleFeatureType, prop: String, lit: AnyRef): AccRange = {
-    val start = AttributeTable.getAttributeIndexRowPrefix(prop)
+    val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(featureType)
+    val start = AttributeTable.getAttributeIndexRowPrefix(rowIdPrefix, prop)
     val end = getEncodedAttrIdxRow(featureType, prop, lit)
     new AccRange(start, false, end, true)
   }
