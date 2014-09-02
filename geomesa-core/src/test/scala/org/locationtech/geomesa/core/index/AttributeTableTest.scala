@@ -50,7 +50,7 @@ class AttributeTableTest extends Specification {
 
         val mutations = AttributeTable.getAttributeIndexMutations(feature,
                                                                        descriptors,
-                                                                       new ColumnVisibility())
+                                                                       new ColumnVisibility(), "")
         mutations.size mustEqual descriptors.size()
         mutations.map(_.getUpdates.size()) must contain(beEqualTo(1)).foreach
         mutations.map(_.getUpdates.get(0).isDeleted) must contain(beEqualTo(false)).foreach
@@ -68,7 +68,7 @@ class AttributeTableTest extends Specification {
 
         val mutations = AttributeTable.getAttributeIndexMutations(feature,
                                                                        descriptors,
-                                                                       new ColumnVisibility(),
+                                                                       new ColumnVisibility(), "",
                                                                        true)
         mutations.size mustEqual descriptors.size()
         mutations.map(_.getUpdates.size()) must contain(beEqualTo(1)).foreach
