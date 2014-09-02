@@ -462,9 +462,9 @@ class AccumuloDataStore(val connector: Connector,
 
     println(s"Deleting entries from the record table: $recordTableName" )
 
-//    val recordBatchDeleter =
-//      connector.createBatchDeleter(recordTableName, authorizationsProvider.getAuthorizations, numThreads, metadataBWConfig)
-//    RecordTable.deleteFeaturesFromTable(connector, recordBatchDeleter, sft)
+    val recordBatchDeleter =
+      connector.createBatchDeleter(recordTableName, authorizationsProvider.getAuthorizations, numThreads, metadataBWConfig)
+    RecordTable.deleteFeaturesFromTable(connector, recordBatchDeleter, sft)
   }
 
   private def deteleStandAloneTables(sft: SimpleFeatureType) =
