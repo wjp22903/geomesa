@@ -130,8 +130,10 @@ trait AttributeIdxStrategy extends Strategy with Logging {
         // try to convert to the appropriate class
         AttributeTable.convertType(value, actualBinding, expectedBinding)
       }
+
+    val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(sft)
     // JNH: This is how we get the rowid for the Attribute queries.
-    AttributeTable.getAttributeIndexRow(prop, Some(typedValue))
+    AttributeTable.getAttributeIndexRow(rowIdPrefix, prop, Some(typedValue))
   }
 
   /**
@@ -171,11 +173,13 @@ class AttributeIdxEqualsStrategy extends AttributeIdxStrategy {
 
         case f: PropertyIsNil =>
           val prop = f.getExpression.asInstanceOf[PropertyName].getPropertyName
-          AccRange.exact(AttributeTable.getAttributeIndexRow(prop, None))
+          val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(featureType)
+          AccRange.exact(AttributeTable.getAttributeIndexRow(rowIdPrefix, prop, None))
 
         case f: PropertyIsNull =>
           val prop = f.getExpression.asInstanceOf[PropertyName].getPropertyName
-          AccRange.exact(AttributeTable.getAttributeIndexRow(prop, None))
+          val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(featureType)
+          AccRange.exact(AttributeTable.getAttributeIndexRow(rowIdPrefix, prop, None))
 
         case _ =>
           val msg = s"Unhandled filter type in equals strategy: ${query.getFilter.getClass.getName}"

@@ -112,7 +112,7 @@ class TableSharingTest extends Specification {
   "all three queries" should {
 
     val sft2AttrScanner = ds.createAttrIdxScanner(sft2)
-    sft2AttrScanner.iterator.take(10).foreach { e => println(s"Key: ${e.getKey}, value: ${e.getValue}") }
+    sft2AttrScanner.iterator.take(10).foreach { e => println(s"Attr Key: ${e.getKey}") }
 
     "work for all three features (after setup) " >> {
       compare(id, 1)
@@ -134,14 +134,14 @@ class TableSharingTest extends Specification {
     val sft1Scanner = ds.createSpatioTemporalIdxScanner(sft1, 1)
     sft1Scanner.setRanges(Seq(new org.apache.accumulo.core.data.Range()))
     sft1Scanner.iterator
-      .map(e => s"Key: ${e.getKey}, value: ${e.getValue}")
+      .map(e => s"ST Key: ${e.getKey}")
       .filter(_.contains("feature1"))
       .take(10).foreach { println }
 
     //val sft2Scanner = ds.createSpatioTemporalIdxScanner(sft2, 1)
     sft2Scanner.setRanges(Seq(new org.apache.accumulo.core.data.Range()))
     sft2Scanner.iterator
-      .map(e => s"Key: ${e.getKey}, value: ${e.getValue}")
+      .map(e => s"ST Key: ${e.getKey}")
       .filter(_.contains("feature2"))
       .take(10).foreach { println }
 

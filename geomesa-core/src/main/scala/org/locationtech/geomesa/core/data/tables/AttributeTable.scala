@@ -20,16 +20,17 @@ package org.locationtech.geomesa.core.data.tables
 import java.util.Date
 
 import com.typesafe.scalalogging.slf4j.Logging
-import org.apache.accumulo.core.client.BatchWriter
+import org.apache.accumulo.core.client.{BatchDeleter, Connector, BatchWriter}
+import org.apache.accumulo.core.data
 import org.apache.accumulo.core.data.Mutation
 import org.apache.accumulo.core.security.ColumnVisibility
 import org.apache.hadoop.io.Text
 import org.calrissian.mango.types.{LexiTypeEncoders, SimpleTypeEncoders, TypeEncoder}
 import org.joda.time.format.ISODateTimeFormat
 import org.locationtech.geomesa.core.data._
-import org.locationtech.geomesa.core.index.IndexEntry
+import org.locationtech.geomesa.core.index._
 import org.opengis.feature.`type`.AttributeDescriptor
-import org.opengis.feature.simple.SimpleFeature
+import org.opengis.feature.simple.{SimpleFeatureType, SimpleFeature}
 
 import scala.collection.JavaConversions._
 import scala.util.{Failure, Success, Try}
@@ -37,27 +38,33 @@ import scala.util.{Failure, Success, Try}
 /**
  * Contains logic for converting between accumulo and geotools for the attribute index
  */
-object AttributeTable extends Logging {
+object AttributeTable extends GeoMesaTable with Logging {
+
+  // JNH: Refactor this!
 
   /** Creates a function to write a feature to the attribute index **/
   def attrWriter(bw: BatchWriter,
                  indexedAttributes: Seq[AttributeDescriptor],
-                 visibility: String): SimpleFeature => Unit =
+                 visibility: String,
+                 rowIdPrefix: String): SimpleFeature => Unit =
     (feature: SimpleFeature) => {
       val mutations = getAttributeIndexMutations(feature,
         indexedAttributes,
-        new ColumnVisibility(visibility))
+        new ColumnVisibility(visibility),
+        rowIdPrefix)
       bw.addMutations(mutations)
     }
 
   /** Creates a function to remove attribute index entries for a feature **/
   def removeAttrIdx(bw: BatchWriter,
                     indexedAttributes: Seq[AttributeDescriptor],
-                    visibility: String): SimpleFeature => Unit =
+                    visibility: String,
+                    rowIdPrefix: String): SimpleFeature => Unit =
     (feature: SimpleFeature) => {
       val mutations = getAttributeIndexMutations(feature,
         indexedAttributes,
         new ColumnVisibility(visibility),
+        rowIdPrefix,
         true)
       bw.addMutations(mutations)
     }
@@ -78,12 +85,13 @@ object AttributeTable extends Logging {
   def getAttributeIndexMutations(feature: SimpleFeature,
                                  indexedAttributes: Seq[AttributeDescriptor],
                                  visibility: ColumnVisibility,
+                                 rowIdPrefix: String,
                                  delete: Boolean = false): Seq[Mutation] = {
     val cq = new Text(feature.getID)
     lazy val value = IndexEntry.encodeIndexValue(feature)
     indexedAttributes.map { descriptor =>
       val attribute = Option(feature.getAttribute(descriptor.getName))
-      val m = new Mutation(getAttributeIndexRow(descriptor.getLocalName, attribute))
+      val m = new Mutation(getAttributeIndexRow(rowIdPrefix, descriptor.getLocalName, attribute))
       if (delete) {
         m.putDelete(EMPTY_COLF, cq, visibility)
       } else {
@@ -100,8 +108,8 @@ object AttributeTable extends Logging {
    * @param attributeValue
    * @return
    */
-  def getAttributeIndexRow(attributeName: String, attributeValue: Option[Any]): String =
-    getAttributeIndexRowPrefix(attributeName) ++ encode(attributeValue)
+  def getAttributeIndexRow(rowIdPrefix: String, attributeName: String, attributeValue: Option[Any]): String =
+    rowIdPrefix ++ getAttributeIndexRowPrefix(attributeName) ++ encode(attributeValue)
 
   /**
    * Gets a prefix for an attribute row - useful for ranges over a particular attribute
@@ -163,4 +171,19 @@ object AttributeTable extends Logging {
         value
     }
   }
+
+//  def deleteFeaturesFromTable(conn: Connector, table: String, bd: BatchDeleter, sft: SimpleFeatureType): Unit = {
+//    val MIN_START = "\u0000"
+//    val MAX_END = "~"
+//
+//    val prefix = getTableSharingPrefix(sft)
+//
+//    val range = new data.Range(prefix + MIN_START, prefix + MAX_END)
+//
+//    println(s"Deleting for range $range")
+//
+//    bd.setRanges(Seq(range))
+//    bd.delete()
+//    bd.close()
+//  }
 }

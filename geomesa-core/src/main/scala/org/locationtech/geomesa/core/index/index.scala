@@ -65,6 +65,13 @@ package object index {
     sft.getUserData.put(SF_TABLE_SHARING, sharing)
   }
 
+  def getTableSharingPrefix(sft: SimpleFeatureType): String =
+    (if(getTableSharing(sft)) {
+      Option(sft.getTypeName).map(_ ++ "~")
+    } else {
+      None
+    }).getOrElse("")
+
   val spec = "geom:Geometry:srid=4326,dtg:Date,dtg_end_time:Date"
   val indexSFT = SimpleFeatureTypes.createType("geomesa-idx", spec)
 

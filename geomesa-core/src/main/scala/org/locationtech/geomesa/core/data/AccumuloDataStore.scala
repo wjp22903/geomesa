@@ -38,7 +38,7 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.core
 import org.locationtech.geomesa.core.data.AccumuloDataStore._
 import org.locationtech.geomesa.core.data.FeatureEncoding.FeatureEncoding
-import org.locationtech.geomesa.core.data.tables.SpatioTemporalTable
+import org.locationtech.geomesa.core.data.tables.{RecordTable, AttributeTable, SpatioTemporalTable}
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -454,17 +454,21 @@ class AccumuloDataStore(val connector: Connector,
 
     SpatioTemporalTable.deleteFeaturesFromTable(connector, stTableName, stBatchDeleter, sft)
 
-    // JNH: Hacks
-    val row = new Text("0~feature2")
-    connector.tableOperations().compact(catalogTable, row, row, true, true)
+//    // JNH: Hacks
+//    val row = new Text("0~feature2")
+//    connector.tableOperations().compact(catalogTable, row, row, true, true)
 
     println(s"Deleting entries from the attr table: $attrTableName" )
-    println(s"Deleting entries from the record table: $recordTableName" )
-//    Seq(
-//      getAttrIdxTableName(sft),
-//      getRecordTableForType(sft)
-//    ).filter(tableOps.exists).foreach(tableOps.delete)
 
+    val atBatchDeleter =
+      connector.createBatchDeleter(attrTableName, authorizationsProvider.getAuthorizations, numThreads, metadataBWConfig)
+    AttributeTable.deleteFeaturesFromTable(connector, stTableName, atBatchDeleter, sft)
+
+    println(s"Deleting entries from the record table: $recordTableName" )
+
+//    val recordBatchDeleter =
+//      connector.createBatchDeleter(recordTableName, authorizationsProvider.getAuthorizations, numThreads, metadataBWConfig)
+//    RecordTable.deleteFeaturesFromTable(connector, stTableName, recordBatchDeleter, sft)
   }
 
   private def deteleStandAloneTables(sft: SimpleFeatureType) =

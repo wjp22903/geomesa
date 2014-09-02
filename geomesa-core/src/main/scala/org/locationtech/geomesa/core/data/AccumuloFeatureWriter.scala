@@ -87,8 +87,10 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
       if (ds.catalogTableFormat(featureType)) {
         val attrTable = ds.getAttrIdxTableName(featureType)
         val recTable = ds.getRecordTableForType(featureType)
+        val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(featureType)
+
         List(
-          AttributeTable.attrWriter(multiBWWriter.getBatchWriter(attrTable), indexedAttributes, visibility),
+          AttributeTable.attrWriter(multiBWWriter.getBatchWriter(attrTable), indexedAttributes, visibility, rowIdPrefix),
           RecordTable.recordWriter(multiBWWriter.getBatchWriter(recTable), encoder, visibility))
       } else {
         List.empty
@@ -172,12 +174,14 @@ class ModifyAccumuloFeatureWriter(featureType: SimpleFeatureType,
     val stTable = dataStore.getSpatioTemporalIdxTableName(featureType)
     val stWriter = List(SpatioTemporalTable.removeSpatioTemporalIdx(multiBWWriter.getBatchWriter(stTable), indexEncoder))
 
+    val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(featureType)
+
     val attrWriters: List[SimpleFeature => Unit] =
       if (dataStore.catalogTableFormat(featureType)) {
         val attrTable = dataStore.getAttrIdxTableName(featureType)
         val recTable = dataStore.getRecordTableForType(featureType)
         List(
-          AttributeTable.removeAttrIdx(multiBWWriter.getBatchWriter(attrTable), indexedAttributes, visibility),
+          AttributeTable.removeAttrIdx(multiBWWriter.getBatchWriter(attrTable), indexedAttributes, visibility, rowIdPrefix),
           RecordTable.recordDeleter(multiBWWriter.getBatchWriter(recTable), encoder, visibility))
       } else {
         List.empty

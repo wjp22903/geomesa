@@ -22,7 +22,7 @@ import org.apache.accumulo.core.security.ColumnVisibility
 import org.locationtech.geomesa.core.data._
 import org.opengis.feature.simple.SimpleFeature
 
-object RecordTable {
+object RecordTable extends GeoMesaTable {
 
   def buildWrite(encoder: SimpleFeatureEncoder, visibility: String): SimpleFeature => Mutation =
     (feature: SimpleFeature) => {
