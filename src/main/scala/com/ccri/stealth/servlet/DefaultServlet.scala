@@ -49,6 +49,19 @@ trait DefaultServlet extends ScalatraServlet
     )
   }
 
+  get("/browser.html") {
+    contentType = "text/html; charset=UTF-8"
+    ssp(
+      "browser",
+      "config" -> JsonParser(conf.root().withOnlyKey("app").render(
+        ConfigRenderOptions.defaults()
+          .setJson(true)
+          .setComments(false)
+          .setOriginComments(false)
+      ))
+    )
+  }
+
   protected def pkiAuth = {
     val user = scentry.authenticate("Pki")
     if (conf.getValue("private.security.anonymous").unwrapped.asInstanceOf[Boolean]) {

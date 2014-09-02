@@ -20,6 +20,12 @@
         STEALTH.config = ${ unescape(config) };
         STEALTH.userCn = '${ userCn }';
         STEALTH.trackStyles = ${ unescape(trackStyles) };
+
+        if (bowser && !(_.any(STEALTH.config.app.browsers, function (minVer, name) {
+            return bowser[name] && bowser.version >= minVer;
+        }))) {
+            window.location = 'browser.html';
+        }
     </script>
 </head>
 

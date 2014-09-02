@@ -313,7 +313,7 @@ module.exports = function (grunt) {
 
         console.log(eyes.inspect(cssFiles));
 
-        templates = ['src/index.html'];
+        templates = ['src/index.html', 'src/browser.html'];
         templates.forEach(function (tpl) {
             var fileName = tpl.split('/').pop().split('.')[0];
 
