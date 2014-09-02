@@ -27,8 +27,7 @@ import org.opengis.filter.Id
 
 import scala.collection.JavaConversions._
 
-class
-RecordIdxStrategy extends Strategy {
+class RecordIdxStrategy extends Strategy {
 
   override def execute(acc: AccumuloConnectorCreator,
                        iqp: QueryPlanner,

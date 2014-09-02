@@ -103,8 +103,10 @@ class BatchMultiScannerTest extends Specification {
     conn.tableOperations().exists(recordTable) must beTrue
     val recordScanner = conn.createBatchScanner(recordTable, new Authorizations(), 5)
 
+    val prefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(sft)
+
     // JNH: NB: This test encodes Attribute table structure
-    val joinFunction = (kv: java.util.Map.Entry[Key, Value]) => new ARange(kv.getKey.getColumnQualifier)
+    val joinFunction = (kv: java.util.Map.Entry[Key, Value]) => new ARange(prefix + kv.getKey.getColumnQualifier)
     val bms = new BatchMultiScanner(attrScanner, recordScanner, joinFunction, batchSize)
 
     val retrieved = bms.iterator.toList

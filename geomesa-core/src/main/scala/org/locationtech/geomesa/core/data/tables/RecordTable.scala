@@ -27,7 +27,6 @@ object RecordTable extends GeoMesaTable {
   def buildWrite(encoder: SimpleFeatureEncoder, visibility: String, rowIdPrefix: String): SimpleFeature => Mutation =
     (feature: SimpleFeature) => {
       val m = new Mutation(rowIdPrefix + feature.getID)
-      println(s"Writing for record table : ${rowIdPrefix + feature.getID}")
       m.put(SFT_CF, EMPTY_COLQ, new ColumnVisibility(visibility), new Value(encoder.encode(feature)))
       m
   }
