@@ -12,6 +12,11 @@ import org.scalatra.scalate.ScalateSupport
 import org.slf4j.LoggerFactory
 import spray.json._
 
+trait KafkaConfig {
+  def zookeepers: String
+  def topicsRegex: String
+}
+
 trait DiscovererConfig {
   def zookeepers: String
   def basePath: String

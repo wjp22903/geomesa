@@ -16,7 +16,7 @@ angular.module('stealth.airdomain.airDomain',[
             transport: 'websocket',
             reconnectInterval: 5000,
             enableXDR: true,
-            timeout: 60000,
+            timeout: 300000,
             onMessage: function(response) {
                 var message = atmosphere.util.parseJSON(response.responseBody);
                 $scope.$emit('new track', message);

@@ -17,6 +17,7 @@ angular.module('stealth.common.control.airTrackerLayersControl', [
             L.setOptions(this, options);
 
             this._layers = {};
+            this._overlays = [];
             this._lastZIndex = 0;
             this._handlingClick = false;
             this._layerColors = colors;
@@ -136,6 +137,10 @@ angular.module('stealth.common.control.airTrackerLayersControl', [
                 color: color,
                 isRemovable: isRemovable
             };
+
+            if (isOverlay) {
+                this._overlays.push(this._layers[id]);
+            }
 
             if (this.options.autoZIndex && layer.setZIndex) {
                 this._lastZIndex++;
@@ -290,6 +295,10 @@ angular.module('stealth.common.control.airTrackerLayersControl', [
 
         _collapse: function () {
             this._container.className = this._container.className.replace(' leaflet-control-layers-expanded', '');
+        },
+
+        getOverlays: function () {
+            return this._overlays;
         }
     });
 

@@ -18,7 +18,8 @@ angular.module('stealth.ows.airTrackHistory', [
                 var key = CONFIG.airTracker.data.threadingKey;
                 var paramOverrides = {
                     cql_filter: '(' + key + '=\'' + _properties.hexid + '\')',
-                    sortBy: 'dtg'
+                    sortBy: 'dtg',
+                    propertyName: 'dtg,geom'
                 };
 
                 if (CONFIG.geoserver.hasOwnProperty('omitProxy')) {

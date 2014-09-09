@@ -68,6 +68,7 @@
             }
         </app.supported.browsers>
 
+
         <solr.url>cors/http://localhost:8983/solr</solr.url>
         <solr.siteDedupField>location</solr.siteDedupField>
 
@@ -90,7 +91,7 @@
         <basemap.crs>EPSG:4326</basemap.crs>
         <basemap.lon>0</basemap.lon>
         <basemap.lat>0</basemap.lat>
-        <basemap.zoom>6</basemap.zoom>
+        <basemap.zoom>4</basemap.zoom>
         <basemap.maxZoom>9</basemap.maxZoom>
 
         <imagery.support>true</imagery.support>
@@ -318,9 +319,19 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+            <version>3.0.0</version>
+        </dependency>
+        <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
             <version>2.2.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>18.0</version>
         </dependency>
         <dependency>
             <groupId>com.typesafe</groupId>

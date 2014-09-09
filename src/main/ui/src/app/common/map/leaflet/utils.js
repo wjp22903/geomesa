@@ -13,22 +13,17 @@ angular.module('stealth.common.map.leaflet.utils',[
         };
 
         var onClick = function (element) {
+            var lyr = element.target.getLayers()[0];
             var msg = {
-                feature: element.target.feature,
-                style: element.target.options.style
+                feature: lyr.feature,
+                style: lyr.options.style
             };
             $rootScope.$emit('clicked on feature', msg);
         };
 
-        var onCreation = function (feature, layer) {
-            layer.on({
-                click: onClick
-            });
-        };
-
         return {
             LayerStyle: LayerStyle,
-            onCreation: onCreation
+            onClick: onClick
         };
     }
 ])

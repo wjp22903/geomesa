@@ -1,12 +1,12 @@
-package com.ccri.stealth.servlet
-
 import akka.actor.ActorDSL._
 import akka.actor.{ActorRef, Props, Actor}
+import akka.routing.ConsistentHashingRouter
 import akka.routing.ConsistentHashingRouter.ConsistentHashMapping
-import akka.routing.{RoundRobinRouter, ConsistentHashingRouter}
-import com.google.gson.JsonParser
+import com.ccri.stealth.servlet.KafkaConfig
+import com.google.common.cache._
+import com.google.gson.{JsonObject, JsonParser}
 import java.util.Properties
-import java.util.concurrent.Executors
+import java.util.concurrent.{TimeUnit, Executors}
 import kafka.consumer.{Whitelist, ConsumerConfig, Consumer}
 import kafka.message.MessageAndMetadata
 import kafka.serializer.StringDecoder
@@ -15,12 +15,19 @@ import org.scalatra.ScalatraServlet
 import org.scalatra.atmosphere._
 import org.scalatra.json.JacksonJsonSupport
 import org.slf4j.LoggerFactory
-import scala.concurrent.ExecutionContext
-import scala.util.Try
+import scala.concurrent.duration.Duration
+import scala.Some
+import scala.util.{Failure, Success, Try}
 
-trait KafkaConfig {
-  def zookeepers:   String
-  def topicsRegex:  String
+
+sealed case class JOEvent(id: String, o: JsonObject)
+sealed case class JOListEvent(id: String, o: List[JsonObject])
+sealed case class TMEvent(id: String, t: TextMessage)
+sealed case class SendRemoveMessage(id: String, o: JsonObject)
+object CleanUp
+private object Parser {
+  val jsonParser = new JsonParser
+  def parse(jsonStr: String) = jsonParser.parse(jsonStr)
 }
 
 trait TrackController
@@ -33,7 +40,7 @@ trait TrackController
 
   val logger = LoggerFactory.getLogger(classOf[TrackController])
 
-  import ExecutionContext.Implicits.global
+  import scala.concurrent.ExecutionContext.Implicits.global
 
   atmosphere("/realtime") {
     new AtmosphereClient {
@@ -59,65 +66,202 @@ trait TrackController
     super.initialize(config)
 
 
-    def hashByTrackId: ConsistentHashMapping = {
-      case (tId, _) => tId
-    }
-
     val broadcastActor = actor(new Act {
       override def receive = {
-        case tm@TextMessage(msg) =>
-          logger.trace(s"Sending $msg")
-          AtmosphereClient.broadcast("/tracks/realtime", tm)
+        case TMEvent(id, t) => {
+          val path = s"$contextPath/tracks/realtime"
+          logger.trace(s"Broadcasting: $t to '$path'")
+          AtmosphereClient.broadcast(path, t)
+        }
       }
     })
 
-    val throttlingActor = scalatraActorSystem.actorOf(Props( new ThrottlingActor(broadcastActor)).withRouter(ConsistentHashingRouter(10, hashMapping = hashByTrackId)))
+    def hashById: ConsistentHashMapping = {
+      case JOEvent(id, _) => id
+      case JOListEvent(id, _) => id
+      case TMEvent(id, _) => id
+      case SendRemoveMessage(id, _) => id
+    }
 
-    val parsingActor = scalatraActorSystem.actorOf(Props(new ParsingActor(throttlingActor)).withRouter(RoundRobinRouter(10)))
+    val router = ConsistentHashingRouter(10, hashMapping = hashById)
 
-    val trackConsumer = Consumer.create(new ConsumerConfig(kafkaProps))
-    val filter = new Whitelist(topicsRegex)
-    val strDecoder = new StringDecoder
-    val stream = trackConsumer.createMessageStreamsByFilter(filter, 1, strDecoder, strDecoder).head
-    val messageProcessor = new Runnable {
+    val encodingActorProps = Props(new EncodingActor(broadcastActor))
+    val encodingActor = scalatraActorSystem.actorOf(encodingActorProps.withRouter(router))
+
+    val throttlingActorProps = Props(new ThrottlingActor(encodingActor, 5))
+    val throttlingActor = scalatraActorSystem.actorOf(throttlingActorProps.withRouter(router))
+
+    val cachingActorProps = Props(new CachingActor(throttlingActor))
+    val cachingActor = scalatraActorSystem.actorOf(cachingActorProps.withRouter(router))
+
+    val consumer = buildMessageConsumer(cachingActor)
+    kafkaExecutor.submit(consumer)
+  }
+
+  private def buildMessageConsumer(actor: ActorRef) = {
+    val kafkaConsumer = Consumer.create(new ConsumerConfig(kafkaProps))
+    val whitelistTopicFilter = new Whitelist(topicsRegex)
+    val decoder = new StringDecoder
+    val numStreams = 1
+    val inStream =
+      kafkaConsumer
+        .createMessageStreamsByFilter(whitelistTopicFilter, numStreams, decoder, decoder)
+        .head
+
+    val processor = new Runnable {
       override def run(): Unit = {
-        val iter = stream.iterator()
-        while (iter.hasNext()) {
-          val MessageAndMetadata(_, msg, _, _, _) = iter.next()
-          parsingActor ! msg
+        val s = inStream.iterator()
+        while (s.hasNext()) {
+          val MessageAndMetadata(_, msg, _, _, _) = s.next()
+          send(actor, msg)
         }
       }
     }
-    kafkaExecutor.submit(messageProcessor)
+    processor
+  }
+
+  private def send(actor: ActorRef, msg: String) = {
+    val o = Parser.parse(msg).getAsJsonObject
+    Try(o.get("id")) match {
+      case Success(id) => actor ! JOEvent(id.getAsString, o)
+      case Failure(e) => e.printStackTrace()
+    }
   }
 }
 
-class ParsingActor(throttlingActor: ActorRef) extends Actor {
-  val io = new JsonParser
+class CachingActor(next: ActorRef) extends Actor {
+  val logger = LoggerFactory.getLogger(classOf[CachingActor])
+
+  import scala.concurrent.ExecutionContext.Implicits.global
+  // Schedule a clean-up event to be sent continuously every interval.
+  val initialDelay = Duration(15, TimeUnit.SECONDS)
+  val interval = Duration(15, TimeUnit.SECONDS)
+  context.system.scheduler
+    .schedule(initialDelay, interval, self, CleanUp)
+
+  import collection.mutable.ListBuffer
+  val loader = new CacheLoader[String, ListBuffer[JsonObject]] {
+    // Loads new buffer into cache if one doesn't exist for key 'k'.
+    override def load(k: String) = ListBuffer[JsonObject]()
+  }
+
+  val listener = new RemovalListener[String, ListBuffer[JsonObject]] {
+    override def onRemoval(notification: RemovalNotification[String, ListBuffer[JsonObject]]) = {
+      if (notification.getCause.equals(RemovalCause.EXPIRED)) {
+        val id = notification.getKey
+        val firstPoint = notification.getValue.head
+        next ! SendRemoveMessage(id, firstPoint)
+      }
+    }
+  }
+
+  val cache =
+    CacheBuilder.newBuilder()
+      .expireAfterWrite(120, TimeUnit.SECONDS)
+      .removalListener(listener)
+      .build(loader)
 
   override def receive = {
-    case msg: String =>
-      val d = io.parse(msg).getAsJsonObject
-      val tId = Try(d.get("properties").getAsJsonObject.get("trackId").getAsString).getOrElse(d.get("remove").getAsString)
-      throttlingActor ! (tId, TextMessage(msg))
+    case JOEvent(id, point) =>
+      val points = cache.get(id)
+      points.prepend(point)
+      val size = points.size
+      if (size > 21)
+        points.trimEnd(size - 21)
+      cache.put(id, points)
+      next ! JOListEvent(id, points.toList)
+
+    case CleanUp => cache.cleanUp()
   }
 }
 
-class ThrottlingActor(next: ActorRef) extends Actor {
+
+class ThrottlingActor(next: ActorRef, throttlingParam: Integer) extends Actor {
   val logger = LoggerFactory.getLogger(classOf[ThrottlingActor])
-  val trackMap = collection.mutable.HashMap[String, Int]()
+
+  import scala.concurrent.ExecutionContext.Implicits.global
+  // Schedule a clean-up event to be sent continuously every interval.
+  val initialDelay = Duration(15, TimeUnit.SECONDS)
+  val interval = Duration(15, TimeUnit.SECONDS)
+  context.system.scheduler
+    .schedule(initialDelay, interval, self, CleanUp)
+
+  val countsById =
+    CacheBuilder.newBuilder()
+      .expireAfterWrite(60, TimeUnit.SECONDS)
+      .build[String, Integer](
+        new CacheLoader[String, Integer] {
+          // Initializes the count if one doesn't exist for 'id'.
+          override def load(id: String): Integer = 1
+        }
+      )
 
   override def receive = {
-    case (trkId: String, t@TextMessage(msg)) =>
-      val count = trackMap.getOrElse(trkId, 1)
-      if(count % 20 == 0 || msg.contains("remove")) {
-        trackMap.remove(trkId)
-        next ! t
+    case evt@JOListEvent(id, points) =>
+      val count = countsById.get(id)
+      if (count % throttlingParam == 0) {
+        countsById.put(id, 1) // Reset the count.
+        next ! evt // Pass on the list of points.
       } else {
-        trackMap.put(trkId, count+1)
+        countsById.put(id, count + 1) // Update the count.
       }
 
-    case js@JsonMessage(msg) =>
-      logger.trace(s"Sending $msg")
+    case m@SendRemoveMessage(_, _) => next ! m
+
+    case CleanUp => countsById.cleanUp()
+  }
+}
+
+class EncodingActor(emitter: ActorRef) extends Actor {
+  val logger = LoggerFactory.getLogger(classOf[EncodingActor])
+
+  sealed case class Coordinate(lon: Double, lat: Double) {
+    override def toString = s"[$lon, $lat]"
+  }
+
+  override def receive = {
+    case JOListEvent(id, points) =>
+      if (points.size > 2) {
+        val coords = getCoordinates(points)
+        val props = getProperties(points.head)
+        val ls = buildLineString(coords, props)
+        logger.trace(s"Encoded message: $ls")
+        emitter ! TMEvent(id, TextMessage(ls))
+      }
+
+    case SendRemoveMessage(id, o) =>
+      val props = getProperties(o)
+      val hexid = props.map(p => p.get("hexid").getAsString).getOrElse("")
+      val removeMsg = s"""{"remove":"$hexid"}"""
+      logger.trace(s"Encoded message: $removeMsg")
+      emitter ! TMEvent(id, TextMessage(removeMsg))
+  }
+
+  def getProperties(point: JsonObject) = Try(point.get("properties").getAsJsonObject)
+
+  def getCoordinates(points: List[JsonObject]) = {
+    val coordsList = points.map { p =>
+      val geom = Try(p.get("geometry").getAsJsonObject)
+      val coord = geom.map(g => g.get("coordinates").getAsJsonArray)
+      val coordinate = coord.map { c =>
+        new Coordinate(c.get(0).getAsDouble, c.get(1).getAsDouble)
+      }
+      coordinate
+    }
+    coordsList
+  }
+
+  def buildLineString(coords: List[Try[Coordinate]], props: Try[JsonObject]) = {
+    val coordsStr = coords.map { c => c.map(_.toString).getOrElse("") }.mkString("[", ",", "]")
+    val propsStr = props.map(p => p.toString).getOrElse("{}")
+    s"""
+       | { "type": "Feature",
+       |   "geometry": {
+       |       "type": "LineString",
+       |       "coordinates": $coordsStr
+       |   },
+       |   "properties": $propsStr
+       | }
+     """.stripMargin.replaceAll("\n", "").replaceAll(" ", "")
   }
 }

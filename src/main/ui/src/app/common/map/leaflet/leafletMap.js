@@ -52,7 +52,6 @@ angular.module('stealth.common.map.leaflet.leafletMap', [
 
                 var trackers = {};
                 var trackerGroup = {};
-                var isGoodLineString = {};
                 var overlayGroups = {};
                 var overlayStyles = {};
                 var colors = {};
@@ -66,9 +65,10 @@ angular.module('stealth.common.map.leaflet.leafletMap', [
                     overlayGroups[label] = L.layerGroup();
                     map.addLayer(overlayGroups[label]);
 
-                    overlayStyles[label] = new LeafletFeatures.LayerStyle(s);
+                    var curStyle = new LeafletFeatures.LayerStyle(s);
+                    overlayStyles[label] = curStyle;
 
-                    colors[label] = overlayStyles[label].color;
+                    colors[label] = curStyle.color;
 
                     var contributor = s.contributor;
                     labels[contributor] = label;
@@ -86,43 +86,17 @@ angular.module('stealth.common.map.leaflet.leafletMap', [
 
                 var infoCtrl = AirTrackInfo.createControl().addTo(map);
 
-                function addGeoJsonLayerToGroup(feature) {
+                function getLabel(feature) {
                     var lbl = "";
-                    if (feature.properties.isMultisource === true) {
-                        lbl = "Multi-source";
-                    } else if (feature.properties.isInteresting === true) {
+                    if (feature.properties.isInteresting === true) {
                         lbl = "Interesting";
+                    } else if (feature.properties.isMultisource === true) {
+                        lbl = "Multi-source";
                     } else {
                         lbl = labels[feature.properties.contributor];
                     }
-                    var grp = overlayGroups[lbl];
 
-                    var pruned = pruneLineString(feature, numSegments[lbl]);
-                    var segmented = segmentLineString(pruned);
-                    var layers = [];
-
-                    // Style the segments
-                    var nSegs = segmented.length;
-                    for (var seg=0; seg<nSegs; ++seg) {
-                        var style = angular.copy(overlayStyles[lbl]);
-
-                        var factor = (nSegs - seg) / nSegs;
-                        style.weight = overlayStyles[lbl].weight * factor;
-
-                        var segI = L.geoJson(segmented[seg], {
-                            style: style,
-                            onEachFeature: LeafletFeatures.onCreation
-                        });
-                        var popupText = "hexid: " + segmented[seg].properties.hexid;
-                        segI.bindPopup(popupText);
-                        grp.addLayer(segI);
-                        layers.push(segI);
-                    }
-
-                    return {
-                        group: grp,
-                        layers: layers
-                    };
+                    return lbl;
                 }
 
                 function pruneLineString(feature, maxSegments) {
@@ -136,14 +110,49 @@ angular.module('stealth.common.map.leaflet.leafletMap', [
                     var segments = [];
                     var len = points.length;
                     for (var pnt=1; pnt<len; ++pnt) {
-                        var segment = angular.copy(feature);
-                        segment.geometry.coordinates = [
-                            points[pnt-1],
-                            points[pnt]
-                        ];
+                        var segment = {
+                            "type": "Feature",
+                            "properties": feature.properties,
+                            "geometry": {
+                                "type": "LineString",
+                                "coordinates": [points[pnt-1], points[pnt]]
+                            }
+                        };
                         segments.push(segment);
                     }
                     return segments;
+                }
+
+                function buildLayers(segmented, style) {
+                    var nSegs = segmented.length;
+                    if (nSegs < 1) {
+                        return [];
+                    }
+
+                    // Style the segments
+                    var seg0 = segmented[0];
+                    var gJ = L.geoJson(seg0, {
+                        style: style
+                    });
+                    gJ.on('click', LeafletFeatures.onClick);
+                    var popupText = "hexid: " + seg0.properties.hexid;
+                    gJ.bindPopup(popupText);
+
+                    for (var seg=1; seg<nSegs; ++seg) {
+                        var pnt0 = segmented[seg].geometry.coordinates[0];
+                        var pnt1 = segmented[seg].geometry.coordinates[1];
+                        var factor = (nSegs - seg) / nSegs;
+                        var lineI = L.polyline([[pnt0[1], pnt0[0]], [pnt1[1], pnt1[0]]], {
+                            color: style.color,
+                            fillColor: style.fillColor,
+                            weight: style.weight * factor,
+                            opacity: style.opacity
+                        });
+
+                        gJ.addLayer(lineI);
+                    }
+
+                    return [gJ];
                 }
 
                 // Action when a track is clicked on:
@@ -167,18 +176,25 @@ angular.module('stealth.common.map.leaflet.leafletMap', [
                             trackers[removeId] = [];
                         }
                     } else {
-                        var obj = addGeoJsonLayerToGroup(msg);
-                        var group = obj.group;
-                        var layers = obj.layers;
+                        // First, clear out any tracks related to the incoming one.
                         var id = msg.properties.hexid;
-
-                        if (!trackers[id]) {
-                            trackers[id] = [];
-                            trackerGroup[id] = group;
+                        if (trackers[id]) {
+                            var lyrGrpToClear = trackerGroup[id];
+                            _.each(trackers[id], function (lyr) {
+                                lyrGrpToClear.removeLayer(lyr);
+                            });
                         }
 
-                        _.each(layers, function (layer) {
-                            trackers[id].unshift(layer);
+                        var lbl = getLabel(msg);
+                        var pruned = pruneLineString(msg, numSegments[lbl]);
+                        var segmented = segmentLineString(pruned);
+                        var layers = buildLayers(segmented, overlayStyles[lbl]);
+
+                        trackers[id] = [];
+                        trackerGroup[id] = overlayGroups[lbl];
+                        _.each(layers, function (lyr) {
+                            trackerGroup[id].addLayer(lyr);
+                            trackers[id].unshift(lyr);
                         });
                     }
                 }, true);
