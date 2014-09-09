@@ -105,6 +105,10 @@ angular.module('stealth.common.map.ol.map', [
                 this.addWmsLayer = function (layerConfig) {
                     var layer,
                         config = _.merge({
+                            // Geomesa layers currently perform better without tiling.
+                            // Difficult to distinguish Geomesa requests from other requests.
+                            // So singleTile everything.
+                            singleTile: true,
                             format: 'image/png',
                             buffer: 6, //reduce tiling effects
                             time: '2000/2050',

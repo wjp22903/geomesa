@@ -21,16 +21,20 @@
             ng-repeat='feature in mapPopup.features | startFrom:(mapPopup.list.currentPage-1)*mapPopup.list.pageSize | limitTo:mapPopup.list.pageSize'>
             <h4 style="font-size:12px;">
                 {{feature.curLayer.name}} | {{feature.id}} | {{feature.properties[feature.targetDataSource.idField]}}
-                    <span class="pull-right">
-                        <button ng-show="feature.targetDataSource" type="button" class="btn btn-primary btn-xs"
-                                ng-click="mapPopup.showHistory(feature.targetDataSource.idField, feature.properties, feature.curLayer.url, feature.curDataLayer)">
-                            Show All
-                        </button>
-                    </span>
             </h4>
             <div ng-repeat="(key, val) in feature.properties">
                 <strong>{{ key }}:</strong> {{ val }}
             </div>
+            <span class="pull-right" style="padding-bottom:4px;">
+                <button ng-show="feature.targetDataSource" type="button" class="btn btn-primary btn-xs"
+                        ng-click="mapPopup.showHistory(feature.targetDataSource.idField, feature.properties, feature.curLayer.url, feature.curDataLayer)">
+                    Show All
+                </button>
+                <button ng-show="feature.siteDataSource" type="button" class="btn btn-primary btn-xs"
+                        ng-click="mapPopup.sendToComention(feature.siteDataSource.idField, feature.properties)">
+                    Send to Co-mention Tool
+                </button>
+            </span>
         </li>
     </ul>
 </div>

@@ -97,6 +97,8 @@
         <imagery.servers>[]</imagery.servers>
         <imagery.metadata.fields>{}</imagery.metadata.fields>
 
+        <comention.url>http://localhost:9090/comention</comention.url>
+
         <classification.text>Dynamic Page - Highest Possible Classification is UNCLASSIFIED//FOR OFFICIAL USE ONLY</classification.text>
         <!-- supported levels: unclassified, confidential, secret, topSecret, sci -->
         <classification.level>unclassified</classification.level>

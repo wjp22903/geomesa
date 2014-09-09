@@ -71,6 +71,9 @@ angular.module('stealth.common.map.ol.popup.popup', [
                         },
                         showHistory: function (idField, props, curLayerUrl, curDataLayer) {
                             showHistory(curLayerUrl.replace(new RegExp('^cors\/'), ''), idField, props[idField], curDataLayer);
+                        },
+                        sendToComention: function (idField, props) {
+                            window.open(CONFIG.comention.url + '?name=' + props[idField], '_blank').focus();
                         }
                     };
 
@@ -89,7 +92,6 @@ angular.module('stealth.common.map.ol.popup.popup', [
                             cql_filter: idField + " = '" + idValue + "'",
                             layers: layerCsv,
                             styles: 'stealth_heatmap',
-                            singleTile: true,
                             dontShow: true
                         }), -1);
                     }
@@ -117,6 +119,7 @@ angular.module('stealth.common.map.ol.popup.popup', [
                                                 name = _.isArray(layers) ? layers[0] : layers;
                                             newFeature.curDataLayer = name.toString().replace(/.*proximity_[0-9a-z]*_(\w*)___(\w)/, "$1:$2");
                                             newFeature.targetDataSource = CONFIG.dataSources.targets[newFeature.curDataLayer];
+                                            newFeature.siteDataSource = CONFIG.dataSources.sites[newFeature.curDataLayer];
                                         });
                                         if (_.isArray(scope.mapPopup.features)) {
                                             scope.mapPopup.features = scope.mapPopup.features.concat(newFeatures);
