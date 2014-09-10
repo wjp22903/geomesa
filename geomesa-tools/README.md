@@ -150,7 +150,13 @@ If attempting to ingest files with explicit latitude and longitude columns, the 
 
 `--datetime` The optional name of the field in the SFT specification that corresponds to the the *time* column. **NOTE:** by default times are assumed to be UTC.
 
-`--dtformat` The optional Joda DateTimeFormat string for the date-time field, e.g.: "MM/dd/yyyy HH:mm:ss". This must be surrounded by quotes and must match exactly the format in the source file. 
+`--cols` The optional subset of columns to be ingested which must match `-s` or `--sfcspec`. It is a list of
+comma-separated column-ranges in increasing order. Each column-range has format `[+]num1[-[+]num2]` that defines a
+column by num1 or a column range by num1 and num2 if num2 is presented. Prefix `+` means skip. Value of `+num` is `num`
+plus largest column value in previous column-ranges. For example "0,+3,6-+2,+2-+2,15-17" results List(0, 3, 6, 7, 8,
+10, 11, 12, 15, 16, 17).
+
+`--dtformat` The optional Joda DateTimeFormat string for the date-time field, e.g.: "MM/dd/yyyy HH:mm:ss". This must be surrounded by quotes and must match exactly the format in the source file.
 If no date time format is provided for a provided date time field, it is assumed to be in millisecond epoch time. 
 
 `--idfields` The optional comma separated list of ID fields used to generate the feature IDs. If empty, it is assumed that the ID will be generated via a hash on all attributes of that line.
