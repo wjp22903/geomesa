@@ -1,7 +1,6 @@
 angular.module('stealth.common.imagery.imageryManager', [
     'stealth.common.utils',
-    'stealth.ows.ows',
-    'ui.layout'
+    'stealth.ows.ows'
 ])
 
     .controller('ImageryManagerController', ['$scope', '$rootScope', '$http', '$filter', 'WFS', 'CONFIG', function ($scope, $rootScope, $http, $filter, WFS, CONFIG) {

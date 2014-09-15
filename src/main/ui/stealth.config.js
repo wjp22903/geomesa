@@ -30,7 +30,6 @@ module.exports = {
     // for them to 'indexDest' file specified above.
     vendorFiles: {
         js: [
-            'vendor/bower/d3/d3.js',
             'vendor/bower/lodash/dist/lodash.js',
             'vendor/bower/jquery/dist/jquery.js',
             'vendor/bower/angular/angular.js',
@@ -40,19 +39,18 @@ module.exports = {
             'vendor/bower/leaflet-providers/leaflet-providers.js',
             'vendor/bower/atmosphere/atmosphere.js',
             'vendor/bower/angular-resource/angular-resource.js',
-            'vendor/bower/angular-ui-layout/ui-layout.js',
             'vendor/bower/angular-ui-utils/ui-utils.js',
             'vendor/bower/momentjs/moment.js',
             'vendor/bower/angular-ui-bootstrap-bower/ui-bootstrap.js',
             'vendor/bower/angular-ui-bootstrap-bower/ui-bootstrap-tpls.js',
             'vendor/bower/openlayers/lib/**/*.js',
             'vendor/bower/bowser/bowser.min.js',
+            'vendor/bower/flexy-layout/flexy-layout.min.js',
             'vendor/filereader.js/filereader.js',
             'vendor/FileSaver.js/FileSaver.js',
             // TODO - test only
             'vendor/bower/angular-mocks/angular-mocks.js',
         ],
-        css: [],
         assets_nested: [
             'vendor/bower/openlayers/img/*',
             'vendor/bower/openlayers/theme/default/img/*',

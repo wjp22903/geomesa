@@ -50,9 +50,9 @@
                         </div>
                     </div>
                 </div>
-                <ui-layout options="{flow: 'row'}"
-                    ng-show="targetRank.loadingSites || targetRank.sites.length > 0">
-                    <section id="sites-section">
+                <flexy-layout orientation="vertical"
+                              ng-show="targetRank.loadingSites || targetRank.sites.length > 0">
+                    <block-container id="sites-section">
                         <header>
                             <i class="fa fa-map-marker fa-lg"></i>
                             {{targetRank.inputData.display ? targetRank.inputData.display : 'Input'}}
@@ -90,9 +90,10 @@
                                 </div>
                             </li>
                         </ul>
-                    </section>
+                    </block-container>
+                    <block-splitter></block-splitter>
 
-                    <section id="data-section">
+                    <block-container id="data-section">
                         <header>
                             <i class="fa fa-database fa-lg"></i> Data Layers
                             <span class="badge">{{targetRank.numData}}</span>
@@ -149,9 +150,10 @@
                                 </ul>
                             </li>
                         </ul>
-                    </section>
+                    </block-container>
+                    <block-splitter></block-splitter>
 
-                    <section id="options-section">
+                    <block-container id="options-section" init="220">
                         <header>
                             <i class="fa fa-cog fa-lg"></i> Options
                             <button style="margin-left:6px;" class="btn btn-danger btn-xs pull-right" ng-click="targetRank.doRank()">
@@ -234,8 +236,8 @@
                                 </table>
                             </form>
                         </ul>
-                    </section>
-                </ui-layout>
+                    </block-container>
+                </flexy-layout>
             </div>
 
             <!-- Targets panel -->
@@ -248,9 +250,9 @@
                 <ul ng-show="targetRank.targetList.loadingTargets">
                     <i class="fa fa-2x fa-spinner fa-spin"></i>
                 </ul>
-                <ui-layout options="{flow: 'row'}"
-                           ng-show="targetRank.targets.length > 0 && !targetRank.targetList.loadingTargets">
-                    <section>
+                <flexy-layout orientation="vertical"
+                              ng-show="targetRank.targets.length > 0 && !targetRank.targetList.loadingTargets">
+                    <block-container>
                         <header>
                             <i class="fa fa-crosshairs fa-lg"></i> Target Rankings
                             <span class="pull-right">
@@ -287,8 +289,8 @@
                                 <span class="pull-right" style="padding-right:10px;">{{(target.score/targetRank.targetMeta.maxScore)*100 | number:1}}</span>
                             </li>
                         </ul>
-                    </section>
-                </ui-layout>
+                    </block-container>
+                </flexy-layout>
             </div>
 
             <!-- Imagery panel -->

@@ -13,7 +13,7 @@ angular.module('stealth.siterank.siteRank', [
     'stealth.common.layermanager.openlayersManager',
     'stealth.common.rank',
     'stealth.ows.ows',
-    'ui.layout',
+    'flexyLayout',
     'ui.bootstrap.buttons'
 ])
 

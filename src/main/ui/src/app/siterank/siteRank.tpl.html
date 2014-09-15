@@ -43,9 +43,9 @@
                     <button class="btn btn-default"
                             ng-click="addTargets.showWindow()">Get Started</button>
                 </div>
-                <ui-layout options="{flow: 'row'}"
-                           ng-show="siteRank.targets.length > 0">
-                    <section id="targets-section">
+                <flexy-layout orientation="vertical"
+                              ng-show="siteRank.targets.length > 0">
+                    <block-container id="targets-section">
                         <header>
                             <i class="fa fa-crosshairs fa-lg"></i>Targets
                             <span class="badge">{{siteRank.targets.length}}</span>
@@ -80,9 +80,10 @@
                                        'fa-spinner fa-spin': target.spatialQueryCount > 0}"></i>
                             </li>
                         </ul>
-                    </section>
+                    </block-container>
+                    <block-splitter></block-splitter>
 
-                    <section id="sites-section">
+                    <block-container id="sites-section">
                         <header>
                             <i class="fa fa-database fa-lg"></i> Site Layers
                             <span class="badge">{{siteRank.numSiteLayers}}</span>
@@ -126,9 +127,10 @@
                                 </ul>
                             </li>
                         </ul>
-                    </section>
+                    </block-container>
+                    <block-splitter></block-splitter>
 
-                    <section id="options-section">
+                    <block-container id="options-section" init="220">
                         <header>
                             <i class="fa fa-cog fa-lg"></i> Options
                             <button style="margin-left:6px;" class="btn btn-danger btn-xs pull-right" ng-click="siteRank.doRank()">
@@ -187,8 +189,8 @@
                                 </td></tr>
                             </table>
                         </ul>
-                    </section>
-                </ui-layout>
+                    </block-container>
+                </flexy-layout>
             </div>
 
             <!-- Sites panel -->
@@ -201,9 +203,9 @@
                 <ul ng-show="siteRank.siteList.loadingSites">
                     <i class="fa fa-2x fa-spinner fa-spin"></i>
                 </ul>
-                <ui-layout options="{flow: 'row'}"
-                           ng-show="siteRank.sites.length > 0 && !siteRank.siteList.loadingSites">
-                    <section>
+                <flexy-layout orientation="vertical"
+                              ng-show="siteRank.sites.length > 0 && !siteRank.siteList.loadingSites">
+                    <block-container>
                         <header>
                             <i class="fa fa-map-marker fa-lg"></i> Site Rankings
                             <span class="pull-right">
@@ -239,8 +241,8 @@
                                 <span class="pull-right" style="padding-right:10px;">{{(site.score/siteRank.siteMeta.maxScore)*100 | number:1}}</span>
                             </li>
                         </ul>
-                    </section>
-                </ui-layout>
+                    </block-container>
+                </flexy-layout>
             </div>
 
             <!-- Imagery panel -->

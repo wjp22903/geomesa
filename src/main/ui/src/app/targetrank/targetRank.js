@@ -15,7 +15,7 @@ angular.module('stealth.targetrank.targetRank', [
     'stealth.common.layermanager.openlayersManager',
     'stealth.common.rank',
     'stealth.ows.ows',
-    'ui.layout',
+    'flexyLayout',
     'ui.bootstrap.buttons'
 ])
 
