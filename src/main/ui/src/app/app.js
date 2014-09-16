@@ -10,13 +10,14 @@ angular.module('stealth', [
     'stealth.airdomain.airDomain'
 ])
 
-    .config(['$provide', function ($provide) {
+    .config(['$provide', '$httpProvider', function ($provide, $httpProvider) {
         // Config variables are specified in the pom and written to STEALTH.config
         // via scalate. Copy that object as an injectable angular constant here.
         var config = angular.copy(window.STEALTH.config);
         config.userCn = window.STEALTH.userCn;
         config.trackStyles = window.STEALTH.trackStyles;
         $provide.constant('CONFIG', config);
+        $httpProvider.defaults.withCredentials = true;
     }])
 
     .config(['$routeProvider', 'CONFIG', function ($routeProvider, CONFIG) {
