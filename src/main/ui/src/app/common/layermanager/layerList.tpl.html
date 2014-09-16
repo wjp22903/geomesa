@@ -1,6 +1,6 @@
 <ul class="layer-list list-unstyled">
     <li ng-repeat="layer in map.layers.slice().reverse()"
         class="layer-control layer-control-hover"
-        layer-control layer-data="layer">
+        layer-control layer-data="layer" ng-show="layer.displayInLayerSwitcher">
     </li>
 </ul>

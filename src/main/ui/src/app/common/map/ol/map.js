@@ -59,7 +59,6 @@ angular.module('stealth.common.map.ol.map', [
                                 return newHtml;
                             }
                         }),
-                        new OpenLayers.Control.Graticule({visible: false, displayInLayerSwitcher: false}),
                         new OpenLayers.Control.ScaleLine()
                     ],
                     projection: CONFIG.map.crs,

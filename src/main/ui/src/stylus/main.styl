@@ -111,7 +111,7 @@ body
                 padding 0 10px
             button
                 vertical-align text-bottom
-        .block
+        .block, section
             overflow-y auto
             margin 0
             border 1px solid #E0E4E6
@@ -126,9 +126,8 @@ body
                 border-bottom 1px solid #DEDEDE
                 background-image linear-gradient(#D8E2EB, white)
                 shadow-bottom()
-            > .block-content
-                > ul
-                    margin-top 45px
+            > ul, > .block-content > ul
+                margin-top 45px
             ul
                 padding-left 5px
                 overflow-y auto
@@ -268,7 +267,7 @@ center-pane
             vertical-align bottom
 
 .body-targetRank, .body-siteRank
-    ul[datepicker-popup-wrap]
+    > ul[datepicker-popup-wrap]
         top auto !important
         bottom 25px !important
         left 255px !important
@@ -278,3 +277,8 @@ center-pane
 
 .outline-text-black
     outline-text-black()
+
+.stretch
+    height 100%
+    width 100%
+    overflow auto

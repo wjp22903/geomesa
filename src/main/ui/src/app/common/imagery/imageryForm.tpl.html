@@ -1,4 +1,4 @@
-<div ng-controller="ImageryManagerController">
+<div class="stretch" ng-controller="ImageryManagerController">
     <section class="stretch" ng-show="step === 1">
         <header>
             <i class="fa fa-search fa-lg"></i> Find Imagery to Overlay
@@ -66,7 +66,7 @@
                             <td>Start</td>
                             <td>
                                 <p class="input-group">
-                                    <input datepicker-popup datepicker-append-to-body="true" size="10" type="text" class="form-control input-sm" is-open="search.form.startDateOpen" ng-model="search.criteria.startDate">
+                                    <input datepicker-popup datepicker-append-to-body="false" size="10" type="text" class="form-control input-sm" is-open="search.form.startDateOpen" ng-model="search.criteria.startDate">
                                     <span class="input-group-btn">
                                         <button type="button" class="btn btn-default btn-sm" ng-click="search.form.startDateOpen = search.form.toggleDateOpen($event, search.form.startDateOpen)"><i class="glyphicon glyphicon-calendar"></i></button>
                                     </span>
@@ -85,7 +85,7 @@
                             <td>End</td>
                             <td>
                                 <p class="input-group">
-                                    <input datepicker-popup datepicker-append-to-body="true" size="10" type="text" class="form-control input-sm" is-open="search.form.endDateOpen" ng-model="search.criteria.endDate">
+                                    <input datepicker-popup datepicker-append-to-body="false" size="10" type="text" class="form-control input-sm" is-open="search.form.endDateOpen" ng-model="search.criteria.endDate">
                                     <span class="input-group-btn">
                                         <button type="button" class="btn btn-default btn-sm" ng-click="search.form.endDateOpen = search.form.toggleDateOpen($event, search.form.endDateOpen)"><i class="glyphicon glyphicon-calendar"></i></button>
                                     </span>
