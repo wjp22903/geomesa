@@ -50,6 +50,7 @@ angular.module('stealth', [
         var classBannerHeight = ((_.isEmpty(CONFIG.classification)) || (_.isEmpty(CONFIG.classification.text) && _.isEmpty(CONFIG.classification.level))) ? 0 : 15,
             navBarHeight = CONFIG.app.hideNavBar ? 0 : 50;
         $scope.app = {
+            loadTime: moment().format('YYYYMMDDHHmmss'),
             title: CONFIG.app.title,
             classification: CONFIG.classification,
             classBannerStyle: {

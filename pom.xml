@@ -28,6 +28,8 @@
             at http://doubletrouble:8082/geoserver.  We try to take advantage of geoserver's
             pre-installed layers as much as possible.  So, there are layers included in the
             configured workspaces that make no sense to use.
+        ds
+            Customizations for high-side demos.
     -->
 
     <properties>
@@ -799,6 +801,44 @@
                 }
                 </dataSources>
             </properties>
+        </profile>
+
+        <!-- for high-side demos -->
+        <profile>
+            <id>ds</id>
+            <properties>
+                <app.title>DragonSpell</app.title>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-dependency-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>ds-dependencies</id>
+                                <phase>prepare-package</phase>
+                                <goals>
+                                    <goal>copy</goal>
+                                </goals>
+                                <configuration>
+                                    <artifactItems>
+                                        <artifactItem>
+                                            <outputDirectory>${project.build.directory}/${project.artifactId}-${project.version}/assets</outputDirectory>
+                                            <destFileName>logo.png</destFileName>
+                                            <groupId>dragonspell</groupId>
+                                            <artifactId>logo</artifactId>
+                                            <classifier>web</classifier>
+                                            <version>1.0.0</version>
+                                            <type>png</type>
+                                        </artifactItem>
+                                    </artifactItems>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
 
         <!-- The remaining profiles are auto-activated based on OS.  No reason to explicitly activate them. -->

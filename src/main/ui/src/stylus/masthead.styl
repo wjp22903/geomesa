@@ -5,17 +5,17 @@
 .masthead
     z-index 800
     height mastheadHeight
-    background linear-gradient(top, lighten(mastheadBg, 10%), mastheadBg)
+    background linear-gradient(top, lighten(mastheadBg, 25%), mastheadBg)
     border-radius 0
+    .navbar-header
+        td
+            padding-left 5px
+            height mastheadHeight
+            vertical-align middle !important
     &.navbar-default
         shadow-bottom()
         color mastheadColor
         border-color mastheadBg
-        .navbar-brand
-            color mastheadColor
-            &:hover
-                opacity 0
-                transition all 1s ease
         .navbar-nav
             > li
                 > a
@@ -23,6 +23,9 @@
                     transition color 0.3s ease
                     &:hover
                         color white
-
     .activeNavItem
         color red !important
+    .logo
+        max-height mastheadHeight - 2px
+    .title
+        font-size 18px
