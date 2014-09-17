@@ -1,6 +1,10 @@
 <div>
     <div>
+        <input type="radio" name="baseLayer" ng-model="$parent.$parent.currentBaseLayerName"
+               ng-value="control.layerName" ng-show="layerData.isBaseLayer"
+               ng-change="control.changeBaseLayer(layerData)">
         <input type="checkbox" ng-model="control.visibility"
+               ng-hide="layerData.isBaseLayer"
                ng-change="control.changeVisibility(layerData, control.visibility)">
         <b style="padding-left:10px;">{{$root.ellipsis(layerData.name, 65)}}</b>
     </div>

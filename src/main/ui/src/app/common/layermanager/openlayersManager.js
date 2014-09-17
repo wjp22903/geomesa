@@ -14,6 +14,7 @@ angular.module('stealth.common.layermanager.openlayersManager', [
                 map: '='
             },
             controller: function ($scope) {
+                $scope.currentBaseLayerName = CONFIG.map.baseLayers[0].name;
                 $scope.query = {
                     serverData: {
                         // The value the user enters into the form.
@@ -145,6 +146,7 @@ angular.module('stealth.common.layermanager.openlayersManager', [
                 scope.control = {
                     opacity: scope.layerData.opacity,
                     visibility: scope.layerData.getVisibility(),
+                    layerName: scope.layerData.name,
                     changeOpacity: function (layer, opacity) {
                         if (_.isNumber(opacity)) {
                             if (opacity < 0) {
@@ -159,6 +161,9 @@ angular.module('stealth.common.layermanager.openlayersManager', [
                     },
                     changeVisibility: function (layer, visibility) {
                         layer.setVisibility(visibility);
+                    },
+                    changeBaseLayer: function (layer) {
+                        layer.map.setBaseLayer(layer);
                     }
                 };
                 // Bind a single click event to the element, and determine

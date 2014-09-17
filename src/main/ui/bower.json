@@ -12,6 +12,7 @@
     "atmosphere": "~2.2.0",
     "bootstrap": "~3.1.1",
     "bowser": "~0.7.1",
+    "d3": "~3.4.2",
     "flexy-layout": "https://github.com/lorenzofox3/flexy-layout.git#96434e207700f201764491716f78cb252ac38c29",
     "font-awesome": "~4.1.0",
     "jquery": "~2.1.0",

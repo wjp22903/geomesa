@@ -61,7 +61,7 @@ angular.module('stealth.common.map.ol.map', [
                         }),
                         new OpenLayers.Control.ScaleLine()
                     ],
-                    projection: CONFIG.map.crs,
+                    projection: 'EPSG:4326',
                     restrictedExtent: restrictedExtent
                 }));
 
@@ -162,11 +162,20 @@ angular.module('stealth.common.map.ol.map', [
                     return self.addVectorLayer(layerConfigToAdd);
                 };
 
-                scope.map.setLayerIndex(this.addLayer(new OpenLayers.Layer.WMS(
-                    "Base Map", CONFIG.map.url,
-                    {layers: CONFIG.map.baseLayers, format: CONFIG.map.format, bgcolor: '0xa7b599'},
-                    {wrapDateLine: true, opacity: 0.5}
-                )), 0);
+                _.each(CONFIG.map.overlays, function (layer) {
+                    scope.map.setLayerIndex(this.addLayer(new OpenLayers.Layer.WMS(
+                        layer.name, CONFIG.map.defaultUrl || layer.url,
+                        {layers: layer.layers, format: layer.format, transparent: true},
+                        {wrapDateLine: true, isBaseLayer: false, visibility: layer.visibility}
+                    )), 0);
+                }, this);
+                _.each(CONFIG.map.baseLayers, function (layer) {
+                    scope.map.setLayerIndex(this.addLayer(new OpenLayers.Layer.WMS(
+                        layer.name, CONFIG.map.defaultUrl || layer.url,
+                        {layers: layer.layers, format: layer.format, transparent: true},
+                        {wrapDateLine: true, opacity: 1, isBaseLayer: true}
+                    )), 0);
+                }, this);
                 scope.map.zoomToExtent(restrictedExtent);
 
                 $rootScope.$on("AddWmsMapLayer", function (event, layerConfig) {

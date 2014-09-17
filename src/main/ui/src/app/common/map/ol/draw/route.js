@@ -132,16 +132,19 @@ angular.module('stealth.common.map.ol.draw.route', [
                                                 },
                                                 exportFormat: 'csv',
                                                 export: function (format) {
-                                                    var output = null;
+                                                    var output = null,
+                                                        type = 'text/plain';
                                                     switch (format) {
                                                         case 'json':
                                                             output = JSON.stringify(route, null, 4);
+                                                            type = 'application/json';
                                                             break;
                                                         case 'csv':
                                                             output = GeoFormat.geoJsonToCsv(route, GeoFormat.coordFormat.dmshCombined, ['DMS']);
+                                                            type = 'text/csv';
                                                             break;
                                                     }
-                                                    var blob = new Blob([output], {type: "text/plain;charset=utf-8"});
+                                                    var blob = new Blob([output], {type: type});
                                                     saveAs(blob, 'route.' + format);
                                                     $modalInstance.dismiss('export');
                                                 }

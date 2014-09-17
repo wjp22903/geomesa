@@ -114,7 +114,7 @@ body
         .block, section
             overflow-y auto
             margin 0
-            border 1px solid #E0E4E6
+            border 2px solid #E0E4E6
             border-radius 4px
             header
                 z-index 600
@@ -136,7 +136,7 @@ body
                         margin-top 0
                 li.checkbox
                     margin-bottom 6px
-            &.spacer
+            &.splitter
                 border none
 
 .leftPaneOverlay
@@ -282,3 +282,10 @@ center-pane
     height 100%
     width 100%
     overflow auto
+
+.modal-header
+    border-top-left-radius 6px
+    border-top-right-radius 6px
+    border-bottom 1px solid #DEDEDE
+    background-image linear-gradient(#D8E2EB, white)
+    shadow-bottom()

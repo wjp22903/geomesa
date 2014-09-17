@@ -30,6 +30,7 @@ module.exports = {
     // for them to 'indexDest' file specified above.
     vendorFiles: {
         js: [
+            'vendor/bower/d3/d3.min.js',
             'vendor/bower/lodash/dist/lodash.js',
             'vendor/bower/jquery/dist/jquery.js',
             'vendor/bower/angular/angular.js',

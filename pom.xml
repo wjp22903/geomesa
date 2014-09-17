@@ -66,7 +66,8 @@
         <app.supported.browsers>
             {
                 chrome: 12,
-                firefox: 4
+                firefox: 20,
+                safari: 6.1
             }
         </app.supported.browsers>
 
@@ -86,15 +87,38 @@
 
         <map.restricted.extent></map.restricted.extent>
         <map.max.extent></map.max.extent>
-
-        <basemap.url>${geoserver.url}/wms</basemap.url>
-        <basemap.layers>mapproxy:globe.osm.toner</basemap.layers>
-        <basemap.format>image/png</basemap.format>
-        <basemap.crs>EPSG:4326</basemap.crs>
-        <basemap.lon>0</basemap.lon>
-        <basemap.lat>0</basemap.lat>
-        <basemap.zoom>4</basemap.zoom>
-        <basemap.maxZoom>9</basemap.maxZoom>
+        <map.center.lon>0</map.center.lon>
+        <map.center.lat>0</map.center.lat>
+        <map.zoom.init>4</map.zoom.init>
+        <map.zoom.max>9</map.zoom.max>
+        <map.default.url>${geoserver.url}/wms</map.default.url>
+        <map.baseLayers>
+            [
+                {
+                    name: "OSM Toner",
+                    url: "${map.default.url}",
+                    layers: "mapproxy:globe.osm.toner",
+                    format: "image/png"
+                },
+                {
+                    name: "OSM Default",
+                    url: "${map.default.url}",
+                    layers: "mapproxy:globe.osm.default",
+                    format: "image/png"
+                }
+            ]
+        </map.baseLayers>
+        <map.overlays>
+            [
+                {
+                    name: "Aerial",
+                    url: "${map.default.url}",
+                    layers: "mapproxy:globe.aerial.mapquest",
+                    format: "image/png",
+                    visibility: false
+                }
+            ]
+        </map.overlays>
 
         <imagery.support>true</imagery.support>
         <imagery.servers>[]</imagery.servers>
@@ -783,6 +807,7 @@
                 <geoserver.workspaces.route>["stealth_routes", "stealth_sites", "nyc_roads", "topp"]</geoserver.workspaces.route>
                 <geoserver.output.workspace>stealth_output</geoserver.output.workspace>
                 <geoserver.output.store>stealth_output</geoserver.output.store>
+                <map.default.url>http://dgeo:8080/geoserver/wms</map.default.url>
                 <dataSources>
                 {
                     sites: {
