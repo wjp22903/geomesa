@@ -51,8 +51,10 @@ angular.module('stealth.siterank.siteRank', [
             leftPaneView: 'analysis',
             targets: [],
             options: {
+                useStartDatetime: false,
                 startDate: aWeekAgo,
                 startTime: _.cloneDeep(aWeekAgo),
+                useEndDatetime: false,
                 endDate: now,
                 endTime: _.cloneDeep(now)
             },
@@ -153,6 +155,7 @@ angular.module('stealth.siterank.siteRank', [
                 $scope.siteRank.sites = [];
                 $scope.siteRank.siteList.loadingSites = true;
                 $scope.siteRank.leftPaneView = 'sites'; //switch tabs
+                /* Site ranking is no longer valid and needs re-implementation
                 RankService.getSiteRanksForTargets(_.pluck($scope.siteRank.targets, 'idValue'), $scope.siteRank.options.startDate, $scope.siteRank.options.endDate)
                     .then(function (response) {
                         $scope.siteRank.sites = _.isEmpty(CONFIG.solr.siteDedupField) ?
@@ -166,7 +169,7 @@ angular.module('stealth.siterank.siteRank', [
                     })
                     .finally(function () {
                         $scope.siteRank.siteList.loadingSites = false;
-                    });
+                    });*/
             },
             doMapOps: function () {
                 $rootScope.$emit('SetMapDataLayerZoomState', false);
@@ -178,10 +181,10 @@ angular.module('stealth.siterank.siteRank', [
                     var layerName = target.idValue + '@' + target.layer.name,
                         cql_filter = '(' + target.idField + " = '" + target.idValue + "')",
                         geoserverUrl = $filter('endpoint')(target.geoserverUrl, 'wms', true);
-                    if (_.isDate($scope.siteRank.options.startDate)) {
+                    if ($scope.siteRank.options.useStartDatetime && _.isDate($scope.siteRank.options.startDate)) {
                         cql_filter += ' AND (dtg > ' + moment($scope.siteRank.options.startDate).format('YYYY-MM-DD') + 'T' + moment($scope.siteRank.options.startTime).format('HH:mm:ss.SSS') + 'Z)';
                     }
-                    if (_.isDate($scope.siteRank.options.endDate)) {
+                    if ($scope.siteRank.options.useEndDatetime && _.isDate($scope.siteRank.options.endDate)) {
                         cql_filter += ' AND (dtg < ' + moment($scope.siteRank.options.endDate).format('YYYY-MM-DD') + 'T' + moment($scope.siteRank.options.endTime).format('HH:mm:ss.SSS') + 'Z)';
                     }
                     target.spatialQueryStatus = 'running';

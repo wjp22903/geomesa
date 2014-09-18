@@ -166,48 +166,66 @@
                         <ul ng-switch="targetRank.inputData.type.substr(0, 5)">
                             <form ng-switch-default>
                                 <table style="border-collapse:separate;border-spacing:0px 1px;">
-                                    <tr><td style="padding-right:15px;">
+                                    <tr><td>
                                         Proximity
-                                    </td><td>
+                                    </td><td style="padding-left:15px;" colspan="2">
                                         <div class="input-group">
                                             <input type="text" class="form-control input-sm" name="proximityMeters"
                                                    ng-model="targetRank.options.proximityMeters" style="width:50px;">
                                             <span style="position:absolute;bottom:6px;">&nbsp;&nbsp;&nbsp;meters</span>
                                         </div>
                                     </td></tr>
-                                    <tr><td style="padding-right:15px;">
+                                    <tr><td>
                                         Start Date/Time
-                                    </td><td>
+                                    </td><td style="padding-left:15px;">
+                                        <input type="checkbox" ng-model="targetRank.options.useStartDatetime">
+                                    </td><td style="padding-left:15px;" ng-class="{'semi-transparent': !targetRank.options.useStartDatetime}">
                                         <p class="input-group">
-                                            <input datepicker-popup datepicker-append-to-body="true" size="11" type="text" class="form-control input-sm" is-open="targetRank.optionsForm.startDateOpen" ng-model="targetRank.options.startDate">
+                                            <input datepicker-popup datepicker-append-to-body="true" size="11" type="text"
+                                                   class="form-control input-sm" is-open="targetRank.optionsForm.startDateOpen"
+                                                   ng-model="targetRank.options.startDate" ng-disabled="!targetRank.options.useStartDatetime">
                                             <span class="input-group-btn">
-                                                <button type="button" class="btn btn-default btn-sm" ng-click="targetRank.optionsForm.startDateOpen = targetRank.optionsForm.toggleDateOpen($event, targetRank.optionsForm.startDateOpen)"><i class="glyphicon glyphicon-calendar"></i></button>
+                                                <button type="button" class="btn btn-default btn-sm"
+                                                        ng-click="targetRank.optionsForm.startDateOpen = targetRank.optionsForm.toggleDateOpen($event, targetRank.optionsForm.startDateOpen)"
+                                                        ng-disabled="!targetRank.options.useStartDatetime">
+                                                    <i class="glyphicon glyphicon-calendar"></i>
+                                                </button>
                                             </span>
                                         </p>
-                                    </td><td style="padding-left:15px;">
+                                    </td><td style="padding-left:15px;" ng-class="{'semi-transparent': !targetRank.options.useStartDatetime}">
                                         <timepicker class="input-sm timepicker-sm" ng-model="targetRank.options.startTime" show-meridian="false"></timepicker>
-                                    </td><td style="padding-left:5px;">
+                                    </td><td style="padding-left:5px;" ng-class="{'semi-transparent': !targetRank.options.useStartDatetime}">
                                         Z
-                                    </td><td style="padding-left:15px;">
-                                        <button class="btn btn-primary btn-xs" ng-click="targetRank.optionsForm.clearStartDatetime()">
+                                    </td><td style="padding-left:15px;" ng-class="{'semi-transparent': !targetRank.options.useStartDatetime}">
+                                        <button class="btn btn-primary btn-xs" ng-click="targetRank.optionsForm.clearStartDatetime()"
+                                                ng-disabled="!targetRank.options.useStartDatetime">
                                             <i class="fa fa-eraser"></i> Clear
                                         </button>
                                     </td></tr>
-                                    <tr><td style="padding-right:15px;">
+                                    <tr><td>
                                         End Date/Time
-                                    </td><td>
+                                    </td><td style="padding-left:15px;">
+                                        <input type="checkbox" ng-model="targetRank.options.useEndDatetime">
+                                    </td><td style="padding-left:15px;" ng-class="{'semi-transparent': !targetRank.options.useEndDatetime}">
                                         <p class="input-group">
-                                            <input datepicker-popup datepicker-append-to-body="true" size="11" type="text" class="form-control input-sm" is-open="targetRank.optionsForm.endDateOpen" ng-model="targetRank.options.endDate">
+                                            <input datepicker-popup datepicker-append-to-body="true" size="11" type="text"
+                                                   class="form-control input-sm" is-open="targetRank.optionsForm.endDateOpen"
+                                                   ng-model="targetRank.options.endDate" ng-disabled="!targetRank.options.useEndDatetime">
                                             <span class="input-group-btn">
-                                                <button type="button" class="btn btn-default btn-sm" ng-click="targetRank.optionsForm.endDateOpen = targetRank.optionsForm.toggleDateOpen($event, targetRank.optionsForm.endDateOpen)"><i class="glyphicon glyphicon-calendar"></i></button>
+                                                <button type="button" class="btn btn-default btn-sm"
+                                                        ng-click="targetRank.optionsForm.endDateOpen = targetRank.optionsForm.toggleDateOpen($event, targetRank.optionsForm.endDateOpen)"
+                                                        ng-disabled="!targetRank.options.useEndDatetime">
+                                                    <i class="glyphicon glyphicon-calendar"></i>
+                                                </button>
                                             </span>
                                         </p>
-                                    </td><td style="padding-left:15px;">
+                                    </td><td style="padding-left:15px;" ng-class="{'semi-transparent': !targetRank.options.useEndDatetime}">
                                         <timepicker class="input-sm timepicker-sm" ng-model="targetRank.options.endTime" show-meridian="false"></timepicker>
-                                    </td><td style="padding-left:5px;">
+                                    </td><td style="padding-left:5px;" ng-class="{'semi-transparent': !targetRank.options.useEndDatetime}">
                                         Z
-                                    </td><td style="padding-left:15px;">
-                                        <button class="btn btn-primary btn-xs" ng-click="targetRank.optionsForm.clearEndDatetime()">
+                                    </td><td style="padding-left:15px;" ng-class="{'semi-transparent': !targetRank.options.useEndDatetime}">
+                                        <button class="btn btn-primary btn-xs" ng-click="targetRank.optionsForm.clearEndDatetime()"
+                                                 ng-disabled="!targetRank.options.useEndDatetime">
                                             <i class="fa fa-eraser"></i> Clear
                                         </button>
                                     </td></tr>

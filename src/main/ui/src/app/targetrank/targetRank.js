@@ -103,8 +103,10 @@ angular.module('stealth.targetrank.targetRank', [
                 }, delay);
             },
             options: {
+                useStartDatetime: false,
                 startDate: aWeekAgo,
                 startTime: _.cloneDeep(aWeekAgo),
+                useEndDatetime: false,
                 endDate: now,
                 endTime: _.cloneDeep(now)
             },
@@ -211,10 +213,10 @@ angular.module('stealth.targetrank.targetRank', [
                         /* falls through */
                     case 'route':
                         var timeFilter = '(1=1)';
-                        if (_.isDate($scope.targetRank.options.startDate)) {
+                        if ($scope.targetRank.options.useStartDatetime && _.isDate($scope.targetRank.options.startDate)) {
                             timeFilter += ' AND (dtg > ' + moment($scope.targetRank.options.startDate).format('YYYY-MM-DD') + 'T' + moment($scope.targetRank.options.startTime).format('HH:mm:ss.SSS') + 'Z)';
                         }
-                        if (_.isDate($scope.targetRank.options.endDate)) {
+                        if ($scope.targetRank.options.useEndDatetime && _.isDate($scope.targetRank.options.endDate)) {
                             timeFilter += ' AND (dtg < ' + moment($scope.targetRank.options.endDate).format('YYYY-MM-DD') + 'T' + moment($scope.targetRank.options.endTime).format('HH:mm:ss.SSS') + 'Z)';
                         }
                         RankService.getTargetRanksForRoute($scope.targetRank.serverData.currentGeoserverUrl,
@@ -259,10 +261,10 @@ angular.module('stealth.targetrank.targetRank', [
                     inputLayerFilter: $scope.targetRank.filterData.cql
                 };
                 var timeFilter = '(1=1)';
-                if (_.isDate($scope.targetRank.options.startDate)) {
+                if ($scope.targetRank.options.useStartDatetime && _.isDate($scope.targetRank.options.startDate)) {
                     timeFilter += ' AND (dtg > ' + moment($scope.targetRank.options.startDate).format('YYYY-MM-DD') + 'T' + moment($scope.targetRank.options.startTime).format('HH:mm:ss.SSS') + 'Z)';
                 }
-                if (_.isDate($scope.targetRank.options.endDate)) {
+                if ($scope.targetRank.options.useEndDatetime && _.isDate($scope.targetRank.options.endDate)) {
                     timeFilter += ' AND (dtg < ' + moment($scope.targetRank.options.endDate).format('YYYY-MM-DD') + 'T' + moment($scope.targetRank.options.endTime).format('HH:mm:ss.SSS') + 'Z)';
                 }
                 switch ($scope.targetRank.inputData.type) {
@@ -465,8 +467,10 @@ angular.module('stealth.targetrank.targetRank', [
                     alert('No results found.');
                 } else {
                     $scope.targetRank.options = {
+                        useStartDatetime: false,
                         startDate: aWeekAgo,
                         startTime: _.cloneDeep(aWeekAgo),
+                        useEndDatetime: false,
                         endDate: now,
                         endTime: _.cloneDeep(now)
                     };
