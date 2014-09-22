@@ -1,5 +1,7 @@
 package com.ccri.stealth.servlet;
 
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 import org.eclipse.jetty.client.Address;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.HttpExchange;
@@ -18,6 +20,7 @@ import java.net.URI;
 
 public class CorsProxyServlet extends ProxyServlet {
     private Logger log = LoggerFactory.getLogger(getClass());
+    private final Config conf = ConfigFactory.load().getConfig("stealth");
     private String keyStorePath = null;
     private String keyStorePassword = null;
     private String trustStorePath = null;
@@ -25,10 +28,10 @@ public class CorsProxyServlet extends ProxyServlet {
 
     @Override
     public void init(ServletConfig config) throws ServletException {
-        keyStorePath = config.getInitParameter("keyStorePath");
-        keyStorePassword = config.getInitParameter("keyStorePassword");
-        trustStorePath = config.getInitParameter("trustStorePath");
-        trustStorePassword = config.getInitParameter("trustStorePassword");
+        keyStorePath = conf.getString("private.proxy.keystore.path");
+        keyStorePassword = conf.getString("private.proxy.keystore.password");
+        trustStorePath = conf.getString("private.proxy.truststore.path");
+        trustStorePassword = conf.getString("private.proxy.truststore.password");
         super.init(config);
     }
 
@@ -59,7 +62,7 @@ public class CorsProxyServlet extends ProxyServlet {
     protected HttpClient createHttpClient(ServletConfig config) throws Exception {
         HttpClient client = super.createHttpClient(config);
 
-        String t = config.getInitParameter("proxy");
+        String t = conf.getString("private.proxy.webProxy");
         if (t != null && t.trim().length() > 0) {
             client.setProxy(Address.from(t));
         }

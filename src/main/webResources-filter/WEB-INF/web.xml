@@ -33,26 +33,6 @@
             <param-name>connectTimeout</param-name>
             <param-value>600000</param-value>
         </init-param>
-        <init-param>
-            <param-name>proxy</param-name>
-            <param-value>${web.proxy}</param-value>
-        </init-param>
-        <init-param>
-            <param-name>keyStorePath</param-name>
-            <param-value>${keystore.path}</param-value>
-        </init-param>
-        <init-param>
-            <param-name>keyStorePassword</param-name>
-            <param-value>${keystore.password}</param-value>
-        </init-param>
-        <init-param>
-            <param-name>trustStorePath</param-name>
-            <param-value>${truststore.path}</param-value>
-        </init-param>
-        <init-param>
-            <param-name>trustStorePassword</param-name>
-            <param-value>${truststore.password}</param-value>
-        </init-param>
     </servlet>
 
     <servlet-mapping>
