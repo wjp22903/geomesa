@@ -31,8 +31,8 @@ angular.module('stealth.common.proximity', [
         }
         function buildProxLayerName (dataLayer) {
             var timestamp = moment().utc().format('YYMMDDHHmmss'),
-                uuid = Utils.uuid().replace(/-/g, '').substr(0, 4);
-            return 'proximity_' + timestamp + uuid + "_" + dataLayer.replace(':','___');
+                user = CONFIG.userCn.replace(/\W/g, '');
+            return 'proximity_' + timestamp + '_' + user + '_' + dataLayer.replace(':','___');
         }
 
         //arg contains geoserverUrl, inputLayer, inputLayerFilter, dataLayer, dataLayerFilter, bufferMeters
