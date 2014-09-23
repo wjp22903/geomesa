@@ -76,7 +76,7 @@ angular.module('stealth.common.map.ol.draw.route', [
                 link: function (scope, element, attrs, mapCtrl) {
                     var map = mapCtrl.getMap(),
                         layer = mapCtrl.addLayer(new OpenLayers.Layer.Vector('Drawings', {
-                            displayInLayerSwitcher: false,
+                            permanent: true, //cannot remove via layer manager
                             styleMap: new OpenLayers.StyleMap(_.merge(_.cloneDeep(OpenLayers.Feature.Vector.style), {
                                 default: {
                                     strokeWidth: 5

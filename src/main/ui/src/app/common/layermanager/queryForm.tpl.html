@@ -72,6 +72,23 @@
                 ng-model="query.filterData.cql" onclick="this.select();">
         </div>
 
+        <div class="form-group" ng-show="query.formStep() > 3">
+            <label for=""><span class="form-step">5</span> Choose style</label>
+            <div>
+                <select class="form-control input-sm" style="width:auto;display:inline-block;"
+                        ng-model="query.style.name"
+                        ng-init="query.style.name">
+                    <option value="">Default</option>
+                    <option value="stealth_dataPoints">Point</option>
+                    <option value="stealth_heatmap">Heatmap</option>
+                </select>
+                <span class="layer-query-colorpicker" ng-style="query.style"
+                      colorpicker colorpicker-position="top"
+                      ng-model="query.style['background-color']"
+                      ng-show="query.style.name === 'stealth_dataPoints'"></span>
+            </div>
+        </div>
+
     </div>
     <div class="modal-footer">
         <button type="submit" class="btn btn-primary"

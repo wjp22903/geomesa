@@ -1,5 +1,6 @@
 angular.module('stealth.common.layermanager.openlayersManager', [
-    'stealth.ows.ows'
+    'stealth.ows.ows',
+    'colorpicker.module'
 ])
 
     // TODO - there's a lot of duplication with targetRank.js
@@ -22,7 +23,11 @@ angular.module('stealth.common.layermanager.openlayersManager', [
                         // The value after the users clicks 'Choose'.
                         currentGeoserverUrl: null
                     },
-                    layerData: {}
+                    layerData: {},
+                    style: {
+                        name: '',
+                        'background-color': '#0099CC'
+                    }
                 };
 
                 // TODO - this could be generalized as it's used in targetRank.js
@@ -31,7 +36,7 @@ angular.module('stealth.common.layermanager.openlayersManager', [
                     if ($scope.query.serverData.currentGeoserverUrl && !$scope.query.serverData.error &&
                             $scope.query.layerData && $scope.query.layerData.layers) {
                         step = 2; // Show the layer select input.
-                        if($scope.query.layerData.currentLayer && !$scope.query.layerData.error) {
+                        if($scope.query.layerData.currentLayer && !$scope.query.layerData.error && $scope.query.featureTypeData) {
                             step = 3; // Show the layer details and cql query input
                             if($scope.query.layerData.currentLayerFriendlyName) {
                                 step = 4;
@@ -43,7 +48,15 @@ angular.module('stealth.common.layermanager.openlayersManager', [
 
                 // Get capabilities.
                 $scope.query.updateServer = function () {
+                    $scope.query.serverData.error = null;
                     $scope.query.serverData.currentGeoserverUrl = $scope.query.serverData.proposedGeoserverUrl;
+                    $scope.query.layerData = {};
+                    $scope.query.filterData = {};
+                    $scope.query.style = {
+                        name: '',
+                        'background-color': '#0099CC'
+                    };
+
                     WMS.getCapabilities($scope.query.serverData.currentGeoserverUrl).then(function (data) {
                         var layers = data.capability.layers;
                         $scope.query.getCapabilitiesError = null;
@@ -58,6 +71,10 @@ angular.module('stealth.common.layermanager.openlayersManager', [
                     $scope.query.layerData.currentLayerFriendlyName = $scope.query.layerData.currentLayer.name;
                     $scope.query.filterData = {};
                     $scope.query.featureTypeData = null;
+                    $scope.query.style = {
+                        name: '',
+                        'background-color': '#0099CC'
+                    };
 
                     WFS.getFeatureTypeDescription($scope.query.serverData.currentGeoserverUrl, $scope.query.layerData.currentLayer.name).then(function (data) {
                         $scope.query.featureTypeData = data;
@@ -90,7 +107,9 @@ angular.module('stealth.common.layermanager.openlayersManager', [
                         name: $scope.query.layerData.currentLayerFriendlyName,
                         url: $filter('endpoint')($scope.query.serverData.currentGeoserverUrl, 'wms', true),
                         layers: $scope.query.layerData.currentLayer.name,
-                        cql_filter: $scope.query.filterData.cql
+                        cql_filter: $scope.query.filterData.cql,
+                        styles: $scope.query.style.name,
+                        env: $scope.query.style['background-color'] ? 'color:' + $scope.query.style['background-color'].substring(1) : null
                     });
                 };
             }
@@ -164,6 +183,10 @@ angular.module('stealth.common.layermanager.openlayersManager', [
                     },
                     changeBaseLayer: function (layer) {
                         layer.map.setBaseLayer(layer);
+                    },
+                    style: {
+                        'background-color': scope.layerData.styles === 'stealth_dataPoints' && scope.layerData.env && scope.layerData.env.indexOf('color:') > -1 ?
+                            '#' + scope.layerData.env.substr(scope.layerData.env.indexOf('color:') + 6, 6) : 'transparent'
                     }
                 };
                 // Bind a single click event to the element, and determine

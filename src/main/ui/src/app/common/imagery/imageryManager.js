@@ -156,6 +156,11 @@ angular.module('stealth.common.imagery.imageryManager', [
                 }).finally(function () {
                     $scope.search.running = false;
                 });
+            },
+            clearCoverage: function () {
+                if ($scope.select.coverageLayer) {
+                    $scope.select.coverageLayer.destroyFeatures();
+                }
             }
         };
         $scope.select = {
@@ -249,7 +254,7 @@ angular.module('stealth.common.imagery.imageryManager', [
                 })
             }),
             rendererOptions: {zIndexing: true},
-            displayInLayerSwitcher: false,
+            permanent: true,
             layerAddedCallback: function (map, layer) {
                 $scope.select.coverageLayer = layer;
                 var numBaseLayers = _.reduce(map.layers, function (count, l) {

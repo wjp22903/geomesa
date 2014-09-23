@@ -121,7 +121,14 @@ angular.module('stealth.common.map.ol.map', [
                         config.cql_filter = null;
                     }
 
-                    layer = new OpenLayers.Layer.WMS(layerConfig.name, layerConfig.url, config, {singleTile: config.singleTile, wrapDateLine: true, visibility: !layerConfig.dontShow});
+                    layer = new OpenLayers.Layer.WMS(layerConfig.name, layerConfig.url, config, {
+                        singleTile: config.singleTile,
+                        wrapDateLine: true,
+                        visibility: !layerConfig.dontShow,
+                        styles: layerConfig.styles,
+                        env: layerConfig.env,
+                        permanent: layerConfig.permanent //can it be removed via layer manager?
+                    });
                     self.addLayer(layer, layerConfig.extent, layerConfig.loadStartCallback, layerConfig.loadEndCallback, layerConfig.layerAddedCallback);
                     if (!layerConfig.noGetInfoControl && !layer.isBaseLayer) {
                         $rootScope.$emit('AddGetInfoControl', layer, config);
