@@ -117,7 +117,7 @@ angular.module('stealth.common.map.ol.map', [
                         }));
 
                     //nullify empty string filter
-                    if (_.isString(config.cql_filer) && config.trim().length === 0) {
+                    if (_.isString(config.cql_filter) && config.cql_filter.trim().length === 0) {
                         config.cql_filter = null;
                     }
 
