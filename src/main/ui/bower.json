@@ -10,6 +10,7 @@
     "angular-route": "~1.2.13",
     "angular-ui-bootstrap-bower": "~0.10.0",
     "angular-ui-utils": "~0.1.1",
+    "AngularJS-Toaster": "0.4.7",
     "atmosphere": "~2.2.0",
     "bootstrap": "~3.1.1",
     "bowser": "~0.7.1",
@@ -22,6 +23,7 @@
     "lodash": "~2.4.1",
     "momentjs": "~2.5.1",
     "openlayers": "release-2.13.1",
+    "sonic.js": "git@github.com:ccri/sonic.js.git#v0.5.x",
     "ui.bootstrap": "~0.10.0"
   }
 }

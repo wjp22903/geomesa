@@ -48,6 +48,8 @@ module.exports = {
             'vendor/bower/bowser/bowser.min.js',
             'vendor/bower/flexy-layout/flexy-layout.min.js',
             'vendor/bower/angular-bootstrap-colorpicker/js/bootstrap-colorpicker-module.js',
+            'vendor/bower/AngularJS-Toaster/toaster.js',
+            'vendor/bower/sonic.js/dist/sonic.js',
             'vendor/filereader.js/filereader.js',
             'vendor/FileSaver.js/FileSaver.js',
             // TODO - test only
