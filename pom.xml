@@ -669,13 +669,15 @@
                                 <phase>generate-resources</phase>
                                 <configuration>
                                     <target>
-                                        <echo>**** NPM CACHE CLEAR ****</echo>
+                                        <!-- We needed the cache clearing once when a dep released a corrupt version. -->
+                                        <!-- However, it's a huge waste of time to dowload everything for every pack-ui build. -->
+                                        <!--echo>**** NPM CACHE CLEAR ****</echo>
                                         <exec executable="cmd" dir="${uidir.pathname}" osfamily="windows" failonerror="true">
                                             <arg line="/c ${uidir.pathname}/nodejs/npm.cmd cache clear"/>
                                         </exec>
                                         <exec executable="bash" dir="${uidir.pathname}" osfamily="unix" failonerror="true">
                                             <arg line="-c '${nodejs.local.dir}/bin/node ${nodejs.local.dir}/lib/node_modules/npm/bin/npm-cli.js cache clear'"/>
-                                        </exec>
+                                        </exec-->
                                         <echo>**** NPM INSTALL ****</echo>
                                         <exec executable="cmd" dir="${uidir.pathname}" osfamily="windows" failonerror="true">
                                             <arg line="/c ${uidir.pathname}/nodejs/npm.cmd install"/>
@@ -683,13 +685,13 @@
                                         <exec executable="bash" dir="${uidir.pathname}" osfamily="unix" failonerror="true">
                                             <arg line="-c '${nodejs.local.dir}/bin/node ${nodejs.local.dir}/lib/node_modules/npm/bin/npm-cli.js install'"/>
                                         </exec>
-                                        <echo>**** BOWER CACHE CLEAN ****</echo>
+                                        <!--echo>**** BOWER CACHE CLEAN ****</echo>
                                         <exec executable="cmd" dir="${uidir.pathname}" osfamily="windows" failonerror="true">
                                             <arg line="/c node.exe ${uidir.pathname}/node_modules/bower/bin/bower cache clean"/>
                                         </exec>
                                         <exec executable="bash" dir="${uidir.pathname}" osfamily="unix" failonerror="true">
                                             <arg line="-c '${nodejs.local.dir}/bin/node ${uidir.pathname}/node_modules/bower/bin/bower cache clean'"/>
-                                        </exec>
+                                        </exec-->
                                         <echo>**** BOWER INSTALL ****</echo>
                                         <exec executable="cmd" dir="${uidir.pathname}" osfamily="windows" failonerror="true">
                                             <arg line="/c node.exe ${uidir.pathname}/node_modules/bower/bin/bower install"/>

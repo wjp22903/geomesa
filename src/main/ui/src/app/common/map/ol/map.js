@@ -172,14 +172,14 @@ angular.module('stealth.common.map.ol.map', [
                 _.each(CONFIG.map.overlays, function (layer) {
                     scope.map.setLayerIndex(this.addLayer(new OpenLayers.Layer.WMS(
                         layer.name, CONFIG.map.defaultUrl || layer.url,
-                        {layers: layer.layers, format: layer.format, transparent: true},
+                        {layers: layer.layers, format: layer.format, transparent: true, cql_filter: layer.cql_filter},
                         {wrapDateLine: true, isBaseLayer: false, visibility: layer.visibility}
                     )), 0);
                 }, this);
                 _.each(CONFIG.map.baseLayers, function (layer) {
                     scope.map.setLayerIndex(this.addLayer(new OpenLayers.Layer.WMS(
                         layer.name, CONFIG.map.defaultUrl || layer.url,
-                        {layers: layer.layers, format: layer.format, transparent: true},
+                        {layers: layer.layers, format: layer.format, transparent: true, cql_filter: layer.cql_filter},
                         {wrapDateLine: true, opacity: 1, isBaseLayer: true}
                     )), 0);
                 }, this);
