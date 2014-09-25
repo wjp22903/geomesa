@@ -97,14 +97,16 @@
                 {
                     name: "OSM Toner",
                     url: "${map.default.url}",
-                    layers: "mapproxy:globe.osm.toner",
-                    format: "image/png"
+                    getMapParams: {
+                        layers: "mapproxy:globe.osm.toner"
+                    }
                 },
                 {
                     name: "OSM Default",
                     url: "${map.default.url}",
-                    layers: "mapproxy:globe.osm.default",
-                    format: "image/png"
+                    getMapParams: {
+                        layers: "mapproxy:globe.osm.default"
+                    }
                 }
             ]
         </map.baseLayers>
@@ -113,9 +115,12 @@
                 {
                     name: "Aerial",
                     url: "${map.default.url}",
-                    layers: "mapproxy:globe.aerial.mapquest",
-                    format: "image/png",
-                    visibility: false
+                    getMapParams: {
+                        layers: "mapproxy:globe.aerial.mapquest"
+                    },
+                    options: {
+                        visibility: false
+                    }
                 }
             ]
         </map.overlays>

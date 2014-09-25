@@ -29,6 +29,16 @@ angular.module('stealth.common.map.ol.map', [
                 var scope = $scope;
                 var restrictedExtent = _.isEmpty(CONFIG.map.restrictedExtent) ? new OpenLayers.Bounds(-360, -90, 360, 90) : OpenLayers.Bounds.fromString(CONFIG.map.restrictedExtent),
                     maxExtent = _.isEmpty(CONFIG.map.maxExtent) ? new OpenLayers.Bounds(-360, -90, 360, 90) : OpenLayers.Bounds.fromString(CONFIG.map.maxExtent);
+                var wmsOpts = {
+                    // Geomesa layers currently perform better without tiling.
+                    // Difficult to distinguish Geomesa requests from other requests.
+                    // So singleTile everything.
+                    singleTile: true,
+                    format: 'image/png',
+                    buffer: 6, //reduce tiling effects
+                    time: '2000/2050',
+                    transparent: true
+                };
                 scope.loading = {
                     count: 0
                 };
@@ -103,16 +113,7 @@ angular.module('stealth.common.map.ol.map', [
                 };
                 this.addWmsLayer = function (layerConfig) {
                     var layer,
-                        config = _.merge({
-                            // Geomesa layers currently perform better without tiling.
-                            // Difficult to distinguish Geomesa requests from other requests.
-                            // So singleTile everything.
-                            singleTile: true,
-                            format: 'image/png',
-                            buffer: 6, //reduce tiling effects
-                            time: '2000/2050',
-                            transparent: true
-                        }, _.omit(layerConfig, function (value) {
+                        config = _.merge(wmsOpts, _.omit(layerConfig, function (value) {
                             return _.isFunction(value);
                         }));
 
@@ -172,15 +173,15 @@ angular.module('stealth.common.map.ol.map', [
                 _.each(CONFIG.map.overlays, function (layer) {
                     scope.map.setLayerIndex(this.addLayer(new OpenLayers.Layer.WMS(
                         layer.name, CONFIG.map.defaultUrl || layer.url,
-                        {layers: layer.layers, format: layer.format, transparent: true, cql_filter: layer.cql_filter},
-                        {wrapDateLine: true, isBaseLayer: false, visibility: layer.visibility}
+                        _.merge(layer.getMapParams || {}, wmsOpts),
+                        _.merge(layer.options || {}, {wrapDateLine: true, isBaseLayer: false})
                     )), 0);
                 }, this);
                 _.each(CONFIG.map.baseLayers, function (layer) {
                     scope.map.setLayerIndex(this.addLayer(new OpenLayers.Layer.WMS(
                         layer.name, CONFIG.map.defaultUrl || layer.url,
-                        {layers: layer.layers, format: layer.format, transparent: true, cql_filter: layer.cql_filter},
-                        {wrapDateLine: true, opacity: 1, isBaseLayer: true}
+                        _.merge(layer.getMapParams || {}, wmsOpts),
+                        _.merge(layer.options || {}, {wrapDateLine: true, isBaseLayer: true})
                     )), 0);
                 }, this);
                 scope.map.zoomToExtent(restrictedExtent);
