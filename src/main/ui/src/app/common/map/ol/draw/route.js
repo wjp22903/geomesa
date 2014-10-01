@@ -147,6 +147,10 @@ angular.module('stealth.common.map.ol.draw.route', [
                                                     var blob = new Blob([output], {type: type});
                                                     saveAs(blob, 'route.' + format);
                                                     $modalInstance.dismiss('export');
+                                                },
+                                                removeFromMap: function () {
+                                                    layer.destroyFeatures([feature]);
+                                                    $modalInstance.dismiss('removed');
                                                 }
                                             };
                                         },
