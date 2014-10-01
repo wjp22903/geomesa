@@ -61,7 +61,7 @@
         <app.title>Stealth</app.title>
         <app.context.path>/stealth</app.context.path>
         <app.hideNavBar>false</app.hideNavBar>
-        <app.tabs>["targetRank", "siteRank", "airDomain"]</app.tabs>
+        <app.tabs>["targetRank", "airDomain"]</app.tabs>
         <app.default.tab>targetRank</app.default.tab>
         <app.supported.browsers>
             {
@@ -630,7 +630,7 @@
                         <executions>
                             <execution>
                                 <id>make-assembly</id>
-                                <phase>prepare-package</phase>
+                                <phase>package</phase>
                                 <goals>
                                     <goal>single</goal>
                                 </goals>
@@ -644,7 +644,7 @@
                         <executions>
                             <execution>
                                 <id>attach-artifacts</id>
-                                <phase>package</phase>
+                                <phase>pre-integration-test</phase>
                                 <goals>
                                     <goal>attach-artifact</goal>
                                 </goals>
@@ -849,20 +849,21 @@
                         <executions>
                             <execution>
                                 <id>ds-dependencies</id>
-                                <phase>prepare-package</phase>
+                                <phase>generate-resources</phase>
                                 <goals>
                                     <goal>copy</goal>
                                 </goals>
                                 <configuration>
                                     <artifactItems>
                                         <artifactItem>
-                                            <outputDirectory>${project.build.directory}/${project.artifactId}-${project.version}/assets</outputDirectory>
+                                            <outputDirectory>${project.build.directory}/assets</outputDirectory>
                                             <destFileName>logo.png</destFileName>
                                             <groupId>dragonspell</groupId>
                                             <artifactId>logo</artifactId>
                                             <classifier>web</classifier>
                                             <version>1.0.0</version>
                                             <type>png</type>
+                                            <overWrite>true</overWrite>
                                         </artifactItem>
                                     </artifactItems>
                                 </configuration>

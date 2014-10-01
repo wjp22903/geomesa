@@ -9,8 +9,6 @@ angular.module('stealth.targetrank.targetRank', [
     'stealth.common.map.ol.draw.erase',
     'stealth.common.panes.centerPane',
     'stealth.common.panes.leftPane',
-    'stealth.common.panes.centerTop',
-    'stealth.common.panes.centerRight',
     'stealth.common.groupCheckbox',
     'stealth.common.layermanager.openlayersManager',
     'stealth.common.rank',
@@ -537,6 +535,7 @@ angular.module('stealth.targetrank.targetRank', [
                 // The GetCapabilites request failed.
                 $scope.targetRank.dataLayersError = 'GetCapabilities request failed. Error: ' + reason.status + ' ' + reason.statusText;
             }).finally(function () {
+                $scope.targetRank.numData = 0;
                 $scope.targetRank.loadingDataLayers = false;
             });
         };

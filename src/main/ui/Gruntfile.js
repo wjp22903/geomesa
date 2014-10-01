@@ -28,6 +28,11 @@ module.exports = function (grunt) {
                 dest: '<%= buildDir %>/assets/',
                 cwd: 'src/assets',
                 expand: true
+            }, {
+                src: ['**'],
+                dest: '<%= buildDir %>/assets/',
+                cwd: '../../../target/assets',
+                expand: true
             }]
         },
         build_vendor_assets: {

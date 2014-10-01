@@ -68,8 +68,7 @@ angular.module('stealth.common.map.ol.map', [
                                     '</td></tr></table>';
                                 return newHtml;
                             }
-                        }),
-                        new OpenLayers.Control.ScaleLine()
+                        })
                     ],
                     projection: 'EPSG:4326',
                     restrictedExtent: restrictedExtent
@@ -113,7 +112,7 @@ angular.module('stealth.common.map.ol.map', [
                 };
                 this.addWmsLayer = function (layerConfig) {
                     var layer,
-                        config = _.merge(wmsOpts, _.omit(layerConfig, function (value) {
+                        config = _.merge(_.cloneDeep(wmsOpts), _.omit(layerConfig, function (value) {
                             return _.isFunction(value);
                         }));
 
@@ -172,14 +171,14 @@ angular.module('stealth.common.map.ol.map', [
 
                 _.each(CONFIG.map.overlays, function (layer) {
                     scope.map.setLayerIndex(this.addLayer(new OpenLayers.Layer.WMS(
-                        layer.name, CONFIG.map.defaultUrl || layer.url,
+                        layer.name, layer.url || CONFIG.map.defaultUrl,
                         _.merge(layer.getMapParams || {}, wmsOpts),
                         _.merge(layer.options || {}, {wrapDateLine: true, isBaseLayer: false})
                     )), 0);
                 }, this);
                 _.each(CONFIG.map.baseLayers, function (layer) {
                     scope.map.setLayerIndex(this.addLayer(new OpenLayers.Layer.WMS(
-                        layer.name, CONFIG.map.defaultUrl || layer.url,
+                        layer.name, layer.url || CONFIG.map.defaultUrl,
                         _.merge(layer.getMapParams || {}, wmsOpts),
                         _.merge(layer.options || {}, {wrapDateLine: true, isBaseLayer: true})
                     )), 0);

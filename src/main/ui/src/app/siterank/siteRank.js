@@ -7,8 +7,6 @@ angular.module('stealth.siterank.siteRank', [
     'stealth.common.map.ol.draw.measure',
     'stealth.common.panes.centerPane',
     'stealth.common.panes.leftPane',
-    'stealth.common.panes.centerTop',
-    'stealth.common.panes.centerRight',
     'stealth.common.groupCheckbox',
     'stealth.common.layermanager.openlayersManager',
     'stealth.common.rank',
