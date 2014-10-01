@@ -195,13 +195,16 @@ angular.module('stealth.common.imagery.imageryManager', [
                         url: $filter('endpoint')($scope.search.criteria.server.url, 'ogc/wms', true),
                         layers: [image.attributes.image_id],
                         layerAddedCallback: function (map, layer) {
-                            var numBaseLayers = _.reduce(map.layers, function (count, l) {
-                                if (l.isBaseLayer) {
-                                    count++;
-                                }
-                                return count;
-                            }, 0);
-                            map.setLayerIndex(layer, numBaseLayers); //push imagery to bottom, below coverage layer
+                            var newLayerIndex = map.getLayerIndex($scope.select.coverageLayer);
+                            if (newLayerIndex < 0) {
+                                newLayerIndex = _.reduce(map.layers, function (count, l) {
+                                    if (l.isBaseLayer) {
+                                        count++;
+                                    }
+                                    return count;
+                                }, 0);
+                            }
+                            map.setLayerIndex(layer, newLayerIndex); //push new imagery just below coverage layer
                         }
                     });
                     image.isVisible = true;
@@ -265,6 +268,9 @@ angular.module('stealth.common.imagery.imageryManager', [
                 }, 0);
                 map.setLayerIndex(layer, numBaseLayers); //push coverage layer to bottom
             }
+        });
+        $rootScope.$on('PopulateImageryForm', function (event, criteria) {
+            _.merge($scope.search.criteria, criteria);
         });
     }])
 
