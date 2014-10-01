@@ -24,8 +24,8 @@ angular.module('stealth.common.groupCheckbox', [])
                 });
 
                 scope.$watch(parts[0], function (newVal) {
-                    var hasTrue,
-                        hasFalse;
+                    var hasTrue = false,
+                        hasFalse = false;
 
                     angular.forEach(newVal, function (v) {
                         if(v[parts[1]]) {
