@@ -7,7 +7,7 @@
         <div class="form-group">
             <label for=""><span class="form-step">1</span> Enter a server url</label>
             <div class="input-group">
-                <input type="text" class="form-control input-sm" name="geoserverUrl" onclick="this.select();"
+                <input type="text" class="form-control input-sm" name="geoserverUrl"
                     ng-model="query.serverData.proposedGeoserverUrl"
                     ng-keypress="$event.keyCode == 13 ? query.updateServer() : false">
 
@@ -63,13 +63,13 @@
         <div class="form-group" ng-show="query.formStep() > 2">
             <label for=""><span class="form-step">3</span> Enter a name for this layer</label>
             <input type="text" class="form-control input-sm" name="layerName" placeholder="Enter layer name"
-                ng-model="query.layerData.currentLayerFriendlyName" onclick="this.select();">
+                ng-model="query.layerData.currentLayerFriendlyName">
         </div>
 
         <div class="form-group" ng-show="query.formStep() > 3">
             <label for=""><span class="form-step">4</span> Enter CQL</label>
             <input type="text" class="form-control input-sm" name="siteCql" placeholder="Enter CQL"
-                ng-model="query.filterData.cql" onclick="this.select();">
+                ng-model="query.filterData.cql">
         </div>
 
         <div class="form-group" ng-show="query.formStep() > 3">
