@@ -30,7 +30,7 @@ angular.module('stealth.common.map.leaflet.leafletMap', [
                     crs: L.CRS.EPSG4326
                 });
 
-                var base = L.tileLayer.wms(CONFIG.map.baseLayers[0].url, {
+                var base = L.tileLayer.wms(CONFIG.map.baseLayers[0].url || CONFIG.map.defaultUrl, {
                     transparent: true,
                     layers: CONFIG.map.baseLayers[0].getMapParams.layers,
                     format: CONFIG.map.baseLayers[0].getMapParams.format || 'image/png'
