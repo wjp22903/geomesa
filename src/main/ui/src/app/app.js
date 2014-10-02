@@ -7,6 +7,7 @@ angular.module('stealth', [
     'templates-app',
     'stealth.siterank.siteRank',
     'stealth.targetrank.targetRank',
+    'stealth.activity.activityIndicator',
     'stealth.airdomain.airDomain'
 ])
 

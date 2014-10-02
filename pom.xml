@@ -61,7 +61,7 @@
         <app.title>Stealth</app.title>
         <app.context.path>/stealth</app.context.path>
         <app.hideNavBar>false</app.hideNavBar>
-        <app.tabs>["targetRank", "airDomain"]</app.tabs>
+        <app.tabs>["targetRank", "activityIndicator", "airDomain"]</app.tabs>
         <app.default.tab>targetRank</app.default.tab>
         <app.supported.browsers>
             {
@@ -128,6 +128,10 @@
         <imagery.metadata.fields>{}</imagery.metadata.fields>
 
         <comention.url>http://localhost:9090/comention</comention.url>
+
+        <activity.indicator.geoserver.url>${geoserver.url}</activity.indicator.geoserver.url>
+        <activity.indicator.layer.alerts>geomesa:alerts</activity.indicator.layer.alerts>
+        <activity.indicator.layer.timeseries>geomesa:timeseries</activity.indicator.layer.timeseries>
 
         <classification.text>Dynamic Page - Highest Possible Classification is UNCLASSIFIED//FOR OFFICIAL USE ONLY</classification.text>
         <!-- supported levels: unclassified, confidential, secret, topSecret, sci -->
