@@ -129,7 +129,26 @@ trait TrackController
   }
 }
 
-class CachingActor(next: ActorRef) extends Actor {
+sealed case class Coordinate(lon: Double, lat: Double) {
+  override def toString = s"[$lon, $lat]"
+}
+
+trait CoordinateUtils {
+
+  def getCoordinates(points: List[JsonObject]) = {
+    val coordsList = points.map { p =>
+      val geom = Try(p.get("geometry").getAsJsonObject)
+      val coord = geom.map(g => g.get("coordinates").getAsJsonArray)
+      val coordinate = coord.map { c =>
+        new Coordinate(c.get(0).getAsDouble, c.get(1).getAsDouble)
+      }
+      coordinate
+    }
+    coordsList
+  }
+}
+
+class CachingActor(next: ActorRef) extends Actor with CoordinateUtils {
   val logger = LoggerFactory.getLogger(classOf[CachingActor])
 
   import scala.concurrent.ExecutionContext.Implicits.global
@@ -164,7 +183,16 @@ class CachingActor(next: ActorRef) extends Actor {
   override def receive = {
     case JOEvent(id, point) =>
       val points = cache.get(id)
-      points.prepend(point)
+      // Ignore points with the same coordinates as the last seen point
+      if (points.size > 0) {
+        val hd = points.head
+        val List(cur, next) = getCoordinates(List(hd, point)).map(_.get)
+        if (cur != next) {
+          points.prepend(point)
+        }
+      } else {
+        points.prepend(point)
+      }
       val size = points.size
       if (size > 21)
         points.trimEnd(size - 21)
@@ -173,6 +201,7 @@ class CachingActor(next: ActorRef) extends Actor {
 
     case CleanUp => cache.cleanUp()
   }
+
 }
 
 
@@ -212,12 +241,8 @@ class ThrottlingActor(next: ActorRef, throttlingParam: Integer) extends Actor {
   }
 }
 
-class EncodingActor(emitter: ActorRef) extends Actor {
+class EncodingActor(emitter: ActorRef) extends Actor with CoordinateUtils {
   val logger = LoggerFactory.getLogger(classOf[EncodingActor])
-
-  sealed case class Coordinate(lon: Double, lat: Double) {
-    override def toString = s"[$lon, $lat]"
-  }
 
   override def receive = {
     case JOListEvent(id, points) =>
@@ -238,18 +263,6 @@ class EncodingActor(emitter: ActorRef) extends Actor {
   }
 
   def getProperties(point: JsonObject) = Try(point.get("properties").getAsJsonObject)
-
-  def getCoordinates(points: List[JsonObject]) = {
-    val coordsList = points.map { p =>
-      val geom = Try(p.get("geometry").getAsJsonObject)
-      val coord = geom.map(g => g.get("coordinates").getAsJsonArray)
-      val coordinate = coord.map { c =>
-        new Coordinate(c.get(0).getAsDouble, c.get(1).getAsDouble)
-      }
-      coordinate
-    }
-    coordsList
-  }
 
   def buildLineString(coords: List[Try[Coordinate]], props: Try[JsonObject]) = {
     val coordsStr = coords.map { c => c.map(_.toString).getOrElse("") }.mkString("[", ",", "]")

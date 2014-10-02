@@ -132,6 +132,11 @@ angular.module('stealth.common.map.leaflet.leafletMap', [
 
                     // Style the segments
                     var seg0 = segmented[0];
+                    // If a color is specified in the gj properties, override the default color
+                    if (seg0.properties.color !== undefined) {
+                        style.color = seg0.properties.color;
+                        style.fillColor = style.color;
+                    }
                     var gJ = L.geoJson(seg0, {
                         style: style
                     });
@@ -178,7 +183,8 @@ angular.module('stealth.common.map.leaflet.leafletMap', [
                         }
                     } else {
                         // First, clear out any tracks related to the incoming one.
-                        var id = msg.properties.hexid;
+                        var id = msg.properties.uuid !== undefined ?
+                                msg.properties.uuid : msg.properties.hexid;
                         if (trackers[id]) {
                             var lyrGrpToClear = trackerGroup[id];
                             _.each(trackers[id], function (lyr) {
@@ -215,8 +221,10 @@ angular.module('stealth.common.map.leaflet.leafletMap', [
                             layer.bindPopup(popupText);
                             group.addLayer(layer);
                         });
+                        var properties = collection.features[0].properties;
+                        var id = properties.uuid !== undefined ? properties.uuid : properties.hexid;
                         layerCtrl.addOverlay(group,
-                            collection.features[0].properties.hexid,
+                            id,
                             style.color);
                         map.addLayer(group);
                     }
