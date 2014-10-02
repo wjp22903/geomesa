@@ -169,13 +169,6 @@ angular.module('stealth.common.map.ol.map', [
                     return self.addVectorLayer(layerConfigToAdd);
                 };
 
-                _.each(CONFIG.map.overlays, function (layer) {
-                    scope.map.setLayerIndex(this.addLayer(new OpenLayers.Layer.WMS(
-                        layer.name, layer.url || CONFIG.map.defaultUrl,
-                        _.merge(layer.getMapParams || {}, wmsOpts),
-                        _.merge(layer.options || {}, {wrapDateLine: true, isBaseLayer: false})
-                    )), 0);
-                }, this);
                 _.each(CONFIG.map.baseLayers, function (layer) {
                     scope.map.setLayerIndex(this.addLayer(new OpenLayers.Layer.WMS(
                         layer.name, layer.url || CONFIG.map.defaultUrl,
@@ -184,6 +177,15 @@ angular.module('stealth.common.map.ol.map', [
                     )), 0);
                 }, this);
                 scope.map.zoomToExtent(restrictedExtent);
+
+                $rootScope.$on('$viewContentLoaded', function () {
+                    _.each(CONFIG.map.overlays, function (layer) {
+                        this.addWmsLayer(_.merge({
+                            name: layer.name,
+                            url: layer.url || CONFIG.map.defaultUrl,
+                        }, layer.getMapParams || {}, layer.options || {}, {wrapDateLine: true, isBaseLayer: false}, wmsOpts));
+                    }, self);
+                });
 
                 $rootScope.$on("AddWmsMapLayer", function (event, layerConfig) {
                     self.addWmsLayer(layerConfig);

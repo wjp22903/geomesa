@@ -95,15 +95,13 @@
         <map.baseLayers>
             [
                 {
-                    name: "OSM Toner",
-                    url: "${map.default.url}",
+                    name: "OSM Toner"
                     getMapParams: {
                         layers: "mapproxy:globe.osm.toner"
                     }
                 },
                 {
-                    name: "OSM Default",
-                    url: "${map.default.url}",
+                    name: "OSM Default"
                     getMapParams: {
                         layers: "mapproxy:globe.osm.default"
                     }
@@ -113,13 +111,13 @@
         <map.overlays>
             [
                 {
-                    name: "Aerial",
-                    url: "${map.default.url}",
+                    name: "Aerial"
                     getMapParams: {
                         layers: "mapproxy:globe.aerial.mapquest"
                     },
                     options: {
-                        visibility: false
+                        dontShow: true
+                        noGetInfoControl: true
                     }
                 }
             ]
