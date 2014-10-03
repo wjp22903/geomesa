@@ -47,6 +47,7 @@ angular.module('stealth.common.map.ol.map', [
                 };
 
                 scope.map = new OpenLayers.Map(_.merge(_.isEmpty(CONFIG.map.maxExtent) ? {} : {maxExtent: maxExtent}, {
+                    tileManager: null,
                     numZoomLevels: 24,
                     controls: [
                         new OpenLayers.Control.Panel({
