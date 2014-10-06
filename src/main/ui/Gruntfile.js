@@ -283,10 +283,6 @@ module.exports = function (grunt) {
     function filterForJS ( files ) {
         return files.filter( function ( file ) {
             return file.match( /\.js$/ );
-        }).filter( function (file) {
-            //we only want to include the main OpenLayers file
-            return file.match( /^(?!vendor\/bower\/openlayers).*/ ) ||
-                file === 'vendor/bower/openlayers/lib/OpenLayers.js';
         });
     }
 

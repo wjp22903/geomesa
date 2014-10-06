@@ -83,7 +83,7 @@
         <geoserver.output.workspace>stealth-output</geoserver.output.workspace>
         <geoserver.output.store>stealth-output</geoserver.output.store>
 
-        <openlayers.imagepath>vendor/bower/openlayers/img/</openlayers.imagepath>
+        <openlayers.imagepath>vendor/openlayers/img/</openlayers.imagepath>
 
         <map.restricted.extent></map.restricted.extent>
         <map.max.extent></map.max.extent>

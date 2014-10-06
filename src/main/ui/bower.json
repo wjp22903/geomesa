@@ -22,7 +22,6 @@
     "leaflet-providers": "~1.0.1",
     "lodash": "~2.4.1",
     "momentjs": "~2.5.1",
-    "openlayers": "release-2.13.1",
     "sonic.js": "git@github.com:ccri/sonic.js.git#v0.5.x",
     "ui.bootstrap": "~0.10.0"
   }

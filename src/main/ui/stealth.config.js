@@ -44,21 +44,21 @@ module.exports = {
             'vendor/bower/momentjs/moment.js',
             'vendor/bower/angular-ui-bootstrap-bower/ui-bootstrap.js',
             'vendor/bower/angular-ui-bootstrap-bower/ui-bootstrap-tpls.js',
-            'vendor/bower/openlayers/lib/**/*.js',
             'vendor/bower/bowser/bowser.min.js',
             'vendor/bower/flexy-layout/flexy-layout.min.js',
             'vendor/bower/angular-bootstrap-colorpicker/js/bootstrap-colorpicker-module.js',
             'vendor/bower/AngularJS-Toaster/toaster.js',
             'vendor/bower/sonic.js/dist/sonic.js',
+            'vendor/openlayers/OpenLayers.js',
             'vendor/filereader.js/filereader.js',
             'vendor/FileSaver.js/FileSaver.js',
             // TODO - test only
             'vendor/bower/angular-mocks/angular-mocks.js',
         ],
         assets_nested: [
-            'vendor/bower/openlayers/img/*',
-            'vendor/bower/openlayers/theme/default/img/*',
-            'vendor/bower/openlayers/theme/default/style.css'
+            'vendor/openlayers/img/*',
+            'vendor/openlayers/theme/default/img/*',
+            'vendor/openlayers/theme/default/style.css'
         ],
         assets: [
             'vendor/bower/leaflet-dist/images/*',

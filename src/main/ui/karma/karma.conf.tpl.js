@@ -1,6 +1,6 @@
 module.exports = function ( karma ) {
   karma.set({
-    /** 
+    /**
      * From where to look for files, starting with the location of this file.
      */
     // basePath: '../',
@@ -11,8 +11,7 @@ module.exports = function ( karma ) {
     files: [
       <% scripts.forEach( function ( file ) { %>'<%= file %>',
       <% }); %>
-      'src/**/*.js',
-      {pattern: 'vendor/bower/openlayers/lib/**/*.js', watched: false, included: false, served: true}
+      'src/**/*.js'
       // 'src/**/*.coffee'
     ],
     exclude: [
@@ -24,12 +23,12 @@ module.exports = function ( karma ) {
             ui: 'bdd'
         }
     },
-    plugins: [ 
+    plugins: [
         'karma-mocha',
         'karma-chai-plugins',
-        'karma-firefox-launcher', 
-        'karma-chrome-launcher', 
-        'karma-phantomjs-launcher', 
+        'karma-firefox-launcher',
+        'karma-chrome-launcher',
+        'karma-phantomjs-launcher',
         'karma-coffee-preprocessor'
     ],
     preprocessors: {
@@ -49,7 +48,7 @@ module.exports = function ( karma ) {
     runnerPort: 9100,
     urlRoot: '/',
 
-    /** 
+    /**
      * Disable file watching by default.
      */
     autoWatch: false,
