@@ -177,7 +177,9 @@ angular.module('stealth.targetrank.targetRank', [
                                 };
                             }), _.merge(rankArg, {
                                 maxSpeedMps: $scope.targetRank.options.maxSpeedMps,
-                                maxTimeSec: $scope.targetRank.options.maxTimeSec
+                                maxTimeSec: $scope.targetRank.options.maxTimeSec,
+                                minDtg: $scope.targetRank.options.startMoment.toISOString(),
+                                maxDtg: $scope.targetRank.options.endMoment.toISOString()
                             })
                         )
                             .then(function (response) {
@@ -566,13 +568,17 @@ angular.module('stealth.targetrank.targetRank', [
         });
 
         $rootScope.$on('SetInputTrack', function (event, trackGeoJsonObjArr) {
-            $scope.addSites.submit(function () {
-                $scope.targetRank.serverData.currentGeoserverUrl = $scope.targetRank.serverData.proposedGeoserverUrl;
-                $scope.targetRank.inputData.type = 'track_geojson';
-                $scope.targetRank.layerData.currentLayer = {name: 'geojson'};
-                $scope.targetRank.sites = trackGeoJsonObjArr;
-            });
-            $scope.targetRank.leftPaneView = 'analysis';
+            if (trackGeoJsonObjArr.length > 0) {
+                $scope.addSites.submit(function () {
+                    $scope.targetRank.serverData.currentGeoserverUrl = $scope.targetRank.serverData.proposedGeoserverUrl;
+                    $scope.targetRank.inputData.type = 'track_geojson';
+                    $scope.targetRank.layerData.currentLayer = {name: 'geojson'};
+                    $scope.targetRank.sites = trackGeoJsonObjArr;
+                });
+                $scope.targetRank.options.startMoment = moment(trackGeoJsonObjArr[0].properties.dtg);
+                $scope.targetRank.options.endMoment = moment(trackGeoJsonObjArr[trackGeoJsonObjArr.length - 1].properties.dtg);
+                $scope.targetRank.leftPaneView = 'analysis';
+            }
         });
 
         $rootScope.$on('BeginTrackEdit', function (event, trackFeature) {
