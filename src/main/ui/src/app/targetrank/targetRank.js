@@ -569,6 +569,16 @@ angular.module('stealth.targetrank.targetRank', [
 
         $rootScope.$on('SetInputTrack', function (event, trackGeoJsonObjArr) {
             if (trackGeoJsonObjArr.length > 0) {
+                var fieldObj = {}; //will have key and null value for every field in track's points
+                _.each(trackGeoJsonObjArr, function (feature) {
+                    _.each(_.keys(feature.properties), function (key) {
+                        fieldObj[key] = null;
+                    });
+                });
+                //Make sure first point has all fields. GeoTools will require them
+                //when we eventually pass this to a WPS process.
+                _.defaults(trackGeoJsonObjArr[0].properties, fieldObj);
+
                 $scope.addSites.submit(function () {
                     $scope.targetRank.serverData.currentGeoserverUrl = $scope.targetRank.serverData.proposedGeoserverUrl;
                     $scope.targetRank.inputData.type = 'track_geojson';
