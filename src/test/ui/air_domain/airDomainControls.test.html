@@ -6,19 +6,23 @@
 
     <link rel="stylesheet" href="../../../main/ui/vendor/bower/leaflet-dist/leaflet.css">
     <link rel="stylesheet" href="../../../../target/stealth/css/style.css">
+    <script type="text/javascript" src="../../../../target/stealth/templates-jst.js"></script>
 
     <script type="text/javascript" src="../../../main/ui/vendor/bower/leaflet-dist/leaflet.js"></script>
     <script type="text/javascript" src="../../../main/ui/vendor/bower/angular/angular.js"></script>
     <script type="text/javascript" src="../../../main/ui/vendor/bower/lodash/dist/lodash.js"></script>
-    <script type="text/javascript" src="../../../main/ui/vendor/bower/openlayers/lib/OpenLayers.js"></script>
-
+    <script type="text/javascript" src="../../../main/ui/vendor/openlayers/OpenLayers.js"></script>
     <script type="text/javascript" src="../../../main/ui/src/app/ows/OpenLayers/Format/WFSCapabilities/v1_1_0_custom.js"></script>
+    <script type="text/javascript" src="../../../main/ui/vendor/bower/angular-ui-bootstrap-bower/ui-bootstrap-tpls.js"></script>
     <script type="text/javascript" src="../../../main/ui/src/app/ows/ows.js"></script>
     <script type="text/javascript" src="../../../main/ui/src/app/ows/airTrackHistory.js"></script>
     <script type="text/javascript" src="../../../main/ui/src/app/common/control/airTrackInfoControl.js"></script>
     <script type="text/javascript" src="../../../main/ui/src/app/common/control/airTrackerLayersControl.js"></script>
+    <script type="text/javascript" src="../../../main/ui/src/app/common/control/distinctValuesQueryControl.js"></script>
+    <script type="text/javascript" src="../../../main/ui/src/app/ows/distinctValuesQuery.js"></script>
     <script type="text/javascript" src="../../../main/ui/src/app/common/map/leaflet/utils.js"></script>
     <script type="text/javascript" src="../../../main/ui/src/app/common/map/leaflet/leafletMap.js"></script>
+
 </head>
 <body>
     <div ng-app="airDomainControlsTest">
@@ -42,7 +46,21 @@
                         },
                         map: {
                             url: proxyUrl + "/wms",
-                            baseLayers: "mapproxy:globe.osm.toner",
+                            defaultUrl: proxyUrl + "/wms",
+                            baseLayers: [
+                                {
+                                    name: "OSM Toner",
+                                    getMapParams: {
+                                        layers: "mapproxy:globe.osm.toner"
+                                    }
+                                },
+                                {
+                                    name: "OSM Default",
+                                    getMapParams: {
+                                        layers: "mapproxy:globe.osm.default"
+                                    }
+                                }
+                            ],
                             format: "image/png",
                             lon: "51.505",
                             lat: "-0.09",
@@ -51,8 +69,10 @@
                         },
                         airTracker: {
                             data: {
-                                layer: "whiptail:fr",
-                                threadingKey: "hexid"
+//                                layer: "whiptail:fr",
+                                layer: "geomesa:fr",
+//                                threadingKey: "hexid"
+                                threadingKey: "frHex"
                             }
                         },
                         trackStyles: [
@@ -78,7 +98,13 @@
                 }])
 
                 .directive('trackerControlsTest', [
-                    '$rootScope', '$http', 'CONFIG', function ($rootScope, $http, CONFIG) {
+                    '$rootScope', '$http', '$templateCache', 'CONFIG', function ($rootScope, $http, $templateCache, CONFIG) {
+                        // pre-load angular templates, since paths are searched relative to this file, which doesn't work
+                        $http.get('../../../main/ui/src/app/common/control/distinctValuesQuery.tpl.html').success(function(html)
+                            { $templateCache.put('common/control/distinctValuesQuery.tpl.html', html); });
+                        $http.get('../../../main/ui/src/app/common/control/distinctValuesResults.tpl.html').success(function(html)
+                            { $templateCache.put('common/control/distinctValuesResults.tpl.html', html); });
+
                         return {
                             restrict: 'E',
                             replace: true,
@@ -90,7 +116,8 @@
                                 // Assumes 3A24C5 is a valid hexid for observations
                                 // stored in GeoMesa served by a GeoServer plugin.
                                 // To test when the history crosses the date line.
-                                var feature1 = buildLineString("3A24C5", [
+//                                var feature1 = buildLineString("3A24C5", [
+                                var feature1 = buildLineString("2c4e64c", [
                                     [-0.09, 51.505],
                                     [-0.20, 51.555],
                                     [-0.00, 51.300],

@@ -1,14 +1,15 @@
 angular.module('stealth.common.map.leaflet.leafletMap', [
     'stealth.common.map.leaflet.utils',
     'stealth.common.control.airTrackerLayersControl',
-    'stealth.common.control.airTrackInfoControl'
+    'stealth.common.control.airTrackInfoControl',
+    'stealth.common.control.distinctValuesQueryInfo'
 ])
 
 .directive('leafletMap',
     ['$interval', '$rootScope', 'CONFIG',
-     'LeafletFeatures', 'AirTrackerLayers', 'AirTrackInfo',
+     'LeafletFeatures', 'AirTrackerLayers', 'AirTrackInfo', 'DistinctValuesQueryLeaflet',
     function ($interval, $rootScope, CONFIG,
-              LeafletFeatures, AirTrackerLayers, AirTrackInfo) {
+              LeafletFeatures, AirTrackerLayers, AirTrackInfo, DistinctValuesQueryLeaflet) {
 
         return {
             restrict: 'E',
@@ -29,6 +30,9 @@ angular.module('stealth.common.map.leaflet.leafletMap', [
                     maxZoom: mapMaxZoom,
                     crs: L.CRS.EPSG4326
                 });
+
+                // store the map in the scope so it's accessible by children
+                scope.map = map;
 
                 var base = L.tileLayer.wms(CONFIG.map.baseLayers[0].url || CONFIG.map.defaultUrl, {
                     transparent: true,
@@ -86,6 +90,8 @@ angular.module('stealth.common.map.leaflet.leafletMap', [
                 layerCtrl.addTo(map);
 
                 var infoCtrl = AirTrackInfo.createControl().addTo(map);
+                var distinctValuesCtrl = DistinctValuesQueryLeaflet.createControl().addTo(map);
+                distinctValuesCtrl.injectNg();
 
                 function getLabel(feature) {
                     var lbl = "";

@@ -1,0 +1,28 @@
+<div class="modal-header">
+  <i class="fa fa-map-marker fa-lg"></i> Distinct Attribute Values
+  <i class="fa fa-times pull-right btn btn-default btn-sm" ng-click="$dismiss()"></i>
+</div>
+<div class="modal-body">
+  <p>
+    <b>Attribute:</b>
+    {{ distinctValuesQuery.values.attribute.name }} ({{ distinctValuesQuery.values.attribute.typeLabel }})
+  </p>
+  <p>
+    <b>Filter:</b>
+    {{ distinctValuesQuery.values.filter }}
+  </p>
+  <p>
+    <b>Distinct Values:</b>
+    <div style="overflow:auto;max-height:400px;margin:5px;">
+      <span ng-if="distinctValuesQuery.values.attributes.length == 0">No features matched your query.</span>
+      <ul>
+        <li ng-repeat="attribute in distinctValuesQuery.values.attributes">
+          <span ng-if="attribute.value.length == 0">[None]</span>{{ attribute.value }} : {{ attribute.count }}
+        </li>
+      </ul>
+    </div>
+  </p>
+</div>
+<div class="modal-footer">
+  <button class="btn btn-primary" ng-click="$dismiss()">Close</button>
+</div>

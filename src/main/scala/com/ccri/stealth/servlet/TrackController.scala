@@ -48,8 +48,8 @@ trait TrackController
         case Connected          => logger.info("Connected")
         case Disconnected(_, _) => logger.info("Disconnected")
         case Error(Some(error)) => logger.info(s"Error: $error")
-        case TextMessage(text)  => send("ECHO: " + text)
-        case JsonMessage(json)  => broadcast(json)
+//        case TextMessage(text)  => send("ECHO: " + text)
+//        case JsonMessage(json)  => broadcast(json)
       }
     }
   }

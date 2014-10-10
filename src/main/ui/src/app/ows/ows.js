@@ -57,7 +57,10 @@ angular.module('stealth.ows.ows', [])
     .factory('WFS', ['$q', '$http', '$filter', function ($q, $http, $filter) {
         var descriptions = {},
             parser = new OpenLayers.Format.WFSCapabilities.v1_1_0_custom(),
-            capabilities = {};
+            capabilities = {},
+            cqlFormat = new OpenLayers.Format.CQL(),
+            filter_1_1 = new OpenLayers.Format.Filter({ version: '1.1.0', srsName: 'EPSG:4326' }), // 1.1.0 spec filter
+            xmlFormat = new OpenLayers.Format.XML();
 
         // Requests the WFS capabilities from geoserver and returns a promise.
         function requestCapabilities (url) {
@@ -102,6 +105,38 @@ angular.module('stealth.ows.ows', [])
                 };
 
             return $http.get(uri, { params:  _.merge(paramDefaults, paramOverrides), responseType: responseType || "text" });
+        }
+
+        function wpsRequest (url, xmlRequest) {
+            var deferred = $q.defer();
+            $http({ method: 'POST', 'url': url, data: xmlRequest, headers: { 'Content-Type': 'text/xml' } })
+                .success(function (data, status, headers, config) {
+                    if (_.isString(data)) {
+                        // exception report
+                        // <ows:ExceptionText>Process failed during execution java.lang.ArrayIndexOutOfBoundsException null</ows:ExceptionText>
+                        try {
+                            var r = /<ows:ExceptionText>(.*)<\/ows:ExceptionText>/;
+                            var ex = r.exec(data.replace(/(\r\n|\r|\n)/g, ' '))[1];
+                            deferred.reject(ex);
+                        } catch(e) {
+                            console.log(data, e);
+                            deferred.reject('An error occurred');
+                        }
+                    } else {
+                        deferred.resolve(data);
+                    }
+                })
+                .error(function (data, status, headers, config) {
+                    deferred.reject('Error: ' + status);
+                });
+            return deferred.promise;
+        }
+
+        function cqlToFilterXml(cql) {
+            // convert our cql string into a filter object
+            var filter = cqlFormat.read(cql);
+            // convert to xml
+            return xmlFormat.write(filter_1_1.write(filter));
         }
 
         return {
@@ -168,6 +203,16 @@ angular.module('stealth.ows.ows', [])
                         return _.reject(data, 'error'); //return results without failures
                     }
                 });
+            },
+
+            wpsRequest: function(url, xmlRequest, omitProxy) {
+                // TODO validate the url.
+                var uri = $filter('endpoint')(url, 'wfs', omitProxy);
+                return wpsRequest(uri, xmlRequest);
+            },
+
+            cqlToFilterXml: function (cql) {
+                return cqlToFilterXml(cql);
             }
         };
     }])

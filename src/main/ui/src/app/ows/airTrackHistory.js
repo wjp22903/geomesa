@@ -24,7 +24,7 @@ angular.module('stealth.ows.airTrackHistory', [
 
                 if (CONFIG.geoserver.hasOwnProperty('omitProxy')) {
                     WFS.getFeature(url, layerName, paramOverrides,
-                                   CONFIG.geoserver.omitProxy)
+                                   'text', CONFIG.geoserver.omitProxy)
                         .success(success)
                         .error(failed);
                 } else {

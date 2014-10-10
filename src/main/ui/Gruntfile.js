@@ -165,7 +165,8 @@ module.exports = function (grunt) {
                     return filepath.replace(/^src\/templates\//, '').replace(/\.jst/, '');
                 },
                 templateSettings: {
-                    interpolate : /\{\{(.+?)\}\}/g
+                    interpolate : /\{\{(.+?)\}\}/g,
+                    evaluate : /\{%(.+?)%\}/g
                 }
             },
             files: {
