@@ -1,14 +1,10 @@
 angular.module('stealth', [
-    'ngRoute',
+    'ui.router',
     'ngAnimate',
     'ngResource',
     'ui.bootstrap',
     'ui.utils',
-    'templates-app',
-    'stealth.siterank.siteRank',
-    'stealth.targetrank.targetRank',
-    'stealth.activity.activityIndicator',
-    'stealth.airdomain.airDomain'
+    'templates-app'
 ])
 
     .config(['$provide', '$httpProvider', function ($provide, $httpProvider) {
@@ -21,14 +17,15 @@ angular.module('stealth', [
         $httpProvider.defaults.withCredentials = true;
     }])
 
-    .config(['$routeProvider', 'CONFIG', function ($routeProvider, CONFIG) {
-        OpenLayers.ImgPath = CONFIG.openlayers.imagePath;
-
-        // Set the default route.
-        $routeProvider.otherwise({redirectTo: '/' + CONFIG.app.defaultTab});
+    .config(['$stateProvider', function ($stateProvider) {
+        $stateProvider
+            .state('index', {
+                url: '',
+                templateUrl: 'index.html'
+            });
     }])
 
-    .controller('AppController', ['$scope', '$rootScope', '$location', 'CONFIG', function ($scope, $rootScope, $location, CONFIG) {
+    .controller('AppController', ['$scope', '$rootScope', 'CONFIG', function ($scope, $rootScope, CONFIG) {
         $rootScope.CONFIG = CONFIG;
         $rootScope.alert = function (text) {
             alert(text);
@@ -37,20 +34,7 @@ angular.module('stealth', [
             return ((_.isString(text)) && (text.length > length)) ? text.substr(0, length-3) + '...' : text;
         };
 
-        //Block location changes to disallowed or non-existent routes
-        $rootScope.$on('$locationChangeStart', function (event, next, current) {
-            if (next.indexOf('#') !== -1 && //route specified AND...
-                    !_.some(CONFIG.app.tabs, function (tab) { //route does not lead to allowed tab
-                        return (next.indexOf('#/' + tab) > -1);
-                    })
-                )
-            {
-                event.preventDefault();
-            }
-        });
-
-        var classBannerHeight = ((_.isEmpty(CONFIG.classification)) || (_.isEmpty(CONFIG.classification.text) && _.isEmpty(CONFIG.classification.level))) ? 0 : 15,
-            navBarHeight = CONFIG.app.hideNavBar ? 0 : 50;
+        var classBannerHeight = ((_.isEmpty(CONFIG.classification)) || (_.isEmpty(CONFIG.classification.text) && _.isEmpty(CONFIG.classification.level))) ? 0 : 15;
         $scope.app = {
             loadTime: moment().format('YYYYMMDDHHmmss'),
             title: CONFIG.app.title,
@@ -62,15 +46,6 @@ angular.module('stealth', [
                 top: classBannerHeight + 'px',
                 bottom: classBannerHeight + 'px'
             },
-            viewStyle: {
-                top: navBarHeight + 'px'
-            },
             userCn: CONFIG.userCn
-        };
-        $scope.isActiveNavItem = function (viewLocation) {
-            return viewLocation === $location.path();
-        };
-        $scope.showTab = function (tab) {
-            return _.contains(CONFIG.app.tabs, tab);
         };
     }]);

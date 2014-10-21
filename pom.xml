@@ -34,9 +34,9 @@
 
     <properties>
         <whiptail.version>1.0.0-SNAPSHOT</whiptail.version>
-        <scalatra.version>2.2.2</scalatra.version>
-        <logback-classic.version>1.0.13</logback-classic.version>
-        <spray-json.version>1.2.6</spray-json.version>
+        <scalatra.version>2.3.0</scalatra.version>
+        <logback-classic.version>1.1.2</logback-classic.version>
+        <spray-json.version>1.3.0</spray-json.version>
         <scala.version>2.10.4</scala.version>
         <kafka.version>0.8.0</kafka.version>
         <curator-x-discovery.version>2.4.0</curator-x-discovery.version>
@@ -56,7 +56,7 @@
         <phantomjs.local.dir>${uidir.pathname}/node_modules/karma-phantomjs-launcher/node_modules/phantomjs/lib/phantom</phantomjs.local.dir>
         <phantomjs.version>1.9.7</phantomjs.version>
         <phantomjs.classifier>INVALID</phantomjs.classifier>
-        <jetty.version>8.1.15.v20140411</jetty.version>
+        <jetty.version>8.1.16.v20140903</jetty.version>
 
         <app.title>Stealth</app.title>
         <app.context.path>/stealth</app.context.path>
@@ -360,7 +360,7 @@
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
-            <version>2.2.2</version>
+            <version>2.3</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>

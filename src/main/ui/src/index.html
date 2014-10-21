@@ -29,16 +29,14 @@
     </script>
 </head>
 
-<body ng-class="{'body-targetRank': isActiveNavItem('/targetRank'), 'body-siteRank': isActiveNavItem('/siteRank')}">
-    <div class="anchorTop classBanner {{app.classification.level}}"
+<body>
+    <div class="anchorTop shadowBottom classBanner {{app.classification.level}}"
          ng-bind="app.classification.text" ng-style="app.classBannerStyle"></div>
-    <div class="betweenClassBanners" ng-style="app.betweenClassBannersStyle">
-        <div ng-include="'common/nav/navBar.tpl.html'"
-             ng-style="app.navBarStyle" ng-if="!CONFIG.app.hideNavBar"></div>
-        <div ng-view style="position:absolute;bottom:0;left:0;right:0;"
-             ng-style="app.viewStyle"></div>
+    <div class="anchorLeftRight" ng-style="app.betweenClassBannersStyle">
+        <div class="sidebar shadowRight anchorTopBottom anchorLeft"></div>
+        <div class="primaryDisplay anchorTopBottom anchorRight"></div>
     </div>
-    <div class="anchorBottom classBanner {{app.classification.level}}"
+    <div class="anchorBottom shadowTop classBanner {{app.classification.level}}"
          ng-bind="app.classification.text" ng-style="app.classBannerStyle"></div>
 </body>
 </html>
