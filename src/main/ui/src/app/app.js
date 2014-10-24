@@ -4,7 +4,8 @@ angular.module('stealth', [
     'ngResource',
     'ui.bootstrap',
     'ui.utils',
-    'templates-app'
+    'templates-app',
+    'stealth.common.map.ol3.map'
 ])
 
     .config(['$provide', '$httpProvider', function ($provide, $httpProvider) {

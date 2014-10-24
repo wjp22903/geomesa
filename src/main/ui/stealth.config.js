@@ -32,8 +32,10 @@ module.exports = {
         js: [
             'vendor/bower/d3/d3.min.js',
             'vendor/bower/lodash/dist/lodash.min.js',
+            'vendor/bower/jquery/dist/jquery.js',
             'vendor/bower/jquery/dist/jquery.min.js',
             'vendor/bower/jquery/dist/jquery.min.map',
+            'vendor/bower/angular/angular.js',
             'vendor/bower/angular/angular.min.js',
             'vendor/bower/angular/angular.min.js.map',
             'vendor/bower/angular-ui-router/release/angular-ui-router.min.js',
@@ -52,9 +54,10 @@ module.exports = {
             'vendor/bower/angular-bootstrap-colorpicker/js/bootstrap-colorpicker-module.js',
             'vendor/bower/AngularJS-Toaster/toaster.js',
             'vendor/bower/sonic.js/dist/sonic.min.js',
+            'vendor/bower/filereader.js/filereader.js',
+            'vendor/bower/FileSaver.js/FileSaver.min.js',
             'vendor/openlayers/OpenLayers.js',
-            'vendor/filereader.js/filereader.js',
-            'vendor/FileSaver.js/FileSaver.js',
+            'vendor/ol3/ol.js',
             // TODO - test only
             'vendor/bower/angular-mocks/angular-mocks.js',
         ],
@@ -65,6 +68,9 @@ module.exports = {
         ],
         assets: [
             'vendor/bower/leaflet-dist/images/*',
+            'vendor/bower/world.geo.json/countries.geo.json'
+        ],
+        fonts: [
             'vendor/bower/font-awesome/fonts/*',
             'vendor/bower/bootstrap/fonts/*'
         ]

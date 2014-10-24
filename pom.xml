@@ -33,7 +33,7 @@
     -->
 
     <properties>
-        <whiptail.version>1.0.0-SNAPSHOT</whiptail.version>
+        <whiptail.version>1.0.0</whiptail.version>
         <scalatra.version>2.3.0</scalatra.version>
         <logback-classic.version>1.1.2</logback-classic.version>
         <spray-json.version>1.3.0</spray-json.version>
@@ -85,43 +85,11 @@
 
         <openlayers.imagepath>vendor/openlayers/img/</openlayers.imagepath>
 
-        <map.restricted.extent></map.restricted.extent>
-        <map.max.extent></map.max.extent>
-        <map.center.lon>0</map.center.lon>
-        <map.center.lat>0</map.center.lat>
-        <map.zoom.init>4</map.zoom.init>
-        <map.zoom.max>9</map.zoom.max>
         <map.default.url>${geoserver.url}/wms</map.default.url>
-        <map.baseLayers>
-            [
-                {
-                    name: "OSM Toner"
-                    getMapParams: {
-                        layers: "mapproxy:globe.osm.toner"
-                    }
-                },
-                {
-                    name: "OSM Default"
-                    getMapParams: {
-                        layers: "mapproxy:globe.osm.default"
-                    }
-                }
-            ]
-        </map.baseLayers>
-        <map.overlays>
-            [
-                {
-                    name: "Aerial"
-                    getMapParams: {
-                        layers: "mapproxy:globe.aerial.mapquest"
-                    },
-                    options: {
-                        dontShow: true
-                        noGetInfoControl: true
-                    }
-                }
-            ]
-        </map.overlays>
+        <map.extent>[-180,-90,180,90]</map.extent>
+        <map.initExtent>[-180,-90,180,90]</map.initExtent>
+        <map.initLayers>[]</map.initLayers>
+        <map.extraLayers>[]</map.extraLayers>
 
         <imagery.support>true</imagery.support>
         <imagery.servers>[]</imagery.servers>
@@ -817,6 +785,38 @@
                 <geoserver.output.workspace>stealth_output</geoserver.output.workspace>
                 <geoserver.output.store>stealth_output</geoserver.output.store>
                 <map.default.url>http://dgeo:8080/geoserver/wms</map.default.url>
+                <map.initLayers>
+                {
+                    Base: [
+                        {
+                            getMapParams: {
+                                layers: "mapproxy:globe.osm.toner"
+                            },
+                            options: {
+                                name: "OSM Toner",
+                                visible: false
+                            }
+                        },
+                        {
+                            getMapParams: {
+                                layers: "mapproxy:globe.osm.default"
+                            },
+                            options: {
+                                name: "OSM Default"
+                            }
+                        },
+                        {
+                            getMapParams: {
+                                layers: "mapproxy:globe.aerial.mapquest"
+                            },
+                            options: {
+                                name: "Aerial",
+                                visible: false
+                            }
+                        }
+                    ]
+                }
+                </map.initLayers>
                 <dataSources>
                 {
                     sites: {

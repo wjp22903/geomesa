@@ -42,6 +42,17 @@ module.exports = function (grunt) {
                 cwd: '.',
                 expand: true,
                 flatten: true
+            }, {
+                src: ['<%= vendorFiles.assets_nested %>'],
+                dest: '<%= buildDir %>/',
+                cwd: '.',
+                expand: true
+            }, {
+                src: ['<%= vendorFiles.fonts %>'],
+                dest: '<%= buildDir %>/fonts/',
+                cwd: '.',
+                expand: true,
+                flatten: true
             }]
         },
         build_appjs: {
@@ -55,14 +66,6 @@ module.exports = function (grunt) {
         build_vendorjs: {
             files: [{
                 src: ['<%= vendorFiles.js %>'],
-                dest: '<%= buildDir %>/',
-                cwd: '.',
-                expand: true
-            }]
-        },
-        build_vendorassets_nested: {
-            files: [{
-                src: ['<%= vendorFiles.assets_nested %>'],
                 dest: '<%= buildDir %>/',
                 cwd: '.',
                 expand: true
@@ -365,7 +368,6 @@ module.exports = function (grunt) {
         'copy:build_vendor_assets',
         'copy:build_appjs',
         'copy:build_vendorjs',
-        'copy:build_vendorassets_nested',
         'index:build'
     ]);
 
