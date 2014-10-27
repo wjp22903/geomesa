@@ -61,7 +61,7 @@
         <app.title>Stealth</app.title>
         <app.context.path>/stealth</app.context.path>
         <app.hideNavBar>false</app.hideNavBar>
-        <app.tabs>["targetRank", "activityIndicator", "airDomain"]</app.tabs>
+        <app.tabs>["targetRank", "activityIndicator", "airDomain", "playback"]</app.tabs>
         <app.default.tab>targetRank</app.default.tab>
         <app.supported.browsers>
             {

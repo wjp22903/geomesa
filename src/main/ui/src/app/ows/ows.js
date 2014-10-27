@@ -36,9 +36,9 @@ angular.module('stealth.ows.ows', [])
 
         return {
             // Requests capabilities (or returns the cached version) as a promise.
-            getCapabilities: function (url) {
+            getCapabilities: function (url, omitProxy) {
                 // TODO url validation.
-                var uri = $filter('endpoint')(url, 'wms');
+                var uri = $filter('endpoint')(url, 'wms', omitProxy);
 
                 if(angular.isDefined(capabilities[uri])) {
                     return $q.when(capabilities[uri]);
@@ -89,7 +89,7 @@ angular.module('stealth.ows.ows', [])
             });
         }
 
-        function getFeature (url, typeName, paramOverrides) {
+        function getFeature (url, typeName, paramOverrides, responseType) {
             // TODO - validate arguments.
             var uri = url,
                 paramDefaults = {
@@ -101,15 +101,15 @@ angular.module('stealth.ows.ows', [])
                     srsName: 'EPSG:4326'
                 };
 
-            return $http.get(uri, { params:  _.merge(paramDefaults, paramOverrides) });
+            return $http.get(uri, { params:  _.merge(paramDefaults, paramOverrides), responseType: responseType || "text" });
         }
 
         return {
             // Requests a description for the feature type (or returns cached)
             // as a promise. (DescribeFeatureType)
-            getFeatureTypeDescription: function (url, typeName) {
+            getFeatureTypeDescription: function (url, typeName, omitProxy) {
                 // TODO - validate arguments.
-                var uri = $filter('endpoint')(url, 'wfs');
+                var uri = $filter('endpoint')(url, 'wfs', omitProxy);
 
                 // Return cached if it exists.
                 if (angular.isDefined(descriptions[uri])) {
@@ -128,20 +128,24 @@ angular.module('stealth.ows.ows', [])
             },
 
             // (GetFeature)
-            getFeature: function (url, typeName, paramOverrides, omitProxy) {
+            getFeature: function (url,
+                                  typeName,
+                                  paramOverrides,
+                                  responseType,
+                                  omitProxy) {
                 // TODO validate the url.
                 var uri = $filter('endpoint')(url, 'wfs', omitProxy);
-                return getFeature(uri, typeName, paramOverrides);
+                return getFeature(uri, typeName, paramOverrides, responseType);
             },
 
             // Requests capabilities (or returns the cached version) as a promise.
-            getCapabilities: function (urls) {
+            getCapabilities: function (urls, omitProxy) {
                 if (!_.isArray(urls)) {
                     urls = [urls];
                 }
 
                 return $q.all(_.map(urls, function (url) {
-                    var uri = $filter('endpoint')(url, 'wfs');
+                    var uri = $filter('endpoint')(url, 'wfs', omitProxy);
 
                     if(angular.isDefined(capabilities[uri])) {
                         return $q.when(capabilities[uri]);

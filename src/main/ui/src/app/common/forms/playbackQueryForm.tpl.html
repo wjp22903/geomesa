@@ -1,0 +1,198 @@
+<div class="modal-header">
+    <i class="fa fa-globe fa-lg"></i> Add a layer
+    <i class="fa fa-times pull-right btn btn-default btn-sm" ng-click="modal.cancel()"></i>
+</div>
+<form>
+    <div class="modal-body">
+
+        <!-- Step 1 -->
+        <!-- Specify the geoserver url -->
+        <div class="form-group">
+            <label for=""><span class="form-step">1</span> Enter a server url</label>
+            <div class="input-group">
+                <input type="text" class="form-control input-sm" name="geoserverUrl"
+                    ng-model="query.serverData.proposedGeoserverUrl"
+                    ng-keypress="$event.keyCode == 13 ? query.updateServer() : false">
+                <span class="input-group-btn">
+                    <button ng-click="query.updateServer()"
+                        type="button"
+                        class="btn btn-default btn-sm">Select</button>
+                </span>
+            </div>
+            <div class="alert alert-danger" ng-show="query.getCapabilitiesError">
+                <i class="fa fa-warning"></i>
+                {{ query.getCapabilitiesError }}
+            </div>
+        </div>
+
+        <!-- Step 2 -->
+        <!-- Select a layer to query -->
+        <div class="form-group" ng-show="query.formStep() > 1">
+            <label for="">
+                <span class="form-step">2</span>
+                Select a layer from: <span class="label label-success">{{query.serverData.currentGeoserverUrl}}</span>
+            </label>
+            <select class="form-control input-sm"
+                ng-model="query.layerData.currentLayer"
+                ng-init="query.layerData.currentLayer"
+                ng-change="query.getFeatureTypeDescription()"
+                ng-options="layer.name for layer in query.layerData.layers | orderBy:'name'">
+            </select>
+        </div>
+
+        <!-- Show details about the selected layer -->
+        <div class="form-group" ng-show="query.formStep() > 2">
+            <blockquote class="feature-type-data-container">
+                <div class="feature-type-header-container">
+                    <h4>{{ query.layerData.currentLayer.title }}</h4>
+                    <p>{{ query.layerData.currentLayer.abstract }}</p>
+                </div>
+
+                <div ng-switch="query.featureTypeData">
+                    <div ng-switch-when="unavailable" class="alert alert-warning">
+                        <i class="fa fa-warning"></i> There is no feature type description for this layer.
+                    </div>
+                    <div ng-switch-default class="feature-type-properties-container">
+                        <section ng-show="query.featureTypeData !== 'unavailable'"
+                            ng-repeat="featureType in query.featureTypeData.featureTypes">
+                            <h5>Properties for type <strong>{{ featureType.typeName }}</strong></h5>
+                            <table class="table-condensed">
+                                <tr ng-repeat="property in featureType.properties">
+                                    <td>{{ property.name }}</td>
+                                    <td><code>{{ property.localType }}</code></td>
+                                </tr>
+                            </table>
+                        </section>
+                    </div>
+                </div>
+            </blockquote>
+        </div>
+
+        <!-- Step 3 -->
+        <!-- Give the layer a name -->
+        <div class="form-group" ng-show="query.formStep() > 2">
+            <label for=""><span class="form-step">3</span> Enter a name for this layer</label>
+            <input type="text" class="form-control input-sm" name="layerName" placeholder="Enter layer name"
+                ng-model="query.layerData.currentLayerFriendlyName">
+        </div>
+
+        <!-- Step 4 -->
+        <!-- Specify the query parameters -->
+        <div class="form-group" ng-show="query.formStep() > 3">
+            <label for=""><span class="form-step">4</span> Query parameters</label>
+            <!-- Id field -->
+            <div class="row">
+                <div class="col-sm-2">Id field</div>
+                <div class="col-sm-4">
+                    <div class="btn-group" dropdown >
+                        <select class="form-control input-sm"
+                                ng-model="query.params.idField"
+                                ng-options="property.name for property in query.featureTypeData.featureTypes[0].properties">
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <!-- Spatial bounds -->
+            <div class="row">
+                <div class="col-sm-4">Spatial bounds</div>
+                <div class="col-sm-4">
+                    <input type="number" class="form-control input-sm" placeholder="max latitude (degrees)" ng-model="query.params.maxLat">
+                </div>
+                <div class="col-sm-4">
+                    <button type="button" class="btn btn-primary btn-xs" ng-click="query.useMapExtent()">
+                        Use map extent
+                    </button>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-2"></div>
+                <div class="col-sm-4">
+                    <input type="number" class="form-control input-sm" placeholder="min longitude (degrees)" ng-model="query.params.minLon">
+                </div>
+                <div class="col-sm-4">
+                    <input type="number" class="form-control input-sm" placeholder="max longitude (degrees)" ng-model="query.params.maxLon">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-4"></div>
+                <div class="col-sm-4">
+                    <input type="number" class="form-control input-sm" placeholder="min latitude (degrees)" ng-model="query.params.minLat">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-7">Date &amp; time bounds</div>
+            </div>
+            <div class="row"></div>
+            <div class="row">
+                <div class="col-sm-1" style="text-align:right;">Start</div>
+                <div class="col-sm-5"></div>
+                <div class="col-sm-1" style="text-align:right;">End</div>
+            </div>
+            <div class="row">
+                <div class="col-sm-6">
+                    <p class="input-group">
+                        <input type="text" class="form-control input-sm" size="10"
+                               datepicker-popup
+                               ng-model="query.params.startDate"
+                               is-open="query.params.isStartCalOpen"
+                               datepicker-append-to-body="false"
+                               placeholder="Start date">
+                        <span class="input-group-btn">
+                            <button type="button"
+                                    class="btn btn-default btn-sm"
+                                    ng-click="query.params.isStartCalOpen = query.toggleCalendar($event, query.params.isStartCalOpen)">
+                                <i class="glyphicon glyphicon-calendar"></i>
+                            </button>
+                        </span>
+                    </p>
+                </div>
+                <div class="col-sm-6">
+                    <p class="input-group">
+                        <input datepicker-popup datepicker-append-to-body="false" size="10" type="text" class="form-control input-sm"
+                               placeholder="End date" is-open="query.params.isEndCalOpen" ng-model="query.params.endDate">
+                        <span class="input-group-btn">
+                            <button type="button"
+                                    class="btn btn-default btn-sm"
+                                    ng-click="query.params.isEndCalOpen = query.toggleCalendar($event, query.params.isEndCalOpen)"><i class="glyphicon glyphicon-calendar"></i>
+                            </button>
+                        </span>
+                    </p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-3">
+                    <timepicker class="input-sm timepicker-sm" ng-model="query.params.startTime" show-meridian="false"></timepicker>
+                </div>
+                <div class="col-sm-3">
+                    <button type="button" style="margin-left:10px;" class="btn btn-primary btn-xs"
+                            ng-click="query.clearStartDatetime()"><i class="fa fa-eraser"></i> Clear start
+                    </button>
+                </div>
+                <div class="col-sm-3">
+                    <timepicker class="input-sm timepicker-sm" ng-model="query.params.endTime" show-meridian="false"></timepicker>
+                </div>
+                <div class="col-sm-3">
+                    <button type="button" style="margin-left:10px;" class="btn btn-primary btn-xs"
+                            ng-click="query.clearEndDatetime()"><i class="fa fa-eraser"></i> Clear end
+                    </button>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-1">
+                    CQL
+                </div>
+                <div class="col-sm-11">
+                    <input type="text" class="form-control input-sm" name="queryCql" placeholder="CQL filter" ng-model="query.cql">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-footer">
+        <button type="submit" class="btn btn-primary"
+            ng-disabled="query.formStep() < 5"
+            ng-click="modal.submit()">
+            Add
+        </button>
+    </div>
+</form>

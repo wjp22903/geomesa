@@ -8,7 +8,8 @@ angular.module('stealth', [
     'stealth.siterank.siteRank',
     'stealth.targetrank.targetRank',
     'stealth.activity.activityIndicator',
-    'stealth.airdomain.airDomain'
+    'stealth.airdomain.airDomain',
+    'stealth.playback.playback'
 ])
 
     .config(['$provide', '$httpProvider', function ($provide, $httpProvider) {

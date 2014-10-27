@@ -8,7 +8,7 @@
     "angular-mocks": "~1.2.13",
     "angular-resource": "~1.2.13",
     "angular-route": "~1.2.13",
-    "angular-ui-bootstrap-bower": "~0.10.0",
+    "angular-ui-bootstrap-bower": "~0.11.2",
     "angular-ui-utils": "~0.1.1",
     "AngularJS-Toaster": "0.4.7",
     "atmosphere": "~2.2.0",
@@ -23,6 +23,6 @@
     "lodash": "~2.4.1",
     "momentjs": "~2.5.1",
     "sonic.js": "git@github.com:ccri/sonic.js.git#v0.5.x",
-    "ui.bootstrap": "~0.10.0"
+    "html5slider.polyfill": "https://github.com/fryn/html5slider.git#551582b645d0b63173248563802f28f792cf37d3"
   }
 }

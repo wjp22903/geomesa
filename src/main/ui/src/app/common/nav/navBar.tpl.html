@@ -10,6 +10,11 @@
         <li ng-show="showTab('siteRank')"><a ng-class="{activeNavItem: isActiveNavItem('/siteRank')}" href="#/siteRank"><i class="fa fa-map-marker fa-lg"></i> Site Nomination</a></li>
         <li ng-show="showTab('activityIndicator')"><a ng-class="{activeNavItem: isActiveNavItem('/activityIndicator')}" href="#/activityIndicator"><i class="fa fa-bolt fa-lg"></i> Activity Indicator</a></li>
         <li ng-show="showTab('airDomain')"><a ng-class="{activeNavItem: isActiveNavItem('/airDomain')}" href="#/airDomain"><i class="fa fa-plane fa-lg"></i> Air Domain</a></li>
+        <li ng-show="showTab('playback')">
+            <a ng-class="{activeNavItem: isActiveNavItem('/playback')}" href="#/playback">
+                <i class="fa fa-film fa-lg"></i> Playback
+            </a>
+        </li>
     </ul>
     <p class="nav navbar-text pull-right"><i class="fa fa-user fa-lg"></i> {{app.userCn}}</p>
 </nav>
