@@ -313,7 +313,7 @@ module.exports = function (grunt) {
 
         console.log(eyes.inspect(cssFiles));
 
-        templates = ['src/index.html', 'src/browser.html'];
+        templates = ['src/index.html.tpl', 'src/browser.html.tpl'];
         templates.forEach(function (tpl) {
             var fileName = tpl.split('/').pop().split('.')[0];
 
@@ -337,7 +337,7 @@ module.exports = function (grunt) {
 
         console.log(eyes.inspect(jsFiles));
 
-        grunt.file.copy('karma/karma.conf.tpl.js', 'karma.conf.js', {
+        grunt.file.copy('karma/karma.conf.js.tpl', 'karma.conf.js', {
             process: function(contents, path) {
                 return grunt.template.process(contents, {
                     data: {

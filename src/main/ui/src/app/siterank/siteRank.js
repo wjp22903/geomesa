@@ -262,7 +262,7 @@ angular.module('stealth.siterank.siteRank', [
                 $scope.addTargets.layerData = {};
 
                 // Get the layer list from the GetCapabilities WFS operation.
-                WFS.getCapabilities(
+                var capabilitiesPromise = WFS.getCapabilities(
                     _.map(CONFIG.geoserver.workspaces.data, function (workspace) {
                         return $scope.addTargets.serverData.currentGeoserverUrl + '/' + workspace;
                     })
@@ -272,7 +272,8 @@ angular.module('stealth.siterank.siteRank', [
                 }, function (reason) {
                     // The GetCapabilites request failed.
                     $scope.addTargets.serverData.error = 'GetCapabilities request failed. Error: ' + reason.status + ' ' + reason.statusText;
-                }).finally(function () {
+                });
+                capabilitiesPromise["finally"](function () { // To satisfy Fortify.
                     $scope.addTargets.showSpinner = false;
                 });
             },
@@ -282,7 +283,7 @@ angular.module('stealth.siterank.siteRank', [
                 $scope.addTargets.targetData = {};
                 $scope.addTargets.featureTypeData = null;
 
-                WFS.getFeatureTypeDescription($scope.addTargets.serverData.currentGeoserverUrl, $scope.addTargets.layerData.currentLayer.name).then(function (data) {
+                var descripPromise = WFS.getFeatureTypeDescription($scope.addTargets.serverData.currentGeoserverUrl, $scope.addTargets.layerData.currentLayer.name).then(function (data) {
                     $scope.addTargets.featureTypeData = data;
                     if (data.error) {
                         $scope.addTargets.featureTypeData = 'unavailable';
@@ -290,7 +291,8 @@ angular.module('stealth.siterank.siteRank', [
                     }
                 }, function (reason) {
                     $scope.addTargets.serverData.error = 'GetFeatureTypeDescription request failed. Error: ' + reason.status + ' ' + reason.statusText;
-                }).finally(function () {
+                });
+                descripPromise["finally"](function () { // To satisfy Fortify.
                     $scope.addTargets.showSpinner = false;
                 });
             },

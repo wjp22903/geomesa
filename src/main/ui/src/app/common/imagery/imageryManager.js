@@ -124,7 +124,7 @@ angular.module('stealth.common.imagery.imageryManager', [
                 if ($scope.select.coverageLayer) {
                     $scope.select.coverageLayer.removeAllFeatures();
                 }
-                WFS.getFeature($scope.search.criteria.server.url, 'raster_entry', {
+                var featurePromise = WFS.getFeature($scope.search.criteria.server.url, 'raster_entry', {
                     outputFormat: null,  //server decides
                     //maxFeatures: 100,  //remove limit, if we add paging or infinite scroll
                     //sortBy: _.isEmpty($scope.search.criteria.sortField.trim()) ? null : ($scope.search.criteria.sortField + ':' + $scope.search.criteria.sortOrder),
@@ -153,7 +153,8 @@ angular.module('stealth.common.imagery.imageryManager', [
                     $scope.select.coverageLayerVisible = true;
                 }, function () {
                     alert('WFS failed');
-                }).finally(function () {
+                });
+                featurePromise["finally"](function () { // To satisfy Fortify.
                     $scope.search.running = false;
                 });
             },
