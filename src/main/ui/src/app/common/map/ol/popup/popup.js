@@ -63,7 +63,7 @@ angular.module('stealth.common.map.ol.popup.popup', [
                                 mp.opened.then(function () {
                                     scope.mapPopup.open = true;
                                 });
-                                mp.result.finally(function () {
+                                mp.result["finally"](function () { // To satisfy Fortify.
                                     scope.mapPopup.open = false;
                                     delete scope.mapPopup.features;
                                 });

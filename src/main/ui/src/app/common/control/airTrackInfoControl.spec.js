@@ -19,7 +19,7 @@ describe('AirTrackInfo factory tests:', function () {
 
     // Testing at the application level.
     it('Should have an onAdd() function', function () {
-        expect(angular.isFunction(control.onAdd)).to.be.true;
+        expect(angular.isFunction(control.onAdd)).to.be.ok;
     });
 
     it('onAdd() should return an HTMLElement', function () {
@@ -28,7 +28,7 @@ describe('AirTrackInfo factory tests:', function () {
     });
 
     it('Should have an update() function', function () {
-        expect(angular.isFunction(control.update)).to.be.true;
+        expect(angular.isFunction(control.update)).to.be.ok;
     });
 
     it('update() should not have a return value', function () {
