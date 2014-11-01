@@ -532,7 +532,7 @@ class AccumuloDataStore(val connector: Connector,
    *
    * @param mutations
    */
-  private def writeMutations(mutations: Mutation*): Unit = {
+  def writeMutations(mutations: Mutation*): Unit = {
     val writer = connector.createBatchWriter(catalogTable, metadataBWConfig)
     for (mutation <- mutations) {
       writer.addMutation(mutation)
