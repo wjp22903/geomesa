@@ -12,7 +12,7 @@
     "angular-ui-utils": "0.1.1",
     "AngularJS-Toaster": "0.4.8",
     "atmosphere": "2.2.5",
-    "bootstrap": "3.2.0",
+    "bootstrap": "3.3.0",
     "bowser": "0.7.2",
     "d3": "3.4.13",
     "flexy-layout": "https://github.com/lorenzofox3/flexy-layout.git#96434e207700f201764491716f78cb252ac38c29",
@@ -24,6 +24,7 @@
     "sonic.js": "git@github.com:ccri/sonic.js.git#v0.5.52",
     "filereader.js": "https://github.com/bgrins/filereader.js.git#107f68c3b99d7ec0f3cba9c0baabfb03067650b5",
     "FileSaver.js": "https://github.com/eligrey/FileSaver.js.git#765f1d90ae5ec678c28619844293352dfa72092e",
-    "world.geo.json": "https://github.com/johan/world.geo.json.git#d19059de55ea2954b9285698d2ef794a3d9ee98e"
+    "world.geo.json": "https://github.com/johan/world.geo.json.git#d19059de55ea2954b9285698d2ef794a3d9ee98e",
+    "animate.css": "3.2.0"
   }
 }

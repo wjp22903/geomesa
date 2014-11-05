@@ -1,10 +1,9 @@
 angular.module('stealth', [
-    'ui.router',
     'ngAnimate',
-    'ngResource',
     'ui.bootstrap',
     'ui.utils',
     'templates-app',
+    'stealth.common.sidebar.sidebar',
     'stealth.common.map.ol3.map'
 ])
 
@@ -16,14 +15,6 @@ angular.module('stealth', [
         config.trackStyles = window.STEALTH.trackStyles;
         $provide.constant('CONFIG', config);
         $httpProvider.defaults.withCredentials = true;
-    }])
-
-    .config(['$stateProvider', function ($stateProvider) {
-        $stateProvider
-            .state('index', {
-                url: '',
-                templateUrl: 'index.html'
-            });
     }])
 
     .controller('AppController', ['$scope', '$rootScope', 'CONFIG', function ($scope, $rootScope, CONFIG) {

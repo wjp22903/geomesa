@@ -1,6 +1,44 @@
 @import 'nib'
 
+.sidebarContainer
+    z-index 500
+    width sidebarWidth
+    .tooltip //ui.bootstrap tooltips not adding their own "in" class.  no idea why.
+        opacity 0.7
+    >.btn
+        font-size 1.1em !important
+        margin 2px
+        padding 2px
+        width 32px
+        height 32px
+        &.active
+            color #006481
+            text-shadow 0 0 8px #00c7ff
+            box-shadow 0 0 8px #00c7ff
+
 .sidebar
-    z-index 8000
+    z-index -1
     width sidebarWidth
     background linear-gradient(to right, #666, #777 45%, #777 55%, #444)
+
+.sidebarPanel
+    z-index -2
+    transition left 0.5s ease
+    &.ng-enter
+        animation fadeInLeftBig 0.5s
+    &.ng-leave
+        animation fadeOutLeftBig 0.5s
+    .headerOuter
+        background-color #ccc
+        height 22px
+        margin 2px
+    .headerInner
+        height 22px
+        line-height 22px
+        .btn
+            padding 0
+            border none
+            &.active
+                color #006481
+                text-shadow 0 0 8px #00c7ff
+                box-shadow 0 0 8px #00c7ff

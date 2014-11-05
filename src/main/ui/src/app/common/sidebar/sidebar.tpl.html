@@ -1,0 +1,44 @@
+<div class="sidebarContainer shadowRight anchorTopBottom anchorLeft">
+    <div class="sidebar anchorTopBottom anchorLeft"></div>
+    <div ng-repeat-start="button in buttons" type="button" class="btn btn-default"
+         tooltip-html-unsafe="<span style='white-space:nowrap'>{{button.panel.title}}</span>"
+         tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
+         ng-click="manager.toggleButton(button.id, button.panel.open)" ng-model="button.panel.open" btn-checkbox>
+        <i class="fa fa-fw fa-lg" ng-class="button.iconClass"></i>
+    </div>
+    <div ng-repeat-end class="sidebarPanel glass anchorTopBottom"
+         ng-style="button.panel.style" ng-if="button.panel.open">
+        <div class="headerOuter">
+            <div class="headerInner">
+                <i class="fa fa-fw fa-lg" ng-class="button.iconClass"></i>
+                {{button.panel.title}}
+                <div class="pull-right" style="margin-left:10px;">
+                    <div class="btn btn-default btn-xs"
+                         tooltip-html-unsafe="<span style='white-space:nowrap'>pin</span>"
+                         tooltip-placement="bottom" tooltip-animation="false" tooltip-popup-delay="800"
+                         ng-model="button.panel.pinned" btn-checkbox>
+                        <i class="fa fa-fw fa-thumb-tack"></i>
+                    </div>
+                    <div class="btn btn-default btn-xs"
+                         tooltip-html-unsafe="<span style='white-space:nowrap'>collapse</span>"
+                         tooltip-placement="bottom" tooltip-animation="false" tooltip-popup-delay="800"
+                         ng-click="manager.toggleButton(button.id, !button.panel.open)">
+                        <i class="fa fa-fw fa-angle-double-left"></i>
+                    </div>
+                    <div class="btn btn-default btn-xs"
+                         tooltip-html-unsafe="<span style='white-space:nowrap'>close</span>"
+                         tooltip-placement="bottom" tooltip-animation="false" tooltip-popup-delay="800"
+                         ng-click="manager.removeButton(button.id)" ng-if="!button.permanent">
+                        <i class="fa fa-fw fa-close"></i>
+                    </div>
+                </div>
+                <div class="pull-right">
+                    <!-- non-standard buttons go here -->
+                </div>
+            </div>
+            <div class="anchorAll" style="margin-top:26px;">
+                <!-- panel content goes here -->
+            </div>
+        </div>
+    </div>
+</div>

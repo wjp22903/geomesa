@@ -14,7 +14,7 @@ module.exports = {
         js : [ 'src/**/*.js', '!src/**/*.spec.js', '!src/assets/**/*.js' ],
         specs: [ 'src/**/*.spec.js' ],
         tpl: [ 'src/app/**/*.tpl.html' ],
-        html: [ 'src/index.html' ],
+        html: [ 'src/*.html.tpl' ],
         stylus: 'src/stylus/main.styl'
     },
 

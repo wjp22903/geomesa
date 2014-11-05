@@ -33,8 +33,9 @@
     <div class="anchorTop shadowBottom classBanner {{app.classification.level}}"
          ng-bind="app.classification.text" ng-style="app.classBannerStyle"></div>
     <div class="anchorLeftRight" ng-style="app.betweenClassBannersStyle">
-        <div class="sidebar shadowRight anchorTopBottom anchorLeft"></div>
-        <ol3-map id="primaryMap" map="app.primaryMap" class="primaryDisplay anchorTopBottom anchorRight">
+        <sidebar></sidebar>
+        <ol3-map id="primaryMap" map="app.primaryMap"
+                 class="primaryDisplay anchorTopBottom anchorRight">
         </ol3-map>
     </div>
     <div class="anchorBottom shadowTop classBanner {{app.classification.level}}"
