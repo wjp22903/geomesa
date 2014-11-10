@@ -1,6 +1,6 @@
 <div class="anchorAll">
     <div class="anchorAll" ng-if="view === 'explore'">
-        Explore view
+        <span class="outlineTextWhite">Explore view</span>
     </div>
     <div class="anchorAll" ng-if="view === 'style'">
         <st-widget-compiler ng-repeat="layer in map.getLayers().slice().reverse() track by layer.getId()"

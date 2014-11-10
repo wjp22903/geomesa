@@ -1,8 +1,10 @@
-angular.module('stealth.common.sidebar.sidebar', [
+angular.module('stealth.core.sidebar', [
+    'stealth.core.utils'
 ])
 
 .service('sidebarManager', [
-function () {
+'$rootScope',
+function ($rootScope) {
     var _sidebarWidth = 36;
     var _idSeq = 0;
     var _buttons = [];
@@ -20,10 +22,18 @@ function () {
         });
     }
 
+    // ***** API *****
+    /**
+     * Returns array of buttons currently managed by sidebar.
+     */
     this.getButtons = function () {
         return _buttons;
     };
-    this.addButton = function (title, iconClass, width, permanent) {
+    /**
+     * Adds a button to the sidebar.
+     */
+    this.addButton = function (title, iconClass, width,
+            directive, scope, toolDirective, toolScope, permanent) {
         var _id = _idSeq++;
         _buttons.push({
             id: _id,
@@ -33,17 +43,28 @@ function () {
                 title: title,
                 style: {
                     width: width + 'px'
+                },
+                directive: directive,
+                scope: scope,
+                tools: {
+                    directive: toolDirective,
+                    scope: toolScope
                 }
             }
         });
         return _id;
     };
+    /**
+     * Removes a button from sidebar.
+     */
     this.removeButton = function (id) {
         _.remove(_buttons, {id: id});
         _.pull(_openPanelIds, id);
         _setLefts();
     };
     /**
+     * Toggles the open state of a button/panel.
+     *
      * This function sets the button's open value to openValue.
      * It's up to the caller to decide if value should be changed from current.
      * It's possible that we don't want to change the value because it'll be
@@ -85,19 +106,16 @@ function () {
     };
 }])
 
-.directive('sidebar', [
+.directive('stSidebar', [
 'sidebarManager',
 function (manager) {
     return {
         restrict: 'E',
         replace: true,
-        templateUrl: 'common/sidebar/sidebar.tpl.html',
-        controller: function ($scope) {
+        templateUrl: 'core/sidebar/sidebar.tpl.html',
+        controller: ['$scope', function ($scope) {
             $scope.manager = manager;
-            $scope.$watch('manager.getButtons()', function () {
-                $scope.buttons = manager.getButtons();
-            });
-        }
+        }]
     };
 }])
 ;

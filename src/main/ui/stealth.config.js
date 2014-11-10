@@ -56,6 +56,7 @@ module.exports = {
             'vendor/bower/sonic.js/dist/sonic.min.js',
             'vendor/bower/filereader.js/filereader.js',
             'vendor/bower/FileSaver.js/FileSaver.min.js',
+            'vendor/bower/angular-truncate/src/truncate.js',
             'vendor/openlayers/OpenLayers.js',
             'vendor/ol3/ol.js',
             // TODO - test only

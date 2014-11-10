@@ -1,6 +1,6 @@
 <div class="sidebarContainer shadowRight anchorTopBottom anchorLeft">
     <div class="sidebar anchorTopBottom anchorLeft"></div>
-    <div ng-repeat-start="button in buttons" type="button" class="btn btn-default"
+    <div ng-repeat-start="button in manager.getButtons()" type="button" class="btn btn-default"
          tooltip-html-unsafe="<span style='white-space:nowrap'>{{button.panel.title}}</span>"
          tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
          ng-click="manager.toggleButton(button.id, button.panel.open)" ng-model="button.panel.open" btn-checkbox>
@@ -32,13 +32,19 @@
                         <i class="fa fa-fw fa-close"></i>
                     </div>
                 </div>
-                <div class="pull-right">
-                    <!-- non-standard buttons go here -->
-                </div>
+                <!-- non-standard header elements added via st-widget-compiler -->
+                <st-widget-compiler directive="{{button.panel.tools.directive}}"
+                                    scope="button.panel.tools.scope"
+                                    class="pull-right"
+                                    ng-if="button.panel.tools.directive">
+                </st-widget-compiler>
             </div>
-            <div class="anchorAll" style="margin-top:26px;">
-                <!-- panel content goes here -->
-            </div>
+            <!-- panel content added via widget-compiler -->
+            <st-widget-compiler directive="{{button.panel.directive}}"
+                                scope="button.panel.scope"
+                                class="anchorAll" style="margin-top:26px;"
+                                ng-if="button.panel.directive">
+            </st-widget-compiler>
         </div>
     </div>
 </div>
