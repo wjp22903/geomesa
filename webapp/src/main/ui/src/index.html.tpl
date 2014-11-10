@@ -9,20 +9,20 @@
     <!-- Replace above line with below line to disable zooming on touch screens. -->
     <!-- <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"> -->
 
-    <title ng-bind="app.title"></title>
+    <title ng-bind="::app.title"></title>
 </head>
 
 <body>
-    <div class="anchorTop shadowBottom classBanner {{app.classification.level}}"
-         ng-bind="app.classification.text" ng-style="app.classBannerStyle"></div>
-    <div class="anchorLeftRight" ng-style="app.betweenClassBannersStyle">
+    <div class="anchorTop shadowBottom classBanner {{::app.classification.level}}"
+         ng-bind="::app.classification.text" ng-style="::app.classBannerStyle"></div>
+    <div class="anchorLeftRight" ng-style="::app.betweenClassBannersStyle">
         <st-sidebar></st-sidebar>
         <st-ol3-map id="primaryMap"
                     class="primaryDisplay anchorTopBottom anchorRight">
         </st-ol3-map>
     </div>
-    <div class="anchorBottom shadowTop classBanner {{app.classification.level}}"
-         ng-bind="app.classification.text" ng-style="app.classBannerStyle"></div>
+    <div class="anchorBottom shadowTop classBanner {{::app.classification.level}}"
+         ng-bind="::app.classification.text" ng-style="::app.classBannerStyle"></div>
 
     [% styles.forEach(function(file) { %]
     <link rel="stylesheet" href="[%= file %]?[%= datetime %]">[% }); %]

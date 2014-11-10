@@ -1,4 +1,6 @@
 angular.module('stealth.core.sidebar', [
+    'ngAnimate',
+    'ui.bootstrap',
     'stealth.core.utils'
 ])
 

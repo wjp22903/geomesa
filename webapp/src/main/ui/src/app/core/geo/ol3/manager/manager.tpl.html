@@ -4,8 +4,8 @@
     </div>
     <div class="anchorAll" ng-if="view === 'style'">
         <st-widget-compiler ng-repeat="layer in map.getLayers().slice().reverse() track by layer.getId()"
-                            directive="{{layer.getStyleDirective()}}"
-                            scope="layer.getStyleDirectiveScope()">
+                            directive="{{::layer.getStyleDirective()}}"
+                            scope="::layer.getStyleDirectiveScope()">
         </st-widget-compiler>
     </div>
 </div>
