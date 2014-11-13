@@ -59,7 +59,8 @@
         <jetty.version>8.1.15.v20140411</jetty.version>
 
         <app.title>Stealth</app.title>
-        <app.context.path>/stealth</app.context.path>
+        <app.context>stealth</app.context>
+        <app.context.path>/${app.context}</app.context.path>
         <app.hideNavBar>false</app.hideNavBar>
         <app.tabs>["targetRank", "activityIndicator", "airDomain", "playback"]</app.tabs>
         <app.default.tab>targetRank</app.default.tab>
@@ -156,6 +157,7 @@
     </properties>
 
     <build>
+        <finalName>${app.context}</finalName>
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
@@ -229,7 +231,7 @@
                     <webApp>
                         <contextPath>${app.context.path}</contextPath>
                         <baseResource implementation="org.eclipse.jetty.util.resource.ResourceCollection">
-                            <resourcesAsCSV>${project.build.directory}/${project.artifactId}-${project.version}</resourcesAsCSV>
+                            <resourcesAsCSV>${project.build.directory}/${project.build.finalName}</resourcesAsCSV>
                         </baseResource>
                         <maxFormContentSize>500000</maxFormContentSize>
                     </webApp>
@@ -269,7 +271,7 @@
                             <excludeArtifactIds>jsp-api,jstl,akka-actor_2.10</excludeArtifactIds>
                             <excludes>META-INF/ECLIPSEF.*</excludes>
                             <outputDirectory>
-                                ${project.build.directory}/${project.artifactId}-${project.version}
+                                ${project.build.directory}/${project.build.finalName}
                             </outputDirectory>
                         </configuration>
                     </execution>
@@ -333,7 +335,7 @@
                         <phase>prepare-package</phase>
                         <configuration>
                             <tasks>
-                                <copy todir="${project.build.directory}/${project.artifactId}-${project.version}/">
+                                <copy todir="${project.build.directory}/${project.build.finalName}/">
                                     <fileset dir="${project.build.directory}/classes/">
                                         <include name="Runner.class" />
                                         <include name="application.conf" />
@@ -636,34 +638,6 @@
                                 <goals>
                                     <goal>single</goal>
                                 </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>build-helper-maven-plugin</artifactId>
-                        <version>1.8</version>
-                        <executions>
-                            <execution>
-                                <id>attach-artifacts</id>
-                                <phase>pre-integration-test</phase>
-                                <goals>
-                                    <goal>attach-artifact</goal>
-                                </goals>
-                                <configuration>
-                                    <artifacts>
-                                        <artifact>
-                                            <file>${project.build.directory}/${project.artifactId}-${project.version}-npm.zip</file>
-                                            <type>zip</type>
-                                            <classifier>npm</classifier>
-                                        </artifact>
-                                        <artifact>
-                                            <file>${project.build.directory}/${project.artifactId}-${project.version}-bower.zip</file>
-                                            <type>zip</type>
-                                            <classifier>bower</classifier>
-                                        </artifact>
-                                    </artifacts>
-                                </configuration>
                             </execution>
                         </executions>
                     </plugin>

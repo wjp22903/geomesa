@@ -38,7 +38,7 @@ public class CorsProxyServlet extends ProxyServlet {
     @Override
     protected HttpURI proxyHttpURI(HttpServletRequest request, String uri) throws MalformedURLException {
         String query = request.getQueryString();
-        String dest = (URIUtil.encodePath(request.getPathInfo()) +
+        String dest = (URIUtil.encodePath(request.getRequestURI().replaceFirst(".*\\/cors\\/", "")) +
                 ((query != null && !query.isEmpty()) ? ("?" + query) : "")
         ).substring(1);
         log.info("Proxy to: " + dest);

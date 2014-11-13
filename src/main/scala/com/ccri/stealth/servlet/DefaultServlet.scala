@@ -35,7 +35,11 @@ trait DefaultServlet extends ScalatraServlet
     else
       null
 
-  get("/") {
+  get("/?") {
+    redirect("/!")
+  }
+
+  get("/!") {
     val userCn = pkiAuth
     logger.info("Access Granted: " + userCn)
 
