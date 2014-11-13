@@ -14,7 +14,7 @@ angular.module('stealth.common.control.leaflet.layersLegendControl', [
             options: {
                 collapsed: false,
                 position: 'bottomleft',
-                autoZIndex: true,
+                autoZIndex: true
             },
 
             initialize: function (options) {
@@ -37,7 +37,7 @@ angular.module('stealth.common.control.leaflet.layersLegendControl', [
                 ngContainer.attr('aria-haspopup', 'true');
                 var layersLegendElement = angular.element($templateCache.get('common/control/leaflet/layersLegendControl.tpl.html'));
                 ngContainer.append($compile(layersLegendElement)($rootScope.$new()));
-            },
+            }
 
         });
 
@@ -46,7 +46,7 @@ angular.module('stealth.common.control.leaflet.layersLegendControl', [
         };
 
         return {
-            createControl: _createControl,
+            createControl: _createControl
         };
     }
 ])
@@ -125,7 +125,7 @@ angular.module('stealth.common.control.leaflet.layersLegendControl', [
                         submit: function () {
                             $modalInstance.dismiss('cancel');
                             $scope.query.addLayer();
-                        },
+                        }
                     };
                 },
                 backdrop: 'static'  // prevents close when clicking
@@ -209,8 +209,8 @@ angular.module('stealth.common.control.leaflet.layersLegendControl', [
                     propertyName: 'dtg,geom,' + copy.params.idField.name,
                     outputFormat: 'application/vnd.binary-viewer',
                     format_options: 'dtg:dtg;trackId:' + copy.params.idField.name,
-                    cql_filter: buildCqlFilter(copy),
-                },
+                    cql_filter: buildCqlFilter(copy)
+                }
             });
         };
 

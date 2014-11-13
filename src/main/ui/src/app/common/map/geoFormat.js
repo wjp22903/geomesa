@@ -29,8 +29,8 @@ angular.module('stealth.common.map.geoFormat', [
                         }
                         var lonHIdx = dms[1].length - 1,
                             latHIdx = dms[0].length - 1,
-                            lon = dmshToDecimal(parseInt(dms[1].substr(0, 3)), parseInt(dms[1].substr(3, 2)), parseFloat(dms[1].substring(5, lonHIdx)), dms[1].substr(lonHIdx, 1)),
-                            lat = dmshToDecimal(parseInt(dms[0].substr(0, 2)), parseInt(dms[0].substr(2, 2)), parseFloat(dms[0].substring(4, latHIdx)), dms[0].substr(latHIdx, 1));
+                            lon = dmshToDecimal(parseInt(dms[1].substr(0, 3), 10), parseInt(dms[1].substr(3, 2), 10), parseFloat(dms[1].substring(5, lonHIdx)), dms[1].substr(lonHIdx, 1)),
+                            lat = dmshToDecimal(parseInt(dms[0].substr(0, 2), 10), parseInt(dms[0].substr(2, 2), 10), parseFloat(dms[0].substring(4, latHIdx)), dms[0].substr(latHIdx, 1));
                         return [lon, lat];
                 }
             }

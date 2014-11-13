@@ -7,7 +7,7 @@ angular.module('stealth.common.filters', [])
         {unit: 'm', base: 1}
     ];
     return function(input) {
-        var remaining = parseInt(input);
+        var remaining = parseInt(input, 10);
         var formatted = '';
         if (remaining === 0) {
             formatted = '0m';
@@ -36,7 +36,7 @@ angular.module('stealth.common.filters', [])
         {unit: 's', base: 1}
     ];
     return function(input) {
-        var remaining = parseInt(input);
+        var remaining = parseInt(input, 10);
         var formatted = '';
         if (remaining === 0) {
             formatted = '0s';

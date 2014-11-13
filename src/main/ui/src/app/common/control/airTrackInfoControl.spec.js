@@ -34,6 +34,6 @@ describe('AirTrackInfo factory tests:', function () {
     it('update() should not have a return value', function () {
         control.onAdd(null);
         var rtnVal = control.update();
-        expect(rtnVal).to.be.undefined;
+        expect(rtnVal).to.be['undefined'];
     });
 });

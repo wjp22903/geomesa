@@ -230,13 +230,13 @@ module.exports = function (grunt) {
                 {
                     context: ['/geoserver'],
                     host: 'dgeo',
-                    port: 8080,
+                    port: 8080
                 },
                 {
                     context: ['/'],
                     host: 'localhost',
-                    port: 9901,
-                },
+                    port: 9901
+                }
             ]
         },
         geo: {
@@ -271,7 +271,7 @@ module.exports = function (grunt) {
 
                     // Serve static files
                     options.base.forEach(function (base) {
-                        middlewares.push(connect.static(base));
+                        middlewares.push(connect['static'](base));
                     });
 
                     return middlewares;

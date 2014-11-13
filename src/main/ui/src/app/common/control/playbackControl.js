@@ -9,7 +9,7 @@ angular.module('stealth.common.control.playbackControl', [
 
         var PlaybackControl = L.Control.extend({
             options: {
-                position: 'bottomright',
+                position: 'bottomright'
             },
 
             onAdd: function (map) {
@@ -83,16 +83,16 @@ angular.module('stealth.common.control.playbackControl', [
         this.Display = {
             isVisible: false,
             isPaused: true,
-            isPlaying: false,
+            isPlaying: false
         };
 
         // Private Methods
         // Slider values are Strings for some reason, so we have to parse them
         // back to ints whenever they get updated.
         function _parseSliders () {
-            self.Playback.curTimestamp = parseInt(self.Playback.curTimestamp);
-            self.Follow.curFollowMin = parseInt(self.Follow.curFollowMin);
-            self.Step.curStepSec = parseInt(self.Step.curStepSec);
+            self.Playback.curTimestamp = parseInt(self.Playback.curTimestamp, 10);
+            self.Follow.curFollowMin = parseInt(self.Follow.curFollowMin, 10);
+            self.Step.curStepSec = parseInt(self.Step.curStepSec, 10);
         }
 
         function _play (update) {

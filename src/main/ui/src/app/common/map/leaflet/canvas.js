@@ -15,7 +15,7 @@ angular.module('stealth.common.map.leaflet.canvas', [
     };
 
     return {
-        createCanvas: _createCanvas,
+        createCanvas: _createCanvas
     };
 }])
 

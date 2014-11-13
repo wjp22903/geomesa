@@ -243,7 +243,7 @@ angular.module('stealth.common.imagery.imageryManager', [
         $rootScope.$emit("ReplaceVectorMapLayers", ['Imagery Coverage'], {
             name: 'Imagery Coverage',
             styleMap: new OpenLayers.StyleMap({
-                default: new OpenLayers.Style({
+                'default': new OpenLayers.Style({
                     fillOpacity: 0,
                     strokeColor: '#FFCC00',
                     graphicZIndex: 1

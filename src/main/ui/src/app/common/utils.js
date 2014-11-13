@@ -8,7 +8,7 @@ angular.module('stealth.common.utils', [])
             '#9933FF',
             '#FF3399',
             '#CC6600',
-            '#FFFF00',
+            '#FFFF00'
         ],
         webSafeColors: [
             '#0a8300', '#8A5300', '#7400e8', '#d68000', '#00B3FF',

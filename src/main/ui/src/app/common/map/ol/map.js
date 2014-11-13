@@ -58,7 +58,7 @@ angular.module('stealth.common.map.ol.map', [
                         new OpenLayers.Control.MousePosition({
                             emptyString: '',
                             formatOutput: function (lonLat) {
-                                var digits = parseInt(this.numDigits);
+                                var digits = parseInt(this.numDigits, 10);
                                 var newHtml =
                                     '<table><tr><td>Lat/Lon:&nbsp;&nbsp;</td><td>' +
                                     lonLat.lat.toFixed(digits) + '</td><td>' + lonLat.lon.toFixed(digits) +
@@ -183,7 +183,7 @@ angular.module('stealth.common.map.ol.map', [
                     _.each(CONFIG.map.overlays, function (layer) {
                         this.addWmsLayer(_.merge({
                             name: layer.name,
-                            url: layer.url || CONFIG.map.defaultUrl,
+                            url: layer.url || CONFIG.map.defaultUrl
                         }, layer.getMapParams || {}, layer.options || {}, {wrapDateLine: true, isBaseLayer: false}, wmsOpts));
                     }, self);
                 });

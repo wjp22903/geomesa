@@ -197,7 +197,7 @@ function($scope, $rootScope, $filter, $interval, $timeout, WFS, CONFIG) {
         $scope.activityIndicator.alertLayer = new OpenLayers.Layer.Vector('Alerts', {
             permanent: true,
             styleMap: new OpenLayers.StyleMap(_.merge(_.cloneDeep(OpenLayers.Feature.Vector.style), {
-                default: {
+                'default': {
                     fillColor: '#CC0000',
                     fillOpacity: 1,
                     strokeColor: '#550000'

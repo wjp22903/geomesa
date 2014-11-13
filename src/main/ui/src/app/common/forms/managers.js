@@ -1,5 +1,5 @@
 angular.module('stealth.common.forms.managers', [
-    'stealth.ows.ows',
+    'stealth.ows.ows'
 ])
 
 .service('QueryFormManager', [
@@ -44,7 +44,7 @@ angular.module('stealth.common.forms.managers', [
                     endDate: endDate,
                     startTime: startTime,
                     endTime: endTime,
-                    cql: null,
+                    cql: null
                 },
                 toggleCalendar: function ($event, isOpen) {
                     $event.preventDefault();
@@ -58,7 +58,7 @@ angular.module('stealth.common.forms.managers', [
                 clearEndDatetime: function () {
                     query.params.endDate = null;
                     query.params.endTime = _.cloneDeep(noTime);
-                },
+                }
             };
 
             // Get capabilities.
@@ -116,7 +116,6 @@ angular.module('stealth.common.forms.managers', [
                                 error.status + ' ' + error.statusText;
                         }
                     )
-                    .finally(function () {})
                 ;
             };
 

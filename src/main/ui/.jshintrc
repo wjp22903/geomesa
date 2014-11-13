@@ -6,5 +6,8 @@
     "sub": true,
     "boss": true,
     "eqnull": true,
-    "expr": true
+    "expr": true,
+    "es3": true,
+    "newcap": true,
+    "multistr": true
 }

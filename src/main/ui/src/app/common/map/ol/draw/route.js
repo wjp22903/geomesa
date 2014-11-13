@@ -78,7 +78,7 @@ angular.module('stealth.common.map.ol.draw.route', [
                         layer = mapCtrl.addLayer(new OpenLayers.Layer.Vector('Drawings', {
                             permanent: true, //cannot remove via layer manager
                             styleMap: new OpenLayers.StyleMap(_.merge(_.cloneDeep(OpenLayers.Feature.Vector.style), {
-                                default: {
+                                'default': {
                                     strokeWidth: 5
                                 },
                                 select: {
@@ -131,7 +131,7 @@ angular.module('stealth.common.map.ol.draw.route', [
                                                     }
                                                 },
                                                 exportFormat: 'csv',
-                                                export: function (format) {
+                                                'export': function (format) {
                                                     var output = null,
                                                         type = 'text/plain';
                                                     switch (format) {
@@ -155,7 +155,7 @@ angular.module('stealth.common.map.ol.draw.route', [
                                             };
                                         },
                                         backdrop: true
-                                    }).result.finally(function () {
+                                    }).result['finally'](function () {
                                         selectFeatureControl.unselectAll();
                                     });
                                 });

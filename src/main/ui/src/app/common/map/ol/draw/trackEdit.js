@@ -18,7 +18,7 @@ angular.module('stealth.common.map.ol.draw.trackEdit', [
                             }
                         }
                     }),
-                    showStyle = _.merge(_.cloneDeep(OpenLayers.Feature.Vector.style.default), {
+                    showStyle = _.merge(_.cloneDeep(OpenLayers.Feature.Vector.style['default']), {
                         fillColor: '#FF0000',
                         strokeColor: '#FF0000',
                         strokeWidth: 6
