@@ -1,0 +1,29 @@
+{
+  "name": "stealth",
+  "private": true,
+  "dependencies": {
+    "angular": "~1.3.0",
+    "angular-animate": "~1.3.0",
+    "angular-bootstrap-colorpicker": "~3.0.8",
+    "angular-mocks": "~1.3.0",
+    "angular-resource": "~1.3.0",
+    "angular-truncate": "fdf60fda265042d12e9414b5354b2cc52f1419de",
+    "angular-ui-router": "~0.2.11",
+    "angular-ui-bootstrap-bower": "~0.11.2",
+    "angular-ui-utils": "~0.1.1",
+    "AngularJS-Toaster": "~0.4.8",
+    "animate.css": "~3.2.0",
+    "bootstrap": "~3.3.0",
+    "bowser": "~0.7.2",
+    "d3": "~3.4.13",
+    "filereader.js": "https://github.com/bgrins/filereader.js.git#107f68c3b99d7ec0f3cba9c0baabfb03067650b5",
+    "FileSaver": "899ed116a946921223f25eaa2f54862b737c6e73",
+    "flexy-layout": "https://github.com/lorenzofox3/flexy-layout.git#96434e207700f201764491716f78cb252ac38c29",
+    "font-awesome": "~4.2.0",
+    "jquery": "~2.1.1",
+    "lodash": "~2.4.1",
+    "momentjs": "~2.8.3",
+    "sonic.js": "git@github.com:ccri/sonic.js.git#v0.5.52",
+    "world.geo.json": "https://github.com/johan/world.geo.json.git#d19059de55ea2954b9285698d2ef794a3d9ee98e"
+  }
+}
