@@ -444,14 +444,14 @@
                                         <artifactItem>
                                             <outputDirectory>src/main/ui</outputDirectory>
                                             <groupId>com.ccri.stealth</groupId>
-                                            <artifactId>stealth</artifactId>
+                                            <artifactId>stealth-webapp</artifactId>
                                             <classifier>npm</classifier>
                                             <type>zip</type>
                                         </artifactItem>
                                         <artifactItem>
                                             <outputDirectory>src/main/ui/vendor</outputDirectory>
                                             <groupId>com.ccri.stealth</groupId>
-                                            <artifactId>stealth</artifactId>
+                                            <artifactId>stealth-webapp</artifactId>
                                             <classifier>bower</classifier>
                                             <type>zip</type>
                                         </artifactItem>
