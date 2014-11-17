@@ -1,9 +1,10 @@
 angular.module('stealth.core.geo.ol3.layers', [
+    'stealth.core.utils'
 ])
 
 .factory('MapLayer', [
-'$rootScope',
-function ($rootScope) {
+'$rootScope', 'WidgetDef',
+function ($rootScope, WidgetDef) {
     var _idSeq = 0;
     var MapLayer = function (name, ol3Layer) {
         this.id = _idSeq++;
@@ -18,13 +19,16 @@ function ($rootScope) {
             scope.ol3Layer = ol3Layer;
             this.styleDirectiveScope = scope;
         }
+        this.styleDirectiveIsoScopeAttrs = null;
     };
 
-    MapLayer.prototype.getStyleDirective = function () {
-        return this.styleDirective;
-    };
-    MapLayer.prototype.getStyleDirectiveScope = function () {
-        return this.styleDirectiveScope;
+    MapLayer.prototype.getStyleDisplayDef = function () {
+        if (!this.styleDisplayDef) {
+            this.styleDisplayDef = new WidgetDef(
+                this.styleDirective, this.styleDirectiveScope,
+                this.styleDirectiveIsoScopeAttrs);
+        }
+        return this.styleDisplayDef;
     };
     MapLayer.prototype.getId = function () {
         return this.id;

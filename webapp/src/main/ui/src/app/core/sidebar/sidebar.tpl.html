@@ -33,17 +33,15 @@
                     </div>
                 </div>
                 <!-- non-standard header elements added via st-widget-compiler -->
-                <st-widget-compiler directive="{{::button.panel.tools.directive}}"
-                                    scope="::button.panel.tools.scope"
+                <st-widget-compiler widget-def="::button.panel.toolDef"
                                     class="pull-right"
-                                    ng-if="::button.panel.tools.directive">
+                                    ng-if="::button.panel.toolDef">
                 </st-widget-compiler>
             </div>
-            <!-- panel content added via widget-compiler -->
-            <st-widget-compiler directive="{{::button.panel.directive}}"
-                                scope="::button.panel.scope"
+            <!-- panel content added via st-widget-compiler -->
+            <st-widget-compiler widget-def="::button.panel.contentDef"
                                 class="anchorAll" style="margin-top:26px;"
-                                ng-if="::button.panel.directive">
+                                ng-if="::button.panel.contentDef">
             </st-widget-compiler>
         </div>
     </div>

@@ -5,13 +5,14 @@ angular.module('stealth.core.geo.ol3.manager', [
 ])
 
 .run([
-'$rootScope', 'sidebarManager',
-function ($rootScope, sidebarManager) {
+'$rootScope', 'sidebarManager', 'WidgetDef',
+function ($rootScope, sidebarManager, WidgetDef) {
     var panelScope = $rootScope.$new();
     panelScope.view = 'explore'; //default view
     sidebarManager.addButton('Map Manager', 'fa-globe', 350,
-                             'st-ol3-manager', panelScope,
-                             'st-ol3-manager-view-switcher', panelScope, true);
+        new WidgetDef('st-ol3-manager', panelScope, "view='view'"),
+        new WidgetDef('st-ol3-manager-view-switcher', panelScope, "view='view'"),
+        true);
 }])
 
 .directive('stOl3ManagerViewSwitcher', [
@@ -19,6 +20,9 @@ function () {
     return {
         restrict: 'E',
         replace: true,
+        scope:{
+            view: "="
+        },
         template: '<div class="btn-group ol3ManagerViewSwitcher">\
                        <label class="btn btn-default" ng-model="view" btn-radio="\'explore\'">Explore</label>\
                        <label class="btn btn-default" ng-model="view" btn-radio="\'style\'">Style</label>\
@@ -32,6 +36,9 @@ function (ol3Map) {
     return {
         restrict: 'E',
         replace: true,
+        scope: {
+            view: "="
+        },
         templateUrl: 'core/geo/ol3/manager/manager.tpl.html',
         controller: ['$scope', function ($scope) {
             $scope.map = ol3Map;

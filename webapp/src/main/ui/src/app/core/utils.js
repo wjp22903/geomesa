@@ -1,20 +1,69 @@
 angular.module('stealth.core.utils', [
 ])
 
+/**
+ * Container for runtime insertion of directives.
+ *
+ * Ex usage:
+ * You have a directive named myExample with an
+ * isolated scope and a binding named myProp:
+ * .directive('myExample', function () {
+ *        return {
+ *         scope: {myProp: '='},
+ *         ...
+ *     }
+ * })
+ *
+ * To insert, use this html:
+ * <st-widget-compiler widget-def="myWidgetDef">
+ * </st-widget-compiler>
+ *
+ * ...assuming,
+ * $scope.someScope.someProp = 'someValue';
+ * $scope.myWidgetDef = new WidgetDef(
+ *     'my-example', someScope, "my-prop='someProp'"
+ * );
+ *
+ * In some cases, 2nd and 3rd params to WidgetDef
+ * constructor are not required.
+ */
 .directive('stWidgetCompiler', [
-'$rootScope', '$compile',
-function ($rootScope, $compile) {
+'$compile',
+function ($compile) {
     return {
         scope: {
-            scope: '='
+            widgetDef: '='
         },
         link: function(scope, element, attrs) {
-            var html = '<' + attrs.directive + '></' + attrs.directive + '>',
-                el = angular.element(html),
-                compiled = $compile(el);
+            var html = '<' + scope.widgetDef.getDirective() + ' ' +
+                scope.widgetDef.getIsoScopeAttrs() +
+                '></' + scope.widgetDef.getDirective() + '>';
+            var el = angular.element(html);
+            var compiled = $compile(el);
             element.append(el);
-            compiled(scope.scope || $rootScope.$new());
+            compiled(scope.widgetDef.getScope());
         }
     };
+}])
+
+.factory('WidgetDef', [
+'$rootScope',
+function ($rootScope) {
+    var WidgetDef = function (directive, scope, isoScopeAttrs) {
+        this.directive = directive;
+        this.scope = scope || $rootScope.$new();
+        this.isoScopeAttrs = isoScopeAttrs || '';
+    };
+
+    WidgetDef.prototype.getDirective = function () {
+        return this.directive;
+    };
+    WidgetDef.prototype.getScope = function () {
+        return this.scope;
+    };
+    WidgetDef.prototype.getIsoScopeAttrs = function () {
+        return this.isoScopeAttrs;
+    };
+    return WidgetDef;
 }])
 ;

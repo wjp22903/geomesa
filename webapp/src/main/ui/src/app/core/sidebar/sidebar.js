@@ -35,7 +35,7 @@ function ($rootScope) {
      * Adds a button to the sidebar.
      */
     this.addButton = function (title, iconClass, width,
-            directive, scope, toolDirective, toolScope, permanent) {
+            contentDef, toolDef, permanent) {
         var _id = _idSeq++;
         _buttons.push({
             id: _id,
@@ -46,12 +46,8 @@ function ($rootScope) {
                 style: {
                     width: width + 'px'
                 },
-                directive: directive,
-                scope: scope,
-                tools: {
-                    directive: toolDirective,
-                    scope: toolScope
-                }
+                contentDef: contentDef,
+                toolDef: toolDef
             }
         });
         return _id;
