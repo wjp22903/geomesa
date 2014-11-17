@@ -66,4 +66,16 @@ function ($rootScope) {
     };
     return WidgetDef;
 }])
+
+.directive('stFloatSlider',
+function () {
+    return {
+        require: 'ngModel',
+        link: function(scope, element, attrs, controller) {
+            controller.$parsers.unshift(function (sliderValue) {
+                return parseFloat(sliderValue);
+            });
+        }
+    };
+})
 ;

@@ -20,6 +20,7 @@
     "FileSaver": "899ed116a946921223f25eaa2f54862b737c6e73",
     "flexy-layout": "https://github.com/lorenzofox3/flexy-layout.git#96434e207700f201764491716f78cb252ac38c29",
     "font-awesome": "~4.2.0",
+    "html5slider.polyfill": "https://github.com/fryn/html5slider.git#551582b645d0b63173248563802f28f792cf37d3",
     "jquery": "~2.1.1",
     "lodash": "~2.4.1",
     "momentjs": "~2.8.3",

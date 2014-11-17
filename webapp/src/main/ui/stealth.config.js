@@ -46,6 +46,7 @@ module.exports = {
             'vendor/bower/angular-ui-bootstrap-bower/ui-bootstrap-tpls.min.js',
             'vendor/bower/bowser/bowser.min.js',
             'vendor/bower/angular-truncate/src/truncate.js',
+            'vendor/bower/html5slider.polyfill/html5slider.js',
             'vendor/ol3/ol.js'
         ],
         assets_nested: [

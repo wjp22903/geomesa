@@ -1,5 +1,6 @@
 angular.module('stealth.core.geo.ol3.layers', [
-    'stealth.core.utils'
+    'stealth.core.utils',
+    'ui.include'
 ])
 
 .factory('MapLayer', [
@@ -14,9 +15,11 @@ function ($rootScope, WidgetDef) {
         if (ol3Layer) {
             var scope = $rootScope.$new();
             scope.visible = ol3Layer.getVisible();
+            scope.opacity = ol3Layer.getOpacity();
             ol3Layer.set('id', this.id);
             ol3Layer.set('name', name);
             scope.ol3Layer = ol3Layer;
+            scope.fragmentUrl = 'core/geo/ol3/layers/layer-fragments.tpl.html';
             this.styleDirectiveScope = scope;
         }
         this.styleDirectiveIsoScopeAttrs = null;
@@ -43,10 +46,7 @@ function ($rootScope, WidgetDef) {
 .directive('stMapLayerStyle', [
 function () {
     return {
-        template: '<div style="background-color:white;margin:2px;padding:2px;border-radius:4px;">\
-                       <input type="checkbox" ng-model="visible" ng-change="ol3Layer.setVisible(visible)">\
-                       {{ol3Layer.get("name") || ol3Layer.get("id") | characters:30:true}}\
-                   </div>'
+        template: '<ui-include src="fragmentUrl" fragment="\'.layerStyleMapLayer\'"></ui-include>'
     };
 }])
 
@@ -64,10 +64,7 @@ function (MapLayer) {
 .directive('stGeoJsonLayerStyle', [
 function () {
     return {
-        template: '<div style="background-color:white;margin:2px;padding:2px;border-radius:4px;">\
-                       <input type="checkbox" ng-model="visible" ng-change="ol3Layer.setVisible(visible)">\
-                       {{ol3Layer.get("name") || ol3Layer.get("id") | characters:30:true}}\
-                   </div>'
+        template: '<ui-include src="fragmentUrl" fragment="\'.layerStyleGeoJsonLayer\'"></ui-include>'
     };
 }])
 ;
