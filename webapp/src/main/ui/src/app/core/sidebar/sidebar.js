@@ -15,12 +15,11 @@ function ($rootScope) {
     function _setLefts() {
         var lefts = _sidebarWidth; //sidebar width
         _.each(_openPanelIds, function (openPanelId) {
-            _.each(_buttons, function (button) {
-                if (button.id === openPanelId && button.panel.style.left) {
-                    button.panel.style.left = lefts + 'px';
-                    lefts += parseInt(button.panel.style.width.slice(0, -2), 10);
-                }
-            });
+            var button = _.find(_buttons, {id: openPanelId});
+            if (button) {
+                button.panel.style.left = lefts + 'px';
+                lefts += parseInt(button.panel.style.width.slice(0, -2), 10);
+            }
         });
     }
 
@@ -69,27 +68,13 @@ function ($rootScope) {
      * handled somewhere else....for example, by an ng-model.
      */
     this.toggleButton = function (id, openValue) {
-        var _theButton;
-        var _closing;
-        var _left = _sidebarWidth;
-        _.each(_buttons, function (button) {
-            if (button.id === id) {
-                _theButton = button;
-                _closing = button.panel.open;
+        var theButton = _.find(_buttons, {id: id});
+        if (theButton) {
+            theButton.panel.pinned = false;
+            if (theButton.panel.open) {
+                delete theButton.panel.style.left;
+                _.pull(_openPanelIds, theButton.id);
             } else {
-                if (button.panel.pinned) {
-                    _left += parseInt(button.panel.style.width.slice(0, -2), 10);
-                }
-            }
-        });
-        if (_theButton) {
-            _theButton.panel.pinned = false;
-            if (_closing) {
-                delete _theButton.panel.style.left;
-                _.pull(_openPanelIds, _theButton.id);
-                _setLefts();
-            } else {
-                _theButton.panel.style.left = _left + 'px';
                 _.each(_buttons, function (button) {
                     if (button.id !== id && !button.panel.pinned) {
                         button.panel.open = false;
@@ -99,7 +84,8 @@ function ($rootScope) {
                 });
                 _openPanelIds.push(id);
             }
-            _theButton.panel.open = openValue;
+            _setLefts();
+            theButton.panel.open = openValue;
         }
     };
 }])
@@ -110,6 +96,7 @@ function (manager) {
     return {
         restrict: 'E',
         replace: true,
+        scope: {},
         templateUrl: 'core/sidebar/sidebar.tpl.html',
         controller: ['$scope', function ($scope) {
             $scope.manager = manager;

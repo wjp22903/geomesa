@@ -35,13 +35,18 @@ function ($compile) {
             widgetDef: '='
         },
         link: function(scope, element, attrs) {
-            var html = '<' + scope.widgetDef.getDirective() + ' ' +
-                scope.widgetDef.getIsoScopeAttrs() +
-                '></' + scope.widgetDef.getDirective() + '>';
-            var el = angular.element(html);
-            var compiled = $compile(el);
-            element.append(el);
-            compiled(scope.widgetDef.getScope());
+            scope.$watch('widgetDef', function (widget) {
+                if (widget) {
+                    element.empty(); //remove any previous widget
+                    var html = '<' + widget.getDirective() + ' ' +
+                        widget.getIsoScopeAttrs() +
+                        '></' + widget.getDirective() + '>';
+                    var el = angular.element(html);
+                    var compiled = $compile(el);
+                    element.append(el);
+                    compiled(widget.getScope());
+                }
+            });
         }
     };
 }])

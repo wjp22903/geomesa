@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="stealth.core.sidebar.test" ng-strict-di>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sidebar Test</title>
+
+    <script type="text/javascript" src="../../../../main/ui/vendor/bower/lodash/dist/lodash.js"></script>
+    <script type="text/javascript" src="../../../../main/ui/vendor/bower/jquery/dist/jquery.js"></script>
+    <script type="text/javascript" src="../../../../main/ui/vendor/bower/angular/angular.js"></script>
+    <script type="text/javascript" src="../../../../main/ui/vendor/bower/angular-animate/angular-animate.js"></script>
+    <script type="text/javascript" src="../../../../main/ui/vendor/bower/angular-ui-bootstrap-bower/ui-bootstrap-tpls.js"></script>
+
+    <link rel="stylesheet" href="../../../../../target/stealth/css/style.css">
+    <script type="text/javascript" src="../../../../../target/stealth/templates-app.js"></script>
+    <script type="text/javascript" src="../../../../main/ui/src/app/core/utils.js"></script>
+    <script type="text/javascript" src="../../../../main/ui/src/app/core/sidebar/sidebar.js"></script>
+</head>
+<body>
+    <st-sidebar></st-sidebar>
+
+    <script type="text/javascript">
+        angular.module('stealth.core.sidebar.test', [
+            'templates-app',
+            'stealth.core.sidebar'
+        ])
+        .run([
+        '$rootScope', 'sidebarManager', 'WidgetDef',
+        function ($rootScope, mgr, WidgetDef) {
+            var scope = $rootScope.$new();
+            mgr.addButton('Not Closable', 'fa-exclamation-circle', 300,
+                new WidgetDef('st-test-sidebar-content', scope, 'widget="widget"'),
+                new WidgetDef('st-test-sidebar-content-choice', scope),
+                true);
+            mgr.addButton('Sadness', 'fa-frown-o', 160);
+            mgr.addButton('Greek Buildings', 'fa-institution', 500);
+            mgr.addButton('Another Not Closable', 'fa-exclamation-circle', 300, null, null, true);
+            mgr.addButton('Settings', 'fa-cog', 200);
+        }])
+        .directive('stTestSidebarContent', [
+        function () {
+            return { //isolate scope
+                scope: {
+                    widget: '='
+                },
+                template: '<st-widget-compiler widget-def="widget"></st-widget-compiler>'
+            };
+        }])
+        .directive('stTestSidebarContentChoice', [
+        function () {
+            return { //inherited scope
+                scope: false,
+                template: '<select ng-model="contentDef">\
+                               <option>1</option>\
+                               <option>2</option>\
+                           </select>',
+                controller: ['$scope', 'WidgetDef', function ($scope, WidgetDef) {
+                    var widgets = {
+                        '1': new WidgetDef('st-test-sidebar-widget1'),
+                        '2': new WidgetDef('st-test-sidebar-widget2')
+                    };
+                    $scope.$watch('contentDef', function (newVal) {
+                        $scope.widget = widgets[newVal];
+                    });
+                }]
+            };
+        }])
+        .directive('stTestSidebarWidget1', [
+        function () {
+            return { //inherited scope
+                template: 'One'
+            };
+        }])
+        .directive('stTestSidebarWidget2', [
+        function () {
+            return { //new scope
+                scope: true,
+                template: 'Two'
+            };
+        }])
+        ;
+    </script>
+</body>
+</html>
