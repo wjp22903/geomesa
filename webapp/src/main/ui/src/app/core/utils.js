@@ -28,8 +28,10 @@ angular.module('stealth.core.utils', [
  * constructor are not required.
  */
 .directive('stWidgetCompiler', [
+'$log',
 '$compile',
-function ($compile) {
+function ($log, $compile) {
+    $log.debug('stealth.core.utils.stWidgetCompiler: directive defined');
     return {
         scope: {
             widgetDef: '='
@@ -51,9 +53,11 @@ function ($compile) {
     };
 }])
 
-.factory('WidgetDef', [
+.factory('stealth.core.utils.WidgetDef', [
+'$log',
 '$rootScope',
-function ($rootScope) {
+function ($log, $rootScope) {
+    $log.debug('stealth.core.utils.WidgetDef: factory started');
     var WidgetDef = function (directive, scope, isoScopeAttrs) {
         this.directive = directive;
         this.scope = scope || $rootScope.$new();
@@ -83,4 +87,5 @@ function () {
         }
     };
 })
+
 ;

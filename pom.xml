@@ -69,6 +69,7 @@
         <map.initExtent>[-180,-90,180,90]</map.initExtent>
         <map.initLayers>[]</map.initLayers>
         <map.extraLayers>[]</map.extraLayers>
+        <map.projection>EPSG:4326</map.projection>
 
         <classification.text>Dynamic Page - Highest Possible Classification is UNCLASSIFIED//FOR OFFICIAL USE ONLY</classification.text>
         <!-- supported levels: unclassified, confidential, secret, topSecret, sci -->
@@ -89,6 +90,8 @@
         <keystore.password>password</keystore.password>
         <truststore.path>${basedir}/src/test/resources/certs/truststore.jks</truststore.path>
         <truststore.password>password</truststore.password>
+
+        <logger.debug>false</logger.debug>
     </properties>
 
     <dependencyManagement>

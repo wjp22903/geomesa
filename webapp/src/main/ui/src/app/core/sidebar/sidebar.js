@@ -1,12 +1,11 @@
 angular.module('stealth.core.sidebar', [
-    'ngAnimate',
-    'ui.bootstrap',
-    'stealth.core.utils'
 ])
 
 .service('sidebarManager', [
+'$log',
 '$rootScope',
-function ($rootScope) {
+function ($log, $rootScope) {
+    $log.debug('stealth.core.sidebar.sidebarManager: service started');
     var _sidebarWidth = 36;
     var _idSeq = 0;
     var _buttons = [];
@@ -94,8 +93,10 @@ function ($rootScope) {
 }])
 
 .directive('stSidebar', [
+'$log',
 'sidebarManager',
-function (manager) {
+function ($log, manager) {
+    $log.debug('stealth.core.sidebar.stSidebar: directive defined');
     return {
         restrict: 'E',
         replace: true,

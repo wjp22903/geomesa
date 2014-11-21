@@ -3,8 +3,12 @@ angular.module('stealth.core.geo.ol3.map', [
 ])
 
 .directive('stOl3Map', [
-'$interval', 'ol3Map', 'CONFIG',
-function ($interval, ol3Map, CONFIG) {
+'$log',
+'$interval',
+'ol3Map',
+'CONFIG',
+function ($log, $interval, ol3Map, CONFIG) {
+    $log.debug('stealth.core.geo.ol3.map.stOl3Map: directive defined');
     return {
         restrict: 'E',
         replace: true,
@@ -25,9 +29,13 @@ function ($interval, ol3Map, CONFIG) {
 }])
 
 .service('ol3Map', [
-'MapLayer', 'GeoJsonLayer', 'CONFIG',
-function (MapLayer, GeoJsonLayer, CONFIG) {
-    var _projection = 'EPSG:4326';
+'$log',
+'stealth.core.geo.ol3.layers.MapLayer',
+'stealth.core.geo.ol3.layers.GeoJsonLayer',
+'CONFIG',
+function ($log, MapLayer, GeoJsonLayer, CONFIG) {
+    $log.debug('stealth.core.geo.ol3.map.ol3Map: service started');
+    var _projection = CONFIG.map.projection;
     var _wmsOpts = {
         // Geomesa layers currently perform better without tiling.
         // Difficult to distinguish Geomesa requests from other requests.
@@ -163,4 +171,5 @@ function (MapLayer, GeoJsonLayer, CONFIG) {
         }, this);
     }, this);
 }])
+
 ;

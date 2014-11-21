@@ -2,9 +2,7 @@ describe('AppController', function () {
     var scope, loadTime;
 
     beforeEach(function () {
-        module('stealth.app', function ($provide) {
-            $provide.value('CONFIG', {});
-        });
+        module('stealth.app');
         loadTime = moment();
         inject(function ($controller, $rootScope) {
             scope = $rootScope.$new();
@@ -21,3 +19,4 @@ describe('AppController', function () {
         ).to.be.ok;
     });
 });
+

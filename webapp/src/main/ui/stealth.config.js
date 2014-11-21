@@ -21,6 +21,7 @@ module.exports = {
     // Dependencies needed for tests.
     testFiles: {
         js: [
+            '../../test/testConfig.js',
             'vendor/bower/angular-mocks/angular-mocks.js'
         ]
     },
@@ -48,6 +49,7 @@ module.exports = {
             'vendor/bower/angular-truncate/src/truncate.js',
             'vendor/bower/html5slider.polyfill/html5slider.js',
             'vendor/ol3/ol.js'
+//            'vendor/ol3/ol-debug.js' // Use for debugging the app.
         ],
         assets_nested: [
             'vendor/openlayers/img/*',

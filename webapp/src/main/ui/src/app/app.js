@@ -4,41 +4,50 @@ angular.module('stealth.app', [
     'ui.bootstrap',
     'ui.utils',
     'templates-app',
-    'stealth.core.geo.ol3.map',
+    // Core
+    'stealth.core.utils', // Make utils available to all sub-modules.
     'stealth.core.geo.ol3.manager',
-    'stealth.core.sidebar',
     'stealth.core.header',
-    'stealth.core.utils'
+    // Modules
+    'stealth.tracking'
 ])
 
 .config([
+'$provide',
 '$httpProvider',
-function ($httpProvider) {
+'$logProvider',
+function ($provide, $httpProvider, $logProvider) {
+    // Config variables are specified in the pom and written to STEALTH.config
+    // via scalate. Copy that object as an injectable angular constant here.
+    var config = angular.copy(window.STEALTH.config);
+    config.userCn = window.STEALTH.userCn;
+    $provide.constant('CONFIG', config);
+
     $httpProvider.defaults.withCredentials = true;
+
+    $logProvider.debugEnabled(false);
+    if (config.hasOwnProperty("logger")) {
+        if (config.logger.hasOwnProperty("debug")) {
+            $logProvider.debugEnabled(config.logger.debug);
+        }
+    }
 }])
 
 .run([
-'$rootScope', 'CONFIG',
-function ($rootScope, CONFIG) {
+'$log',
+'$rootScope',
+'CONFIG',
+function ($log, $rootScope, CONFIG) {
+    $log.debug('stealth.app: run called');
     $rootScope.CONFIG = CONFIG;
 }])
 
-//Not really a factory, but I don't know how else to create an injectable
-//object from $window.
-.factory('CONFIG', [
-'$window',
-function ($window) {
-    // Config variables are specified in the pom and written to STEALTH.config
-    // via scalate. Copy that object as an injectable angular constant here.
-    var config = angular.copy($window.STEALTH.config);
-    config.userCn = $window.STEALTH.userCn;
-    config.trackStyles = $window.STEALTH.trackStyles;
-    return config;
-}])
-
 .controller('AppController', [
-'$scope', 'CONFIG',
-function ($scope, CONFIG) {
+'$log',
+'$scope',
+'CONFIG',
+function ($log, $scope, CONFIG) {
+    $log.debug('stealth.app.AppController: controller started');
     var classBannerHeight = ((_.isEmpty(CONFIG.classification)) ||
                              (_.isEmpty(CONFIG.classification.text) &&
                               _.isEmpty(CONFIG.classification.level))) ? 0 : 15;

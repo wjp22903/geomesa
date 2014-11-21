@@ -6,7 +6,7 @@
         </div>
         <ul class="dropdown-menu" role="menu">
             <li ng-repeat="button in manager.getButtons()">
-                <a href="#" ng-click="manager.triggerButton(button.id)">
+                <a ng-click="manager.triggerButton(button.id)">
                     <i class="fa fa-fw " ng-class="button.iconClass"></i>
                     &nbsp; {{::button.title}}
                 </a>
