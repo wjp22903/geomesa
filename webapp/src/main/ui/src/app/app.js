@@ -7,6 +7,7 @@ angular.module('stealth.app', [
     'stealth.core.geo.ol3.map',
     'stealth.core.geo.ol3.manager',
     'stealth.core.sidebar',
+    'stealth.core.header',
     'stealth.core.utils'
 ])
 

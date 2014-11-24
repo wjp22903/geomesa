@@ -20,6 +20,7 @@
         <st-ol3-map id="primaryMap"
                     class="primaryDisplay anchorTopBottom anchorRight">
         </st-ol3-map>
+        <st-header></st-header>
     </div>
     <div class="anchorBottom shadowTop classBanner {{::app.classification.level}}"
          ng-bind="::app.classification.text" ng-style="::app.classBannerStyle"></div>
