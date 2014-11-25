@@ -56,7 +56,7 @@ function ($log, MapLayer, GeoJsonLayer, CONFIG) {
         logo: false,
         renderer: 'canvas',
         view: new ol.View({
-            extent: CONFIG.map.extent,
+            extent: (CONFIG.map && CONFIG.map.extent) ? CONFIG.map.extent : [-180, -90, 180, 90],
             projection: _projection
         }),
         controls: [
@@ -116,6 +116,37 @@ function ($log, MapLayer, GeoJsonLayer, CONFIG) {
             _layers.push(layer);
         }
     };
+    /**
+     * Removes a layer from the map.
+     */
+    this.removeLayer = function (layer) {
+        _map.removeLayer(layer.getOl3Layer());
+        _.pull(_layers, layer);
+    };
+    /**
+     * Adds an interaction to the map.
+     */
+    this.addInteraction = function (interaction) {
+        _map.addInteraction(interaction);
+    };
+    /**
+     * Removes an interaction from the map.
+     */
+    this.removeInteraction = function (interaction) {
+        _map.removeInteraction(interaction);
+    };
+    /**
+     * Adds an overlay to the map.
+     */
+    this.addOverlay = function (overlay) {
+        _map.addOverlay(overlay);
+    };
+    /**
+     * Removes an overlay from the map.
+     */
+    this.removeOverlay = function (overlay) {
+        _map.removeOverlay(overlay);
+    };
 
     // ***** Initialization *****
     //Built-in layers
@@ -158,7 +189,7 @@ function ($log, MapLayer, GeoJsonLayer, CONFIG) {
     this.addLayer(new GeoJsonLayer('Tint', tintLayer));
 
     //Add configured layers on top
-    _.forOwn(CONFIG.map.initLayers, function (layers) {
+    _.forOwn((CONFIG.map && CONFIG.map.initLayers) ? CONFIG.map.initLayers : {}, function (layers) {
         _.each(layers, function (layer) {
             this.addLayer(new MapLayer((layer.options || {}).name, new ol.layer.Tile(
                 _.merge(layer.options || {}, {

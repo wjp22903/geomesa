@@ -40,7 +40,7 @@ function (startMenuManager) {
     return {
         restrict: 'E',
         templateUrl: 'core/startmenu/startmenu.tpl.html',
-        replace: true,
+        scope: {},
         controller: ['$scope', '$window', function ($scope, $window) {
             $scope.show = true;
             $scope.manager = startMenuManager;

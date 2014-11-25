@@ -1,12 +1,14 @@
-<div class="headerElement" st-start-pop="Start Here" st-start-pop-show="{{show}}"
-     st-start-pop-placement="bottom" st-start-pop-trigger st-start-pop-animation="false">
-    <div class="headerElement btn-group" dropdown is-open="status.isOpen">
+<div class="headerElement">
+    <div class="headerElement btn-group" dropdown is-open="status.isOpen"
+         st-start-pop="Start Here" st-start-pop-show="{{show}}"
+         st-start-pop-placement="bottom" st-start-pop-trigger
+         st-start-pop-animation="false">
         <div class="headerButton btn" dropdown-toggle>
             <i class="fa fa-bars fa-lg"></i>
         </div>
         <ul class="dropdown-menu" role="menu">
             <li ng-repeat="button in manager.getButtons()">
-                <a ng-click="manager.triggerButton(button.id)">
+                <a href="" ng-click="manager.triggerButton(button.id)">
                     <i class="fa fa-fw " ng-class="button.iconClass"></i>
                     &nbsp; {{::button.title}}
                 </a>

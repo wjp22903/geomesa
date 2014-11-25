@@ -19,4 +19,3 @@ describe('AppController', function () {
         ).to.be.ok;
     });
 });
-

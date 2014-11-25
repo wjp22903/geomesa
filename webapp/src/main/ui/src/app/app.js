@@ -8,7 +8,9 @@ angular.module('stealth.app', [
     'stealth.core.utils', // Make utils available to all sub-modules.
     'stealth.core.geo.ol3.manager',
     'stealth.core.header',
-    // Modules
+    'stealth.core.wizard',
+    // Plugins
+    'stealth.targetpri',
     'stealth.tracking'
 ])
 

@@ -17,10 +17,11 @@
          ng-bind="::app.classification.text" ng-style="::app.classBannerStyle"></div>
     <div class="anchorLeftRight" ng-style="::app.betweenClassBannersStyle">
         <st-sidebar></st-sidebar>
-        <st-ol3-map id="primaryMap"
-                    class="primaryDisplay anchorTopBottom anchorRight">
-        </st-ol3-map>
-        <st-header></st-header>
+        <div class="primaryDisplay anchorTopBottom anchorRight">
+            <st-ol3-map id="primaryMap"></st-ol3-map>
+            <st-header></st-header>
+            <st-wizard></st-wizard>
+        </div>
     </div>
     <div class="anchorBottom shadowTop classBanner {{::app.classification.level}}"
          ng-bind="::app.classification.text" ng-style="::app.classBannerStyle"></div>

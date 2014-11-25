@@ -10,6 +10,8 @@ function ($log, $rootScope) {
     var _idSeq = 0;
     var _buttons = [];
     var _openPanelIds = [];
+    var _hideAll = false;
+    var _sidebarText;
 
     function _setLefts() {
         var lefts = _sidebarWidth; //sidebar width
@@ -90,6 +92,13 @@ function ($log, $rootScope) {
             }
         }
     };
+    /**
+     * Getters and setters
+     */
+    this.getHideAll = function () { return _hideAll; };
+    this.setHideAll = function (hideAll) { _hideAll = hideAll; };
+    this.getSidebarText = function () { return _sidebarText; };
+    this.setSidebarText = function (text) { _sidebarText = text; };
 }])
 
 .directive('stSidebar', [

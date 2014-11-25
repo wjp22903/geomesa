@@ -88,4 +88,11 @@ function () {
     };
 })
 
+//Especially useful when setting up a skeleton with stWidgetCompiler
+.directive('stPlaceholder',
+function () {
+    return {
+        template: '<div>Placeholder</div>'
+    };
+})
 ;

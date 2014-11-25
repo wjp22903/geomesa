@@ -1,0 +1,24 @@
+<ng-form name="wizardForm">
+    <p>
+        Set additional options for finding and ranking targets.
+    </p>
+    <table>
+        <tr>
+            <td><label>Proximity:&nbsp;&nbsp;</label></td>
+            <td><input type="number" ng-model="proximityMeters" style="width:60px;" min="0" required> meters</td>
+        </tr>
+        <tr>
+            <td><label>Start: </label></td>
+            <td><input type="datetime-local" ng-model="startDtg" ng-model-options="{timezone: 'UTC'}"> Z</td>
+        </tr>
+        <tr>
+            <td><label>End: </label></td>
+            <td><input type="datetime-local" ng-model="endDtg" ng-model-options="{timezone: 'UTC'}"> Z</td>
+        </tr>
+    </table>
+    <p style="margin-top:20px;">
+        Give this Target Prioritization a meaningful name.<br>
+    </p>
+    <label>Name: </label>
+    <input type="text" ng-model="name" style="width:250px;" required>
+</ng-form>

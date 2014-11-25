@@ -1,0 +1,85 @@
+.wizardSteps
+    box-shadow 0 0 15px 1px rgba(0, 0, 0, 0.35)
+    animation fadeInDownBig 0.5s
+    z-index 1
+    &.ng-hide
+        animation fadeOutUpBig 0.5s
+    .btn
+        padding 0
+
+.wizardSteps span
+    border-bottom 2px solid #999
+    text-decoration none
+    outline none
+    display block
+    float left
+    font-size 12px
+    line-height 26px
+    height 26px
+    //need more margin on the left of links to accomodate the numbers
+    padding 0 10px 0 18px
+    position relative
+
+//since the first link does not have a triangle before it we can reduce the left padding to make it look consistent with other links
+.wizardSteps span:first-child, .wizardSteps span:last-child
+    padding-left 10px
+
+//adding the arrows for the steps using rotated pseudo elements
+.wizardSteps span:after
+    content ''
+    position absolute
+    top 0
+    right -10px
+    //same dimension as the line-height of .wizardSteps span
+    width 24px
+    height 24px
+    //rotate and scale down so diagonal is height of span:
+    //length = 1; diagonal = (length^2 + length^2)^0.5 = 1.414
+    //diagonal = 1; length = diagonal/1.414 = 0.7072
+    transform scale(0.7072) rotate(45deg)
+    //prevent the arrows from getting buried under the next link
+    z-index 1
+    //style arrow using box shadow
+    box-shadow 2px -2px 0 1px #999
+    //5px - for rounded arrows and
+    //50px - to prevent hover glitches on the shadow border
+    border-radius 0 5px 0 50px
+
+.wizardSteps span, .wizardSteps span:after
+    background white
+    color black
+
+.wizardSteps span.active, .wizardSteps span.active:after
+    background #8dc1fa
+
+span.pastWizardStep:hover, span.pastWizardStep:hover:after
+    background #8dc1fa
+    cursor pointer
+
+.wizardForm
+    shadow()
+    margin 2px
+    background-color #2c2c2c
+    color #ddd
+    border 1px solid #999
+    border-radius 4px
+    display inline-block
+    position relative
+    top 26px
+    padding 4px
+    text-align initial
+    .wizardFormHeader
+        text-align center
+        padding-bottom 4px
+        border-bottom 1px solid #999
+        background linear-gradient(#2c2c2c, #000)
+    .wizardFormFooter
+        padding-top 4px
+    .wizardFormContent
+        padding 4px
+    input
+        border-radius 3px
+        color black
+        font-size 12px
+        padding 1px 4px
+        line-height 17px
