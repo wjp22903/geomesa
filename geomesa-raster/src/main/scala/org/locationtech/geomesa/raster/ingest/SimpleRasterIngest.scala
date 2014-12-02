@@ -115,7 +115,7 @@ class SimpleRasterIngest(config: Map[String, Option[String]], cs: AccumuloCovera
     val gcOrig: GridCoverage2D = reader.read(null)
     val crs = gcOrig.getCoordinateReferenceSystem2D
     val envelope = gcOrig.getEnvelope2D
-    val mbgh = getMBGH(envelope.getMinX, envelope.getMinY, envelope.getMaxX, envelope.getMaxY)
+    val mbgh = getMBGH(envelope.getMinX, envelope.getMaxX, envelope.getMinY, envelope.getMaxY)
     val id = getRasterId(rasterName)
     RasterMetadata(id, envelope, mbgh, time, imageType, crs)
   }
