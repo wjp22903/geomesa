@@ -77,17 +77,18 @@ class AccumuloCoverageStoreFactory extends Logging {
       IngestRasterParams.AUTHORIZATIONS -> authorizationsProvider.getAuthorizations.toString
     )
 
-    val geoserverClientServiceO: Option[GeoserverClientService] = geoserverParam.lookupOpt(params) match {
-      case geoserverConfig if geoserverConfig.isInstanceOf[String] =>
+    val geoserverConfig = geoserverParam.lookUp(params).asInstanceOf[String]
+    val geoserverClientServiceO: Option[GeoserverClientService] =
+      if (geoserverConfig == null) None
+      else {
         val gsConnectConfig: Map[String, String] =
-          geoserverConfig.asInstanceOf[String].split(",").map(_.split("=") match {
+          geoserverConfig.split(",").map(_.split("=") match {
             case Array(s1, s2) => (s1, s2)
             case _ => logger.error("Failed in registering raster to Geoserver: wrong parameters.")
               sys.exit()
           }).toMap
         Some(new GeoserverClientService(dsConnectConfig ++ gsConnectConfig))
-      case _ => None
-    }
+      }
 
     new AccumuloCoverageStore(new RasterStore(rasterOps), geoserverClientServiceO)
   }
