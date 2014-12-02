@@ -3,7 +3,7 @@
     <div ng-repeat-start="button in manager.getButtons()" class="btn btn-default"
          tooltip-html-unsafe="<span style='white-space:nowrap'>{{::button.panel.title}}</span>"
          tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500" tooltip-trigger="mouseenter"
-         ng-click="manager.toggleButton(button.id, button.panel.open)" ng-model="button.panel.open" btn-checkbox>
+         ng-click="manager.toggleButton(button.id, !button.panel.open)" ng-class="{active: button.panel.open}">
         <i class="fa fa-fw fa-lg" ng-class="::button.iconClass"></i>
     </div>
     <div ng-repeat-end class="sidebarPanel glass anchorTopBottom"

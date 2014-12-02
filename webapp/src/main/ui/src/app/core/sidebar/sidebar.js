@@ -45,6 +45,7 @@ function ($rootScope) {
                 style: {
                     width: width + 'px'
                 },
+                open: false,
                 contentDef: contentDef,
                 toolDef: toolDef
             }
@@ -70,22 +71,24 @@ function ($rootScope) {
     this.toggleButton = function (id, openValue) {
         var theButton = _.find(_buttons, {id: id});
         if (theButton) {
-            theButton.panel.pinned = false;
-            if (theButton.panel.open) {
-                delete theButton.panel.style.left;
-                _.pull(_openPanelIds, theButton.id);
-            } else {
-                _.each(_buttons, function (button) {
-                    if (button.id !== id && !button.panel.pinned) {
-                        button.panel.open = false;
-                        delete button.panel.style.left;
-                        _.pull(_openPanelIds, button.id);
-                    }
-                });
-                _openPanelIds.push(id);
+            if (openValue !== theButton.panel.open) {
+                theButton.panel.pinned = false;
+                if (theButton.panel.open) {
+                    delete theButton.panel.style.left;
+                    _.pull(_openPanelIds, theButton.id);
+                } else {
+                    _.each(_buttons, function (button) {
+                        if (button.id !== id && !button.panel.pinned) {
+                            button.panel.open = false;
+                            delete button.panel.style.left;
+                            _.pull(_openPanelIds, button.id);
+                        }
+                    });
+                    _openPanelIds.push(id);
+                }
+                _setLefts();
+                theButton.panel.open = openValue;
             }
-            _setLefts();
-            theButton.panel.open = openValue;
         }
     };
 }])
