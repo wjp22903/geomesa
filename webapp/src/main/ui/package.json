@@ -23,12 +23,12 @@
     "karma-html2js-preprocessor": "~0.1.0",
     "karma-jasmine": "~0.1.5",
     "karma-mocha": "0.1.1",
-    "karma-phantomjs-launcher": "~0.1.2",
+    "karma-phantomjs-launcher": "~0.1.4",
     "karma-requirejs": "~0.2.1",
     "karma-script-launcher": "~0.1.0",
     "lodash": "~2.4.1",
     "matchdep": "~0.3.0",
-    "mocha": "~1.17.1",
+    "mocha": "~2.0.1",
     "requirejs": "~2.1.11"
   }
 }
