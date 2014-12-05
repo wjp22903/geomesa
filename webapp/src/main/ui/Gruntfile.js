@@ -1,5 +1,6 @@
 var eyes    = require('eyes'),
-    _       = require('lodash');
+    _       = require('lodash'),
+    fs      = require('fs');
 
 module.exports = function (grunt) {
     'use strict';
@@ -9,7 +10,21 @@ module.exports = function (grunt) {
         grunt.loadNpmTasks(dep);
     });
 
-    grunt.initConfig(require('./stealth.config.js'));
+    var target = grunt.option('target') || 'dev';
+    var stealthConfig = require('./stealth.config.js');
+    if (target === 'prod') {
+        stealthConfig.vendorFiles.js = stealthConfig.vendorFiles.js.map( function ( file ) {
+            var minFile;
+            if (file.indexOf('-debug') !== -1) {
+                minFile = file.replace( /\-debug/, '' );
+            } else {
+                minFile = file.replace( /\.js$/, '.min.js' );
+            }
+            return fs.existsSync(minFile) ? minFile : file;
+        });
+    }
+
+    grunt.initConfig(stealthConfig);
 
     // Expand the buildDir pattern to allow glob minimatch patterns in config.
     grunt.config('buildDir', require('../../../target/non-packaged-resources/stealth.config.filtered.js').buildDir);

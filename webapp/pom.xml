@@ -168,11 +168,11 @@
                                 <echo>**** GRUNT ****</echo>
                                 <exec executable="cmd" dir="${uidir.pathname}" osfamily="windows"
                                       resultproperty="cmdresult">
-                                    <arg line="/c node.exe ${uidir.pathname}/node_modules/grunt-cli/bin/grunt --force"/>
+                                    <arg line="/c node.exe ${uidir.pathname}/node_modules/grunt-cli/bin/grunt --force ${grunt.target}"/>
                                 </exec>
                                 <exec executable="bash" dir="${uidir.pathname}" osfamily="unix"
                                       resultproperty="cmdresult">
-                                    <arg line="-c '${nodejs.local.dir}/bin/node ${uidir.pathname}/node_modules/grunt-cli/bin/grunt'"/>
+                                    <arg line="-c '${nodejs.local.dir}/bin/node ${uidir.pathname}/node_modules/grunt-cli/bin/grunt ${grunt.target}'"/>
                                 </exec>
 
                                 <condition property="cmdsuccess">
@@ -496,6 +496,13 @@
             <properties>
                 <security.anonymous.access>false</security.anonymous.access>
                 <security.allowed.userDns>[]</security.allowed.userDns>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>production</id>
+            <properties>
+                <grunt.target>--target=prod</grunt.target>
             </properties>
         </profile>
 

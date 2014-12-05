@@ -31,25 +31,18 @@ module.exports = {
     // for them to 'indexDest' file specified above.
     vendorFiles: {
         js: [
-            'vendor/bower/lodash/dist/lodash.min.js',
+            'vendor/bower/lodash/dist/lodash.js',
             'vendor/bower/jquery/dist/jquery.js',
-            'vendor/bower/jquery/dist/jquery.min.js',
-            'vendor/bower/jquery/dist/jquery.min.map',
             'vendor/bower/angular/angular.js',
-            'vendor/bower/angular/angular.min.js',
-            'vendor/bower/angular/angular.min.js.map',
-            'vendor/bower/angular-ui-router/release/angular-ui-router.min.js',
-            'vendor/bower/angular-animate/angular-animate.min.js',
-            'vendor/bower/angular-animate/angular-animate.min.js.map',
-            'vendor/bower/angular-ui-utils/ui-utils.min.js',
+            'vendor/bower/angular-ui-router/release/angular-ui-router.js',
+            'vendor/bower/angular-animate/angular-animate.js',
+            'vendor/bower/angular-ui-utils/ui-utils.js',
             'vendor/bower/momentjs/min/moment.min.js',
-            'vendor/bower/angular-ui-bootstrap-bower/ui-bootstrap.min.js',
-            'vendor/bower/angular-ui-bootstrap-bower/ui-bootstrap-tpls.min.js',
-            'vendor/bower/bowser/bowser.min.js',
+            'vendor/bower/angular-ui-bootstrap-bower/ui-bootstrap-tpls.js',
+            'vendor/bower/bowser/bowser.js',
             'vendor/bower/angular-truncate/src/truncate.js',
             'vendor/bower/html5slider.polyfill/html5slider.js',
-            'vendor/ol3/ol.js'
-//            'vendor/ol3/ol-debug.js' // Use for debugging the app.
+            'vendor/ol3/ol-debug.js'
         ],
         assets_nested: [
             'vendor/openlayers/img/*',

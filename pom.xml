@@ -30,6 +30,8 @@
             configured workspaces that make no sense to use.
         ds
             Customizations for high-side demos.
+        production
+            Used for production build.  Uses minimized versions of external javascript libs.
     -->
 
     <modules>
@@ -63,6 +65,8 @@
         </app.supported.browsers>
 
         <geoserver.url>http://dgeo:8080/geoserver</geoserver.url>
+
+        <grunt.target>--target=dev</grunt.target>
 
         <map.default.url>${geoserver.url}/wms</map.default.url>
         <map.extent>[-180,-90,180,90]</map.extent>
