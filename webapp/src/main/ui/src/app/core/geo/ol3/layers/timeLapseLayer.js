@@ -1,20 +1,22 @@
 angular.module('stealth.core.geo.ol3.layers')
 
-.factory('stealth.core.geo.ol3.layers.ViewerLayer', [
+.factory('stealth.core.geo.ol3.layers.TimeLapseLayer', [
 '$log',
 'stealth.core.geo.ol3.layers.MapLayer',
 'CONFIG',
 function ($log, MapLayer, CONFIG) {
-    var tag = 'stealth.core.geo.ol3.layers.ViewerLayer: ';
+    var tag = 'stealth.core.geo.ol3.layers.TimeLapseLayer: ';
     $log.debug(tag + 'factory started');
 
-    var ViewerLayer = function (name) {
+    var TimeLapseLayer = function (name) {
         var _w = 0;
         var _h = 0;
         var _canvas = document.createElement('canvas');
         var _ctx = _canvas.getContext('2d');
 
         var _drawFn  = function (extent, resolution, pixelRatio, size, projection) {
+            _w = size[0];
+            _h = size[1];
             _canvas.setAttribute('width', _w);
             _canvas.setAttribute('height', _h);
             _ctx.clearRect(0, 0, _w, _h);
@@ -39,20 +41,20 @@ function ($log, MapLayer, CONFIG) {
             _h = height;
         };
 
-        $log.debug(tag + 'new ViewerLayer(' + name + ')');
+        $log.debug(tag + 'new TimeLapseLayer(' + name + ')');
         MapLayer.apply(this, [name, _olLayer]);
         // TODO: Set viewer layer style directive.
         // TODO: Define viewer layer style directive below.
         // TODO: this.styleDirective = 'st-viewer-layer-style';
     };
-    ViewerLayer.prototype = Object.create(MapLayer.prototype);
-    return ViewerLayer;
+    TimeLapseLayer.prototype = Object.create(MapLayer.prototype);
+    return TimeLapseLayer;
 }])
 
-.directive('stViewerLayerStyle', [
+.directive('stTimeLapseLayerStyle', [
 '$log',
 function ($log) {
-    $log.debug('stealth.core.geo.ol3.layers.stViewerLayerStyle: directive defined');
+    $log.debug('stealth.core.geo.ol3.layers.stTimeLapseLayerStyle: directive defined');
     return {
         // TODO: Define style for viewer layer.
         template: '<div></div>'

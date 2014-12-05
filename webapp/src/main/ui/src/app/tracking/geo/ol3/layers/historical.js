@@ -2,16 +2,16 @@ angular.module('stealth.tracking.geo.ol3.layers')
 
 .factory('stealth.tracking.geo.ol3.layers.HistoricalLayer', [
 '$log',
-'stealth.core.geo.ol3.layers.ViewerLayer',
-function ($log, ViewerLayer) {
+'stealth.core.geo.ol3.layers.TimeLapseLayer',
+function ($log, TimeLapseLayer) {
     var tag = 'stealth.tracking.geo.ol3.layers.HistoricalLayer: ';
     $log.debug(tag + 'factory started');
 
     var HistoricalLayer = function (name) {
         $log.debug(tag + 'new HistoricalLayer(' + name + ')');
-        ViewerLayer.apply(this, arguments);
+        TimeLapseLayer.apply(this, arguments);
     };
-    HistoricalLayer.prototype = Object.create(ViewerLayer.prototype);
+    HistoricalLayer.prototype = Object.create(TimeLapseLayer.prototype);
     return HistoricalLayer;
 }])
 

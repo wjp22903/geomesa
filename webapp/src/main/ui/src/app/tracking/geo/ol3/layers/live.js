@@ -2,16 +2,16 @@ angular.module('stealth.tracking.geo.ol3.layers')
 
 .factory('stealth.tracking.geo.ol3.layers.LiveLayer', [
 '$log',
-'stealth.core.geo.ol3.layers.ViewerLayer',
-function ($log, ViewerLayer) {
+'stealth.core.geo.ol3.layers.TimeLapseLayer',
+function ($log, TimeLapseLayer) {
     var tag = 'stealth.tracking.geo.ol3.layers.LiveLayer: ';
     $log.debug(tag + 'factory started');
 
     var LiveLayer = function (name) {
         $log.debug(tag + 'new LiveLayer(' + name + ')');
-        ViewerLayer.apply(this, arguments);
+        TimeLapseLayer.apply(this, arguments);
     };
-    LiveLayer.prototype = Object.create(ViewerLayer.prototype);
+    LiveLayer.prototype = Object.create(TimeLapseLayer.prototype);
     return LiveLayer;
 }])
 
