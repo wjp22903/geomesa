@@ -8,6 +8,7 @@ function (sidebarManager, headerManager) {
     var _visible = false;
     var _currentStepNum = null;
     var _mask = true;
+    var _footerVisible = true;
 
     var _updateCurrentStep = function (stepNum, skipTeardown) {
         if (_wizard && !_.isEmpty(_wizard.getSteps())) {
@@ -36,6 +37,9 @@ function (sidebarManager, headerManager) {
         return null;
     };
     this.getMask = function () { return _mask; };
+    this.getFooterVisible = function () { return _footerVisible; };
+    this.showFooter = function () { _footerVisible = true; };
+    this.hideFooter = function () { _footerVisible = false; };
     this.getIconClass = function () {
         return _wizard ? _wizard.getIconClass() : null;
     };

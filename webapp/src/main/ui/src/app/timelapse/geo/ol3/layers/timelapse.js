@@ -1,4 +1,6 @@
-angular.module('stealth.timelapse.geo.ol3.layers')
+angular.module('stealth.timelapse.geo.ol3.layers', [
+    'stealth.core.geo.ol3.layers'
+])
 
 .factory('stealth.timelapse.geo.ol3.layers.TimeLapseLayer', [
 '$log',

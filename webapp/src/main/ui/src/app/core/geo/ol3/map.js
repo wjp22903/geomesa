@@ -98,6 +98,12 @@ function ($log, MapLayer, GeoJsonLayer, CONFIG) {
             _map.getSize());
     };
     /**
+     * Get current map extent.
+     */
+    this.getExtent = function () {
+        return _map.getView().calculateExtent(_map.getSize());
+    };
+    /**
      * Returns array of layers currently on map (visible or not).
      */
     this.getLayers = function () {

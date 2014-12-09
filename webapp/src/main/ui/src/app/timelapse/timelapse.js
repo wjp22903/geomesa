@@ -1,6 +1,7 @@
 angular.module('stealth.timelapse', [
     'stealth.core.geo.ol3.map',
-    'stealth.timelapse.geo.ol3.layers'
+    'stealth.timelapse.geo.ol3.layers',
+    'stealth.timelapse.wizard'
 ])
 
 .run([

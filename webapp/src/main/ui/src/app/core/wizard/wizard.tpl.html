@@ -36,7 +36,7 @@
                                 ng-if="manager.getCurrentStep() && manager.getCurrentStep().getFormDef()">
             </st-widget-compiler>
         </div>
-        <div class="wizardFormFooter">
+        <div class="wizardFormFooter" ng-show="manager.getFooterVisible()">
             <div class="pull-right" style="margin-left:4px;"
                  ng-switch on="manager.isLastStep()">
                 <span class="btn btn-xs btn-default"

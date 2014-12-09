@@ -1,5 +1,6 @@
 angular.module('stealth.targetpri.wizard', [
     'stealth.core.geo.ol3.map',
+    'stealth.core.startmenu',
     'stealth.core.utils',
     'stealth.core.wizard',
     'stealth.targetpri.wizard.route',
