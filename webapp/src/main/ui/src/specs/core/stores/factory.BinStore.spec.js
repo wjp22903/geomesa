@@ -1,6 +1,6 @@
 describe('Factory', function () {
-    describe('"stealth.core.stores.BinStore"', function () {
-        beforeEach(module('stealth.core.stores'));
+    describe('"stealth.timelapse.stores.BinStore"', function () {
+        beforeEach(module('stealth.timelapse.stores'));
 
         var id16 = 16;
         var id24 = 24;
@@ -17,7 +17,7 @@ describe('Factory', function () {
         var stride24 = 6;
 
         beforeEach(inject([
-            'stealth.core.stores.BinStore',
+            'stealth.timelapse.stores.BinStore',
             function (_BinStore_) {
                 BinStore = _BinStore_;
 

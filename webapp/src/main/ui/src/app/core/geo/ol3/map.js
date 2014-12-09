@@ -154,7 +154,7 @@ function ($log, MapLayer, GeoJsonLayer, CONFIG) {
         format: new ol.format.GeoJSON(),
         loader: function(extent, resolution, projection) {
             $.ajax({
-                url: 'assets/countries.geo.json',
+                url: CONFIG.assets.path + 'countries.geo.json',
                 dataType: 'json'
             }).done(function(response){
                 countrySource.addFeatures(countrySource.readFeatures(response));

@@ -11,7 +11,7 @@ angular.module('stealth.app', [
     'stealth.core.wizard',
     // Plugins
     'stealth.targetpri',
-    'stealth.tracking'
+    'stealth.timelapse'
 ])
 
 .config([
