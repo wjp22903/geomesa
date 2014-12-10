@@ -15,8 +15,16 @@ function ($log, $rootScope, WidgetDef) {
         this.styleDirective = 'st-map-layer-style';
         if (ol3Layer) {
             var scope = $rootScope.$new();
-            scope.visible = ol3Layer.getVisible();
-            scope.opacity = ol3Layer.getOpacity();
+            scope.layerState = {
+                visible: ol3Layer.getVisible(),
+                opacity: ol3Layer.getOpacity()
+            };
+            scope.$watch('layerState.visible', function (newVal) {
+                ol3Layer.setVisible(newVal);
+            });
+            scope.$watch('layerState.opacity', function (newVal) {
+                ol3Layer.setOpacity(newVal);
+            });
             ol3Layer.set('id', this.id);
             ol3Layer.set('name', name);
             scope.ol3Layer = ol3Layer;

@@ -1,0 +1,5 @@
+<div class="anchorAll">
+    <st-widget-compiler ng-repeat="layer in map.getLayers().slice().reverse() track by layer.getId()"
+                        widget-def="::layer.getStyleDisplayDef()">
+    </st-widget-compiler>
+</div>

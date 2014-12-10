@@ -1,5 +1,4 @@
-angular.module('stealth.core.utils', [
-])
+angular.module('stealth.core.utils')
 
 /**
  * Container for runtime insertion of directives.
@@ -59,40 +58,15 @@ function ($log, $compile) {
 function ($log, $rootScope) {
     $log.debug('stealth.core.utils.WidgetDef: factory started');
     var WidgetDef = function (directive, scope, isoScopeAttrs) {
-        this.directive = directive;
-        this.scope = scope || $rootScope.$new();
-        this.isoScopeAttrs = isoScopeAttrs || '';
-    };
+        var _directive = directive;
+        var _scope = scope || $rootScope.$new();
+        var _isoScopeAttrs = isoScopeAttrs || '';
 
-    WidgetDef.prototype.getDirective = function () {
-        return this.directive;
-    };
-    WidgetDef.prototype.getScope = function () {
-        return this.scope;
-    };
-    WidgetDef.prototype.getIsoScopeAttrs = function () {
-        return this.isoScopeAttrs;
+        this.getDirective = function () { return _directive; };
+        this.getScope = function () { return _scope; };
+        this.getIsoScopeAttrs = function () { return _isoScopeAttrs; };
     };
     return WidgetDef;
 }])
 
-.directive('stFloatSlider',
-function () {
-    return {
-        require: 'ngModel',
-        link: function(scope, element, attrs, controller) {
-            controller.$parsers.unshift(function (sliderValue) {
-                return parseFloat(sliderValue);
-            });
-        }
-    };
-})
-
-//Especially useful when setting up a skeleton with stWidgetCompiler
-.directive('stPlaceholder',
-function () {
-    return {
-        template: '<div>Placeholder</div>'
-    };
-})
 ;
