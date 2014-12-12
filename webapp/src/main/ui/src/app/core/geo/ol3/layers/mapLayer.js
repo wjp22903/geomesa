@@ -8,10 +8,25 @@ function ($log, $rootScope, WidgetDef) {
     var tag = 'stealth.core.geo.ol3.layers.MapLayer: ';
     $log.debug(tag + 'factory started');
     var _idSeq = 0;
-    var MapLayer = function (name, ol3Layer) {
+    /**
+     * name {String} - Display name for layer
+     * ol3Layer {ol.layer.Layer} - Underlying OL3 layer impl
+     * zIndexHint {Integer} - Suggestion for where layer should go in stack.
+     *     Lower values suggest bottom of stack.
+     *     Some values for expected categories:
+     *         -20 base layers
+     *         -10 context layers
+     *           0 most layers (analysis, data, etc)
+     *          10 overlays, drawings, etc
+     *     These hints only apply when layer is added to stack.  Users can
+     *     reorder as desired.  Also, once stack is reordered, the application
+     *     of hints breaks down and layers may be inserted in unexpected order.
+     */
+    var MapLayer = function (name, ol3Layer, zIndexHint) {
         this.id = _idSeq++;
         this.name = name;
         this.ol3Layer = ol3Layer;
+        this.zIndexHint = zIndexHint || 0;
         this.styleDirective = 'st-map-layer-style';
         if (ol3Layer) {
             var scope = $rootScope.$new();

@@ -44,6 +44,7 @@ module.exports = {
             'vendor/bower/angular-truncate/src/truncate.js',
             'vendor/bower/html5slider.polyfill/html5slider.js',
             'vendor/bower/angular-ui-sortable/sortable.js',
+            'vendor/bower/angular-bootstrap-colorpicker/js/bootstrap-colorpicker-module.js',
             'vendor/ol3/ol-debug.js',
             'vendor/openlayers/OpenLayers.js'
         ],

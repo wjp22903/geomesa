@@ -19,6 +19,7 @@ function (manager, CONFIG) {
         templateUrl: 'core/header/header.tpl.html',
         controller: ['$scope', function ($scope) {
             $scope.userCn = CONFIG.userCn;
+            $scope.logoUrl = 'assets/logo.png?' + CONFIG.app.loadTime;
             $scope.title = CONFIG.app.title;
             $scope.manager = manager;
         }]

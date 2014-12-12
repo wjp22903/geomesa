@@ -68,7 +68,6 @@
 
         <grunt.target>--target=dev</grunt.target>
 
-        <map.default.url>${geoserver.url}/wms</map.default.url>
         <map.extent>[-180,-90,180,90]</map.extent>
         <map.initExtent>[-180,-90,180,90]</map.initExtent>
         <map.initLayers>[]</map.initLayers>

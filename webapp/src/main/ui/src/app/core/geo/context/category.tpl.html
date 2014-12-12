@@ -1,0 +1,16 @@
+<div style="max-height:250px;overflow:auto;">
+    <div ng-if="workspaces | isEmpty" >
+        <i>None</i>
+    </div>
+    <div ng-repeat="(workspace, layers) in workspaces" style="white-space:nowrap;">
+        <b>{{workspace}}</b>
+        <div ng-repeat="layer in layers" style="padding:2px;white-space:nowrap;margin:1px 2px;border-radius:3px;border:1px dotted #ccc;">
+            <div style="height:16px;width:16px;overflow:hidden;display:inline-block;vertical-align:middle;">
+                <img ng-src="{{layer.serverUrl || CONFIG.geoserver.defaultUrl + '/wms'}}?REQUEST=GetLegendGraphic&FORMAT=image/png&WIDTH=16&HEIGHT=16&LAYER={{layer.Name}}"
+                     ng-if="layer.queryable"/>
+            </div>
+            <input type="checkbox" ng-model="layer.categoryViewState.toggledOn" ng-change="toggleLayer(layer, workspace)">
+            {{::layer.Title}}
+        </div>
+    </div>
+</div>

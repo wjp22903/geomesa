@@ -14,7 +14,7 @@ angular.module('stealth.core.geo.ol3.manager', [
 function ($log, $rootScope, sidebarManager, startMenuManager, WidgetDef) {
     var panelScope = $rootScope.$new();
     panelScope.view = 'explore'; //default view
-    var sidebarId = sidebarManager.addButton('Map Manager', 'fa-globe', 350,
+    var sidebarId = sidebarManager.addButton('Map Manager', 'fa-globe', 400,
         new WidgetDef('st-ol3-manager', panelScope, "view='view'"),
         new WidgetDef('st-ol3-manager-view-switcher', panelScope, "view='view'"),
         true);
@@ -43,7 +43,8 @@ function ($log) {
 .directive('stOl3Manager', [
 '$log',
 'ol3Map',
-function ($log, ol3Map) {
+'categoryManager',
+function ($log, ol3Map, catMgr) {
     $log.debug('stealth.core.geo.ol3.manager.stOl3Manager: directive defined');
     return {
         restrict: 'E',
@@ -54,6 +55,7 @@ function ($log, ol3Map) {
         templateUrl: 'core/geo/ol3/manager/manager.tpl.html',
         controller: ['$scope', function ($scope) {
             $scope.map = ol3Map;
+            $scope.catMgr = catMgr;
             $scope.layers = ol3Map.getLayersReversed();
             $scope.sortableOptions = {
                 handle: '.dragHandle',
@@ -72,4 +74,50 @@ function ($log, ol3Map) {
     };
 }])
 
+.service('categoryManager', [
+function () {
+    //2D array of categories
+    var _categories = [];
+    this.addCategory = function (level, category) {
+        if (_.isArray(_categories[level])) {
+            var index = _.sortedIndex(_categories[level],
+                {order: category.order + 1}, //+1 to find end of group
+                'order');
+            _categories[level].splice(index, 0, category);
+        } else {
+            _categories[level] = [category];
+        }
+    };
+    this.removeCategory = function (id) {
+        _.each(_categories, function (level) {
+            _.remove(level, function (c) {
+                return c.id === id;
+            });
+        });
+    };
+    this.getLevels = function () {
+        return _.range(_categories.length);
+    };
+    this.getLevel = function (level) {
+        return _categories[level];
+    };
+    this.getCategories = function () {
+        return _.flatten(_categories, true);
+    };
+}])
+
+.factory('stealth.core.geo.ol3.manager.Category', [
+function () {
+    var _idSeq = 0;
+    var Category = function (order, title, iconClass, contentDef, toolDef, toggledOn) {
+        this.id = _idSeq++;
+        this.order = order;
+        this.iconClass = iconClass;
+        this.title = title;
+        this.contentDef = contentDef;
+        this.toolDef = toolDef;
+        this.toggledOn = toggledOn;
+    };
+    return Category;
+}])
 ;

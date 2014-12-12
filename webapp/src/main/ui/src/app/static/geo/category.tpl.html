@@ -1,0 +1,27 @@
+<div style="max-height:300px;overflow:auto;">
+    <div ng-if="workspaces | isEmpty" >
+        <i>None</i>
+    </div>
+    <div ng-repeat="(workspace, layers) in workspaces" style="white-space:nowrap;">
+        <b>{{::workspace}}</b>
+        <div ng-repeat="layer in layers" style="margin-left:16px;white-space:nowrap;border-bottom:1px dotted #ccc;">
+            <i>{{::layer.Title}}</i>
+            <span class="btn btn-default btn-xs" style="margin-left:8px;padding:0;line-height:1;"
+                  ng-if="layer.queryable"
+                  ng-click="launchLayerFilterWizard(layer)">
+                <i class="fa fa-fw fa-plus text-primary"></i>
+            </span>
+            <div ng-repeat="filterLayer in layer.filterLayers" style="margin-left:16px;white-space:nowrap;">
+                <input type="checkbox" ng-model="filterLayer.toggledOn" ng-change="toggleLayer(layer, filterLayer)">
+                {{::filterLayer.name}}
+                <span class="btn btn-default btn-xs" style="padding:0;line-height:1;margin-left:8px;"
+                      ng-if="filterLayer.removeable" ng-click="removeLayer(layer, filterLayer)">
+                    <i class="fa fa-fw fa-close text-danger"></i>
+                </span>
+                <div style="color:#888;font-style:italic;font-size:0.9em;margin-left:16px;">
+                    {{::filterLayer.cqlFilter}}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

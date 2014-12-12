@@ -511,38 +511,12 @@
             <id>doubletrouble8082</id>
             <properties>
                 <geoserver.url>http://doubletrouble:8082/geoserver</geoserver.url>
-                <map.default.url>http://dgeo:8080/geoserver/wms</map.default.url>
                 <map.initLayers>
-                {
-                    Base: [
-                        {
-                            getMapParams: {
-                                layers: "mapproxy:globe.osm.toner"
-                            },
-                            options: {
-                                name: "OSM Toner",
-                                visible: false
-                            }
-                        },
-                        {
-                            getMapParams: {
-                                layers: "mapproxy:globe.osm.default"
-                            },
-                            options: {
-                                name: "OSM Default"
-                            }
-                        },
-                        {
-                            getMapParams: {
-                                layers: "mapproxy:globe.aerial.mapquest"
-                            },
-                            options: {
-                                name: "Aerial",
-                                visible: false
-                            }
-                        }
-                    ]
-                }
+                [
+                    {
+                        Name: "stealth.context.Base:globe.osm.default"
+                    }
+                ]
                 </map.initLayers>
             </properties>
         </profile>
@@ -552,6 +526,8 @@
             <id>ds</id>
             <properties>
                 <app.title>DragonSpell</app.title>
+                <classification.text>Dynamic Page - Highest Possible Classification is TOP SECRET//SI//TK//NOFORN</classification.text>
+                <classification.level>sci</classification.level>
             </properties>
             <build>
                 <plugins>

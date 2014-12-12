@@ -4,12 +4,9 @@ angular.module('stealth.app', [
     'ui.bootstrap',
     'ui.utils',
     'templates-app',
-    // Core
-    'stealth.core.utils', // Make utils available to all sub-modules.
-    'stealth.core.geo.ol3.manager',
-    'stealth.core.header',
-    'stealth.core.wizard',
+    'stealth.core',
     // Plugins
+    'stealth.static',
     'stealth.targetpri',
     'stealth.timelapse'
 ])

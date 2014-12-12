@@ -117,7 +117,12 @@ function ($log, MapLayer, GeoJsonLayer, CONFIG) {
     this.addLayer = function (layer, index) {
         var ol3Layer = layer.getOl3Layer();
         if (!angular.isNumber(index)) {
-            index = 0;
+            //Use hint to try to add layer at appropriate index.
+            //If stack has been user-reordered, layer might be inserted
+            //in unexpected order.
+            index = _.findIndex(_layers, function (l) {
+                return layer.zIndexHint >= l.zIndexHint;
+            });
         }
         if (index < 0) {
             index = 0;
@@ -133,6 +138,12 @@ function ($log, MapLayer, GeoJsonLayer, CONFIG) {
     this.removeLayer = function (layer) {
         _map.removeLayer(layer.getOl3Layer());
         _.pull(_layers, layer);
+    };
+    this.removeLayerById = function (id) {
+        var layer = _.find(_layers, {id: id});
+        if (layer) {
+            this.removeLayer(layer);
+        }
     };
     /**
      * Move an OL3 layer on the map from index to newIndex.
@@ -188,7 +199,7 @@ function ($log, MapLayer, GeoJsonLayer, CONFIG) {
             fill: new ol.style.Fill({color: '#202020'})
         })
     });
-    this.addLayer(new GeoJsonLayer('Countries', countryLayer));
+    this.addLayer(new GeoJsonLayer('Countries', countryLayer, -20));
     var tintSource = new ol.source.GeoJSON({
         object: {
             "type": "Feature",

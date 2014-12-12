@@ -23,4 +23,10 @@ function ($log) {
         template: '<div>Placeholder</div>'
     };
 }])
+
+.filter('isEmpty', function () {
+    return function (value) {
+        return _.isEmpty(value);
+    };
+})
 ;
