@@ -1,5 +1,9 @@
-<div class="anchorAll">
-    <st-widget-compiler ng-repeat="layer in map.getLayers().slice().reverse() track by layer.getId()"
-                        widget-def="::layer.getStyleDisplayDef()">
-    </st-widget-compiler>
+<div class="anchorAll" style="overflow-x:hidden;">
+    <ul ui-sortable="sortableOptions" ng-model="layers"
+        style="overflow-x:hidden;list-style:none outside none;padding:0;">
+        <li ng-repeat="layer in layers">
+            <st-widget-compiler widget-def="::layer.getStyleDisplayDef()">
+            </st-widget-compiler>
+        </li>
+    </ul>
 </div>

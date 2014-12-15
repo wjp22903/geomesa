@@ -79,6 +79,7 @@ function ($log, MapLayer, GeoJsonLayer, CONFIG) {
             })
         ]
     });
+    //Layer list stored in reverse. Bottom layer at end of list.
     var _layers = [];
 
     // ***** API *****
@@ -105,8 +106,9 @@ function ($log, MapLayer, GeoJsonLayer, CONFIG) {
     };
     /**
      * Returns array of layers currently on map (visible or not).
+     * Layers are in reverse. Bottom layer at end of list.
      */
-    this.getLayers = function () {
+    this.getLayersReversed = function () {
         return _layers;
     };
     /**
@@ -114,13 +116,16 @@ function ($log, MapLayer, GeoJsonLayer, CONFIG) {
      */
     this.addLayer = function (layer, index) {
         var ol3Layer = layer.getOl3Layer();
-        if (angular.isNumber(index)) {
-            _map.getLayers().insertAt(index, ol3Layer);
-            _layers.splice(index, 0, layer);
-        } else {
-            _map.addLayer(ol3Layer);
-            _layers.push(layer);
+        if (!angular.isNumber(index)) {
+            index = 0;
         }
+        if (index < 0) {
+            index = 0;
+        } else if (index > _layers.length) {
+            index = _layers.length;
+        }
+        _map.getLayers().insertAt(_layers.length - index, ol3Layer);
+        _layers.splice(index, 0, layer);
     };
     /**
      * Removes a layer from the map.
@@ -128,6 +133,15 @@ function ($log, MapLayer, GeoJsonLayer, CONFIG) {
     this.removeLayer = function (layer) {
         _map.removeLayer(layer.getOl3Layer());
         _.pull(_layers, layer);
+    };
+    /**
+     * Move an OL3 layer on the map from index to newIndex.
+     */
+    this.moveOl3Layer = function (index, newIndex) {
+        if (index != newIndex) {
+            var layers = _map.getLayers();
+            layers.insertAt(newIndex, layers.removeAt(index));
+        }
     };
     /**
      * Adds an interaction to the map.
@@ -193,20 +207,6 @@ function ($log, MapLayer, GeoJsonLayer, CONFIG) {
         })
     });
     this.addLayer(new GeoJsonLayer('Tint', tintLayer));
-
-    //Add configured layers on top
-    _.forOwn((CONFIG.map && CONFIG.map.initLayers) ? CONFIG.map.initLayers : {}, function (layers) {
-        _.each(layers, function (layer) {
-            this.addLayer(new MapLayer((layer.options || {}).name, new ol.layer.Tile(
-                _.merge(layer.options || {}, {
-                    source: new ol.source.TileWMS({
-                        url: layer.url || CONFIG.map.defaultUrl,
-                        params: _.merge(layer.getMapParams || {}, _wmsOpts)
-                    })
-                })
-            )));
-        }, this);
-    }, this);
 }])
 
 ;

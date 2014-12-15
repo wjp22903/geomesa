@@ -1,13 +1,19 @@
 <div class="layerStyleMapLayer" style="background-color:white;margin:2px;padding:2px;border-radius:4px;">
+    <ui-include src="'core/geo/ol3/layers/layer-fragments.tpl.html'" fragment="'.dragHandle'"></ui-include>
     <ui-include src="'core/geo/ol3/layers/layer-fragments.tpl.html'" fragment="'.layerStyleRow.visibilityName'"></ui-include>
     <ui-include src="'core/geo/ol3/layers/layer-fragments.tpl.html'" fragment="'.layerStyleRow.opacitySlider'"></ui-include>
 </div>
 
 <div class="layerStyleGeoJsonLayer" style="background-color:white;margin:2px;padding:2px;border-radius:4px;">
+    <ui-include src="'core/geo/ol3/layers/layer-fragments.tpl.html'" fragment="'.dragHandle'"></ui-include>
     <ui-include src="'core/geo/ol3/layers/layer-fragments.tpl.html'" fragment="'.layerStyleRow.visibilityName'"></ui-include>
     <ui-include src="'core/geo/ol3/layers/layer-fragments.tpl.html'" fragment="'.layerStyleRow.opacitySlider'"></ui-include>
 </div>
 
+
+<div class="dragHandle">
+    <i class="fa fa-arrows-v"></i>
+</div>
 
 <div class="layerStyleRow visibilityName">
     <input type="checkbox" ng-model="layerState.visible"></input>

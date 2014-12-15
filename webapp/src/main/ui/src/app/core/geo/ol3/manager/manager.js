@@ -1,4 +1,5 @@
 angular.module('stealth.core.geo.ol3.manager', [
+    'ui.sortable',
     'stealth.core.sidebar',
     'stealth.core.startmenu',
     'stealth.core.geo.ol3.map'
@@ -53,6 +54,20 @@ function ($log, ol3Map) {
         templateUrl: 'core/geo/ol3/manager/manager.tpl.html',
         controller: ['$scope', function ($scope) {
             $scope.map = ol3Map;
+            $scope.layers = ol3Map.getLayersReversed();
+            $scope.sortableOptions = {
+                handle: '.dragHandle',
+                stop: function (evt, ui) {
+                    var sortable = ui.item.sortable;
+                    if (sortable && _.isNumber(sortable.dropindex) &&
+                            _.isNumber(sortable.index) &&
+                            sortable.index != sortable.dropindex) {
+                        var lastIndex = $scope.layers.length - 1;
+                        ol3Map.moveOl3Layer(lastIndex - sortable.index,
+                                            lastIndex - sortable.dropindex);
+                    }
+                }
+            };
         }]
     };
 }])

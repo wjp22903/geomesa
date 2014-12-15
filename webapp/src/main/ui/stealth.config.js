@@ -33,6 +33,7 @@ module.exports = {
         js: [
             'vendor/bower/lodash/dist/lodash.js',
             'vendor/bower/jquery/dist/jquery.js',
+            'vendor/bower/jquery-ui/jquery-ui.js',
             'vendor/bower/angular/angular.js',
             'vendor/bower/angular-ui-router/release/angular-ui-router.js',
             'vendor/bower/angular-animate/angular-animate.js',
@@ -42,6 +43,7 @@ module.exports = {
             'vendor/bower/bowser/bowser.js',
             'vendor/bower/angular-truncate/src/truncate.js',
             'vendor/bower/html5slider.polyfill/html5slider.js',
+            'vendor/bower/angular-ui-sortable/sortable.js',
             'vendor/ol3/ol-debug.js'
         ],
         assets_nested: [
