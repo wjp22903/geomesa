@@ -1,0 +1,52 @@
+<!-- TODO: Add a way to toggle display on and off -->
+<div ng-controller="timeLapseControlsController" class="timeLapseControlsPanel glass anchorRight anchorBottom">
+    <div class="timeLapseControlRow">
+        <label>
+            <button type="button" class="col-sm-1 displayField" ng-click="display.togglePlay()" style="outline:none;text-align:center">
+                <i class="fa fa-play" ng-show="display.isPaused"></i>
+                <i class="fa fa-pause" ng-show="display.isPlaying"></i>
+            </button>
+            <span class="col-sm-11" style="padding:5px">
+                {{displayInUtc(dtg.millis)}}
+            </span>
+            <!-- TODO: Add minimize/maximize buttons -->
+        </label>
+    </div>
+    <div class="timeLapseControlRow">
+        <label>
+            <span class="col-sm-2 displayField col1">
+                <!-- TODO: Make this user editable -->
+                <span class="displayShadow glass">{{displayInUtc(dtg.min * 1000)}}</span>
+            </span>
+            <st-time-lapse-slider model="dtg" emit="timelapse:dtgChanged" class="col-sm-8"></st-time-lapse-slider>
+            <span class="displayField">
+                <!-- TODO: Make this user editable -->
+                <span class="displayShadow glass">{{displayInUtc(dtg.max * 1000)}}</span>
+            </span>
+            <!-- TODO: Add a lock button that locks in user-specified values for dtg.min and dtg.max, -->
+            <!-- TODO: instead of letting the data store time ranges define the overall time range. -->
+        </label>
+    </div>
+    <div class="timeLapseControlRow">
+        <label>
+            <span class="col-sm-1 displayField col0">Window:</span>
+            <span class="col-sm-1 displayField col1">
+                <span class="displayShadow glass">{{window.millis | millisToDHMS}}</span>
+            </span>
+            <st-time-lapse-slider model="window" emit="timelapse:windowChanged" class="col-sm-8"></st-time-lapse-slider>
+            <input type="number" class="glass" ng-model="window.max" ng-change="window.changed()">
+            <select ng-model="window.unit" ng-options="u for u in units" ng-change="window.changed()"></select>
+        </label>
+    </div>
+    <div class="timeLapseControlRow">
+        <label>
+            <span class="col-sm-1 displayField col0">Step:</span>
+            <span class="col-sm-1 displayField col1">
+                <span class="displayShadow glass"> {{step.millis | millisToDHMS}}</span>
+            </span>
+            <st-time-lapse-slider model="step" emit="timelapse:stepChanged" class="col-sm-8"></st-time-lapse-slider>
+            <input type="number" class="glass" ng-model="step.max" ng-change="step.changed()">
+            <select ng-model="step.unit" ng-options="u for u in units" ng-change="step.changed()"></select>
+        </label>
+    </div>
+</div>

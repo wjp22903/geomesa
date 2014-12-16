@@ -1,0 +1,219 @@
+angular.module('stealth.timelapse.controls', [
+])
+
+.controller('timeLapseControlsController', [
+'$log',
+'$rootScope',
+'$scope',
+'$interval',
+function ($log, $rootScope, $scope, $interval) {
+    var tag = 'stealth.timelapse.controls.timeLapseControlsController: ';
+    $log.debug(tag + 'controller started');
+
+    var toMillis = function (val, unit) {
+        switch (unit) {
+            case 's':
+                return (val * 1000);
+            case 'm':
+                return (val * 60000);
+            case 'h':
+                return (val * 3600000);
+            case 'd':
+                return (val * 86400000);
+            default:
+                return val;
+        }
+    };
+
+    var playing = null;
+
+    $scope.display = {
+        isPlaying: false,
+        isPaused: true
+    };
+    $scope.display.togglePlay = function () {
+        var isPlaying = $scope.display.isPlaying = !$scope.display.isPlaying;
+        $scope.display.isPaused = !$scope.display.isPaused;
+
+        if (isPlaying) {
+            playing = $interval(function () {
+                var t = $scope.dtg.value + toMillis($scope.step.value, $scope.step.unit) / 1000 | 0; // seconds
+                if (t > $scope.dtg.max) {
+                    $scope.dtg.value = $scope.dtg.min;
+                } else {
+                    $scope.dtg.value = t;
+                }
+                $scope.dtg.millis = toMillis($scope.dtg.value, $scope.dtg.unit);
+                $rootScope.$emit('timelapse:dtgChanged', $scope.dtg.millis);
+            }, 16 /* milliseconds */);
+        } else {
+            if (playing) {
+                $interval.cancel(playing);
+            }
+        }
+    };
+
+    $scope.units = ['s', 'm', 'h', 'd'];
+    $scope.displayInUtc = function (utcMillis) {
+            return moment.utc(utcMillis).format('YYYY-MM-DD HH:mm:ss');
+    };
+
+    var thisMoment = moment();
+    var aMonthAgo = angular.copy(thisMoment);
+    aMonthAgo.subtract(1, 'months');
+    var nowInSecs = thisMoment.format("x") / 1000 | 0;
+    var beforeInSecs = aMonthAgo.format("x") / 1000 | 0;
+    $scope.dtg = {
+        value: beforeInSecs,
+        min: beforeInSecs,
+        max: nowInSecs,
+        unit: $scope.units[0], // seconds
+        toMillis: toMillis
+    };
+    $scope.dtg.millis = $scope.dtg.value * 1000; // convert from seconds
+
+    $scope.window = {
+        value: 10,
+        min: 0,
+        max: 120,
+        unit: $scope.units[1], // minutes
+        toMillis: toMillis
+    };
+    $scope.window.millis = $scope.window.value * 60000; // convert from minutes
+
+    $scope.step = {
+        value: 30,
+        min: 0,
+        max: 300,
+        unit: $scope.units[0], // seconds
+        toMillis: toMillis
+    };
+    $scope.step.millis = $scope.step.value * 1000; // convert from seconds
+}])
+
+.filter('millisToDHMS', [
+'$log',
+function ($log) {
+    var times = [
+        {unit: 'd', base: 86400},
+        {unit: 'h', base: 3600},
+        {unit: 'm', base: 60},
+        {unit: 's', base: 1}
+    ];
+
+    return function(millis) {
+        var remaining = (millis / 1000) | 0;
+        var formatted = '';
+
+        var days = Math.floor(remaining / 86400);
+        remaining  -= days * 86400;
+        var hours = Math.floor(remaining / 3600);
+        remaining  -= hours * 3600;
+        var mins = Math.floor(remaining / 60);
+        remaining  -= mins * 60;
+        var secs = Math.floor(remaining);
+
+        if (0 < days && days < 10) {
+            formatted += '0' + days + 'd';
+        } else if (9 < days) {
+            formatted += days + 'd';
+        }
+
+        if (0 < days && hours < 1) {
+            formatted += '00h';
+        } else if (0 < hours && hours < 10) {
+            formatted += '0' + hours + 'h';
+        } else if (9 < hours) {
+            formatted += hours + 'h';
+        }
+
+        if ((0 < days || 0 < hours) && mins < 1) {
+            formatted += '00m';
+        } else if (0 < mins && mins < 10) {
+            formatted += '0' + mins + 'm';
+        } else if (9 < mins) {
+            formatted += mins + 'm';
+        }
+
+        if (secs < 1) {
+            formatted += '00s';
+        } else if (secs < 10) {
+            formatted += '0' + secs + 's';
+        } else if (9 < secs) {
+            formatted += secs + 's';
+        }
+
+        return formatted;
+    };
+}])
+
+.directive('stTimeLapseControlsPanel', [
+'$log',
+function ($log) {
+    var tag = 'stealth.timelapse.controls.stSliderControlsPane: ';
+    $log.debug(tag + 'directive defined');
+
+    return {
+        restrict: 'E',
+        scope: {},
+        templateUrl: 'timelapse/controls/templates/sliderControlsPane.tpl.html'
+    };
+}])
+
+.directive('stTimeLapseSlider', [
+'$log',
+'$rootScope',
+function ($log, $rootScope) {
+    var tag = 'stealth.timelapse.controls.stTimeLapseSlider: ';
+    $log.debug(tag + 'directive defined');
+
+    var link = function (scope, el, attrs, controller) {
+
+        var model = angular.copy(scope.model);
+        scope.model.changed = function () {
+            if (scope.model.max === undefined ||
+                !angular.isNumber(scope.model.max))
+            {
+                scope.model.max = 1;
+            } else if (scope.model.max < 2) {
+                scope.model.max = 1;
+            }
+
+            if (model.max < scope.model.max || model.max > scope.model.max) {
+                scope.model.value = model.value * (scope.model.max - scope.model.min) / (model.max - model.min);
+            }
+
+            scope.model.millis = Math.ceil(scope.model.toMillis(scope.model.value, scope.model.unit));
+            model = angular.copy(scope.model);
+
+            $rootScope.$emit(attrs.emit, scope.model.millis);
+        };
+
+        scope.model.changed();
+    };
+
+    function getTemplate () {
+      var tpl = '<input type="range" st-float-slider';
+      if (bowser.chrome) {
+          tpl += ' style="display:inline-block;"';
+      }
+      tpl += ' ng-model="model.value" \
+               ng-attr-min="{{model.min}}" \
+               ng-attr-max="{{model.max}}" \
+               step="0.02" \
+               ng-change="model.changed()">';
+
+      return tpl;
+    }
+
+    return {
+        restrict: 'E',
+        scope: {
+            model: '='
+        },
+        template: getTemplate(),
+        link: link
+    };
+}])
+
+;
