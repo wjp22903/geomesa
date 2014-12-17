@@ -1,5 +1,6 @@
 describe('Factory', function () {
     describe('"stealth.timelapse.stores.BinStore"', function () {
+        beforeEach(module('stealth.core.utils'));
         beforeEach(module('stealth.timelapse.stores'));
 
         var id16 = 16;
@@ -18,9 +19,7 @@ describe('Factory', function () {
 
         beforeEach(inject([
             'stealth.timelapse.stores.BinStore',
-            function (_BinStore_) {
-                BinStore = _BinStore_;
-
+            function (BinStore) {
                 var i = 0, z = 0;
                 var buf16 = new ArrayBuffer(16 * NUM_RECORDS);
                 var idView16 = new Uint32Array(buf16, 0);
@@ -164,5 +163,4 @@ describe('Factory', function () {
         });
     });
 })
-
 ;

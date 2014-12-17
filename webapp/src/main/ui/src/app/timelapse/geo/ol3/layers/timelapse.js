@@ -10,6 +10,15 @@ function ($log, MapLayer, CONFIG) {
     var tag = 'stealth.timelapse.geo.ol3.layers.TimeLapseLayer: ';
     $log.debug(tag + 'factory started');
 
+    var _nDiv = 10 | 0;  // Number of divisions for styling.
+    var _radiusRamps = _.map(_.range(1, 101), function (max) {
+        var radius = new Uint32Array(_nDiv + 1);
+        radius[0] = 1;
+        radius[_nDiv] = max;
+        makeLinearRamp(radius, 0, _nDiv);
+        return radius;
+    });
+
     var TimeLapseLayer = function (name) {
         // ***** Private members *****
         // Drawing bounds.
@@ -36,7 +45,6 @@ function ($log, MapLayer, CONFIG) {
         var _imageData = null; // The data for the image that will be drawn.
 
         // Styling parameters.
-        var _nDiv = 10 | 0;  // Number of divisions for styling.
         var _iDiv = 0;
         var _alpha = new Uint8Array(_nDiv + 1);
         _alpha[0] = 0x000000;
@@ -47,12 +55,6 @@ function ($log, MapLayer, CONFIG) {
         var _x, _y, _z, _center, _rgba;
         var _curSize = [0,0], _curExtent = [0,0,0,0];
         var _timeMillis = 0, _windowMillis = 0;
-
-        // TODO: Put in color arrays.
-        // TODO: Put in binding to color picker.
-        var _color = hexToRgbArray(parseInt("0a8300", 16));
-        // TODO: Put in binding to size picker.
-        var _radius = new Uint32Array(_nDiv + 1);
 
         // Binary stores holding observations.
         var _stores = [];
@@ -106,15 +108,14 @@ function ($log, MapLayer, CONFIG) {
         };
 
         function _fillImageBuffer (store) {
+            var color = store.getFillColorRgbArray();
             var timeLower = _timeMillis - _windowMillis;
             var timeUpper = _timeMillis;
             var iLower = store.getLowerBoundIdx(timeLower);
             var iUpper = store.getUpperBoundIdx(timeUpper);
 
             var nDivIdx = ((iUpper - iLower) / _nDiv) | 0;
-            _radius[0] = 0;
-            _radius[_nDiv] = 2;
-            makeLinearRamp(_radius, 0 , _nDiv);
+            var radius = _radiusRamps[store.getPointRadius() - 1];
 
             var south = _bounds.south;
             var north = _bounds.north;
@@ -132,13 +133,13 @@ function ($log, MapLayer, CONFIG) {
                     _iDiv = ((i - iLower) / nDivIdx) | 0;
                     _rgba =
                         (_alpha[_iDiv] << 24) | // alpha
-                        (_color[2]     << 16) | // blue
-                        (_color[1]     <<  8) | // green
-                         _color[0];            // red
+                        (color[2]     << 16) | // blue
+                        (color[1]     <<  8) | // green
+                         color[0];            // red
                 }
 
                 // Fill circle at center with radius.
-                fillCircle(_imageView, _imageLen, _w, _center, _radius[_iDiv], _rgba);
+                fillCircle(_imageView, _imageLen, _w, _center, radius[_iDiv], _rgba);
             }
         }
 
@@ -223,12 +224,6 @@ function ($log, MapLayer, CONFIG) {
 
         makeLinearRamp(x, i, i+k);
         makeLinearRamp(x, i+k, j);
-    }
-
-    function hexToRgbArray (hexColor) {
-        return [hexColor >> 16,
-                hexColor >> 8 && 0xffffff,
-                hexColor & 0xffffff];
     }
 
     function hasChanged (p, n) {

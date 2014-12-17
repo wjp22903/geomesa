@@ -2,11 +2,28 @@ angular.module('stealth.timelapse.stores')
 
 .factory('stealth.timelapse.stores.BinStore', [
 '$log',
-function ($log) {
+'colors',
+function ($log, colors) {
     var tag = 'stealth.timelapse.stores.BinStore: ';
     $log.debug(tag + 'factory started');
 
-    var BinStore = function (arrayBuffer) {
+    var BinStore = function (arrayBuffer, name, fillColorHexString, pointRadius, colorBy) {
+        var _fillColorRgbArray = [0, 0, 0];
+        var _setFillColorHexString = function (hexString) {
+            _fillColorRgbArray = colors.hexStringToRgbArray(hexString);
+        };
+        var _pointRadius = 2;
+        var _setPointRadius = function (radius) {
+            if (radius > 100) {
+                radius = 100;
+            }
+            _pointRadius = radius;
+        };
+
+        var _name = name || 'unknown';
+        _setFillColorHexString(fillColorHexString || colors.getColor());
+        _setPointRadius(pointRadius || 2);
+        var _colorBy = colorBy;
         var _arrayBuffer = arrayBuffer;
         var _idView = new Uint32Array(_arrayBuffer, 0);
         var _secondsView = new Uint32Array(_arrayBuffer, 4);
@@ -19,6 +36,15 @@ function ($log) {
         var _maxTimeMillis = _secondsView[_lastRecordIndex] * 1000;
         var _numRecords = _arrayBuffer.byteLength / _recordSizeBytes;
 
+        // Getters and setters for display properties
+        this.getName = function () { return _name; };
+        this.setName = function (name) { _name = name; };
+        this.getFillColorRgbArray = function () { return _fillColorRgbArray; };
+        this.setFillColorHexString = _setFillColorHexString;
+        this.getPointRadius = function () { return _pointRadius; };
+        this.setPointRadius = _setPointRadius;
+        this.getColorBy = function () { return _colorBy; };
+        this.setColorBy = function (colorBy) { _colorBy = colorBy; };
         // Getters for values of the i-th record.
         this.getId = function (i) { return _idView[i * _stride]; };
         this.getTimeInSeconds = function (i) { return _secondsView[i * _stride]; };
@@ -121,5 +147,4 @@ function ($log) {
 
     return BinStore;
 }])
-
 ;

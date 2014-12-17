@@ -20,22 +20,19 @@
 
     <script type="text/javascript" src="../../../../../../../target/stealth/templates-app.js"></script>
     <script type="text/javascript" src="../../../../../../main/ui/src/app/00moduleWrapper.js"></script>
+    <script type="text/javascript" src="../../../../../../main/ui/src/app/core/utils/color.js"></script>
     <script type="text/javascript" src="../../../../../../main/ui/src/app/core/utils/widget.js"></script>
     <script type="text/javascript" src="../../../../../../main/ui/src/app/core/geo/ol3/map.js"></script>
     <script type="text/javascript" src="../../../../../../main/ui/src/app/core/geo/ol3/layers/layers.js"></script>
     <script type="text/javascript" src="../../../../../../main/ui/src/app/core/geo/ol3/layers/mapLayer.js"></script>
     <script type="text/javascript" src="../../../../../../main/ui/src/app/core/geo/ol3/layers/geoJson.js"></script>
-    <script type="text/javascript" src="../../../../../../main/ui/src/app/timelapse/geo/ol3/layers/layers.js"></script>
     <script type="text/javascript" src="../../../../../../main/ui/src/app/timelapse/geo/ol3/layers/timelapse.js"></script>
-    <script type="text/javascript" src="../../../../../../main/ui/src/app/timelapse/stores/stores.js"></script>
     <script type="text/javascript" src="../../../../../../main/ui/src/app/timelapse/stores/binary.js"></script>
 
 </head>
 <body>
 <div ng-controller="controller"><input id="upfile" type="file" value="upload" onchange="angular.element(this).scope().fileSelected(this)"></div>
-
-<st-ol3-map id="primaryMap" class="primaryDisplay anchorTopBottom anchorRight" style="left: 300px"></st-ol3-map>
-
+<st-ol3-map id="primaryMap" class="primaryDisplay anchorTopBottom anchorRight" style="left:0;top:24px;"></st-ol3-map>
 <!-- Test script -->
 <script type="text/javascript" src="timelapse.test.js"></script>
 </body>
