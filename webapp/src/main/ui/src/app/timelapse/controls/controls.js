@@ -6,7 +6,8 @@ angular.module('stealth.timelapse.controls', [
 '$rootScope',
 '$scope',
 '$interval',
-function ($log, $rootScope, $scope, $interval) {
+'$timeout',
+function ($log, $rootScope, $scope, $interval, $timeout) {
     var tag = 'stealth.timelapse.controls.timeLapseControlsController: ';
     $log.debug(tag + 'controller started');
 
@@ -37,8 +38,12 @@ function ($log, $rootScope, $scope, $interval) {
 
         if (isPlaying) {
             playing = $interval(function () {
-                var t = $scope.dtg.value + toMillis($scope.step.value, $scope.step.unit) / 1000 | 0; // seconds
-                if (t > $scope.dtg.max) {
+                var valInSecs = $scope.dtg.value;
+                var stepInSecs = toMillis($scope.step.value, $scope.step.unit) / 1000;
+                var t = Math.ceil(valInSecs + stepInSecs); // seconds
+                if (t < $scope.dtg.min) {
+                    $scope.dtg.value = $scope.dtg.min;
+                } else if (t > $scope.dtg.max) {
                     $scope.dtg.value = $scope.dtg.min;
                 } else {
                     $scope.dtg.value = t;
@@ -89,6 +94,53 @@ function ($log, $rootScope, $scope, $interval) {
         toMillis: toMillis
     };
     $scope.step.millis = $scope.step.value * 1000; // convert from seconds
+
+    $rootScope.$on('timelapse:setDtgBounds', function (event, data) {
+        $scope.dtg.min = data.minInSecs;
+        $scope.dtg.max = data.maxInSecs;
+
+        if ($scope.dtg.value < $scope.dtg.min) {
+            $scope.dtg.value = $scope.dtg.min;
+        }
+
+        if ($scope.dtg.value > $scope.dtg.max) {
+            $scope.dtg.value = $scope.dtg.max;
+        }
+
+        // This block needed to sync the stTimeLapseSlider's
+        // internal copy of the dtg model which was instantiated
+        // during bootstrap.
+        var value = angular.copy($scope.dtg.value); // Save value needed.
+        $scope.dtg.changed();  // Update internal copy (This also scales $scope.dtg.value).
+        $scope.dtg.value = value; // Set value back to what it needs to be.
+        $scope.dtg.millis = toMillis($scope.dtg.value, $scope.dtg.unit); // Calc millis.
+
+        // Apply changes.
+        $timeout(function () {
+            $scope.$apply();
+        });
+
+        // Notify listeners that dtg value changed.
+        // (If redraw listeners are registered, this should trigger a redraw as well.)
+        $scope.$emit('timelapse:dtgChanged', $scope.dtg.millis);
+    });
+
+    $rootScope.$on('timelapse:resetDtgBounds', function () {
+        var thisMoment = moment();
+        var aMonthAgo = angular.copy(thisMoment);
+        aMonthAgo.subtract(1, 'months');
+        var nowInSecs = thisMoment.format("x") / 1000 | 0;
+        var beforeInSecs = aMonthAgo.format("x") / 1000 | 0;
+
+        $scope.dtg.value = beforeInSecs;
+        $scope.dtg.min = beforeInSecs;
+        $scope.dtg.max = nowInSecs;
+        $scope.dtg.millis = toMillis($scope.dtg.value, $scope.dtg.unit);
+        $scope.$emit('timelapse:dtgChanged', $scope.dtg.millis);
+        if ($scope.display.isPlaying) {
+            $scope.display.togglePlay();
+        }
+    });
 }])
 
 .filter('millisToDHMS', [
@@ -156,7 +208,7 @@ function ($log) {
     return {
         restrict: 'E',
         scope: {},
-        templateUrl: 'timelapse/controls/templates/sliderControlsPane.tpl.html'
+        templateUrl: 'timelapse/controls/controlsPanel.tpl.html'
     };
 }])
 

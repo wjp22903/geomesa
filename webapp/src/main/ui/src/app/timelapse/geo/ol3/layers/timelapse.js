@@ -4,9 +4,10 @@ angular.module('stealth.timelapse.geo.ol3.layers', [
 
 .factory('stealth.timelapse.geo.ol3.layers.TimeLapseLayer', [
 '$log',
+'$rootScope',
 'stealth.core.geo.ol3.layers.MapLayer',
 'CONFIG',
-function ($log, MapLayer, CONFIG) {
+function ($log, $rootScope, MapLayer, CONFIG) {
     var tag = 'stealth.timelapse.geo.ol3.layers.TimeLapseLayer: ';
     $log.debug(tag + 'factory started');
 
@@ -159,10 +160,19 @@ function ($log, MapLayer, CONFIG) {
             } else {
                 _stores.push(store);
             }
+
+            if (_stores.length > 0) {
+                $rootScope.$emit('timelapse:setDtgBounds', getBounds(_stores));
+            }
         };
 
         this.removeStore = function (store) {
             _.pull(_stores, store);
+            if (_stores.length > 0) {
+                $rootScope.$emit('timelapse:setDtgBounds', getBounds(_stores));
+            } else {
+                $rootScope.$emit('timelapse:resetDtgBounds');
+            }
         };
 
         this.redraw = function (timeMillis, windowMillis) {
@@ -250,6 +260,24 @@ function ($log, MapLayer, CONFIG) {
 
     function extentChanged(prevExtent, newExtent) {
         return hasChanged(prevExtent, newExtent);
+    }
+
+    function getBounds(stores) {
+        // TODO: Check if store set to be visible.
+        var minStore = _.min(stores, function (store) {
+            return store.getMinTimeInMillis();
+        });
+        var minInSecs = minStore.getMinTimeInMillis() / 1000;
+
+        var maxStore = _.max(stores, function (store) {
+            return store.getMaxTimeInMillis();
+        });
+        var maxInSecs = maxStore.getMaxTimeInMillis() / 1000;
+
+        return {
+            minInSecs: minInSecs,
+            maxInSecs: maxInSecs
+        };
     }
 
     return TimeLapseLayer;

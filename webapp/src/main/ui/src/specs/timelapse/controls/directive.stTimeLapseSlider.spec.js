@@ -50,11 +50,6 @@ describe('Directive', function () {
             }
         ]));
 
-        it('', function () {
-            console.log(el);
-            console.log(inputEl);
-        });
-
         it('should have an isolated scope', function () {
             expect(isoScope).to.be.defined;
             expect(isoScope.$id).not.to.equal(scope.$id);

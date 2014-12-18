@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="test.ui.timelapse.controls.controls.test" ng-strict-di>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TimeLapse Controls Test</title>
+
+    <script type="text/javascript" src="../../../../main/ui/vendor/bower/jquery/dist/jquery.js"></script>
+    <script type="text/javascript" src="../../../../main/ui/vendor/bower/angular/angular.js"></script>
+    <script type="text/javascript" src="../../../../main/ui/vendor/bower/angular-ui-utils/ui-utils.js"></script>
+    <script type="text/javascript" src="../../../../main/ui/vendor/ol3/ol-debug.js"></script>
+    <script type="text/javascript" src="../../../../main/ui/vendor/bower/lodash/dist/lodash.js"></script>
+    <script type="text/javascript" src="../../../../main/ui/vendor/bower/bowser/bowser.js"></script>
+    <script type="text/javascript" src="../../../../main/ui/vendor/bower/momentjs/moment.js"></script>
+
+    <link rel="stylesheet" href="../../../../../target/stealth/css/style.css">
+
+    <!-- Shared STEALTH.config for tests -->
+    <script type="text/javascript" src="../../../testConfig.js"></script>
+
+    <script type="text/javascript" src="../../../../../target/stealth/templates-app.js"></script>
+    <script type="text/javascript" src="../../../../main/ui/src/app/00moduleWrapper.js"></script>
+    <script type="text/javascript" src="../../../../main/ui/src/app/core/utils/widget.js"></script>
+    <script type="text/javascript" src="../../../../main/ui/src/app/core/geo/ol3/map.js"></script>
+    <script type="text/javascript" src="../../../../main/ui/src/app/core/geo/ol3/layers/layers.js"></script>
+    <script type="text/javascript" src="../../../../main/ui/src/app/core/geo/ol3/layers/mapLayer.js"></script>
+    <script type="text/javascript" src="../../../../main/ui/src/app/core/geo/ol3/layers/geoJson.js"></script>
+    <script type="text/javascript" src="../../../../main/ui/src/app/timelapse/geo/ol3/layers/timelapse.js"></script>
+    <script type="text/javascript" src="../../../../main/ui/src/app/timelapse/stores/stores.js"></script>
+    <script type="text/javascript" src="../../../../main/ui/src/app/timelapse/stores/binary.js"></script>
+    <script type="text/javascript" src="../../../../main/ui/src/app/timelapse/controls/controls.js"></script>
+
+</head>
+<body>
+<st-test-bin-files-list></st-test-bin-files-list>
+<st-ol3-map id="primaryMap" class="primaryDisplay anchorTopBottom anchorRight" style="left: 300px"></st-ol3-map>
+<st-time-lapse-controls-panel></st-time-lapse-controls-panel>
+
+<!-- Test script -->
+<script type="text/javascript" src="controls.test.js"></script>
+</body>
+</html>
