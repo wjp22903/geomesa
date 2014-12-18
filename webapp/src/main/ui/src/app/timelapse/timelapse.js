@@ -73,14 +73,14 @@ function ($log, $rootScope, $compile, $templateCache,
         });
     }
 
-    function start () {
+    this.start = function () {
         registerLayers();
         addControlsPanel();
         registerControlsListeners();
-    }
+    };
 
-    return {
-        start: start
+    this.getHistoricalLayer = function () {
+        return historical;
     };
 }])
 

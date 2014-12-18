@@ -1,28 +1,23 @@
 angular.module('stealth.timelapse.wizard.bounds', [
     'stealth.core.geo.ol3.map',
     'stealth.core.utils',
-    'stealth.core.wizard'
+    'stealth.core.wizard',
+    'stealth.timelapse.wizard.query'
 ])
 
 .factory('boundTlWizFactory', [
 'stealth.core.utils.WidgetDef',
 'stealth.core.wizard.Step',
 'stealth.core.wizard.Wizard',
-function (WidgetDef, Step, Wizard) {
+'stealth.timelapse.wizard.Query',
+function (WidgetDef, Step, Wizard, Query) {
     var self = {
-        createBoundsWiz: function (wizardScope) {
-            if(!wizardScope.bounds) {
-                wizardScope.bounds = {
-                    minLon: null,
-                    minLat: null,
-                    maxLon: null,
-                    maxLat: null
-                };
+        createBoundWiz: function (wizardScope) {
+            if (!wizardScope.query) {
+                wizardScope.query = new Query();
             }
             return new Wizard(null, null, null, [
-                new Step('Select Bounds',
-                         new WidgetDef('st-tl-wiz-bounds', wizardScope, 'bounds="bounds"'),
-                         null, false, _.noop, function () { wizardScope.$destroy(); })
+                new Step('Select Bounds', new WidgetDef('st-tl-wiz-bounds', wizardScope), null, false, _.noop, _.noop)
             ]);
         }
     };
@@ -49,7 +44,7 @@ function ($scope, $filter, ol3Map, wizManager) {
         $scope.$apply(function () {
             _checkAndSetBounds(_draw.getGeometry().getExtent());
             ol3Map.removeInteraction(_draw);
-            $scope.drawing = false;
+            $scope.boundWiz.drawing = false;
             wizManager.showFooter();
         });
     });
@@ -59,31 +54,32 @@ function ($scope, $filter, ol3Map, wizManager) {
         var trimmed = _.map(extent, function (val) {
             return parseFloat(filter(val, 5));
         });
-        $scope.bounds.minLon = trimmed[0] < -180 ? -180 : trimmed[0];
-        $scope.bounds.minLat = trimmed[1] < -90 ? -90 : trimmed[1];
-        $scope.bounds.maxLon = trimmed[2] > 180 ? 180 : trimmed[2];
-        $scope.bounds.maxLat = trimmed[3] > 90 ? 90 : trimmed[3];
+        $scope.query.params.minLon = trimmed[0] < -180 ? -180 : trimmed[0];
+        $scope.query.params.minLat = trimmed[1] < -90 ? -90 : trimmed[1];
+        $scope.query.params.maxLon = trimmed[2] > 180 ? 180 : trimmed[2];
+        $scope.query.params.maxLat = trimmed[3] > 90 ? 90 : trimmed[3];
     };
+
+    if (!$scope.boundWiz) {
+        $scope.boundWiz = {
+            drawing: false,
+            setWholeEarth: function () {
+                _checkAndSetBounds([-180, -90, 180, 90]);
+            },
+            setMapExtent: function () {
+                _checkAndSetBounds(ol3Map.getExtent());
+            },
+            drawExtent: function () {
+                $scope.boundWiz.drawing = true;
+                wizManager.hideFooter();
+                ol3Map.addInteraction(_draw);
+            }
+        };
+    }
 
     $scope.$on('$destroy', function () {
         ol3Map.removeInteraction(_draw);
     });
-
-    $scope.drawing = false;
-
-    $scope.setWholeEarth = function () {
-        _checkAndSetBounds([-180, -90, 180, 90]);
-    };
-
-    $scope.setMapExtent = function () {
-        _checkAndSetBounds(ol3Map.getExtent());
-    };
-
-    $scope.drawExtent = function () {
-        $scope.drawing = true;
-        wizManager.hideFooter();
-        ol3Map.addInteraction(_draw);
-    };
 }])
 
 .directive('stTlWizBounds',
@@ -91,7 +87,6 @@ function () {
     return {
         restrict: 'E',
         templateUrl: 'timelapse/wizard/templates/bounds.tpl.html',
-        scope: { bounds: '=' },
         controller: 'boundWizController'
     };
 })

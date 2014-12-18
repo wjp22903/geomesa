@@ -83,11 +83,15 @@ function (sidebarManager, headerManager) {
                     return _updateCurrentStep(_currentStepNum + 1, true); //not done yet!
                 }
             }
+            if (_wizard.getWizardScope()) {
+                _wizard.getWizardScope().$destroy();
+            }
         }
         _visible = false;
         _currentStepNum = null;
         _mask = false;
         _wizard = null;
+        _footerVisible = true;
         sidebarManager.setSidebarText();
         sidebarManager.setHideAll(false);
         headerManager.setVisible(true);

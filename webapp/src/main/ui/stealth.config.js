@@ -44,7 +44,8 @@ module.exports = {
             'vendor/bower/angular-truncate/src/truncate.js',
             'vendor/bower/html5slider.polyfill/html5slider.js',
             'vendor/bower/angular-ui-sortable/sortable.js',
-            'vendor/ol3/ol-debug.js'
+            'vendor/ol3/ol-debug.js',
+            'vendor/openlayers/OpenLayers.js'
         ],
         assets_nested: [
             'vendor/openlayers/img/*',
