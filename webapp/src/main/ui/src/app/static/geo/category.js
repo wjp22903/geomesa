@@ -9,7 +9,7 @@ angular.module('stealth.static.geo', [
 'stealth.core.utils.WidgetDef',
 function (catMgr, Category, WidgetDef) {
     catMgr.addCategory(0, new Category(1, 'Data', 'fa-database',
-        new WidgetDef('st-static-geo-category'), null, true));
+        new WidgetDef('st-static-geo-category'), null, false));
 }])
 
 .directive('stStaticGeoCategory', [
@@ -24,7 +24,7 @@ function ($log, wms, ol3Map, MapLayer, wizard, CONFIG) {
     return {
         templateUrl: 'static/geo/category.tpl.html',
         controller: ['$scope', function ($scope) {
-            if (_.isEmpty($scope.workspaces)) {
+            if (_.isUndefined($scope.workspaces)) {
                 $scope.workspaces = {};
                 wms.getCapabilities('cors/' + CONFIG.geoserver.defaultUrl + '/wms')
                     .then(function (wmsCap) {

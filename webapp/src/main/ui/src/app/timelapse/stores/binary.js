@@ -9,7 +9,9 @@ function ($log, colors) {
 
     var BinStore = function (arrayBuffer, name, fillColorHexString, pointRadius, colorBy) {
         var _fillColorRgbArray = [0, 0, 0];
+        var _fillColorHexString = '#000000';
         var _setFillColorHexString = function (hexString) {
+            _fillColorHexString = hexString;
             _fillColorRgbArray = colors.hexStringToRgbArray(hexString);
         };
         var _pointRadius = 2;
@@ -40,6 +42,7 @@ function ($log, colors) {
         this.getName = function () { return _name; };
         this.setName = function (name) { _name = name; };
         this.getFillColorRgbArray = function () { return _fillColorRgbArray; };
+        this.getFillColorHexString = function () { return _fillColorHexString; };
         this.setFillColorHexString = _setFillColorHexString;
         this.getPointRadius = function () { return _pointRadius; };
         this.setPointRadius = _setPointRadius;

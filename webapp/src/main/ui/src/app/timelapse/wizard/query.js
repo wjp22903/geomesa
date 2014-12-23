@@ -6,11 +6,11 @@ angular.module('stealth.timelapse.wizard.query', [
 
 .service('queryService', [
 '$log',
-'bootstrap',
+'tlLayerManager',
 'CONFIG',
 'WFS',
 'stealth.timelapse.stores.BinStore',
-function ($log, bootstrap, CONFIG, WFS, BinStore) {
+function ($log, tlLayerManager, CONFIG, WFS, BinStore) {
 
     function buildCQLFilter(query) {
         var cql_filter =
@@ -22,7 +22,7 @@ function ($log, bootstrap, CONFIG, WFS, BinStore) {
             moment(query.params.startTime).format('HH:mm') + ':00.000Z' +
             '/' +
             moment(query.params.endDate).format('YYYY-MM-DD') + 'T' +
-            moment(query.params.endTime).format('HH:mm') + ':00.000Z ';
+            moment(query.params.endTime).format('HH:mm') + ':59.999Z ';
         if (query.params.cql) {
             cql_filter += ' AND ' + query.params.cql;
         }
@@ -59,8 +59,7 @@ function ($log, bootstrap, CONFIG, WFS, BinStore) {
                     } else {
                         //TODO: Add streaming query capability
                         var binStore = new BinStore(data, storeName);
-                        bootstrap.getHistoricalLayer().addStore(binStore);
-                        bootstrap.getHistoricalLayer().redraw();
+                        tlLayerManager.getHistoricalLayer().addStore(binStore);
                     }
                 }
             })

@@ -7,25 +7,28 @@ angular.module('stealth.timelapse.wizard', [
 ])
 
 .run([
-'$rootScope',
 'startMenuManager',
+'tlWizard',
+function (startMenuManager, tlWizard) {
+    startMenuManager.addButton('Time-enabled Query', 'fa-clock-o', tlWizard.launchWizard);
+}])
+
+.service('tlWizard', [
+'$rootScope',
 'wizardManager',
 'boundTlWizFactory',
 'optionTlWizFactory',
-'stealth.core.wizard.Step',
 'stealth.core.wizard.Wizard',
 'stealth.timelapse.wizard.Query',
-function ($rootScope, startMenuManager, wizardManager, boundTlWizFactory,
-          optionTlWizFactory, Step, Wizard, Query) {
-
-    var launchWizard = function () {
+function ($rootScope, wizardManager, boundTlWizFactory,
+          optionTlWizFactory, Wizard, Query) {
+    this.launchWizard = function () {
         var wizardScope = $rootScope.$new();
         wizardScope.query = new Query();
-        var baseWizard = new Wizard('Timelapse Query', 'fa-history', 'fa-check text-success', [], wizardScope);
+        var baseWizard = new Wizard('Time-enabled Query', 'fa-clock-o', 'fa-check text-success', [], wizardScope);
         baseWizard.appendWizard(boundTlWizFactory.createBoundWiz(wizardScope));
         baseWizard.appendWizard(optionTlWizFactory.createQueryOptionWiz(wizardScope));
         wizardManager.launchWizard(baseWizard);
     };
-    startMenuManager.addButton('Timelapse Query', 'fa-history', launchWizard);
 }])
 ;

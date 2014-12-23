@@ -45,6 +45,8 @@ module.exports = {
             'vendor/bower/html5slider.polyfill/html5slider.js',
             'vendor/bower/angular-ui-sortable/sortable.js',
             'vendor/bower/angular-bootstrap-colorpicker/js/bootstrap-colorpicker-module.js',
+            'vendor/bower/angular-bootstrap-switch/dist/angular-bootstrap-switch.js',
+            'vendor/bower/bootstrap-switch/dist/js/bootstrap-switch.js',
             'vendor/ol3/ol-debug.js',
             'vendor/openlayers/OpenLayers.js'
         ],

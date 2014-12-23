@@ -2,19 +2,19 @@
     <div ng-if="workspaces | isEmpty" >
         <i>None</i>
     </div>
-    <div ng-repeat="(workspace, layers) in workspaces" style="white-space:nowrap;">
+    <div ng-repeat="(workspace, layers) in workspaces" class="categoryGrouping">
         <b>{{::workspace}}</b>
-        <div ng-repeat="layer in layers" style="margin-left:16px;white-space:nowrap;border-bottom:1px dotted #ccc;">
-            <i>{{::layer.Title}}</i>
-            <span class="btn btn-default btn-xs" style="margin-left:8px;padding:0;line-height:1;"
+        <div ng-repeat="layer in layers" class="categoryGrouping categoryIndent">
+            <i>{{::layer.Title || layer.Name | characters:40:true}}</i>
+            <span class="btn btn-default btn-xs catGroupButton"
                   ng-if="layer.queryable"
                   ng-click="launchLayerFilterWizard(layer)">
                 <i class="fa fa-fw fa-plus text-primary"></i>
             </span>
-            <div ng-repeat="filterLayer in layer.filterLayers" style="margin-left:16px;white-space:nowrap;">
+            <div ng-repeat="filterLayer in layer.filterLayers" class="categoryGrouping categoryIndent">
                 <input type="checkbox" ng-model="filterLayer.toggledOn" ng-change="toggleLayer(layer, filterLayer)">
                 {{::filterLayer.name}}
-                <span class="btn btn-default btn-xs" style="padding:0;line-height:1;margin-left:8px;"
+                <span class="btn btn-default btn-xs catGroupButton"
                       ng-if="filterLayer.removeable" ng-click="removeLayer(layer, filterLayer)">
                     <i class="fa fa-fw fa-close text-danger"></i>
                 </span>

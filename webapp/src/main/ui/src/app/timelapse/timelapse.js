@@ -1,20 +1,19 @@
 angular.module('stealth.timelapse', [
     'stealth.core.geo.ol3.map',
-    'stealth.timelapse.geo.ol3.layers',
+    'stealth.timelapse.geo',
     'stealth.timelapse.controls',
     'stealth.timelapse.wizard'
 ])
 
 .run([
 '$log',
-'bootstrap',
-function ($log, bootstrap) {
-    bootstrap.start();
+'tlLayerManager',
+function ($log, tlLayerManager) {
+    tlLayerManager.start();
     $log.debug('stealth.timelapse: plugin loaded');
-
 }])
 
-.service('bootstrap', [
+.service('tlLayerManager', [
 '$log',
 '$rootScope',
 '$compile',
@@ -24,15 +23,12 @@ function ($log, bootstrap) {
 'stealth.timelapse.geo.ol3.layers.HistoricalLayer',
 function ($log, $rootScope, $compile, $templateCache,
           ol3Map, LiveLayer, HistoricalLayer) {
-    $log.debug('stealth.timelapse.bootstrap: service started');
-
-    // TODO: Add code to register the tracking category with the Map Manager.
-
+    $log.debug('stealth.timelapse.tlLayerManager: service started');
     var live, historical;
     function registerLayers () {
-        live = new LiveLayer('Test Live Layer');
+        live = new LiveLayer('Live');
         ol3Map.addLayer(live);
-        historical = new HistoricalLayer('Test Historical Layer');
+        historical = new HistoricalLayer('Historical');
         ol3Map.addLayer(historical);
     }
 
@@ -52,7 +48,6 @@ function ($log, $rootScope, $compile, $templateCache,
             dereg();
         });
         newEl = angular.element(controlsPanel);
-
     }
 
     var timeMillis = null;
@@ -83,5 +78,4 @@ function ($log, $rootScope, $compile, $templateCache,
         return historical;
     };
 }])
-
 ;

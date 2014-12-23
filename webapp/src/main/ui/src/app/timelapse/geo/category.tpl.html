@@ -1,0 +1,49 @@
+<div style="max-height:300px;overflow:auto;">
+    <div ng-hide="workspaces.live | isEmpty" class="categoryGrouping">
+        <div style="width:20px;text-align:center;display:inline-block;">
+            <input type="radio" ng-model="timelapse.mode" name="mode" value="live">
+        </div>
+        <b>Live</b>
+        <span class="btn btn-default btn-xs catGroupButton"
+              ng-click="launchLiveQueryWizard()">
+            <i class="fa fa-fw fa-plus text-primary"></i>
+        </span>
+        <div ng-repeat="layer in workspaces.live" class="categoryGrouping categoryIndent">
+            <input type="checkbox" ng-model="layer.categoryViewState.toggledOn" ng-change="toggleLiveLayer(layer)">
+            <i>{{::layer.Title}}</i>
+        </div>
+    </div>
+    <div class="categoryGrouping">
+        <div style="width:20px;text-align:center;display:inline-block;">
+            <input type="radio" ng-model="timelapse.mode" name="mode" value="historical">
+        </div>
+        <b>Historical</b>
+        <span class="btn btn-default btn-xs catGroupButton"
+              ng-click="launchHistoricalQueryWizard()">
+            <i class="fa fa-fw fa-plus text-primary"></i>
+        </span>
+        <span class="btn btn-default btn-xs catGroupButton"
+              ng-click="uploadFile()">
+            <i class="fa fa-fw fa-folder-open text-primary"></i>
+        </span>
+        <div style="height:0px;width:0px;overflow:hidden">
+            <input id="upfile" type="file"
+                   onchange="angular.element(this).scope().fileSelected(this)">
+        </div>
+        <div ng-repeat="store in historicalLayer.getStores()" class="categoryGrouping categoryIndent">
+            <div style="width:12px;height:12px;display:inline-block;border:1px solid #ddd;border-radius:2px;"
+                 ng-style="{'background-color': store.getFillColorHexString()}">
+            </div>
+            {{store.getName()}}
+        </div>
+    </div>
+    <div ng-hide="workspaces.summary | isEmpty" class="categoryGrouping">
+        <input type="checkbox" ng-model="timelapse.summaryOn"
+               bs-switch switch-size="micro" switch-label-width="0">
+        <b>Summary</b>
+        <span class="btn btn-default btn-xs catGroupButton"
+              ng-click="launchSummaryQueryWizard()">
+            <i class="fa fa-fw fa-plus text-primary"></i>
+        </span>
+    </div>
+</div>

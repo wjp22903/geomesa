@@ -154,6 +154,10 @@ function ($log, $rootScope, MapLayer, CONFIG) {
         });
 
         // ***** Public methods *****
+        this.getStores = function () {
+            return _stores;
+        };
+
         this.addStore = function (store, index) {
             if (angular.isNumber(index)) {
                 _stores.splice(index, 0, store);
