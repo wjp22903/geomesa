@@ -38,9 +38,9 @@ function ($log, $rootScope, $scope, $interval, $timeout) {
 
         if (isPlaying) {
             playing = $interval(function () {
-                var valInSecs = $scope.dtg.value;
-                var stepInSecs = toMillis($scope.step.value, $scope.step.unit) / 1000;
-                var t = Math.ceil(valInSecs + stepInSecs); // seconds
+                var valInSecs = Math.ceil($scope.dtg.value);
+                var stepInSecs = Math.ceil(toMillis($scope.step.value, $scope.step.unit) / 1000);
+                var t = valInSecs + stepInSecs;
                 if (t < $scope.dtg.min) {
                     $scope.dtg.value = $scope.dtg.min;
                 } else if (t > $scope.dtg.max) {
