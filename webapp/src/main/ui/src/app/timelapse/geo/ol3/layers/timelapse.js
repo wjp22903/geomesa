@@ -193,7 +193,7 @@ function ($log, $rootScope, MapLayer, CONFIG) {
             });
 
             // Tell the OL3 ImageCanvas to invalidate the current cached canvas (i.e., redraw).
-            _olSource.dispatchChangeEvent();
+            _olSource.changed();
         };
 
         $log.debug(tag + 'new TimeLapseLayer(' + name + ')');

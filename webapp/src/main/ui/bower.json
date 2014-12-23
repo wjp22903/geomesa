@@ -26,6 +26,7 @@
     "jquery": "~2.1.1",
     "lodash": "~2.4.1",
     "momentjs": "~2.8.3",
+    "ol3": "./node_modules/openlayers/",
     "sonic.js": "git@github.com:ccri/sonic.js.git#v0.5.52",
     "world.geo.json": "https://github.com/johan/world.geo.json.git#d19059de55ea2954b9285698d2ef794a3d9ee98e"
   }
