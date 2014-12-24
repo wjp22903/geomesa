@@ -3,11 +3,12 @@ angular.module('stealth.core.geo.ows')
 .service('wms', [
 '$q',
 '$http',
-function ($q, $http) {
+'$filter',
+function ($q, $http, $filter) {
     var _capabilitiesCache = {};
     var _capabilitiesParser = new ol.format.WMSCapabilities();
 
-    function _requestCapabilities (url) {
+    var _requestCapabilities = function (url) {
         return $http.get(url, {
             params: {
                 service: 'WMS',
@@ -20,9 +21,10 @@ function ($q, $http) {
                 return _capabilitiesParser.read(response.data);
             }
         });
-    }
+    };
 
-    this.getCapabilities = function (url, forceRefresh) {
+    this.getCapabilities = function (url, omitProxy, forceRefresh, omitWms) {
+        url = $filter('cors')(url, omitWms ? '' : 'wms', omitProxy);
         if (!forceRefresh && angular.isDefined(_capabilitiesCache[url])) {
             return $q.when(_capabilitiesCache[url]);
         }

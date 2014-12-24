@@ -1,5 +1,4 @@
 angular.module('stealth.timelapse.wizard.query', [
-    'stealth.core.ows',
     'stealth.timelapse',
     'stealth.timelapse.stores'
 ])
@@ -8,9 +7,9 @@ angular.module('stealth.timelapse.wizard.query', [
 '$log',
 'tlLayerManager',
 'CONFIG',
-'WFS',
+'wfs',
 'stealth.timelapse.stores.BinStore',
-function ($log, tlLayerManager, CONFIG, WFS, BinStore) {
+function ($log, tlLayerManager, CONFIG, wfs, BinStore) {
 
     function buildCQLFilter(query) {
         var cql_filter =
@@ -45,7 +44,7 @@ function ($log, tlLayerManager, CONFIG, WFS, BinStore) {
             cql_filter: buildCQLFilter(query)
         };
 
-        WFS.getFeature(url, typeName, overrides, responseType, CONFIG.geoserver.omitProxy)
+        wfs.getFeature(url, typeName, CONFIG.geoserver.omitProxy, overrides, responseType)
             .success(function (data, status, headers, config, statusText) {
                 var contentType = headers('content-type');
                 if (contentType.indexOf('xml') > -1) {
@@ -73,8 +72,8 @@ function ($log, tlLayerManager, CONFIG, WFS, BinStore) {
 
 .factory('stealth.timelapse.wizard.Query', [
 'CONFIG',
-'WFS',
-function (CONFIG, WFS) {
+'wfs',
+function (CONFIG, wfs) {
     var now = new Date();
     var oneWeekAgo = new Date();
     var noTime = new Date();
@@ -138,8 +137,9 @@ function (CONFIG, WFS) {
             _self.serverData.currentGeoserverUrl = null;
             _self.layerData = {};
 
-            WFS.getCapabilities(_self.serverData.proposedGeoserverUrl,
-                                CONFIG.geoserver.omitProxy || false)
+            wfs.getCapabilities(_self.serverData.proposedGeoserverUrl,
+                                _self.serverData.proposedGeoserverUrl === CONFIG.geoserver.defaultUrl ?
+                                    CONFIG.geoserver.omitProxy : false)
             .then(
                 function (data) {
                     _self.layerData.layers =
@@ -163,9 +163,10 @@ function (CONFIG, WFS) {
             _self.params.geomField = null;
             _self.params.dtgField = null;
 
-            WFS.getFeatureTypeDescription(_self.serverData.currentGeoserverUrl,
+            wfs.getFeatureTypeDescription(_self.serverData.currentGeoserverUrl,
                                           _self.layerData.currentLayer.name,
-                                          CONFIG.geoserver.omitProxy || false)
+                                          _self.serverData.currentGeoserverUrl === CONFIG.geoserver.defaultUrl ?
+                                              CONFIG.geoserver.omitProxy : false)
             .then(
                 function (data) {
                     _self.featureTypeData = data;

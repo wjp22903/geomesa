@@ -29,4 +29,15 @@ function ($log) {
         return _.isEmpty(value);
     };
 })
+
+.filter('cors', function () {
+    return function (url, path, omitProxy) {
+        var uri = url.replace(/\/+$/, '');
+        uri += '/' + path;
+        if (!omitProxy) {
+            uri = 'cors/' + uri;
+        }
+        return uri;
+    };
+})
 ;

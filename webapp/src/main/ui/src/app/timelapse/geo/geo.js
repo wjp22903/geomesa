@@ -51,7 +51,7 @@ function ($log, wms, ol3Map, MapLayer, tlLayerManager, BinStore, colors, tlWizar
                     historical: [],
                     summary: []
                 };
-                wms.getCapabilities('cors/' + CONFIG.geoserver.defaultUrl + '/wms')
+                wms.getCapabilities(CONFIG.geoserver.defaultUrl, CONFIG.geoserver.omitProxy)
                     .then(function (wmsCap) {
                         _.each(wmsCap.Capability.Layer.Layer, function (l) {
                             _.each(l.KeywordList, function (keyword) {
