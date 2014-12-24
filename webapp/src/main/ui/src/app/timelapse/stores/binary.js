@@ -1,13 +1,18 @@
-angular.module('stealth.timelapse.stores')
+angular.module('stealth.timelapse.stores', [
+    'stealth.core.geo.ows'
+])
 
 .factory('stealth.timelapse.stores.BinStore', [
 '$log',
+'$rootScope',
 'colors',
-function ($log, colors) {
+'wfs',
+'CONFIG',
+function ($log, $rootScope, colors, wfs, CONFIG) {
     var tag = 'stealth.timelapse.stores.BinStore: ';
     $log.debug(tag + 'factory started');
 
-    var BinStore = function (arrayBuffer, name, fillColorHexString, pointRadius, colorBy) {
+    var BinStore = function (name, fillColorHexString, pointRadius, colorBy, arrayBuffer) {
         var _fillColorRgbArray = [0, 0, 0];
         var _fillColorHexString = '#000000';
         var _setFillColorHexString = function (hexString) {
@@ -22,21 +27,35 @@ function ($log, colors) {
             _pointRadius = radius;
         };
 
+
         var _name = name || 'unknown';
         _setFillColorHexString(fillColorHexString || colors.getColor());
         _setPointRadius(pointRadius || 2);
         var _colorBy = colorBy;
-        var _arrayBuffer = arrayBuffer;
-        var _idView = new Uint32Array(_arrayBuffer, 0);
-        var _secondsView = new Uint32Array(_arrayBuffer, 4);
-        var _latView = new Float32Array(_arrayBuffer, 8);
-        var _lonView = new Float32Array(_arrayBuffer, 12);
-        var _recordSizeBytes = _determineRecordSize(_latView, _lonView);
-        var _stride = _recordSizeBytes / 4;
-        var _lastRecordIndex = _secondsView.length - (_stride - 1);
-        var _minTimeMillis = _secondsView[0] * 1000;
-        var _maxTimeMillis = _secondsView[_lastRecordIndex] * 1000;
-        var _numRecords = _arrayBuffer.byteLength / _recordSizeBytes;
+
+        var _arrayBuffer;
+        var _idView;
+        var _secondsView;
+        var _latView;
+        var _lonView;
+        var _recordSizeBytes;
+        var _stride;
+        var _lastRecordIndex;
+        var _minTimeMillis;
+        var _maxTimeMillis;
+        var _numRecords;
+
+        var _categoryViewState = {
+            toggledOn: true,
+            isDataPending: function () {
+                return _.isUndefined(_arrayBuffer);
+            },
+            isDataReady: function () {
+                return !_.isUndefined(_arrayBuffer);
+            },
+            isError: false,
+            errorMsg: ''
+        };
 
         // Getters and setters for display properties
         this.getName = function () { return _name; };
@@ -48,6 +67,7 @@ function ($log, colors) {
         this.setPointRadius = _setPointRadius;
         this.getColorBy = function () { return _colorBy; };
         this.setColorBy = function (colorBy) { _colorBy = colorBy; };
+        this.getCategoryViewState = function () { return _categoryViewState; };
         // Getters for values of the i-th record.
         this.getId = function (i) { return _idView[i * _stride]; };
         this.getTimeInSeconds = function (i) { return _secondsView[i * _stride]; };
@@ -59,6 +79,72 @@ function ($log, colors) {
         this.getMinTimeInMillis = function () { return _minTimeMillis; };
         this.getMaxTimeInMillis = function () { return _maxTimeMillis; };
         this.getNumRecords = function () { return _numRecords; };
+
+        // Setter for ArrayBuffer and dependent vars.
+        this.setArrayBuffer = function (buf) {
+            _arrayBuffer = buf;
+            _idView = new Uint32Array(_arrayBuffer, 0);
+            _secondsView = new Uint32Array(_arrayBuffer, 4);
+            _latView = new Float32Array(_arrayBuffer, 8);
+            _lonView = new Float32Array(_arrayBuffer, 12);
+            _recordSizeBytes = _determineRecordSize(_latView, _lonView);
+            _stride = _recordSizeBytes / 4;
+            _lastRecordIndex = _secondsView.length - (_stride - 1);
+            _minTimeMillis = _secondsView[0] * 1000;
+            _maxTimeMillis = _secondsView[_lastRecordIndex] * 1000;
+            _numRecords = _arrayBuffer.byteLength / _recordSizeBytes;
+        };
+
+        if (!_.isUndefined(arrayBuffer)) {
+            this.setArrayBuffer(arrayBuffer);
+        }
+
+        //TODO: Add streaming query capability
+        var _thisStore = this;
+        this.launchQuery = function (query) {
+            var url = query.serverData.currentGeoserverUrl + '/' +
+                      query.layerData.currentLayer.prefix;
+            var typeName = query.layerData.currentLayer.name;
+            var responseType = 'arraybuffer';
+            var storeName = query.params.storeName;
+            var geom = query.params.geomField.name;
+            var dtg = query.params.dtgField.name;
+            var id = query.params.idField.name;
+            var overrides = {
+                sortBy: dtg,
+                propertyName: dtg + ',' + geom + ',' + id,
+                outputFormat: 'application/vnd.binary-viewer',
+                format_options: 'dtg:' + dtg + ';trackId:' + id,
+                cql_filter: buildCQLFilter(query)
+            };
+
+            wfs.getFeature(url, typeName, CONFIG.geoserver.omitProxy, overrides, responseType)
+            .success(function (data, status, headers, config, statusText) {
+                var contentType = headers('content-type');
+                if (contentType.indexOf('xml') > -1) {
+                    $log.error(tag + '(' + _name + ') ows:ExceptionReport returned');
+                    $log.error(data);
+                    _categoryViewState.isError = true;
+                    _categoryViewState.errorMsg = 'ows:ExceptionReport returned';
+                } else {
+                    // 'data' expected to be of type ArrayBuffer.
+                    if (data.byteLength === 0) {
+                        $log.error(tag + '(' + _name + ') No results');
+                        _categoryViewState.isError = true;
+                        _categoryViewState.errorMsg = 'No results';
+                    } else {
+                        _thisStore.setArrayBuffer(data);
+                        $rootScope.$emit('timelapse:querySuccessful');
+                    }
+                }
+            })
+            .error(function(data, status, headers, config, statusText) {
+                var msg = 'HTTP status ' + status + ': ' + statusText;
+                $log.error(tag + '(' + _name + ') ' + msg);
+                _categoryViewState.isError = true;
+                _categoryViewState.errorMsg = msg;
+            });
+        };
     };
 
     function _determineRecordSize(latView, lonView) {
@@ -147,6 +233,23 @@ function ($log, colors) {
         }
         return first;
     };
+
+    function buildCQLFilter(query) {
+        var cql_filter =
+            'BBOX(' + query.params.geomField.name + ',' +
+            query.params.minLat + ',' + query.params.minLon + ',' +
+            query.params.maxLat + ',' + query.params.maxLon + ')' +
+            ' AND ' + query.params.dtgField.name + ' DURING ' +
+            moment(query.params.startDate).format('YYYY-MM-DD') + 'T' +
+            moment(query.params.startTime).format('HH:mm') + ':00.000Z' +
+            '/' +
+            moment(query.params.endDate).format('YYYY-MM-DD') + 'T' +
+            moment(query.params.endTime).format('HH:mm') + ':59.999Z ';
+        if (query.params.cql) {
+            cql_filter += ' AND ' + query.params.cql;
+        }
+        return cql_filter;
+    }
 
     return BinStore;
 }])

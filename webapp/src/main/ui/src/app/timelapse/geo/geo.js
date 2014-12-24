@@ -17,6 +17,7 @@ function (catMgr, Category, WidgetDef) {
 
 .directive('stTimelapseGeoCategory', [
 '$log',
+'$timeout',
 'wms',
 'ol3Map',
 'stealth.core.geo.ol3.layers.MapLayer',
@@ -25,21 +26,30 @@ function (catMgr, Category, WidgetDef) {
 'colors',
 'tlWizard',
 'CONFIG',
-function ($log, wms, ol3Map, MapLayer, tlLayerManager, BinStore, colors, tlWizard, CONFIG) {
+function ($log, $timeout, wms, ol3Map, MapLayer, tlLayerManager, BinStore, colors, tlWizard, CONFIG) {
     $log.debug('stealth.core.geo.context.stTimelapseGeoCategory: directive defined');
     return {
         templateUrl: 'timelapse/geo/category.tpl.html',
         controller: ['$scope', function ($scope) {
             var currentFileName = 'unknown';
+            var currentStore;
             var fileReader = new FileReader();
             fileReader.onload = function (e) {
-                $scope.$apply(function () {
-                    tlLayerManager.getHistoricalLayer().addStore(
-                        new BinStore(fileReader.result, currentFileName));
+                $timeout(function () { // Prevents '$apply already in progress' error
+                    currentStore.setArrayBuffer(fileReader.result);
+                    $scope.historicalLayer.setDtgBounds();
                 });
             };
 
             $scope.historicalLayer = tlLayerManager.getHistoricalLayer();
+
+            $scope.historicalChanged = function () {
+                $scope.historicalLayer.setDtgBounds();
+            };
+
+            $scope.removeHistorical = function (store) {
+                $scope.historicalLayer.removeStore(store);
+            };
 
             $scope.timelapse = {
                 mode: 'historical',
@@ -84,6 +94,8 @@ function ($log, wms, ol3Map, MapLayer, tlLayerManager, BinStore, colors, tlWizar
                 $scope.$apply(function () {
                     var file = element.files[0];
                     currentFileName = file.name;
+                    currentStore = new BinStore(file.name);
+                    tlLayerManager.getHistoricalLayer().addStore(currentStore);
                     fileReader.readAsArrayBuffer(file);
                 });
             };

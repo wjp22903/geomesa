@@ -1,8 +1,7 @@
-<!-- TODO: Add a way to toggle display on and off -->
 <!-- TODO: Add minimize/maximize buttons -->
 <!-- TODO: Add a lock button that locks in user-specified values for dtg.min and dtg.max, -->
 <!-- TODO: instead of letting the data store time ranges define the overall time range. -->
-<div ng-controller="timeLapseControlsController" class="timeLapseControlsPanel glass anchorRight anchorBottom">
+<div ng-controller="timeLapseControlsController" ng-show="display.toggledOn" class="timeLapseControlsPanel glass anchorRight anchorBottom">
     <div id="col0" class="cell">
         <div id="col0Table" class="cellTable">
             <div class="cellTableRow">

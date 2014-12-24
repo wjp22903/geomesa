@@ -1,5 +1,10 @@
 describe('Factory', function () {
     describe('"stealth.timelapse.stores.BinStore"', function () {
+        beforeEach(module(
+            function ($provide) {
+                $provide.constant('CONFIG', STEALTH.config); // Provides CONFIG from testConfig.js.
+            }
+        ));
         beforeEach(module('stealth.core.utils'));
         beforeEach(module('stealth.timelapse.stores'));
 
@@ -33,7 +38,8 @@ describe('Factory', function () {
                     latView16[z] = lat;
                     lonView16[z] = lon;
                 }
-                store16 = new BinStore(buf16);
+                store16 = new BinStore('Store for 16-byte records');
+                store16.setArrayBuffer(buf16);
 
                 var buf24 = new ArrayBuffer(24 * NUM_RECORDS);
                 var idView24 = new Uint32Array(buf24, 0);
@@ -47,7 +53,8 @@ describe('Factory', function () {
                     latView24[z] = lat;
                     lonView24[z] = lon;
                 }
-                store24 = new BinStore(buf24);
+                store24 = new BinStore('Store for 24-byte records');
+                store24.setArrayBuffer(buf24);
 
             }
         ]));

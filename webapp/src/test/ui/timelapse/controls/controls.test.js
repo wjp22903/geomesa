@@ -51,7 +51,7 @@ function ($log, $rootScope, ol3Map, TimeLapseLayer, BinStore) {
 
     var stores = {};
     this.createBinStore = function (storeName, arrayBuffer) {
-        var store = new BinStore(arrayBuffer);
+        var store = new BinStore(storeName, null, 3, null, arrayBuffer);
         layer.addStore(store);
         stores[storeName] = store;
     };

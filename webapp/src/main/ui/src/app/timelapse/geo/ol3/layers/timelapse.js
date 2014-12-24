@@ -94,8 +94,9 @@ function ($log, $rootScope, MapLayer, CONFIG) {
 
                 // Fill new image buffer now to prevent flicker effect.
                 _.each(_stores, function (store) {
-                    // TODO: Check if store set to be visible.
-                    _fillImageBuffer(store);
+                    if (store.getCategoryViewState().toggledOn) {
+                        _fillImageBuffer(store);
+                    }
                 });
             }
 
@@ -158,25 +159,35 @@ function ($log, $rootScope, MapLayer, CONFIG) {
             return _stores;
         };
 
+        this.setDtgBounds = function () {
+            $log.debug(tag + 'setDtgBounds()');
+
+            var filtered = _.filter(_stores, function (store) {
+                var cvs = store.getCategoryViewState();
+                return (cvs.toggledOn && cvs.isDataReady());
+            });
+
+            if (!_.isEmpty(filtered)) {
+                $rootScope.$emit('timelapse:setDtgBounds', getBounds(filtered));
+                $log.debug(tag + 'emitted "timelapse:setDtgBounds" message');
+            } else {
+                $rootScope.$emit('timelapse:resetDtgBounds');
+                $log.debug(tag + 'emitted "timelapse:resetDtgBounds" message');
+            }
+        };
+
         this.addStore = function (store, index) {
             if (angular.isNumber(index)) {
                 _stores.splice(index, 0, store);
             } else {
                 _stores.push(store);
             }
-
-            if (_stores.length > 0) {
-                $rootScope.$emit('timelapse:setDtgBounds', getBounds(_stores));
-            }
+            this.setDtgBounds();
         };
 
         this.removeStore = function (store) {
             _.pull(_stores, store);
-            if (_stores.length > 0) {
-                $rootScope.$emit('timelapse:setDtgBounds', getBounds(_stores));
-            } else {
-                $rootScope.$emit('timelapse:resetDtgBounds');
-            }
+            this.setDtgBounds();
         };
 
         this.redraw = function (timeMillis, windowMillis) {
@@ -188,8 +199,9 @@ function ($log, $rootScope, MapLayer, CONFIG) {
 
             // Fill image buffer with data from each store in the list.
             _.each(_stores, function (store) {
-                // TODO: Check if store is set to be visible.
-                _fillImageBuffer(store);
+                if (store.getCategoryViewState().toggledOn) {
+                    _fillImageBuffer(store);
+                }
             });
 
             // Tell the OL3 ImageCanvas to invalidate the current cached canvas (i.e., redraw).
@@ -267,7 +279,6 @@ function ($log, $rootScope, MapLayer, CONFIG) {
     }
 
     function getBounds(stores) {
-        // TODO: Check if store set to be visible.
         var minStore = _.min(stores, function (store) {
             return store.getMinTimeInMillis();
         });

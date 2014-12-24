@@ -4,70 +4,24 @@ angular.module('stealth.timelapse.wizard.query', [
 ])
 
 .service('queryService', [
-'$log',
+'$rootScope',
 'tlLayerManager',
-'CONFIG',
-'wfs',
 'stealth.timelapse.stores.BinStore',
-function ($log, tlLayerManager, CONFIG, wfs, BinStore) {
-
-    function buildCQLFilter(query) {
-        var cql_filter =
-            'BBOX(' + query.params.geomField.name + ',' +
-            query.params.minLat + ',' + query.params.minLon + ',' +
-            query.params.maxLat + ',' + query.params.maxLon + ')' +
-            ' AND ' + query.params.dtgField.name + ' DURING ' +
-            moment(query.params.startDate).format('YYYY-MM-DD') + 'T' +
-            moment(query.params.startTime).format('HH:mm') + ':00.000Z' +
-            '/' +
-            moment(query.params.endDate).format('YYYY-MM-DD') + 'T' +
-            moment(query.params.endTime).format('HH:mm') + ':59.999Z ';
-        if (query.params.cql) {
-            cql_filter += ' AND ' + query.params.cql;
-        }
-        return cql_filter;
-    }
+function ($rootScope, tlLayerManager, BinStore) {
+    var hLayer;
 
     this.launchBinQuery = function (query) {
-        var url = query.serverData.currentGeoserverUrl + '/' + query.layerData.currentLayer.prefix;
-        var typeName = query.layerData.currentLayer.name;
-        var responseType = 'arraybuffer';
-        var storeName = query.params.storeName;
-        var geom = query.params.geomField.name;
-        var dtg = query.params.dtgField.name;
-        var id = query.params.idField.name;
-        var overrides = {
-            sortBy: dtg,
-            propertyName: dtg + ',' + geom + ',' + id,
-            outputFormat: 'application/vnd.binary-viewer',
-            format_options: 'dtg:' + dtg + ';trackId:' + id,
-            cql_filter: buildCQLFilter(query)
-        };
-
-        wfs.getFeature(url, typeName, CONFIG.geoserver.omitProxy, overrides, responseType)
-            .success(function (data, status, headers, config, statusText) {
-                var contentType = headers('content-type');
-                if (contentType.indexOf('xml') > -1) {
-                    //TODO: Hook this in to the new layer explorer.
-                    $log.error('Malformed query');
-                } else {
-                    // 'data' expected to be of type ArrayBuffer.
-                    if (data.byteLength === 0) {
-                        //TODO: Hook this in to the new layer explorer.
-                        $log.error('No Results');
-                    } else {
-                        //TODO: Add streaming query capability
-                        var binStore = new BinStore(data, storeName);
-                        tlLayerManager.getHistoricalLayer().addStore(binStore);
-                    }
-                }
-            })
-            .error(function(data, status, headers, config, statusText) {
-                //TODO: Hook this in to the new layer explorer.
-                $log.error('HTTP status ' + status + ': ' + statusText);
-            })
-        ;
+        hLayer = tlLayerManager.getHistoricalLayer();
+        var name = query.params.storeName;
+        var store = new BinStore(name);
+        hLayer.addStore(store);
+        store.launchQuery(query);
     };
+
+    $rootScope.$on('timelapse:querySuccessful', function () {
+        hLayer.setDtgBounds();
+    });
+
 }])
 
 .factory('stealth.timelapse.wizard.Query', [

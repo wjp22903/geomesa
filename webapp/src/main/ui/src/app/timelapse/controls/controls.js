@@ -29,6 +29,7 @@ function ($log, $rootScope, $scope, $interval, $timeout) {
     var playing = null;
 
     $scope.display = {
+        toggledOn: false,
         isPlaying: false,
         isPaused: true
     };
@@ -63,15 +64,15 @@ function ($log, $rootScope, $scope, $interval, $timeout) {
             return moment.utc(utcMillis).format('YYYY-MM-DD HH:mm:ss');
     };
 
-    var thisMoment = moment();
-    var aMonthAgo = angular.copy(thisMoment);
-    aMonthAgo.subtract(1, 'months');
-    var nowInSecs = thisMoment.format("x") / 1000 | 0;
-    var beforeInSecs = aMonthAgo.format("x") / 1000 | 0;
+    var epoch = moment(0);
+    var aMonthAfterEpoch = angular.copy(epoch);
+    aMonthAfterEpoch.add(1, 'months');
+    var epochInSecs = epoch.format('x') / 1000 | 0;
+    var afterInSecs = aMonthAfterEpoch.format('x') / 1000 | 0;
     $scope.dtg = {
-        value: beforeInSecs,
-        min: beforeInSecs,
-        max: nowInSecs,
+        value: epochInSecs,
+        min: epochInSecs,
+        max: afterInSecs,
         unit: $scope.units[0], // seconds
         toMillis: toMillis
     };
@@ -96,6 +97,12 @@ function ($log, $rootScope, $scope, $interval, $timeout) {
     $scope.step.millis = $scope.step.value * 1000; // convert from seconds
 
     $rootScope.$on('timelapse:setDtgBounds', function (event, data) {
+        $log.debug(tag + 'received "timelapse:setDtgBounds" message');
+
+        if (!$scope.display.toggledOn) {
+            $scope.display.toggledOn = true;
+        }
+
         $scope.dtg.min = data.minInSecs;
         $scope.dtg.max = data.maxInSecs;
 
@@ -126,15 +133,11 @@ function ($log, $rootScope, $scope, $interval, $timeout) {
     });
 
     $rootScope.$on('timelapse:resetDtgBounds', function () {
-        var thisMoment = moment();
-        var aMonthAgo = angular.copy(thisMoment);
-        aMonthAgo.subtract(1, 'months');
-        var nowInSecs = thisMoment.format("x") / 1000 | 0;
-        var beforeInSecs = aMonthAgo.format("x") / 1000 | 0;
+        $scope.display.toggledOn = false;
 
-        $scope.dtg.value = beforeInSecs;
-        $scope.dtg.min = beforeInSecs;
-        $scope.dtg.max = nowInSecs;
+        $scope.dtg.value = epochInSecs;
+        $scope.dtg.min = epochInSecs;
+        $scope.dtg.max = afterInSecs;
         $scope.dtg.millis = toMillis($scope.dtg.value, $scope.dtg.unit);
         $scope.$emit('timelapse:dtgChanged', $scope.dtg.millis);
         if ($scope.display.isPlaying) {

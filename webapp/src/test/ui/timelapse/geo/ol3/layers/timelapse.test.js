@@ -50,7 +50,7 @@ function ($log, $interval, ol3Map, TimeLapseLayer, BinStore) {
         if (store !== null) {
             layer.removeStore(store);
         }
-        store = new BinStore(arrayBuffer);
+        store = new BinStore('Test TimeLapse Store', '#ffffff', 4, null, arrayBuffer);
         curTimeMillis = minTimeMillis = store.getMinTimeInMillis();
         maxTimeMillis = store.getMaxTimeInMillis();
         layer.addStore(store);
