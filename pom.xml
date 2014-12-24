@@ -23,11 +23,6 @@
 
         secure
             Used for production build.  Blocks anonymous access.  External user whitelist needed.
-        doubletrouble8082
-            Used for low-side development.  Sets various properties to work with geoserver
-            at http://doubletrouble:8082/geoserver.  We try to take advantage of geoserver's
-            pre-installed layers as much as possible.  So, there are layers included in the
-            configured workspaces that make no sense to use.
         ds
             Customizations for high-side demos.
         production
@@ -70,7 +65,7 @@
 
         <map.extent>[-180,-90,180,90]</map.extent>
         <map.initExtent>[-180,-90,180,90]</map.initExtent>
-        <map.initLayers>[]</map.initLayers>
+        <map.initLayers>[{Name: "mapproxy:globe.osm.default"}]</map.initLayers>
         <map.extraLayers>[]</map.extraLayers>
         <map.projection>EPSG:4326</map.projection>
 

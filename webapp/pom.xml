@@ -506,21 +506,6 @@
             </properties>
         </profile>
 
-        <!-- used for low-side dev -->
-        <profile>
-            <id>doubletrouble8082</id>
-            <properties>
-                <geoserver.url>http://doubletrouble:8082/geoserver</geoserver.url>
-                <map.initLayers>
-                [
-                    {
-                        Name: "stealth.context.Base:globe.osm.default"
-                    }
-                ]
-                </map.initLayers>
-            </properties>
-        </profile>
-
         <!-- for high-side demos -->
         <profile>
             <id>ds</id>

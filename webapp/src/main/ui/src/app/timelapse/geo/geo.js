@@ -54,26 +54,24 @@ function ($log, wms, ol3Map, MapLayer, tlLayerManager, BinStore, colors, tlWizar
                 wms.getCapabilities('cors/' + CONFIG.geoserver.defaultUrl + '/wms')
                     .then(function (wmsCap) {
                         _.each(wmsCap.Capability.Layer.Layer, function (l) {
-                            var nameParts = l.Name.split(':');
-                            if (nameParts.length === 2) {
-                                var name = nameParts[1];
-                                var wsParts = nameParts[0].split('.');
-                                if (wsParts.length > 3 && wsParts[0] === CONFIG.app.context &&
-                                        wsParts[1] === 'timelapse') {
+                            _.each(l.KeywordList, function (keyword) {
+                                var keywordParts = keyword.split('.');
+                                if (keywordParts.length > 3 && keywordParts[0] === CONFIG.app.context &&
+                                        keywordParts[1] === 'timelapse') {
                                     var layer = _.cloneDeep(l);
                                     layer.categoryViewState = {
                                         toggledOn: false
                                     };
-                                    var workspace = wsParts[3];
-                                    if (_.contains(['live', 'historical', 'summary'], wsParts[2])) {
-                                        if (_.isArray($scope.workspaces[wsParts[2]][workspace])) {
-                                            $scope.workspaces[wsParts[2]][workspace].push(layer);
+                                    var workspace = keywordParts[3];
+                                    if (_.contains(['live', 'historical', 'summary'], keywordParts[2])) {
+                                        if (_.isArray($scope.workspaces[keywordParts[2]][workspace])) {
+                                            $scope.workspaces[keywordParts[2]][workspace].push(layer);
                                         } else {
-                                            $scope.workspaces[wsParts[2]][workspace] = [layer];
+                                            $scope.workspaces[keywordParts[2]][workspace] = [layer];
                                         }
                                     }
                                 }
-                            }
+                            });
                         });
                     });
             }

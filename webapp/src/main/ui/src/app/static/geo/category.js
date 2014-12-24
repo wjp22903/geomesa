@@ -29,24 +29,23 @@ function ($log, wms, ol3Map, MapLayer, wizard, CONFIG) {
                 wms.getCapabilities('cors/' + CONFIG.geoserver.defaultUrl + '/wms')
                     .then(function (wmsCap) {
                         _.each(wmsCap.Capability.Layer.Layer, function (l) {
-                            var nameParts = l.Name.split(':');
-                            if (nameParts.length === 2) {
-                                var name = nameParts[1];
-                                var wsParts = nameParts[0].split('.');
-                                if (wsParts.length > 2 && wsParts[0] === CONFIG.app.context &&
-                                        wsParts[1] === 'static') {
+                            _.each(l.KeywordList, function (keyword) {
+                                var keywordParts = keyword.split('.');
+                                if (keywordParts.length > 2 && keywordParts[0] === CONFIG.app.context &&
+                                        keywordParts[1] === 'static') {
                                     var layer = _.cloneDeep(l);
                                     layer.filterLayers = [{
                                         name: 'All'
                                     }];
-                                    var workspace = wsParts[2];
+                                    var workspace = keywordParts[2];
                                     if (_.isArray($scope.workspaces[workspace])) {
                                         $scope.workspaces[workspace].push(layer);
                                     } else {
                                         $scope.workspaces[workspace] = [layer];
                                     }
+                                    return false;
                                 }
-                            }
+                            });
                         });
                     });
             }

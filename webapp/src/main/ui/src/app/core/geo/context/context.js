@@ -32,17 +32,15 @@ function ($rootScope, catMgr, Category, WidgetDef, wms, map, MapLayer, CONFIG) {
     wms.getCapabilities('cors/' + CONFIG.geoserver.defaultUrl + '/wms')
         .then(function (wmsCap) {
             _.each(wmsCap.Capability.Layer.Layer, function (l) {
-                var nameParts = l.Name.split(':');
-                if (nameParts.length === 2) {
-                    var name = nameParts[1];
-                    var wsParts = nameParts[0].split('.');
-                    if (wsParts.length > 2 && wsParts[0] === CONFIG.app.context &&
-                            wsParts[1] === 'context') {
+                _.each(l.KeywordList, function (keyword) {
+                    var keywordParts = keyword.split('.');
+                    if (keywordParts.length > 2 && keywordParts[0] === CONFIG.app.context &&
+                            keywordParts[1] === 'context') {
                         var layer = _.cloneDeep(l);
                         layer.categoryViewState = {
                             toggledOn: false
                         };
-                        var workspace = wsParts[2];
+                        var workspace = keywordParts[2];
                         if (_.isArray(categoryScope.workspaces[workspace])) {
                             categoryScope.workspaces[workspace].push(layer);
                         } else {
@@ -53,8 +51,9 @@ function ($rootScope, catMgr, Category, WidgetDef, wms, map, MapLayer, CONFIG) {
                             layer.categoryViewState.toggledOn = true;
                             categoryScope.toggleLayer(layer, workspace);
                         }
+                        return false;
                     }
-                }
+                });
             });
         });
     catMgr.addCategory(0, new Category(0, 'Context', 'fa-compass',
