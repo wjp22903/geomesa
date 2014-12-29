@@ -13,7 +13,7 @@
                 </div>
             </div>
             <div class="cellTableRow">
-                <div class="innerField rightJustify">Duration:</div>
+                <div class="innerField rightJustify">Span:</div>
             </div>
             <div class="cellTableRow">
                 <div class="innerField rightJustify">Window:</div>
@@ -26,7 +26,7 @@
     <div id="col1" class="cell">
         <div id="col1Table" class="cellTable">
             <div class="cellTableRow">
-                <div class="innerField rightJustify" style="color:rgba(0,0,0,0);text-shadow:none">M</div>
+                <div class="innerField rightJustify">Period Displayed:</div>
             </div>
             <div class="cellTableRow">
                 <!-- TODO: Make this user editable -->
@@ -49,8 +49,10 @@
     <div id="col2" class="cell">
         <div id="col2Table" class="cellTable">
             <div class="cellTableRow">
-                <div class="innerField">
-                    <span class="displayShadow glass">{{displayInUtc(dtg.millis)}}</span>
+                <div class="innerField center">
+                    <span class="displayShadow glass">
+                        {{displayInUtc(windowBeginMillis())}} &#8193; &#8213; &#8193; {{displayInUtc(dtg.millis)}}
+                    </span>
                 </div>
             </div>
             <div class="cellTableRow">

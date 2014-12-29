@@ -33,6 +33,7 @@ function ($log, $rootScope, $scope, $interval, $timeout) {
         isPlaying: false,
         isPaused: true
     };
+
     $scope.display.togglePlay = function () {
         var isPlaying = $scope.display.isPlaying = !$scope.display.isPlaying;
         $scope.display.isPaused = !$scope.display.isPaused;
@@ -59,9 +60,15 @@ function ($log, $rootScope, $scope, $interval, $timeout) {
         }
     };
 
+    $scope.windowBeginMillis = function () {
+        var dtgMinMillis = toMillis($scope.dtg.min, $scope.dtg.unit);
+        return ($scope.dtg.millis - dtgMinMillis < $scope.window.millis) ?
+               dtgMinMillis : $scope.dtg.millis - $scope.window.millis;
+    };
+
     $scope.units = ['s', 'm', 'h', 'd'];
     $scope.displayInUtc = function (utcMillis) {
-            return moment.utc(utcMillis).format('YYYY-MM-DD HH:mm:ss');
+            return moment.utc(utcMillis).format('YYYY-MM-DD HH:mm:ss[Z]');
     };
 
     var epoch = moment(0);
