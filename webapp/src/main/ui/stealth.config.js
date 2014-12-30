@@ -47,7 +47,7 @@ module.exports = {
             'vendor/bower/angular-bootstrap-colorpicker/js/bootstrap-colorpicker-module.js',
             'vendor/bower/angular-bootstrap-switch/dist/angular-bootstrap-switch.js',
             'vendor/bower/bootstrap-switch/dist/js/bootstrap-switch.js',
-            'vendor/bower/ol3/dist/ol-debug.js',
+            'vendor/bower/ol3/build/ol-debug.js',
             'vendor/openlayers/OpenLayers.js'
         ],
         assets_nested: [
