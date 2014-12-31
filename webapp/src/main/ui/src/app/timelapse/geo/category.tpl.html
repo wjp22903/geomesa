@@ -38,37 +38,51 @@
         </div>
         <div ng-repeat="store in historicalLayer.getStores()" class="categoryGrouping categoryIndent">
             <div id="col0" class="categoryCell">
-                <div ng-if="store.getCategoryViewState().isDataPending() && !store.getCategoryViewState().isError">
+                <div ng-if="store.getViewState().isDataPending() && !store.getViewState().isError">
                     <i class="fa fa-circle-o-notch fa-spin"></i>
                 </div>
-                <div ng-if="store.getCategoryViewState().isError" class="errorIconWrapper">
+                <div ng-if="store.getViewState().isError" class="errorIconWrapper">
                     <i class="fa fa-warning text-danger"
-                       tooltip-html-unsafe="<span style='white-space:nowrap;background-color:#a94442;color:white'>{{store.getCategoryViewState().errorMsg}}</span>"
+                       tooltip-html-unsafe="<span style='white-space:nowrap;background-color:#a94442;color:white'>{{store.getViewState().errorMsg}}</span>"
                        tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
                        tooltip-trigger="mouseenter">
                     </i>
                 </div>
-                <div ng-if="store.getCategoryViewState().isDataReady()"
-                     style="width:16px;height:16px;display:inline-block;border:1px solid #ddd;border-radius:5px;vertical-align:text-bottom;"
-                     ng-style="{'background-color': store.getFillColorHexString()}">
-                </div>
+                <span ng-if="store.getViewState().isDataReady() && !store.getViewState().colorById"
+                      class="btn btn-default toggleButton"
+                      ng-click="store.toggleColorById()"
+                      ng-style="{'background-color': store.getFillColorHexString()}"
+                      tooltip-html-unsafe="<span style='white-space:nowrap'>Toggle color by</span>"
+                      tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
+                      tooltip-trigger="mouseenter">
+                </span>
+                <span ng-if="store.getViewState().isDataReady() && store.getViewState().colorById"
+                      ng-click="store.toggleColorById()"
+                      class="btn btn-default toggleButton rainbow"
+                      tooltip-html-unsafe="<span style='white-space:nowrap'>Toggle color by</span>"
+                      tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
+                      tooltip-trigger="mouseenter">
+                </span>
             </div>
             <div id="col1" class="categoryCell">
-                <input type="checkbox" style="width:16px;height:16px"
-                    ng-if="!store.getCategoryViewState().isDataPending() && !store.getCategoryViewState().isError"
-                    ng-model="store.getCategoryViewState().toggledOn"
-                    ng-change="historicalChanged()"
-                    tooltip-html-unsafe="<span style='white-space:nowrap'>Toggle visibility</span>"
-                    tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
-                    tooltip-trigger="mouseenter"
-                    style="vertical-align:top;">
+                <span ng-if="store.getViewState().isDataReady()"
+                      class="btn btn-default fa-stack toggleButton"
+                      ng-click="store.toggleVisibility()"
+                      tooltip-html-unsafe="<span style='white-space:nowrap'>Toggle visibility</span>"
+                      tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
+                      tooltip-trigger="mouseenter">
+                    <i class="fa fa-fw fa-eye fa-stack-1x text-danger"
+                       ng-if="!store.getViewState().toggledOn"></i>
+                    <i class="fa fa-fw fa-eye fa-stack-1x text-success"
+                       ng-if="store.getViewState().toggledOn"></i>
+                </span>
             </div>
             <div id="col2" class="categoryCell">
                 {{store.getName()}}
             </div>
             <div id="col3" class="categoryCell" style="width:100%;text-align:right">
                 <span class="btn btn-default catGroupButton"
-                      ng-if="store.getCategoryViewState().isDataReady() || store.getCategoryViewState().isError"
+                      ng-if="store.getViewState().isDataReady() || store.getViewState().isError"
                       ng-click="removeHistorical(store)">
                     <i class="fa fa-fw fa-remove text-danger"></i>
                 </span>

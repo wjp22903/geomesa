@@ -13,11 +13,16 @@ function ($log, $rootScope, colors, wfs, CONFIG) {
     $log.debug(tag + 'factory started');
 
     var BinStore = function (name, fillColorHexString, pointRadius, colorBy, arrayBuffer) {
+        var _layerThisBelongsTo;
+
         var _fillColorRgbArray = [0, 0, 0];
         var _fillColorHexString = '#000000';
         var _setFillColorHexString = function (hexString) {
             _fillColorHexString = hexString;
             _fillColorRgbArray = colors.hexStringToRgbArray(hexString);
+            if (!_.isUndefined(_layerThisBelongsTo)) {
+                _layerThisBelongsTo.redraw();
+            }
         };
         var _pointRadius = 2;
         var _setPointRadius = function (radius) {
@@ -25,6 +30,9 @@ function ($log, $rootScope, colors, wfs, CONFIG) {
                 radius = 100;
             }
             _pointRadius = radius;
+            if (!_.isUndefined(_layerThisBelongsTo)) {
+                _layerThisBelongsTo.redraw();
+            }
         };
 
 
@@ -32,6 +40,7 @@ function ($log, $rootScope, colors, wfs, CONFIG) {
         _setFillColorHexString(fillColorHexString || colors.getColor());
         _setPointRadius(pointRadius || 2);
         var _colorBy = colorBy;
+        var _opacity = 100;
 
         var _arrayBuffer;
         var _idView;
@@ -45,7 +54,7 @@ function ($log, $rootScope, colors, wfs, CONFIG) {
         var _maxTimeMillis;
         var _numRecords;
 
-        var _categoryViewState = {
+        var _viewState = {
             toggledOn: true,
             isDataPending: function () {
                 return _.isUndefined(_arrayBuffer);
@@ -54,7 +63,11 @@ function ($log, $rootScope, colors, wfs, CONFIG) {
                 return !_.isUndefined(_arrayBuffer);
             },
             isError: false,
-            errorMsg: ''
+            errorMsg: '',
+            size: _pointRadius,
+            fillColor: _fillColorHexString,
+            opacity: _opacity,
+            colorById: false
         };
 
         // Getters and setters for display properties
@@ -67,7 +80,14 @@ function ($log, $rootScope, colors, wfs, CONFIG) {
         this.setPointRadius = _setPointRadius;
         this.getColorBy = function () { return _colorBy; };
         this.setColorBy = function (colorBy) { _colorBy = colorBy; };
-        this.getCategoryViewState = function () { return _categoryViewState; };
+        this.getOpacity = function () { return _opacity; };
+        this.setOpacity = function (opacity) {
+            _opacity = opacity | 0;
+            if (!_.isUndefined(_layerThisBelongsTo)) {
+                _layerThisBelongsTo.redraw();
+            }
+        };
+        this.getViewState = function () { return _viewState; };
         // Getters for values of the i-th record.
         this.getId = function (i) { return _idView[i * _stride]; };
         this.getTimeInSeconds = function (i) { return _secondsView[i * _stride]; };
@@ -79,6 +99,17 @@ function ($log, $rootScope, colors, wfs, CONFIG) {
         this.getMinTimeInMillis = function () { return _minTimeMillis; };
         this.getMaxTimeInMillis = function () { return _maxTimeMillis; };
         this.getNumRecords = function () { return _numRecords; };
+
+        this.setLayerBelongsTo = function (layer) { _layerThisBelongsTo = layer;};
+
+        this.toggleVisibility = function () {
+            _viewState.toggledOn = !_viewState.toggledOn;
+            _layerThisBelongsTo.setDtgBounds();
+        };
+        this.toggleColorById = function () {
+            _viewState.colorById = !_viewState.colorById;
+            _layerThisBelongsTo.redraw();
+        };
 
         // Setter for ArrayBuffer and dependent vars.
         this.setArrayBuffer = function (buf) {
@@ -124,14 +155,14 @@ function ($log, $rootScope, colors, wfs, CONFIG) {
                 if (contentType.indexOf('xml') > -1) {
                     $log.error(tag + '(' + _name + ') ows:ExceptionReport returned');
                     $log.error(data);
-                    _categoryViewState.isError = true;
-                    _categoryViewState.errorMsg = 'ows:ExceptionReport returned';
+                    _viewState.isError = true;
+                    _viewState.errorMsg = 'ows:ExceptionReport returned';
                 } else {
                     // 'data' expected to be of type ArrayBuffer.
                     if (data.byteLength === 0) {
                         $log.error(tag + '(' + _name + ') No results');
-                        _categoryViewState.isError = true;
-                        _categoryViewState.errorMsg = 'No results';
+                        _viewState.isError = true;
+                        _viewState.errorMsg = 'No results';
                     } else {
                         _thisStore.setArrayBuffer(data);
                         $rootScope.$emit('timelapse:querySuccessful');
@@ -141,8 +172,8 @@ function ($log, $rootScope, colors, wfs, CONFIG) {
             .error(function(data, status, headers, config, statusText) {
                 var msg = 'HTTP status ' + status + ': ' + statusText;
                 $log.error(tag + '(' + _name + ') ' + msg);
-                _categoryViewState.isError = true;
-                _categoryViewState.errorMsg = msg;
+                _viewState.isError = true;
+                _viewState.errorMsg = msg;
             });
         };
     };

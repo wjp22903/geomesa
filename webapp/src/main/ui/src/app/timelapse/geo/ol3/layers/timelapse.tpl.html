@@ -1,0 +1,94 @@
+<div class="layerStyleHistoricalLayer layerStyleGrouping">
+    <ui-include src="'core/geo/ol3/layers/layer-fragments.tpl.html'" fragment="'.dragHandle'"></ui-include>
+    <ui-include src="'core/geo/ol3/layers/layer-fragments.tpl.html'" fragment="'.layerStyleRow.visibilityName'"></ui-include>
+    <!-- TODO: Possibly move some of these components out to layer fragments to be used elsewhere. -->
+    <div style="overflow-x:hidden;">
+        <ul ui-sortable="sortableOptions" ng-model="stores"
+            style="overflow-x:hidden;list-style:none outside none;padding:0;">
+            <li ng-repeat="store in stores">
+                <div class="layerStyleGrouping"
+                     ng-if="store.getViewState().isDataReady()">
+                    <div class="layerStyleRow">
+                        <div class="cell">
+                            <i class="fa fa-fw fa-clock-o"
+                               ng-style="{'color': store.getFillColorHexString()}">
+                            </i>
+                        </div>
+                        <div class="cell">
+                            <span class="btn btn-default fa-stack toggleButton"
+                                  ng-click="store.toggleVisibility()"
+                                  tooltip-html-unsafe="<span style='white-space:nowrap'>Toggle visibility</span>"
+                                  tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
+                                  tooltip-trigger="mouseenter">
+                                <i class="fa fa-fw fa-eye fa-stack-1x text-danger"
+                                   ng-if="!store.getViewState().toggledOn"></i>
+                                <i class="fa fa-fw fa-eye fa-stack-1x text-success"
+                                   ng-if="store.getViewState().toggledOn"></i>
+                            </span>
+                        </div>
+                        <div class="cell">{{::store.getName()}}</div>
+                        <div class="cell" style="width:100%;text-align:right">
+                            <span class="btn btn-default catGroupButton"
+                                  ng-click="layer.removeStore(store)">
+                                <i class="fa fa-fw fa-remove text-danger"></i>
+                            </span>
+                        </div>
+                        <div class="cell" style="width:100%;text-align:right">
+                            <ui-include src="'core/geo/ol3/layers/layer-fragments.tpl.html'" fragment="'.dragHandle'"></ui-include>
+                        </div>
+                    </div>
+                    <div class="layerStyleRow">
+                        <div class="cell">Opacity:</div>
+                        <div class="cell" style="width:100%">
+                            <input type="range" ng-model="store.getViewState().opacity"
+                                   min="0" max="100" step="1"
+                                   ng-change="store.setOpacity(store.getViewState().opacity)"
+                                   st-float-slider>
+                        </div>
+                        <div class="cell">{{store.getViewState().opacity}}%</div>
+                    </div>
+                    <div class="layerStyleRow">
+                        <div class="cell">Size:</div>
+                        <div class="cell">
+                            <input type="number"
+                                   ng-model="store.getViewState().size"
+                                   ng-change="sizeChanged(store, store.getViewState().size)"
+                                   min="1" max="100">
+                        </div>
+                        <div class="cell" style="padding-left:5px">Fill:</div>
+                        <div class="cell">
+                            <span class="btn btn-default toggleButton"
+                                 ng-style="{'background-color': store.getFillColorHexString()}"
+                                 colorpicker colorpicker-position="bottom"
+                                 ng-model="store.getViewState().fillColor"
+                                 ng-change="store.setFillColorHexString(store.getViewState().fillColor)"
+                                 tooltip-html-unsafe="<span style='white-space:nowrap'>Change fill color</span>"
+                                 tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
+                                 tooltip-trigger="mouseenter">
+                            </span>
+                        </div>
+                        <div class="cell" style="padding-left:5px">Color by:</div>
+                        <div class="cell">
+                            <!-- TODO: Should be list of available colorBy options -->
+                            <select style="outline:none">
+                                <option value="ID field">ID field</option>
+                            </select>
+                        </div>
+                        <div class="cell">
+                            <span class="btn btn-default fa-stack toggleButton"
+                                  style="line-height:6px"
+                                  ng-click="store.toggleColorById()"
+                                  tooltip-html-unsafe="<span style='white-space:nowrap'>Toggle color by</span>"
+                                  tooltip-placement="top" tooltip-animation="false" tooltip-popup-delay="500"
+                                  tooltip-trigger="mouseenter">
+                                <i class="fa fa-fw fa-check-square-o fa-stack-1x"
+                                   ng-if="store.getViewState().colorById"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </li>
+        </ul>
+    </div>
+</div>
+

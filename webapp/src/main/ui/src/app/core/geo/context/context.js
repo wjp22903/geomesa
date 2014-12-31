@@ -23,6 +23,7 @@ function ($rootScope, catMgr, Category, WidgetDef, wms, map, MapLayer, CONFIG) {
                 })
             }), (workspace.toLowerCase().indexOf('base') === 0 ? -20 : -10));
             layer.mapLayerId = mapLayer.id;
+            mapLayer.styleDirectiveScope.styleVars.iconClass = 'fa fa-fw fa-lg fa-compass';
             map.addLayer(mapLayer);
         } else {
             map.removeLayerById(layer.mapLayerId);

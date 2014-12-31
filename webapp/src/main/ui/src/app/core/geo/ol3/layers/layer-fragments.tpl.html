@@ -1,30 +1,37 @@
-<div class="layerStyleMapLayer" style="background-color:white;margin:2px;padding:2px;border-radius:4px;">
+<div class="layerStyleMapLayer layerStyleGrouping">
     <ui-include src="'core/geo/ol3/layers/layer-fragments.tpl.html'" fragment="'.dragHandle'"></ui-include>
     <ui-include src="'core/geo/ol3/layers/layer-fragments.tpl.html'" fragment="'.layerStyleRow.visibilityName'"></ui-include>
     <ui-include src="'core/geo/ol3/layers/layer-fragments.tpl.html'" fragment="'.layerStyleRow.opacitySlider'"></ui-include>
 </div>
 
-<div class="layerStyleGeoJsonLayer" style="background-color:white;margin:2px;padding:2px;border-radius:4px;">
+<div class="layerStyleGeoJsonLayer layerStyleGrouping">
     <ui-include src="'core/geo/ol3/layers/layer-fragments.tpl.html'" fragment="'.dragHandle'"></ui-include>
     <ui-include src="'core/geo/ol3/layers/layer-fragments.tpl.html'" fragment="'.layerStyleRow.visibilityName'"></ui-include>
     <ui-include src="'core/geo/ol3/layers/layer-fragments.tpl.html'" fragment="'.layerStyleRow.opacitySlider'"></ui-include>
 </div>
 
-
-<div class="dragHandle">
-    <i class="fa fa-arrows-v"></i>
-</div>
+<div class="dragHandle"><i class="fa fa-arrows-v"></i></div>
 
 <div class="layerStyleRow visibilityName">
-    <input type="checkbox" ng-model="layerState.visible"></input>
-    {{ol3Layer.get("name") || ol3Layer.get("id") | characters:30:true}}
+    <div class="cell"><i ng-class="::styleVars.iconClass"></i></div>
+    <div class="cell">
+        <span class="btn btn-default fa-stack toggleButton"
+              ng-click="layerState.visible = !layerState.visible"
+              tooltip-html-unsafe="<span style='white-space:nowrap'>Toggle visibility</span>"
+              tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
+              tooltip-trigger="mouseenter">
+            <i class="fa fa-fw fa-check fa-stack-1x" ng-if="layerState.visible"></i>
+        </span>
+    </div>
+    <div class="cell" style="width:100%;white-space:no-wrap">
+        {{ol3Layer.get("name") || ol3Layer.get("id") | characters:30:true}}
+    </div>
 </div>
 
 <div class="layerStyleRow opacitySlider">
-    <span class="layerStyleLabel">Opacity:</span>
-    <div class="layerStyleSlider">
-        <input type="range" ng-model="layerState.opacity" min="0.0" max="1.0" step="0.01"
-               st-float-slider></input>
+    <div class="cell">Opacity:</div>
+    <div class="cell layerStyleSlider" style="width:100%">
+        <input type="range" ng-model="layerState.opacity" min="0.0" max="1.0" step="0.01" st-float-slider>
     </div>
-    <span class="layerStyleLabel">{{(layerState.opacity * 100) | number : 0}}%</span>
+    <div class="cell">{{(layerState.opacity * 100) | number : 0}}%</div>
 </div>

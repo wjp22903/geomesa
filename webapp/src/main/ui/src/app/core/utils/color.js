@@ -43,6 +43,7 @@ function () {
     ];
     var _currentColorIndex = 0;
 
+    this.getNumColors = function () { return _colors.length; };
     this.getColor = function (index) {
         if (_currentColorIndex >= _colors.length) {
             _currentColorIndex = 0;

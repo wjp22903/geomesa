@@ -64,6 +64,7 @@ function ($log, wms, ol3Map, MapLayer, wizard, CONFIG) {
                         })
                     }));
                     filterLayer.mapLayerId = mapLayer.id;
+                    mapLayer.styleDirectiveScope.styleVars.iconClass = 'fa fa-fw fa-lg fa-database';
                     ol3Map.addLayer(mapLayer);
                 } else {
                     ol3Map.removeLayerById(filterLayer.mapLayerId);

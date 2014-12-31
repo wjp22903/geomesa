@@ -15,14 +15,4 @@ function ($log, TimeLapseLayer) {
     return HistoricalLayer;
 }])
 
-.directive('stHistoricalLayerStyle', [
-'$log',
-function ($log) {
-    $log.debug('stealth.timelapse.geo.ol3.layers.stHistoricalLayerStyle: directive defined');
-    return {
-        // TODO: Define style for historical layer.
-        template: '<div></div>'
-    };
-}])
-
 ;

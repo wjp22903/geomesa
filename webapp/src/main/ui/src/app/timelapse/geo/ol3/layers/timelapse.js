@@ -7,7 +7,8 @@ angular.module('stealth.timelapse.geo.ol3.layers', [
 '$rootScope',
 'stealth.core.geo.ol3.layers.MapLayer',
 'CONFIG',
-function ($log, $rootScope, MapLayer, CONFIG) {
+'colors',
+function ($log, $rootScope, MapLayer, CONFIG, colors) {
     var tag = 'stealth.timelapse.geo.ol3.layers.TimeLapseLayer: ';
     $log.debug(tag + 'factory started');
 
@@ -18,6 +19,20 @@ function ($log, $rootScope, MapLayer, CONFIG) {
         radius[_nDiv] = max;
         makeLinearRamp(radius, 0, _nDiv);
         return radius;
+    });
+
+    var _alphaRamps = _.map(_.range(0, 101), function (max) {
+        var alpha = new Uint8Array(_nDiv + 1);
+        alpha[0] = 0x00;
+        alpha[_nDiv] = max / 100 * 0xff | 0;
+        makeLinearRamp(alpha, 0, _nDiv);
+        return alpha;
+    });
+
+    var _numColors = colors.getNumColors();
+    var _colorRgbArray = _.map(_.range(0,_numColors), function (i) {
+        var hex = colors.getColor(i);
+        return colors.hexStringToRgbArray(hex);
     });
 
     var TimeLapseLayer = function (name) {
@@ -45,14 +60,8 @@ function ($log, $rootScope, MapLayer, CONFIG) {
         var _imageView = new Uint32Array(_imageBuf);
         var _imageData = null; // The data for the image that will be drawn.
 
-        // Styling parameters.
-        var _iDiv = 0;
-        var _alpha = new Uint8Array(_nDiv + 1);
-        _alpha[0] = 0x000000;
-        _alpha[_nDiv] = 0xffffff;
-        makeLinearRamp(_alpha, 0, _nDiv);
-
         // Transient drawing parameters.
+        var _iDiv = 0;
         var _x, _y, _z, _center, _rgba;
         var _curSize = [0,0], _curExtent = [0,0,0,0];
         var _timeMillis = 0, _windowMillis = 0;
@@ -71,6 +80,8 @@ function ($log, $rootScope, MapLayer, CONFIG) {
 
             if (sizeChanged(_curSize, size) || extentChanged(_curExtent, extent)) {
                 // Update size parameters.
+                _curSize = angular.copy(size);
+                _curExtent = angular.copy(extent);
                 _w = _curSize[0] | 0;
                 _h = _curSize[1] | 0;
                 _canvas.setAttribute('width', _w);
@@ -93,8 +104,8 @@ function ($log, $rootScope, MapLayer, CONFIG) {
                 _latFactor = _h / (_bounds.north - _bounds.south);
 
                 // Fill new image buffer now to prevent flicker effect.
-                _.each(_stores, function (store) {
-                    if (store.getCategoryViewState().toggledOn) {
+                _.eachRight(_stores, function (store) {
+                    if (store.getViewState().toggledOn) {
                         _fillImageBuffer(store);
                     }
                 });
@@ -110,6 +121,7 @@ function ($log, $rootScope, MapLayer, CONFIG) {
         };
 
         function _fillImageBuffer (store) {
+
             var color = store.getFillColorRgbArray();
             var timeLower = _timeMillis - _windowMillis;
             var timeUpper = _timeMillis;
@@ -118,30 +130,40 @@ function ($log, $rootScope, MapLayer, CONFIG) {
 
             var nDivIdx = ((iUpper - iLower) / _nDiv) | 0;
             var radius = _radiusRamps[store.getPointRadius() - 1];
+            var alpha = _alphaRamps[store.getOpacity()];
 
             var south = _bounds.south;
             var north = _bounds.north;
             var west = _bounds.west;
             var east = _bounds.east;
 
+            var colorById = store.getViewState().colorById;
             for (var i = iLower; i < iUpper; i++) {
+                if (colorById) {
+                    var iCol = store.getId(i) % _numColors;
+                    color = _colorRgbArray[iCol];
+                }
                 var lat = store.getLat(i);
                 var lon = store.getLon(i);
-                if (lat > south && lat < north && lon > west && lon < east) {
+                _iDiv = ((i - iLower) / nDivIdx) | 0;
+                if ( _iDiv < _nDiv &&
+                     lat > south &&
+                     lat < north &&
+                     lon > west &&
+                     lon < east )
+                {
                     _x = ((lon - west)  * _lonFactor) | 0;
                     _y = ((north - lat) * _latFactor) | 0;
                     _center = _y*_w + _x;
 
-                    _iDiv = ((i - iLower) / nDivIdx) | 0;
-                    _rgba =
-                        (_alpha[_iDiv] << 24) | // alpha
-                        (color[2]     << 16) | // blue
-                        (color[1]     <<  8) | // green
-                         color[0];            // red
-                }
+                    _rgba = (alpha[_iDiv] << 24) | // alpha
+                            (color[2]     << 16) | // blue
+                            (color[1]     <<  8) | // green
+                             color[0];             // red
 
-                // Fill circle at center with radius.
-                fillCircle(_imageView, _imageLen, _w, _center, radius[_iDiv], _rgba);
+                    // Fill circle at center with radius.
+                    fillCircle(_imageView, _imageLen, _w, _center, radius[_iDiv], _rgba);
+                }
             }
         }
 
@@ -163,7 +185,7 @@ function ($log, $rootScope, MapLayer, CONFIG) {
             $log.debug(tag + 'setDtgBounds()');
 
             var filtered = _.filter(_stores, function (store) {
-                var cvs = store.getCategoryViewState();
+                var cvs = store.getViewState();
                 return (cvs.toggledOn && cvs.isDataReady());
             });
 
@@ -176,7 +198,9 @@ function ($log, $rootScope, MapLayer, CONFIG) {
             }
         };
 
+        var _self = this;
         this.addStore = function (store, index) {
+            store.setLayerBelongsTo(_self);
             if (angular.isNumber(index)) {
                 _stores.splice(index, 0, store);
             } else {
@@ -191,15 +215,19 @@ function ($log, $rootScope, MapLayer, CONFIG) {
         };
 
         this.redraw = function (timeMillis, windowMillis) {
-            _timeMillis = timeMillis;
-            _windowMillis = windowMillis;
+            if (!_.isUndefined(timeMillis)) {
+                _timeMillis = timeMillis;
+            }
+            if (!_.isUndefined(windowMillis)) {
+                _windowMillis = windowMillis;
+            }
 
             // Clear image buffer.
             clear(_imageView);
 
             // Fill image buffer with data from each store in the list.
-            _.each(_stores, function (store) {
-                if (store.getCategoryViewState().toggledOn) {
+            _.eachRight(_stores, function (store) {
+                if (store.getViewState().toggledOn) {
                     _fillImageBuffer(store);
                 }
             });
@@ -210,9 +238,19 @@ function ($log, $rootScope, MapLayer, CONFIG) {
 
         $log.debug(tag + 'new TimeLapseLayer(' + name + ')');
         MapLayer.apply(this, [name, _olLayer]);
-        // TODO: Set viewer layer style directive.
-        // TODO: Define viewer layer style directive below.
-        // TODO: this.styleDirective = 'st-viewer-layer-style';
+        this.styleDirective = 'st-time-lapse-layer-style';
+        this.styleDirectiveScope.styleVars.iconClass = 'fa fa-fw fa-lg fa-clock-o';
+        this.styleDirectiveScope.layer = _self;
+        this.styleDirectiveScopeAttrs += " layer='layer'";
+        this.styleDirectiveScope.stores = _stores;
+        this.styleDirectiveScopeAttrs += " stores='stores'";
+        this.styleDirectiveScope.sizeChanged = function (store, size) {
+            if (!angular.isNumber(size)) { // Prevents deleting number in input field.
+                size = 1;
+                store.getViewState().size = size;
+            }
+            store.setPointRadius(size);
+        };
     };
     TimeLapseLayer.prototype = Object.create(MapLayer.prototype);
 
@@ -253,21 +291,13 @@ function ($log, $rootScope, MapLayer, CONFIG) {
     }
 
     function hasChanged (p, n) {
-        var changed = false;
-
         if (p[0] < n[0] || p[0] > n[0] ||
             p[1] < n[1] || p[1] > n[1])
         {
-            p[0] = n[0];
-            p[1] = n[1];
-            if (n.length > 2) {
-                p[2] = n[2];
-                p[3] = n[3];
-            }
-            changed = true;
+            return true;
         }
 
-        return changed;
+        return false;
     }
 
     function sizeChanged(prevSize, newSize) {
@@ -303,8 +333,7 @@ function ($log, $rootScope, MapLayer, CONFIG) {
 function ($log) {
     $log.debug('stealth.timelapse.geo.ol3.layers.stTimeLapseLayerStyle: directive defined');
     return {
-        // TODO: Define style for viewer layer.
-        template: '<div></div>'
+        templateUrl: 'timelapse/geo/ol3/layers/timelapse.tpl.html'
     };
 }])
 

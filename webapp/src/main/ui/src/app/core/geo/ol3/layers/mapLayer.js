@@ -44,6 +44,9 @@ function ($log, $rootScope, WidgetDef) {
             ol3Layer.set('name', name);
             scope.ol3Layer = ol3Layer;
             scope.fragmentUrl = 'core/geo/ol3/layers/layer-fragments.tpl.html';
+            scope.styleVars = {
+                iconClass: 'fa fa-fw fa-lg fa-globe'
+            };
             this.styleDirectiveScope = scope;
         }
         this.styleDirectiveIsoScopeAttrs = null;

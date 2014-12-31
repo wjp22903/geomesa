@@ -1,9 +1,40 @@
+.layerStyleGrouping
+    background-color white
+    margin 2px
+    padding 2px
+    border-radius 4px
+    border 1px dotted #ccc
+    &:hover
+        border-color #444
+
+.layerStyleRow
+    padding 0
+    margin 0
+    vertical-align middle
+    .cell
+        display table-cell
+        padding-right 4px
+        white-space no-wrap
+        input[type=number]
+            padding-left 5px
+            padding-top 0px
+            padding-bottom 0px
+            margin 0px
+            outline none
+            width 50px
+            border 1px solid #ccc
+            border-radius 4px
+            &:hover
+                border 1px dotted #444
+        .toggleButton
+            line-height 5px
+            width 20px
+            height 19px
+            margin-bottom 3px
+
 .layerStyleSlider
     width: 70%
     display inline-block
-
-.layerStyleLabel
-    vertical-align super
 
 .dragHandle
     float right
