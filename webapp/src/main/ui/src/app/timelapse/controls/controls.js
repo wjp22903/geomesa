@@ -103,11 +103,13 @@ function ($log, $rootScope, $scope, $interval, $timeout) {
     };
     $scope.step.millis = $scope.step.value * 1000; // convert from seconds
 
+    var _wasDisplayed = false;
     $rootScope.$on('timelapse:setDtgBounds', function (event, data) {
         $log.debug(tag + 'received "timelapse:setDtgBounds" message');
 
         if (!$scope.display.toggledOn) {
             $scope.display.toggledOn = true;
+            _wasDisplayed = true;
         }
 
         $scope.dtg.min = data.minInSecs;
@@ -141,6 +143,7 @@ function ($log, $rootScope, $scope, $interval, $timeout) {
 
     $rootScope.$on('timelapse:resetDtgBounds', function () {
         $scope.display.toggledOn = false;
+        _wasDisplayed = false;
 
         $scope.dtg.value = epochInSecs;
         $scope.dtg.min = epochInSecs;
@@ -149,6 +152,20 @@ function ($log, $rootScope, $scope, $interval, $timeout) {
         $scope.$emit('timelapse:dtgChanged', $scope.dtg.millis);
         if ($scope.display.isPlaying) {
             $scope.display.togglePlay();
+        }
+    });
+
+    $rootScope.$on('wizard:launchWizard', function () {
+        if (_wasDisplayed) {
+            $scope.display.toggledOn = false;
+        }
+        if ($scope.display.isPlaying) {
+            $scope.display.togglePlay();
+        }
+    });
+    $rootScope.$on('wizard:closeWizard', function () {
+        if (_wasDisplayed) {
+            $scope.display.toggledOn = true;
         }
     });
 }])

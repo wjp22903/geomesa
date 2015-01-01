@@ -244,7 +244,7 @@ function ($log, $rootScope, colors, wfs, CONFIG) {
             moment(query.params.startTime).format('HH:mm') + ':00.000Z' +
             '/' +
             moment(query.params.endDate).format('YYYY-MM-DD') + 'T' +
-            moment(query.params.endTime).format('HH:mm') + ':59.999Z ';
+            moment(query.params.endTime).format('HH:mm') + ':00.000Z ';
         if (query.params.cql) {
             cql_filter += ' AND ' + query.params.cql;
         }

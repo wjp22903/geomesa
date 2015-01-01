@@ -1,9 +1,10 @@
 angular.module('stealth.core.wizard')
 
 .service('wizardManager', [
+'$rootScope',
 'sidebarManager',
 'headerManager',
-function (sidebarManager, headerManager) {
+function ($rootScope, sidebarManager, headerManager) {
     var _wizard = null;
     var _visible = false;
     var _currentStepNum = null;
@@ -73,6 +74,7 @@ function (sidebarManager, headerManager) {
         sidebarManager.setSidebarText(_wizard.getTitle());
         _updateCurrentStep(0);
         _visible = true;
+        $rootScope.$emit('wizard:launchWizard');
     };
     this.closeWizard = function (success) {
         if (_wizard) {
@@ -95,6 +97,7 @@ function (sidebarManager, headerManager) {
         sidebarManager.setSidebarText();
         sidebarManager.setHideAll(false);
         headerManager.setVisible(true);
+        $rootScope.$emit('wizard:closeWizard');
     };
     this.jumpToPastStep = function (stepNum) {
         if (stepNum < _currentStepNum) {
