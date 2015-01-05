@@ -1,14 +1,11 @@
-angular.module('stealth.timelapse.stores', [
-    'stealth.core.geo.ows'
-])
+angular.module('stealth.timelapse.stores')
 
 .factory('stealth.timelapse.stores.BinStore', [
 '$log',
-'$rootScope',
+'$q',
+'$filter',
 'colors',
-'wfs',
-'CONFIG',
-function ($log, $rootScope, colors, wfs, CONFIG) {
+function ($log, $q, $filter, colors) {
     var tag = 'stealth.timelapse.stores.BinStore: ';
     $log.debug(tag + 'factory started');
 
@@ -34,7 +31,6 @@ function ($log, $rootScope, colors, wfs, CONFIG) {
                 _layerThisBelongsTo.redraw();
             }
         };
-
 
         var _name = name || 'unknown';
         _setFillColorHexString(fillColorHexString || colors.getColor());
@@ -130,51 +126,40 @@ function ($log, $rootScope, colors, wfs, CONFIG) {
             this.setArrayBuffer(arrayBuffer);
         }
 
-        //TODO: Add streaming query capability
-        var _thisStore = this;
-        this.launchQuery = function (query) {
-            var url = query.serverData.currentGeoserverUrl + '/' +
-                      query.layerData.currentLayer.prefix;
-            var typeName = query.layerData.currentLayer.name;
-            var responseType = 'arraybuffer';
-            var storeName = query.params.storeName;
-            var geom = query.params.geomField.name;
-            var dtg = query.params.dtgField.name;
-            var id = query.params.idField.name;
-            var overrides = {
-                sortBy: dtg,
-                propertyName: dtg + ',' + geom + ',' + id,
-                outputFormat: 'application/vnd.binary-viewer',
-                format_options: 'dtg:' + dtg + ';trackId:' + id,
-                cql_filter: buildCQLFilter(query)
+        this.searchPointAndTime = function (coord, res, timeMillis, windowMillis) {
+            var deferred = $q.defer();
+            var result = {
+                name: _name,
+                isError: false,
+                layerFill: {
+                    color: _fillColorHexString
+                },
+                records: []
             };
+            var modifier = res * Math.max(_pointRadius, 4);
+            var minLat = Math.max((coord[1] - modifier), -90);
+            var maxLat = Math.min((coord[1] + modifier), 90);
+            var minLon = Math.max((coord[0] - modifier), -180);
+            var maxLon = Math.min((coord[0] + modifier), 180);
 
-            wfs.getFeature(url, typeName, CONFIG.geoserver.omitProxy, overrides, responseType)
-            .success(function (data, status, headers, config, statusText) {
-                var contentType = headers('content-type');
-                if (contentType.indexOf('xml') > -1) {
-                    $log.error(tag + '(' + _name + ') ows:ExceptionReport returned');
-                    $log.error(data);
-                    _viewState.isError = true;
-                    _viewState.errorMsg = 'ows:ExceptionReport returned';
-                } else {
-                    // 'data' expected to be of type ArrayBuffer.
-                    if (data.byteLength === 0) {
-                        $log.error(tag + '(' + _name + ') No results');
-                        _viewState.isError = true;
-                        _viewState.errorMsg = 'No results';
-                    } else {
-                        _thisStore.setArrayBuffer(data);
-                        $rootScope.$emit('timelapse:querySuccessful');
-                    }
+            for (var i = 0; i < _numRecords; i++) {
+                var lat = _latView[i * _stride];
+                var lon = _lonView[i * _stride];
+                var millis = _secondsView[i * _stride] * 1000;
+                if (lat >= minLat && lat <= maxLat &&
+                    lon >= minLon && lon <= maxLon &&
+                    millis <= timeMillis && millis >= (timeMillis - windowMillis))
+                {
+                    result.records.push({
+                        lat: $filter('number')(lat, 5),
+                        lon: $filter('number')(lon, 5),
+                        dtg: moment.utc(millis).format('YYYY-MM-DD[T]HH:mm:ss[Z]'),
+                        id: _idView[i * _stride]
+                    });
                 }
-            })
-            .error(function(data, status, headers, config, statusText) {
-                var msg = 'HTTP status ' + status + ': ' + statusText;
-                $log.error(tag + '(' + _name + ') ' + msg);
-                _viewState.isError = true;
-                _viewState.errorMsg = msg;
-            });
+            }
+            deferred.resolve(result);
+            return deferred.promise;
         };
     };
 
@@ -264,23 +249,6 @@ function ($log, $rootScope, colors, wfs, CONFIG) {
         }
         return first;
     };
-
-    function buildCQLFilter(query) {
-        var cql_filter =
-            'BBOX(' + query.params.geomField.name + ',' +
-            query.params.minLat + ',' + query.params.minLon + ',' +
-            query.params.maxLat + ',' + query.params.maxLon + ')' +
-            ' AND ' + query.params.dtgField.name + ' DURING ' +
-            moment(query.params.startDate).format('YYYY-MM-DD') + 'T' +
-            moment(query.params.startTime).format('HH:mm') + ':00.000Z' +
-            '/' +
-            moment(query.params.endDate).format('YYYY-MM-DD') + 'T' +
-            moment(query.params.endTime).format('HH:mm') + ':00.000Z ';
-        if (query.params.cql) {
-            cql_filter += ' AND ' + query.params.cql;
-        }
-        return cql_filter;
-    }
 
     return BinStore;
 }])

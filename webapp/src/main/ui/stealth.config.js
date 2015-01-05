@@ -65,6 +65,11 @@ module.exports = {
         fonts: [
             'vendor/bower/font-awesome/fonts/*',
             'vendor/bower/bootstrap/fonts/*'
-        ]
+        ],
+        css: {
+            images: [
+                'vendor/bower/jquery-ui/themes/smoothness/images/ui-icons_222222_256x240.png'
+            ]
+        }
     }
 };

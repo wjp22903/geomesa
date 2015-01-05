@@ -236,6 +236,16 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
             _olSource.changed();
         };
 
+        this.searchActiveStores = function (coord, res) {
+            var activeStores = _.filter(_stores, function (store) {
+                var viewState = store.getViewState();
+                return viewState.toggledOn && !viewState.isError;
+            });
+            return _.map(activeStores, function (store) {
+                return store.searchPointAndTime(coord, res, _timeMillis, _windowMillis);
+            });
+        };
+
         $log.debug(tag + 'new TimeLapseLayer(' + name + ')');
         MapLayer.apply(this, [name, _olLayer]);
         this.styleDirective = 'st-time-lapse-layer-style';

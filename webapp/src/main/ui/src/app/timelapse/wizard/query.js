@@ -6,14 +6,14 @@ angular.module('stealth.timelapse.wizard.query', [
 .service('queryService', [
 '$rootScope',
 'tlLayerManager',
-'stealth.timelapse.stores.BinStore',
-function ($rootScope, tlLayerManager, BinStore) {
+'stealth.timelapse.stores.QueryBinStore',
+function ($rootScope, tlLayerManager, QueryBinStore) {
     var hLayer;
 
     this.launchBinQuery = function (query) {
         hLayer = tlLayerManager.getHistoricalLayer();
         var name = query.params.storeName;
-        var store = new BinStore(name);
+        var store = new QueryBinStore(name);
         hLayer.addStore(store);
         store.launchQuery(query);
     };

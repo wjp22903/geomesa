@@ -1,5 +1,6 @@
 angular.module('stealth.timelapse', [
     'stealth.core.geo.ol3.map',
+    'stealth.core.interaction',
     'stealth.timelapse.geo',
     'stealth.timelapse.controls',
     'stealth.timelapse.wizard'
@@ -18,12 +19,13 @@ function ($log, tlLayerManager) {
 '$rootScope',
 '$compile',
 '$templateCache',
+'mapClickService',
 'ol3Map',
 'tlControlsManager',
 'stealth.timelapse.geo.ol3.layers.HistoricalLayer',
 'elementAppender',
 function ($log, $rootScope, $compile, $templateCache,
-          ol3Map, controlsMgr, HistoricalLayer, elementAppender) {
+          mapClickService, ol3Map, controlsMgr, HistoricalLayer, elementAppender) {
     $log.debug('stealth.timelapse.tlLayerManager: service started');
     var live, historical;
     function registerLayers () {
@@ -49,6 +51,9 @@ function ($log, $rootScope, $compile, $templateCache,
         registerLayers();
         elementAppender.append('.primaryDisplay', 'timelapse/controls/controlsPanel.tpl.html', $rootScope.$new());
         registerControlsListeners();
+        mapClickService.registerSearchable(function (coord, res) {
+            return historical.searchActiveStores(coord, res);
+        });
     };
 
     this.getHistoricalLayer = function () {

@@ -102,6 +102,12 @@ function ($log, $filter, MapLayer, GeoJsonLayer, CONFIG) {
         return _map.getView().calculateExtent(_map.getSize());
     };
     /**
+     * Get current map size.
+     */
+    this.getSize = function () {
+        return _map.getSize();
+    };
+    /**
      * Returns array of layers currently on map (visible or not).
      * Layers are in reverse. Bottom layer at end of list.
      */
@@ -181,13 +187,29 @@ function ($log, $filter, MapLayer, GeoJsonLayer, CONFIG) {
     this.removeOverlay = function (overlay) {
         _map.removeOverlay(overlay);
     };
-
+    /**
+     * Adds a listener to the map.
+     */
     this.on = function (type, listener, opt_this) {
         return _map.on(type, listener, opt_this);
     };
-
+    /**
+     * Removes a listener from the map.
+     */
+    this.un = function (type, listener, opt_this) {
+        _map.un(type, listener, opt_this);
+    };
+    /**
+     * Removes a listener using the key returned by on() or once()
+     */
     this.unByKey = function (key) {
         _map.unByKey(key);
+    };
+    /**
+     * Returns the current resolution for the map view.
+     */
+    this.getResolution = function () {
+        return _map.getView().getResolution();
     };
 
     // ***** Initialization *****

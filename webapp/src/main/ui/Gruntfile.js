@@ -68,6 +68,12 @@ module.exports = function (grunt) {
                 cwd: '.',
                 expand: true,
                 flatten: true
+            }, {
+                src: ['<%= vendorFiles.css.images %>'],
+                dest: '<%= buildDir %>/css/images/',
+                cwd: '.',
+                expand: true,
+                flatten: true
             }]
         },
         build_appjs: {
