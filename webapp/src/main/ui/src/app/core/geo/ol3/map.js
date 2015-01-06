@@ -146,6 +146,12 @@ function ($log, MapLayer, GeoJsonLayer, CONFIG) {
         }
     };
     /**
+      * Get layer by ID
+      */
+    this.getLayerById = function (id) {
+        return _.find(_layers, {id: id});
+    };
+    /**
      * Move an OL3 layer on the map from index to newIndex.
      */
     this.moveOl3Layer = function (index, newIndex) {

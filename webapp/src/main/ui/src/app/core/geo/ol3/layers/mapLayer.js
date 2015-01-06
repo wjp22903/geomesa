@@ -3,8 +3,9 @@ angular.module('stealth.core.geo.ol3.layers')
 .factory('stealth.core.geo.ol3.layers.MapLayer', [
 '$log',
 '$rootScope',
+'$timeout',
 'stealth.core.utils.WidgetDef',
-function ($log, $rootScope, WidgetDef) {
+function ($log, $rootScope, $timeout, WidgetDef) {
     var tag = 'stealth.core.geo.ol3.layers.MapLayer: ';
     $log.debug(tag + 'factory started');
     var _idSeq = 0;
@@ -34,9 +35,9 @@ function ($log, $rootScope, WidgetDef) {
                 visible: ol3Layer.getVisible(),
                 opacity: ol3Layer.getOpacity()
             };
-            scope.$watch('layerState.visible', function (newVal) {
-                ol3Layer.setVisible(newVal);
-            });
+            scope.toggleVisibility = function () {
+                ol3Layer.setVisible(!ol3Layer.getVisible());
+            };
             scope.$watch('layerState.opacity', function (newVal) {
                 ol3Layer.setOpacity(newVal);
             });
@@ -48,6 +49,13 @@ function ($log, $rootScope, WidgetDef) {
                 iconClass: 'fa fa-fw fa-lg fa-globe'
             };
             this.styleDirectiveScope = scope;
+
+            // Update viewState on layer visibility change.
+            ol3Layer.on('change:visible', function () {
+                $timeout(function () {
+                    scope.layerState.visible = ol3Layer.getVisible();
+                });
+            });
         }
         this.styleDirectiveIsoScopeAttrs = null;
         $log.debug(tag + 'new MapLayer(' + name + ')');
