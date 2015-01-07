@@ -29,7 +29,9 @@ function ($q, $http, $filter) {
             request: 'GetFeature',
             typeName: typeName,
             outputFormat: 'application/json',
-            srsName: 'EPSG:4326'
+            srsName: 'EPSG:4326',
+            count: 999999999,
+            maxFeatures: 999999999
         };
 
         return $http.get(url, {

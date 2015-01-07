@@ -1,0 +1,13 @@
+<div class="glass anchorLeft anchorBottom" style="top:26px;min-width:165px;" ng-show="routeInfo | lodash:'isObject'">
+    <div style="border: 1px solid #ccc;background-color:#ddd;border-radius:4px;margin:4px;padding:0 2px;">
+        <strong style="white-space:nowrap;">Distance: {{routeInfo.meters | formatMeters}}</strong>
+    </div>
+    <div class="anchorLeft anchorRight anchorBottom" style="overflow-y:auto;top:30px;">
+        <div ng-repeat="coord in routeInfo.coords"
+             style="border: 1px solid #ccc;background-color:white;border-radius:4px;margin:2px;white-space:nowrap;">
+            <div class="pointNum pull-left" style="margin:2px;">{{$index + 1}}</div>
+            Lat: {{(coord | coordToDMSH)[0]}}<br>
+            Lon: {{(coord | coordToDMSH)[1]}}
+        </div>
+    </div>
+</div>

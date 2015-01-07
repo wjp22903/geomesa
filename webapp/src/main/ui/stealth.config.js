@@ -31,6 +31,7 @@ module.exports = {
     // for them to 'indexDest' file specified above.
     vendorFiles: {
         js: [
+            'vendor/bower/d3/d3.js',
             'vendor/bower/lodash/dist/lodash.js',
             'vendor/bower/jquery/dist/jquery.js',
             'vendor/bower/jquery-ui/jquery-ui.js',
@@ -48,6 +49,9 @@ module.exports = {
             'vendor/bower/angular-bootstrap-switch/dist/angular-bootstrap-switch.js',
             'vendor/bower/bootstrap-switch/dist/js/bootstrap-switch.js',
             'vendor/bower/ol3/build/ol-debug.js',
+            'vendor/bower/filereader.js/filereader.js',
+            'vendor/bower/FileSaver/FileSaver.js',
+            'vendor/bower/datetimepicker/jquery.datetimepicker.js',
             'vendor/openlayers/OpenLayers.js'
         ],
         assets_nested: [

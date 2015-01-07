@@ -22,8 +22,9 @@ function ($log, tlLayerManager) {
 'tlControlsManager',
 'stealth.timelapse.geo.ol3.layers.LiveLayer',
 'stealth.timelapse.geo.ol3.layers.HistoricalLayer',
+'elementAppender',
 function ($log, $rootScope, $compile, $templateCache,
-          ol3Map, controlsMgr, LiveLayer, HistoricalLayer) {
+          ol3Map, controlsMgr, LiveLayer, HistoricalLayer, elementAppender) {
     $log.debug('stealth.timelapse.tlLayerManager: service started');
     var live, historical;
     function registerLayers () {
@@ -31,24 +32,6 @@ function ($log, $rootScope, $compile, $templateCache,
         ol3Map.addLayer(live);
         historical = new HistoricalLayer('Historical');
         ol3Map.addLayer(historical);
-    }
-
-    function addControlsPanel () {
-        var primaryDisplay = angular.element('.primaryDisplay');
-        var controlsPanel = angular.element($templateCache.get('timelapse/controls/controlsPanel.tpl.html'));
-        var scope = $rootScope.$new();
-        var newEl = {};
-        var compiled = null;
-        // This is a work-around for
-        // https://github.com/angular/angular.js/issues/4203
-        // taken from
-        // https://gist.github.com/sjbarker/11048078
-        var dereg = scope.$watch(newEl, function () {
-            compiled = $compile(newEl)(scope);
-            primaryDisplay.append(compiled);
-            dereg();
-        });
-        newEl = angular.element(controlsPanel);
     }
 
     var timeMillis = null;
@@ -71,7 +54,7 @@ function ($log, $rootScope, $compile, $templateCache,
 
     this.start = function () {
         registerLayers();
-        addControlsPanel();
+        elementAppender.append('.primaryDisplay', 'timelapse/controls/controlsPanel.tpl.html', $rootScope.$new());
         registerControlsListeners();
     };
 

@@ -69,4 +69,27 @@ function ($log, $rootScope) {
     return WidgetDef;
 }])
 
+.service('elementAppender', [
+'$templateCache',
+'$compile',
+function ($templateCache, $compile) {
+    this.append = function (parentSelector, templateId, scope, setCompiled) {
+        var parent = angular.element(parentSelector);
+        var child = angular.element($templateCache.get(templateId));
+        var newEl = {};
+        // This is a work-around for
+        // https://github.com/angular/angular.js/issues/4203
+        // taken from
+        // https://gist.github.com/sjbarker/11048078
+        var dereg = scope.$watch(newEl, function () {
+            var compiled = $compile(newEl)(scope);
+            parent.append(compiled);
+            if (_.isFunction(setCompiled)) {
+                setCompiled(compiled);
+            }
+            dereg();
+        });
+        newEl = angular.element(child);
+    };
+}])
 ;

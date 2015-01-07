@@ -1,5 +1,5 @@
 <div style="max-height:250px;overflow:auto;">
-    <div ng-if="workspaces | isEmpty" class="categoryGrouping">
+    <div ng-if="workspaces | lodash:'isEmpty'" class="categoryGrouping">
         <i>None</i>
     </div>
     <div ng-repeat="(workspace, layers) in workspaces" class="categoryGrouping">

@@ -24,9 +24,9 @@ function ($log) {
     };
 }])
 
-.filter('isEmpty', function () {
-    return function (value) {
-        return _.isEmpty(value);
+.filter('lodash', function () {
+    return function (value, fnName) {
+        return _[fnName](value);
     };
 })
 
@@ -40,4 +40,21 @@ function ($log) {
         return uri;
     };
 })
+
+.directive('stUtcMomentFormat', [
+function () {
+    return {
+        restrict: 'A',
+        require: 'ngModel',
+        link: function (scope, element, attrs, ngModelCtrlr) {
+            var format = attrs.stUtcMomentFormat || 'YYYY-MM-DD HH:mm';
+            ngModelCtrlr.$parsers.unshift(function (value) {
+                return moment.utc(value, format);
+            });
+            ngModelCtrlr.$formatters.push(function (value) {
+                return value.format(format);
+            });
+        }
+    };
+}])
 ;

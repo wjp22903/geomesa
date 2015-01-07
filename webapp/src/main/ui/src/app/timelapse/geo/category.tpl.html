@@ -186,7 +186,7 @@
             </div>
         </div>
     </div>
-    <div ng-hide="workspaces.summary | isEmpty" class="categoryGrouping">
+    <div ng-hide="workspaces.summary | lodash:'isEmpty'" class="categoryGrouping">
         <input type="checkbox" ng-model="timelapse.summaryOn"
                bs-switch switch-size="micro" switch-label-width="0">
         <b>Summary</b>

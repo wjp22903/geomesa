@@ -55,4 +55,51 @@ function () {
     };
 }])
 
+.filter('delimitThousands', function () {
+    return function (num, delimiter) {
+        if (!_.isString(delimiter)) {
+            delimiter = ',';
+        }
+        return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1" + delimiter);
+    };
+})
+
+.filter('formatMeters', [
+'$filter',
+function ($filter) {
+    return function (meters, numDecimals) {
+        if (_.isNumber(meters)) {
+            if (!_.isNumber(numDecimals)) {
+                numDecimals = 3;
+            }
+            var prefix = ' ';
+            if (meters > 1000) {
+                prefix = ' k';
+                meters /= 1000;
+            }
+            return $filter('delimitThousands')(meters.toFixed(numDecimals)) + prefix + 'm';
+        } else {
+            return '';
+        }
+    };
+}])
+
+.filter('coordToDMSH', function () {
+    var format = function (coord) {
+        return ol.coordinate.toStringHDMS(coord)
+            .replace(/([NnSs]) /, '$1:::').replace(/\s/g, '').split(':::');
+    };
+    return function (coord) {
+        if (_.isArray(coord)) {
+            if (_.isNumber(coord[0])) {
+                return format(coord);
+            } else {
+                return _.map(coord, format);
+            }
+        } else {
+            return coord;
+        }
+
+    };
+})
 ;

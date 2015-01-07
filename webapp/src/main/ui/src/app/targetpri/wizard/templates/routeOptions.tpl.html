@@ -9,11 +9,19 @@
         </tr>
         <tr>
             <td><label>Start: </label></td>
-            <td><input type="datetime-local" ng-model="startDtg" ng-model-options="{timezone: 'UTC'}"> Z</td>
+            <td>
+                <input type="text" ng-model="startDtg" ui-jq="datetimepicker"
+                       ui-options="{todayButton: false, yearStart: 1990, yearEnd: 2030, step: 15, format: 'Y-m-d H:i'}"
+                       st-utc-moment-format="YYYY-MM-DD HH:mm" style="width:120px;"> Z
+            </td>
         </tr>
         <tr>
             <td><label>End: </label></td>
-            <td><input type="datetime-local" ng-model="endDtg" ng-model-options="{timezone: 'UTC'}"> Z</td>
+            <td>
+                <input type="text" ng-model="endDtg" ui-jq="datetimepicker"
+                       ui-options="{todayButton: false, yearStart: 1990, yearEnd: 2030, step: 15, format: 'Y-m-d H:i'}"
+                       st-utc-moment-format="YYYY-MM-DD HH:mm" style="width:120px;"> Z
+            </td>
         </tr>
     </table>
     <p style="margin-top:20px;">

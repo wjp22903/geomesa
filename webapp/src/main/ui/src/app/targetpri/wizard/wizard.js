@@ -22,7 +22,8 @@ function ($rootScope, startMenuManager, wizardManager, Wizard, Step,
         var wizardScope = $rootScope.$new();
         angular.extend(wizardScope, {
             type: 'route',
-            source: 'drawing'
+            source: 'drawing',
+            datasources: []
         });
         wizardManager.launchWizard(
             new Wizard('Target Prioritization', 'fa-crosshairs', 'fa-ellipsis-h', [

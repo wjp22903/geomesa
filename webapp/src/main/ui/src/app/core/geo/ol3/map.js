@@ -30,10 +30,11 @@ function ($log, $interval, ol3Map, CONFIG) {
 
 .service('ol3Map', [
 '$log',
+'$filter',
 'stealth.core.geo.ol3.layers.MapLayer',
 'stealth.core.geo.ol3.layers.GeoJsonLayer',
 'CONFIG',
-function ($log, MapLayer, GeoJsonLayer, CONFIG) {
+function ($log, $filter, MapLayer, GeoJsonLayer, CONFIG) {
     $log.debug('stealth.core.geo.ol3.map.ol3Map: service started');
     var _projection = CONFIG.map.projection;
     var _wmsOpts = {
@@ -62,16 +63,15 @@ function ($log, MapLayer, GeoJsonLayer, CONFIG) {
         controls: [
             new ol.control.MousePosition({
                 coordinateFormat: function (coord) {
-                    var hdms = ol.coordinate.toStringHDMS(coord)
-                            .replace(/([NnSs]) /, '$1:::').replace(/\s/g, '').split(':::');
+                    var dmsh = $filter('coordToDMSH')(coord);
                     var template =
                         '<table><tr>\
                              <td style="text-align:right;">DMS:</td>\
-                             <td style="text-align:right;width:85px;">' + hdms[0] + '</td>\
-                             <td style="text-align:right;width:95px;">' + hdms[1] + '</td>\
+                             <td style="text-align:right;width:85px;">' + dmsh[0] + '</td>\
+                             <td style="text-align:right;width:95px;">' + dmsh[1] + '</td>\
                              <td style="text-align:right;width:75px;">Lat/Lon:</td>\
-                             <td style="text-align:right;width:68px;">{y}</td>\
-                             <td style="text-align:right;width:78px;">{x}</td>\
+                             <td style="text-align:right;width:68px;">{y}\u00b0</td>\
+                             <td style="text-align:right;width:78px;">{x}\u00b0</td>\
                          </tr></table>';
                     return ol.coordinate.format(coord, template, 4);
                 },
@@ -93,10 +93,7 @@ function ($log, MapLayer, GeoJsonLayer, CONFIG) {
      * Zoom map to specified extent.
      */
     this.fitExtent = function (extent) {
-        _map.getView().fitExtent(
-            ol.extent.containsExtent(CONFIG.map.initExtent, CONFIG.map.extent) ?
-                CONFIG.map.extent : CONFIG.map.initExtent,
-            _map.getSize());
+        _map.getView().fitExtent(extent, _map.getSize());
     };
     /**
      * Get current map extent.
