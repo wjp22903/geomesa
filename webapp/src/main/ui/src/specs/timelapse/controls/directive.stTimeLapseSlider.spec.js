@@ -15,6 +15,7 @@ describe('Directive', function () {
             unit: 'm'
         };
         testModel.millis = testModel.value * 60000; // convert from minutes
+        testModel.notifyListeners = function (millis) {};
         testModel.toMillis = function (val, unit) {
             switch (unit) {
                 case 's':
@@ -38,10 +39,7 @@ describe('Directive', function () {
                 $rootScope = _$rootScope_;
                 scope = $rootScope.$new();
                 scope.testModel = testModel;
-                var str = '<st-time-lapse-slider \
-                              model="testModel" \
-                              emit="timelapse:testModelChanged"> \
-                           </st-time-lapse-slider>';
+                var str = '<st-time-lapse-slider model="testModel"></st-time-lapse-slider>';
                 el = angular.element(str);
                 el = $compile(el)(scope);
                 scope.$digest();
@@ -100,19 +98,6 @@ describe('Directive', function () {
             it('should recalculate slider value', function () {
                 expect(isoScope.model.value).to.equal(40);
                 expect(isoScope.model.millis).to.equal(40 * 1000);
-            });
-        });
-
-        var spy = null;
-        describe('when a change occurs', function () {
-            beforeEach(function () {
-                spy = sinon.spy($rootScope, '$emit');
-                isoScope.model.changed();
-            });
-
-            it('should emit an event', function () {
-                spy.should.have.been.called;
-                spy.should.have.been.calledWith('timelapse:testModelChanged', isoScope.model.millis);
             });
         });
     });

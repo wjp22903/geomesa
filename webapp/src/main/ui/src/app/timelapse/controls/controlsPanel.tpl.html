@@ -51,23 +51,23 @@
             <div class="cellTableRow">
                 <div class="innerField center">
                     <span class="displayShadow glass">
-                        {{displayInUtc(windowBeginMillis())}} &#8193; &#8213; &#8193; {{displayInUtc(dtg.millis)}}
+                        {{displayInUtc(display.windowBeginMillis())}} &#8193; &#8213; &#8193; {{displayInUtc(dtg.millis)}}
                     </span>
                 </div>
             </div>
             <div class="cellTableRow">
                 <div class="innerField">
-                    <st-time-lapse-slider model="dtg" emit="timelapse:dtgChanged"></st-time-lapse-slider>
+                    <st-time-lapse-slider model="dtg"></st-time-lapse-slider>
                 </div>
             </div>
             <div class="cellTableRow">
                 <div class="innerField">
-                    <st-time-lapse-slider model="window" emit="timelapse:windowChanged"></st-time-lapse-slider>
+                    <st-time-lapse-slider model="window"></st-time-lapse-slider>
                 </div>
             </div>
             <div class="cellTableRow">
                 <div class="innerField">
-                    <st-time-lapse-slider model="step" emit="timelapse:stepChanged"></st-time-lapse-slider>
+                    <st-time-lapse-slider model="step"></st-time-lapse-slider>
                 </div>
             </div>
         </div>

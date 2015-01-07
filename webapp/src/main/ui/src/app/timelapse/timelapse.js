@@ -19,10 +19,11 @@ function ($log, tlLayerManager) {
 '$compile',
 '$templateCache',
 'ol3Map',
+'tlControlsManager',
 'stealth.timelapse.geo.ol3.layers.LiveLayer',
 'stealth.timelapse.geo.ol3.layers.HistoricalLayer',
 function ($log, $rootScope, $compile, $templateCache,
-          ol3Map, LiveLayer, HistoricalLayer) {
+          ol3Map, controlsMgr, LiveLayer, HistoricalLayer) {
     $log.debug('stealth.timelapse.tlLayerManager: service started');
     var live, historical;
     function registerLayers () {
@@ -53,14 +54,14 @@ function ($log, $rootScope, $compile, $templateCache,
     var timeMillis = null;
     var windowMillis = null;
     function registerControlsListeners() {
-        $rootScope.$on('timelapse:dtgChanged', function (event, millis) {
+        controlsMgr.registerDtgListener(function (millis) {
             timeMillis = millis;
 
             live.redraw(timeMillis, windowMillis);
             historical.redraw(timeMillis, windowMillis);
         });
 
-        $rootScope.$on('timelapse:windowChanged', function (event, millis) {
+        controlsMgr.registerWindowListener(function (millis) {
             windowMillis = millis;
 
             live.redraw(timeMillis, windowMillis);

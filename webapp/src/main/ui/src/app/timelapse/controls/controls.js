@@ -1,17 +1,16 @@
 angular.module('stealth.timelapse.controls', [
 ])
 
-.controller('timeLapseControlsController', [
+.service('tlControlsManager', [
 '$log',
-'$rootScope',
-'$scope',
 '$interval',
 '$timeout',
-function ($log, $rootScope, $scope, $interval, $timeout) {
-    var tag = 'stealth.timelapse.controls.timeLapseControlsController: ';
-    $log.debug(tag + 'controller started');
+'$rootScope',
+function ($log, $interval, $timeout, $rootScope) {
+    var tag = 'stealth.timelapse.controls.tlControlsManager: ';
+    $log.debug(tag + 'service started');
 
-    var toMillis = function (val, unit) {
+    function toMillis (val, unit) {
         switch (unit) {
             case 's':
                 return (val * 1000);
@@ -24,150 +23,233 @@ function ($log, $rootScope, $scope, $interval, $timeout) {
             default:
                 return val;
         }
-    };
+    }
 
-    var playing = null;
+    var units = ['s', 'm', 'h', 'd'];
 
-    $scope.display = {
-        toggledOn: false,
-        isPlaying: false,
-        isPaused: true
-    };
+    var dtgListeners = [];
+    var windowListeners = [];
+    var stepListeners = [];
 
-    $scope.display.togglePlay = function () {
-        var isPlaying = $scope.display.isPlaying = !$scope.display.isPlaying;
-        $scope.display.isPaused = !$scope.display.isPaused;
+    function notifyListeners (listeners, millis) {
+        _.each(listeners, function (listener) {
+            listener(millis);
+        });
+    }
 
-        if (isPlaying) {
-            playing = $interval(function () {
-                var valInSecs = Math.ceil($scope.dtg.value);
-                var stepInSecs = Math.ceil(toMillis($scope.step.value, $scope.step.unit) / 1000);
-                var t = valInSecs + stepInSecs;
-                if (t < $scope.dtg.min) {
-                    $scope.dtg.value = $scope.dtg.min;
-                } else if (t > $scope.dtg.max) {
-                    $scope.dtg.value = $scope.dtg.min;
-                } else {
-                    $scope.dtg.value = t;
-                }
-                $scope.dtg.millis = toMillis($scope.dtg.value, $scope.dtg.unit);
-                $rootScope.$emit('timelapse:dtgChanged', $scope.dtg.millis);
-            }, 16 /* milliseconds */);
-        } else {
-            if (playing) {
-                $interval.cancel(playing);
-            }
-        }
-    };
+    function registerListener (listeners, listener) {
+        listeners.push(listener);
+    }
 
-    $scope.windowBeginMillis = function () {
-        var dtgMinMillis = toMillis($scope.dtg.min, $scope.dtg.unit);
-        return ($scope.dtg.millis - dtgMinMillis < $scope.window.millis) ?
-               dtgMinMillis : $scope.dtg.millis - $scope.window.millis;
-    };
-
-    $scope.units = ['s', 'm', 'h', 'd'];
-    $scope.displayInUtc = function (utcMillis) {
-            return moment.utc(utcMillis).format('YYYY-MM-DD HH:mm:ss[Z]');
-    };
+    function unregisterListener (listeners, listener) {
+        _.pull(listeners, listener);
+    }
 
     var epoch = moment(0);
     var aMonthAfterEpoch = angular.copy(epoch);
     aMonthAfterEpoch.add(1, 'months');
     var epochInSecs = epoch.format('x') / 1000 | 0;
     var afterInSecs = aMonthAfterEpoch.format('x') / 1000 | 0;
-    $scope.dtg = {
+    var dtg = {
         value: epochInSecs,
         min: epochInSecs,
         max: afterInSecs,
-        unit: $scope.units[0], // seconds
+        unit: units[0], // seconds
         toMillis: toMillis
     };
-    $scope.dtg.millis = $scope.dtg.value * 1000; // convert from seconds
+    dtg.millis = dtg.value * 1000; // convert from seconds
+    dtg.notifyListeners = function (millis) {
+        notifyListeners(dtgListeners, millis);
+    };
 
-    $scope.window = {
+    var window = {
         value: 10,
         min: 0,
         max: 120,
-        unit: $scope.units[1], // minutes
+        unit: units[1], // minutes
         toMillis: toMillis
     };
-    $scope.window.millis = $scope.window.value * 60000; // convert from minutes
+    window.millis = window.value * 60000; // convert from minutes
+    window.notifyListeners = function (millis) {
+        notifyListeners(windowListeners, millis);
+    };
 
-    $scope.step = {
+    var step = {
         value: 30,
         min: 0,
         max: 300,
-        unit: $scope.units[0], // seconds
+        unit: units[0], // seconds
         toMillis: toMillis
     };
-    $scope.step.millis = $scope.step.value * 1000; // convert from seconds
+    step.millis = step.value * 1000; // convert from seconds
+    step.notifyListeners = function (millis) {
+        notifyListeners(stepListeners, millis);
+    };
 
-    var _wasDisplayed = false;
+    var display = {
+        toggledOn: false,
+        isPlaying: false,
+        isPaused: true,
+        frameIntervalMillis: 16
+    };
+
+    var playing = null;
+    display.togglePlay = function () {
+        display.isPlaying = !display.isPlaying;
+        display.isPaused = !display.isPaused;
+
+        if (display.isPlaying) {
+            playing = $interval(function () {
+                var valInSecs = Math.ceil(dtg.value);
+                var stepInSecs = Math.ceil(toMillis(step.value, step.unit) / 1000);
+                var t = valInSecs + stepInSecs;
+                if (t < dtg.min) {
+                    dtg.value = dtg.min;
+                } else if (t > dtg.max) {
+                    dtg.value = dtg.min;
+                } else {
+                    dtg.value = t;
+                }
+                dtg.millis = toMillis(dtg.value, dtg.unit);
+                dtg.notifyListeners(dtg.millis);
+            }, display.frameIntervalMillis);
+        } else {
+            if (playing) {
+                $interval.cancel(playing);
+                playing = null;
+            }
+        }
+    };
+
+    display.windowBeginMillis = function () {
+        var dtgMinMillis = toMillis(dtg.min, dtg.unit);
+        return (dtg.millis - dtgMinMillis < window.millis) ?
+               dtgMinMillis : dtg.millis - window.millis;
+    };
+
+    // Responses to events emitted by BinStores.
+    display.wasDisplayed = false;
     $rootScope.$on('timelapse:setDtgBounds', function (event, data) {
         $log.debug(tag + 'received "timelapse:setDtgBounds" message');
 
-        if (!$scope.display.toggledOn) {
-            $scope.display.toggledOn = true;
-            _wasDisplayed = true;
+        if (!display.toggledOn) {
+            display.toggledOn = true;
+            display.wasDisplayed = true;
         }
 
-        $scope.dtg.min = data.minInSecs;
-        $scope.dtg.max = data.maxInSecs;
+        dtg.min = data.minInSecs;
+        dtg.max = data.maxInSecs;
 
-        if ($scope.dtg.value < $scope.dtg.min) {
-            $scope.dtg.value = $scope.dtg.min;
+        if (dtg.value < dtg.min) {
+            dtg.value = dtg.min;
         }
 
-        if ($scope.dtg.value > $scope.dtg.max) {
-            $scope.dtg.value = $scope.dtg.max;
+        if (dtg.value > dtg.max) {
+            dtg.value = dtg.max;
         }
 
         // This block needed to sync the stTimeLapseSlider's
         // internal copy of the dtg model which was instantiated
         // during bootstrap.
-        var value = angular.copy($scope.dtg.value); // Save value needed.
-        $scope.dtg.changed();  // Update internal copy (This also scales $scope.dtg.value).
-        $scope.dtg.value = value; // Set value back to what it needs to be.
-        $scope.dtg.millis = toMillis($scope.dtg.value, $scope.dtg.unit); // Calc millis.
-
-        // Apply changes.
-        $timeout(function () {
-            $scope.$apply();
-        });
+        // The goal is to move the dtg slider knob to the appropriate
+        // location on the slider when the slider bounds change.
+        var value = angular.copy(dtg.value); // Save value needed.
+        dtg.changed();  // Update internal copy (This scales dtg.value).
+        dtg.value = value; // Set value back to what it needs to be.
+        dtg.millis = toMillis(dtg.value, dtg.unit); // Calc millis.
+        // Work-around to get slider knob to move to correct location when paused:
+        // step back one step, then play forward one step.
+        var valInSecs = Math.ceil(dtg.value);
+        var stepInSecs = Math.ceil(toMillis(step.value, step.unit) / 1000);
+        dtg.value = valInSecs - stepInSecs; // Step back.
+        if (display.isPaused) { // Play forward one step.
+            display.togglePlay();
+            $timeout(function () {
+                display.togglePlay();
+            }, display.frameIntervalMillis);
+        }
 
         // Notify listeners that dtg value changed.
         // (If redraw listeners are registered, this should trigger a redraw as well.)
-        $scope.$emit('timelapse:dtgChanged', $scope.dtg.millis);
+        dtg.notifyListeners(dtg.millis);
     });
 
     $rootScope.$on('timelapse:resetDtgBounds', function () {
-        $scope.display.toggledOn = false;
-        _wasDisplayed = false;
+        display.toggledOn = false;
+        display.wasDisplayed = false;
 
-        $scope.dtg.value = epochInSecs;
-        $scope.dtg.min = epochInSecs;
-        $scope.dtg.max = afterInSecs;
-        $scope.dtg.millis = toMillis($scope.dtg.value, $scope.dtg.unit);
-        $scope.$emit('timelapse:dtgChanged', $scope.dtg.millis);
-        if ($scope.display.isPlaying) {
-            $scope.display.togglePlay();
+        dtg.value = epochInSecs;
+        dtg.min = epochInSecs;
+        dtg.max = afterInSecs;
+        dtg.millis = toMillis(dtg.value, dtg.unit);
+        dtg.notifyListeners(dtg.millis);
+        if (display.isPlaying) {
+            display.togglePlay();
         }
     });
 
     $rootScope.$on('wizard:launchWizard', function () {
-        if (_wasDisplayed) {
-            $scope.display.toggledOn = false;
+        if (display.wasDisplayed) {
+            display.toggledOn = false;
         }
-        if ($scope.display.isPlaying) {
-            $scope.display.togglePlay();
+        if (display.isPlaying) {
+            display.togglePlay();
         }
     });
+
     $rootScope.$on('wizard:closeWizard', function () {
-        if (_wasDisplayed) {
-            $scope.display.toggledOn = true;
+        if (display.wasDisplayed) {
+            display.toggledOn = true;
         }
     });
+
+    // ***** API *****
+
+    this.units = units;
+    this.dtg = dtg;
+    this.window = window;
+    this.step = step;
+    this.display = display;
+
+    this.registerDtgListener = function (listener) {
+        registerListener(dtgListeners, listener);
+    };
+    this.unregisterDtgListener = function (listener) {
+        unregisterListener(dtgListeners, listener);
+    };
+
+    this.registerWindowListener = function (listener) {
+        registerListener(windowListeners, listener);
+    };
+    this.unregisterWindowListener = function (listener) {
+        unregisterListener(windowListeners, listener);
+    };
+
+    this.registerStepListener = function (listener) {
+        registerListener(stepListeners, listener);
+    };
+    this.unregisterStepListener = function (listener) {
+        unregisterListener(stepListeners, listener);
+    };
+}])
+
+.controller('timeLapseControlsController', [
+'$log',
+'$scope',
+'tlControlsManager',
+function ($log, $scope, controlsMgr) {
+    var tag = 'stealth.timelapse.controls.timeLapseControlsController: ';
+    $log.debug(tag + 'controller started');
+
+    $scope.units = controlsMgr.units;
+    $scope.dtg = controlsMgr.dtg;
+    $scope.window = controlsMgr.window;
+    $scope.step = controlsMgr.step;
+    $scope.display = controlsMgr.display;
+
+    $scope.displayInUtc = function (utcMillis) {
+            return moment.utc(utcMillis).format('YYYY-MM-DD HH:mm:ss[Z]');
+    };
 }])
 
 .directive('stTimeLapseControlsPanel', [
@@ -185,8 +267,7 @@ function ($log) {
 
 .directive('stTimeLapseSlider', [
 '$log',
-'$rootScope',
-function ($log, $rootScope) {
+function ($log) {
     var tag = 'stealth.timelapse.controls.stTimeLapseSlider: ';
     $log.debug(tag + 'directive defined');
 
@@ -209,7 +290,7 @@ function ($log, $rootScope) {
             scope.model.millis = Math.ceil(scope.model.toMillis(scope.model.value, scope.model.unit));
             model = angular.copy(scope.model);
 
-            $rootScope.$emit(attrs.emit, scope.model.millis);
+            scope.model.notifyListeners(scope.model.millis);
         };
 
         scope.model.changed();
