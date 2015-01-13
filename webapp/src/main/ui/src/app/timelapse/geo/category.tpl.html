@@ -1,6 +1,5 @@
 <div style="max-height:300px;overflow:auto;">
-    <!--<div ng-hide="workspaces.live | isEmpty" class="categoryGrouping">-->
-    <div class="categoryGrouping">
+    <div ng-hide="workspaces.live | lodash:'isEmpty'" class="categoryGrouping">
         <div class="categoryCell">
             <span class="btn fa-stack toggleSlide"
                   ng-click="toggleSlideLive(timelapse.isLiveOn)">
@@ -50,44 +49,134 @@
              ng-show="timelapse.isLiveOn">
             <div ng-repeat="layer in layers">
                 <div class="categoryCell">
-                    <span ng-if="!layer.viewState.isOnMap && !layer.viewState.isLoading"
-                          class="btn btn-default fa-stack toggleButton"
-                          ng-click="toggleLiveLayer(layer)"
-                          tooltip-html-unsafe="<span style='white-space:nowrap'>Add to map</span>"
-                          tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
-                          tooltip-trigger="mouseenter">
-                    </span>
-                    <span ng-if="layer.viewState.isOnMap && layer.viewState.isLoading"
-                          style="padding-left:6px;padding-right:6px"
-                          tooltip-html-unsafe="<span style='white-space:nowrap'>{{layer.viewState.numLoaded}}/{{layer.viewState.numTiles}} loaded</span>"
-                          tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
-                          tooltip-trigger="mouseenter">
-                        <i class="fa fa-circle-o-notch fa-spin"></i>
-                    </span>
-                    <span ng-if="layer.viewState.isOnMap && !layer.viewState.isLoading"
-                          class="btn btn-default fa-stack toggleButton"
-                          ng-click="toggleLiveLayer(layer)"
-                          tooltip-html-unsafe="<span style='white-space:nowrap'>Remove from map</span>"
-                          tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
-                          tooltip-trigger="mouseenter">
-                        <i class="fa fa-fw fa-check fa-stack-1x"></i>
+                    <i>{{::layer.Title || layer.Name | characters:35:true}}</i>
+                </div>
+                <div class="categoryCell" style="width:100%;text-align:right">
+                    <span class="btn btn-default fa-stack toggleButton"
+                          ng-click="collapseAllLiveFilterLayers(layer.filterLayers)">
+                        <i class="fa fa-angle-double-up fa-stack-1x"></i>
                     </span>
                 </div>
                 <div class="categoryCell">
-                    <span ng-if="layer.viewState.isOnMap"
-                          class="btn btn-default fa-stack toggleButton"
-                          ng-click="toggleLiveVisibility(layer)"
-                          tooltip-html-unsafe="<span style='white-space:nowrap'>Toggle visibility</span>"
-                          tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
-                          tooltip-trigger="mouseenter">
-                        <i class="fa fa-fw fa-eye fa-stack-1x text-danger"
-                           ng-if="!layer.viewState.toggledOn"></i>
-                        <i class="fa fa-fw fa-eye fa-stack-1x text-success"
-                           ng-if="layer.viewState.toggledOn"></i>
+                    <span class="btn btn-default fa-stack toggleButton"
+                          ng-click="expandAllLiveFilterLayers(layer.filterLayers)"
+                          style="line-height:6px">
+                        <i class="fa fa-angle-double-down fa-stack-1x"></i>
                     </span>
                 </div>
-                <div class="categoryCell">
-                    {{::layer.Title | characters:35:true}}
+
+                <div ng-repeat="filterLayer in layer.filterLayers" class="categoryGrouping">
+                    <div class="categoryCell">
+                        <span ng-if="!filterLayer.viewState.isOnMap && !filterLayer.viewState.isLoading"
+                              class="btn btn-default fa-stack toggleButton"
+                              ng-click="toggleLiveLayer(filterLayer)"
+                              tooltip-html-unsafe="<span style='white-space:nowrap'>Add to map</span>"
+                              tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
+                              tooltip-trigger="mouseenter">
+                        </span>
+                        <span ng-if="filterLayer.viewState.isOnMap && filterLayer.viewState.isLoading"
+                              style="padding-left:6px;padding-right:6px;"
+                              tooltip-html-unsafe="<span style='white-space:nowrap'>Loading</span>"
+                              tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
+                              tooltip-trigger="mouseenter">
+                            <i class="fa fa-circle-o-notch fa-spin"></i>
+                        </span>
+                        <span ng-if="filterLayer.viewState.isOnMap && !filterLayer.viewState.isLoading"
+                              class="btn btn-default fa-stack toggleButton"
+                              ng-click="toggleLiveLayer(filterLayer)"
+                              tooltip-html-unsafe="<span style='white-space:nowrap'>Remove from map</span>"
+                              tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
+                              tooltip-trigger="mouseenter">
+                            <i class="fa fa-fw fa-check fa-stack-1x"></i>
+                        </span>
+                    </div>
+                    <div class="categoryCell">
+                        <span ng-if="filterLayer.viewState.isOnMap"
+                              class="btn btn-default fa-stack toggleButton"
+                              ng-click="toggleLiveVisibility(filterLayer)"
+                              tooltip-html-unsafe="<span style='white-space:nowrap'>Toggle visibility</span>"
+                              tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
+                              tooltip-trigger="mouseenter">
+                            <i class="fa fa-fw fa-eye fa-stack-1x text-danger"
+                               ng-if="!filterLayer.viewState.toggledOn"></i>
+                            <i class="fa fa-fw fa-eye fa-stack-1x text-success"
+                               ng-if="filterLayer.viewState.toggledOn"></i>
+                        </span>
+                    </div>
+                    <div class="categoryCell" style="width:100%">
+                        <input type="text" ng-model="filterLayer.Title" style="border-radius:3px;width:100%;"
+                               ng-change="updateLiveLayerName(filterLayer)">
+                    </div>
+                    <div class="categoryCell">
+                        <span class="btn btn-default fa-stack toggleButton"
+                              ng-click="cloneLiveFilterLayer(filterLayer)"
+                              tooltip-html-unsafe="<span style='white-space:nowrap'>Create new copy</span>"
+                              tooltip-placement="left" tooltip-animation="false" tooltip-popup-delay="500"
+                              tooltip-trigger="mouseenter"
+                              style="line-height:6px;">
+                            <i class="fa fa-fw fa-copy fa-stack-1x text-primary"></i>
+                        </span>
+                    </div>
+                    <div class="categoryCell">
+                        <span class="btn btn-default fa-stack toggleButton"
+                              ng-if="filterLayer.viewState.isRemovable"
+                              ng-click="removeLiveFilterLayer(filterLayer)">
+                            <i class="fa fa-fw fa-remove fa-stack-1x text-danger"></i>
+                        </span>
+                    </div>
+                    <div class="categoryCell"
+                         style="width:100%;text-align:right">
+                        <span class="btn btn-default fa-stack toggleButton"
+                              ng-click="filterLayer.viewState.isExpanded = !filterLayer.viewState.isExpanded">
+                            <i class="fa fa-fw fa-caret-up fa-stack-1x"
+                               ng-if="filterLayer.viewState.isExpanded"></i>
+                            <i class="fa fa-fw fa-caret-down fa-stack-1x"
+                               ng-if="!filterLayer.viewState.isExpanded"></i>
+                        </span>
+                    </div>
+                    <div ng-show="filterLayer.viewState.isExpanded">
+                        <div ng-repeat="attr in filterLayer.options.attrs">
+                            <div>
+                                <div class="categoryCell categoryIndent">
+                                    <span style="padding-left:5px;padding-right:5px;padding-bottom:2px;background-color:#e2c1c1;border-radius:5px">
+                                        {{::attr.name | characters:35:true}}:
+                                    </span>
+                                    <div class="categoryCell categoryIndent">
+                                      <div ng-repeat="choice in attr.choices">
+                                          <div class="categoryCell categoryIndent">
+                                              <input type="checkbox"
+                                                     ng-model="choice.isSelected"
+                                                     ng-change="updateLiveFilterCql(filterLayer)">
+                                          </div>
+                                          <div class="categoryCell">{{::choice.value | characters:35:true}}</div>
+                                      </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="categoryCell categoryIndent">
+                            <input type="checkbox"
+                                   ng-model="filterLayer.options.cql.isSelected"
+                                   ng-change="updateLiveFilterCql(filterLayer)">
+                        </div>
+                        <div class="categoryCell">CQL:</div>
+                        <div class="categoryCell" style="width:510px;">
+                            <form ng-submit="handleLiveFilterExtraCqlChange(filterLayer)">
+                                <input type="text"
+                                       ng-blur="handleLiveFilterExtraCqlChange(filterLayer)"
+                                       ng-model="filterLayer.options.cql.value"
+                                       style="width:100%;border-radius:3px">
+                            </form>
+                        </div>
+                        <div>
+                            <div class="categoryCell categoryIndent">
+                                <div>CQL filter used:</div>
+                                <textarea readonly
+                                          ng-model="filterLayer.cqlFilter"
+                                          style="resize:vertical;border-radius:3px;width:300px;outline:none;background-color:#e5e5e5"></textarea>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -178,10 +267,10 @@
                 {{store.getName()}}
             </div>
             <div id="col3" class="categoryCell" style="width:100%;text-align:right">
-                <span class="btn btn-default catGroupButton"
+                <span class="btn btn-default fa-stack toggleButton"
                       ng-if="store.getViewState().isDataReady() || store.getViewState().isError"
                       ng-click="removeHistorical(store)">
-                    <i class="fa fa-fw fa-remove text-danger"></i>
+                    <i class="fa fa-fw fa-remove fa-stack-1x text-danger"></i>
                 </span>
             </div>
         </div>
@@ -190,9 +279,9 @@
         <input type="checkbox" ng-model="timelapse.summaryOn"
                bs-switch switch-size="micro" switch-label-width="0">
         <b>Summary</b>
-        <span class="btn btn-default btn-xs catGroupButton"
+        <span class="btn btn-default fa-stack toggleButton"
               ng-click="launchSummaryQueryWizard()">
-            <i class="fa fa-fw fa-plus text-primary"></i>
+            <i class="fa fa-fw fa-plus fa-stack-1x text-primary"></i>
         </span>
     </div>
 </div>

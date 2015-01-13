@@ -6,17 +6,17 @@
         <b>{{::workspace}}</b>
         <div ng-repeat="layer in layers" class="categoryGrouping categoryIndent">
             <i>{{::layer.Title || layer.Name | characters:40:true}}</i>
-            <span class="btn btn-default btn-xs catGroupButton"
+            <span class="btn btn-default fa-stack toggleButton"
                   ng-if="layer.queryable"
                   ng-click="launchLayerFilterWizard(layer)">
-                <i class="fa fa-fw fa-plus text-primary"></i>
+                <i class="fa fa-fw fa-plus fa-stack-1x text-primary"></i>
             </span>
             <div ng-repeat="filterLayer in layer.filterLayers" class="categoryGrouping categoryIndent">
                 <input type="checkbox" ng-model="filterLayer.toggledOn" ng-change="toggleLayer(layer, filterLayer)">
                 {{::filterLayer.name}}
-                <span class="btn btn-default btn-xs catGroupButton"
+                <span class="btn btn-default fa-stack toggleButton"
                       ng-if="filterLayer.removeable" ng-click="removeLayer(layer, filterLayer)">
-                    <i class="fa fa-fw fa-close text-danger"></i>
+                    <i class="fa fa-fw fa-close fa-stack-1x text-danger"></i>
                 </span>
                 <div style="color:#888;font-style:italic;font-size:0.9em;margin-left:16px;">
                     {{::filterLayer.cqlFilter}}

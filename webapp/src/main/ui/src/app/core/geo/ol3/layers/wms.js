@@ -17,16 +17,14 @@ function ($log, $interval, MapLayer, CONFIG) {
             url: CONFIG.geoserver.defaultUrl + '/wms',
             params: requestParams,
             tileLoadFunction: function (imageTile, src) {
-                // Append a different time-stamp to the <img> src string to force
-                // the browser to download a new image if the source's tileCache is cleared.
-                imageTile.getImage().src = src + '&unique=' + moment().format('x');
+                imageTile.getImage().src = src;
 
                 //  Cache image tiles.
                 _tiles.push(imageTile);
 
                 // Poll the tiles cache for the loading state of each tile.
                 if (_.isNull(_self.loading)){
-                    _self.loading = pollTilesState(name, _tiles, _self.styleDirectiveScope);
+                    _self.loading = pollTilesState(_self.id, _tiles, _self.styleDirectiveScope);
                 }
             }
         });
@@ -49,27 +47,21 @@ function ($log, $interval, MapLayer, CONFIG) {
             _tiles.length = 0;
         });
 
-        this.clearTileCache = function () {
-            $log.debug(tag + name + ': tile cache cleared');
-            _olSource.tileCache.clear();
-            _olSource.changed();
-        };
-
     };
     WmsLayer.prototype = Object.create(MapLayer.prototype);
 
-    function pollTilesState (name, tiles, scope) {
+    function pollTilesState (id, tiles, scope) {
         var promise = $interval(function () {
             var loadingTiles = _.filter(tiles, function (tile) {
                 return (tile.state == ol.TileState.LOADING);
             });
             if (loadingTiles.length > 0) {
-                scope.$emit(name + ':isLoading', {
+                scope.$emit(id + ':isLoading', {
                     loading: loadingTiles.length,
                     total: tiles.length
                 });
             } else {
-                scope.$emit(name + ':finishedLoading');
+                scope.$emit(id + ':finishedLoading');
             }
         }, 2000);
         return promise;

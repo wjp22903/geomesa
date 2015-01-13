@@ -21,7 +21,7 @@ function ($log, $rootScope, $timeout, catMgr, Category, WidgetDef, wms, ol3Map, 
             var requestParams = {
                 LAYERS: layer.Name
             };
-            var preload = 0;
+            var preload = Infinity;
             var wmsLayer = new WmsLayer(layer.Title,
                                         requestParams,
                                         preload,
@@ -40,14 +40,14 @@ function ($log, $rootScope, $timeout, catMgr, Category, WidgetDef, wms, ol3Map, 
                 });
             });
 
-            wmsLayer.styleDirectiveScope.$on(layer.Title + ':isLoading', function (e, tilesCnt) {
+            wmsLayer.styleDirectiveScope.$on(wmsLayer.id + ':isLoading', function (e, tilesCnt) {
                 layer.viewState.isLoading = true;
                 layer.viewState.numLoaded = tilesCnt.total - tilesCnt.loading;
                 layer.viewState.numTiles = tilesCnt.total;
                 e.stopPropagation();
             });
 
-            wmsLayer.styleDirectiveScope.$on(layer.Title + ':finishedLoading', function (e) {
+            wmsLayer.styleDirectiveScope.$on(wmsLayer.id + ':finishedLoading', function (e) {
                 layer.viewState.isLoading = false;
                 e.stopPropagation();
             });

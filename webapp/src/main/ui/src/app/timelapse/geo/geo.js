@@ -20,13 +20,13 @@ function (catMgr, Category, WidgetDef) {
 '$timeout',
 'wms',
 'ol3Map',
-'stealth.timelapse.geo.ol3.layers.PollingWmsLayer',
+'stealth.timelapse.geo.ol3.layers.PollingImageWmsLayer',
 'tlLayerManager',
 'stealth.timelapse.stores.BinStore',
 'colors',
 'tlWizard',
 'CONFIG',
-function ($log, $timeout, wms, ol3Map, PollingWmsLayer, tlLayerManager, BinStore, colors, tlWizard, CONFIG) {
+function ($log, $timeout, wms, ol3Map, PollingImageWmsLayer, tlLayerManager, BinStore, colors, tlWizard, CONFIG) {
     var tag = 'stealth.core.geo.context.stTimelapseGeoCategory: ';
     $log.debug(tag + 'directive defined');
     return {
@@ -58,6 +58,154 @@ function ($log, $timeout, wms, ol3Map, PollingWmsLayer, tlLayerManager, BinStore
                 isHistoricalOn: true,
                 summaryOn: true
             };
+
+            $scope.collapseAllLiveFilterLayers = function (layers) {
+                _.each(layers, function (layer) {
+                    layer.viewState.isExpanded = false;
+                });
+            };
+
+            $scope.expandAllLiveFilterLayers = function (layers) {
+                _.each(layers, function (layer) {
+                    layer.viewState.isExpanded = true;
+                });
+            };
+
+            var filterLayerCount = 0;
+            function newLiveFilterLayer (name, title, options, layerThisBelongsTo) {
+                filterLayerCount++;
+                var filterLayer = {
+                    cnt: filterLayerCount,
+                    layerThisBelongsTo: layerThisBelongsTo,
+                    Name: name,
+                    Title: title || ('Options ' + filterLayerCount),
+                    viewState: {
+                        isOnMap: false,
+                        toggledOn: false,
+                        isLoading: false,
+                        isExpanded: false,
+                        isRemovable: false
+                    },
+                    options: options,
+                    cqlFilter: null
+                };
+                filterLayer.options.cql = {
+                    value: null,
+                    isSelected: false
+                };
+
+                return filterLayer;
+            }
+
+            $scope.cloneLiveFilterLayer = function (filterLayer) {
+                var title = 'Copy of ' + filterLayer.Title;
+                var clone = newLiveFilterLayer(angular.copy(filterLayer.Name),
+                                               title,
+                                               angular.copy(filterLayer.options),
+                                               filterLayer.layerThisBelongsTo);
+
+                clone.viewState.isExpanded = true;
+                clone.viewState.isRemovable = true;
+                $scope.updateLiveFilterCql(clone);
+                filterLayer.layerThisBelongsTo.filterLayers.push(clone);
+            };
+
+            $scope.removeLiveFilterLayer = function (filterLayer) {
+                if (filterLayer.viewState.isOnMap) {
+                    $scope.toggleLiveLayer(filterLayer);
+                }
+                _.pull(filterLayer.layerThisBelongsTo.filterLayers, filterLayer);
+            };
+
+            $scope.updateLiveLayerName = function (filterLayer) {
+                var id = filterLayer.mapLayerId;
+                if (!_.isUndefined(id)) {
+                    var pollingLayer = ol3Map.getLayerById(id);
+                    pollingLayer.setName(filterLayer.Title);
+                }
+            };
+
+            $scope.handleLiveFilterExtraCqlChange = function (filterLayer) {
+                if (!_.isEmpty(filterLayer.options.cql.value)) {
+                    filterLayer.options.cql.isSelected = true;
+                }
+                $scope.updateLiveFilterCql(filterLayer);
+            };
+
+            $scope.updateLiveFilterCql = function (filterLayer) {
+                filterLayer.cqlFilter = '';
+
+                var attrsList = filterLayer.options.attrs;
+
+                // Build array of OR-ed choices.
+                if (!_.isUndefined(attrsList)) {
+                    filterLayer.cqlFilter = _.map(attrsList, function (attr) {
+                        var choices = attr.choices;
+
+                        var accumulator = '';
+                        var filter = _.reduce(
+                            choices,
+                            function (result, choice) {
+                                var term = '';
+                                if (choice.isSelected) {
+                                    if (result !== '') {
+                                        term = ' OR ';
+                                    }
+                                    term += attr.name + ' = ' + choice.value;
+                                }
+                                return result + term;
+                            },
+                            accumulator
+                        );
+
+                        if (filter !== '') {
+                            return '(' + filter + ')';
+                        } else {
+                            return filter;
+                        }
+                    });
+                }
+
+                // Build string of AND-ed attributes.
+                if (filterLayer.cqlFilter.length > 0) {
+                    var accumulator = '';
+                    filterLayer.cqlFilter = _.reduce(filterLayer.cqlFilter, function (result, filter) {
+                        var term = '';
+                        if (result !== '' && filter !== '') {
+                            term = ' AND ';
+                        }
+                        term += filter;
+                        return result + term;
+                    }, accumulator);
+                }
+
+                // AND extra CQL if present.
+                if (filterLayer.options.cql.value !== null && filterLayer.options.cql.value !== '') {
+                    if (filterLayer.options.cql.isSelected) {
+                        if (filterLayer.cqlFilter !== '') {
+                            filterLayer.cqlFilter += ' AND ' + filterLayer.options.cql.value;
+                        } else {
+                            filterLayer.cqlFilter  = filterLayer.options.cql.value;
+                        }
+                    }
+                }
+
+                // Update request.
+                var id = filterLayer.mapLayerId;
+                if (!_.isUndefined(id)) {
+                    var pollingLayer = ol3Map.getLayerById(id);
+                    var requestParams = {
+                        LAYERS: filterLayer.Name,
+                        CQL_FILTER: 'INCLUDE'
+                    };
+                    if (!_.isUndefined(filterLayer.cqlFilter) && filterLayer.cqlFilter !== '') {
+                        requestParams.CQL_FILTER = filterLayer.cqlFilter;
+                    }
+                    pollingLayer.refresh(requestParams);
+                }
+                $scope.refreshNow();
+            };
+
             if (_.isUndefined($scope.workspaces)) {
                 $scope.workspaces = {
                     live: {},
@@ -71,18 +219,35 @@ function ($log, $timeout, wms, ol3Map, PollingWmsLayer, tlLayerManager, BinStore
                                 var keywordParts = keyword.split('.');
                                 if (keywordParts.length > 3 && keywordParts[0] === CONFIG.app.context &&
                                         keywordParts[1] === 'timelapse') {
+
                                     var layer = _.cloneDeep(l);
-                                    layer.viewState = {
-                                        isOnMap: false,
-                                        toggledOn: false,
-                                        isLoading: false
-                                    };
+                                    if (_.contains('live', keywordParts[2])) {
+                                        layer.filterLayers = [];
+                                    }
+
                                     var workspace = keywordParts[3];
                                     if (_.contains(['live', 'historical', 'summary'], keywordParts[2])) {
                                         if (_.isArray($scope.workspaces[keywordParts[2]][workspace])) {
                                             $scope.workspaces[keywordParts[2]][workspace].push(layer);
                                         } else {
                                             $scope.workspaces[keywordParts[2]][workspace] = [layer];
+                                        }
+                                        // Configured live filter layers
+                                        if (_.contains('live', keywordParts[2])) {
+                                            var found = _.find(CONFIG.map.liveOptions, {Name: layer.Name, serverUrl: layer.serverUrl});
+                                            if (found) {
+                                                var options = CONFIG.map.liveOptions;
+                                                _.each(options, function (theOptions) {
+                                                    if (theOptions.Name == layer.Name) {
+                                                        var filterLayer = newLiveFilterLayer(theOptions.Name, theOptions.Title, theOptions, layer);
+                                                        if (filterLayer.cnt === 1) {
+                                                            filterLayer.viewState.isExpanded = true;
+                                                        }
+                                                        $scope.updateLiveFilterCql(filterLayer);
+                                                        layer.filterLayers.push(filterLayer);
+                                                    }
+                                                });
+                                            }
                                         }
                                     }
                                 }
@@ -107,20 +272,28 @@ function ($log, $timeout, wms, ol3Map, PollingWmsLayer, tlLayerManager, BinStore
             $scope.toggleLiveLayer = function (layer) {
                 if (_.isUndefined(layer.mapLayerId) || _.isNull(layer.mapLayerId)) {
                     var requestParams = {
-                        LAYERS: layer.Name
-                        //CQL_FILTER: 'BBOX(geom,-90,-180,90,180) AND dtg DURING 2014-01-01T00:00:00.000Z/2014-01-01T00:10:00.000Z'
-                        //STYLES: ''
-                        //SLD: ''
+                        LAYERS: layer.Name,
+                        CQL_FILTER: 'INCLUDE'
                     };
-                    var preload = 0;
-                    var wmsLayer = new PollingWmsLayer(layer.Title, requestParams, preload);
-                    wmsLayer.setPollingInterval($scope.liveRefresh.value * 1000);
-                    var ol3Layer = wmsLayer.getOl3Layer();
-                    layer.mapLayerId = wmsLayer.id;
+                    var pollingLayer = new PollingImageWmsLayer(layer.Title, requestParams);
+                    pollingLayer.setPollingInterval($scope.liveRefresh.value * 1000);
+                    var ol3Layer = pollingLayer.getOl3Layer();
+                    layer.mapLayerId = pollingLayer.id;
                     layer.viewState.isOnMap = true;
                     layer.viewState.toggledOn = ol3Layer.getVisible();
-                    wmsLayer.styleDirectiveScope.styleVars.iconClass = 'fa fa-fw fa-lg fa-clock-o';
-                    ol3Map.addLayer(wmsLayer);
+                    pollingLayer.styleDirectiveScope.styleVars.iconClass = 'fa fa-fw fa-lg fa-clock-o';
+                    pollingLayer.setRefreshOnMapChange(ol3Map);
+                    ol3Map.addLayer(pollingLayer);
+                    $scope.updateLiveFilterCql(layer);
+
+                    pollingLayer.styleDirectiveScope.$on(pollingLayer.id + ':isLoading', function (e) {
+                        layer.viewState.isLoading = true;
+                        e.stopPropagation();
+                    });
+                    pollingLayer.styleDirectiveScope.$on(pollingLayer.id + ':finishedLoading', function (e) {
+                        layer.viewState.isLoading = false;
+                        e.stopPropagation();
+                    });
 
                     // Update viewState on layer visibility change.
                     ol3Layer.on('change:visible', function () {
@@ -129,18 +302,10 @@ function ($log, $timeout, wms, ol3Map, PollingWmsLayer, tlLayerManager, BinStore
                         });
                     });
 
-                    wmsLayer.styleDirectiveScope.$on(layer.Title + ':isLoading', function (e, tilesCnt) {
-                        layer.viewState.isLoading = true;
-                        layer.viewState.numLoaded = tilesCnt.total - tilesCnt.loading;
-                        layer.viewState.numTiles = tilesCnt.total;
-                        e.stopPropagation();
-                    });
-
-                    wmsLayer.styleDirectiveScope.$on(layer.Title + ':finishedLoading', function (e) {
-                        layer.viewState.isLoading = false;
-                        e.stopPropagation();
-                    });
                 } else {
+                    var l = ol3Map.getLayerById(layer.mapLayerId);
+                    l.cancelPolling();
+                    l.removeRefreshOnMapChange(ol3Map);
                     ol3Map.removeLayerById(layer.mapLayerId);
                     delete layer.mapLayerId;
                     layer.viewState.isOnMap = false;
@@ -167,20 +332,22 @@ function ($log, $timeout, wms, ol3Map, PollingWmsLayer, tlLayerManager, BinStore
             };
 
             $scope.liveRefresh = {
-                value: 20,
-                options: _.range(0, 65, 5)
+                value: 10,
+                options: [2, 5, 10, 30, 60]
             };
 
             $scope.refreshValChanged = function (refreshInSecs) {
                 _.each($scope.workspaces.live, function (ws) {
                     _.each(ws, function (layer) {
-                        var id = layer.mapLayerId;
-                        if (!_.isUndefined(id) && !_.isNull(id)) {
-                            var l = ol3Map.getLayerById(id);
-                            if (!_.isUndefined(l)) {
-                                l.setPollingInterval(refreshInSecs * 1000);
+                        _.each(layer.filterLayers, function (filterLayer) {
+                            var id = filterLayer.mapLayerId;
+                            if (!_.isUndefined(id) && !_.isNull(id)) {
+                                var l = ol3Map.getLayerById(id);
+                                if (!_.isUndefined(l)) {
+                                    l.setPollingInterval(refreshInSecs * 1000);
+                                }
                             }
-                        }
+                        });
                     });
                 });
             };
@@ -188,13 +355,15 @@ function ($log, $timeout, wms, ol3Map, PollingWmsLayer, tlLayerManager, BinStore
             $scope.refreshNow = function () {
                 _.each($scope.workspaces.live, function (ws) {
                     _.each(ws, function (layer) {
-                        var id = layer.mapLayerId;
-                        if (!_.isUndefined(id) && !_.isNull(id)) {
-                            var l = ol3Map.getLayerById(id);
-                            if (!_.isUndefined(l)) {
-                                l.refresh();
+                        _.each(layer.filterLayers, function (filterLayer) {
+                            var id = filterLayer.mapLayerId;
+                            if (!_.isUndefined(id) && !_.isNull(id)) {
+                                var l = ol3Map.getLayerById(id);
+                                if (!_.isUndefined(l)) {
+                                    l.refresh();
+                                }
                             }
-                        }
+                        });
                     });
                 });
             };
@@ -202,20 +371,20 @@ function ($log, $timeout, wms, ol3Map, PollingWmsLayer, tlLayerManager, BinStore
             function toggleSlideVis (workspaces, visibleLayers, isOn) {
                 if (isOn) {
                     _.each(workspaces, function (ws) {
-                        $log.debug(workspaces);
                         _.each(ws, function (layer) {
-                            var id = layer.mapLayerId;
-                            if (!_.isUndefined(id) && !_.isNull(id)) {
-                                var l = ol3Map.getLayerById(id);
-                                if (!_.isUndefined(l)) {
-                                    var ol3Layer = l.getOl3Layer();
-                                    if (ol3Layer.getVisible()) {
-                                        $log.debug(ol3Layer);
-                                        visibleLayers.push(ol3Layer);
-                                        ol3Layer.setVisible(false);
+                            _.each(layer.filterLayers, function (filterLayer) {
+                                var id = filterLayer.mapLayerId;
+                                if (!_.isUndefined(id) && !_.isNull(id)) {
+                                    var l = ol3Map.getLayerById(id);
+                                    if (!_.isUndefined(l)) {
+                                        var ol3Layer = l.getOl3Layer();
+                                        if (ol3Layer.getVisible()) {
+                                            visibleLayers.push(ol3Layer);
+                                            ol3Layer.setVisible(false);
+                                        }
                                     }
                                 }
-                            }
+                            });
                         });
                     });
                 } else {
@@ -258,4 +427,5 @@ function ($log, $timeout, wms, ol3Map, PollingWmsLayer, tlLayerManager, BinStore
         }]
     };
 }])
+
 ;

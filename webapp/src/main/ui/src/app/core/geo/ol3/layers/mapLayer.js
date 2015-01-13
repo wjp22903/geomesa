@@ -75,6 +75,10 @@ function ($log, $rootScope, $timeout, WidgetDef) {
     MapLayer.prototype.getOl3Layer = function () {
         return this.ol3Layer;
     };
+    MapLayer.prototype.setName = function (name) {
+        this.name = name;
+        this.ol3Layer.set('name', name);
+    };
 
     return MapLayer;
 }])

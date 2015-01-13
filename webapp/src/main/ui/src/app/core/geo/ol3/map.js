@@ -182,6 +182,14 @@ function ($log, $filter, MapLayer, GeoJsonLayer, CONFIG) {
         _map.removeOverlay(overlay);
     };
 
+    this.on = function (type, listener, opt_this) {
+        return _map.on(type, listener, opt_this);
+    };
+
+    this.unByKey = function (key) {
+        _map.unByKey(key);
+    };
+
     // ***** Initialization *****
     //Built-in layers
     var countrySource = new ol.source.ServerVector({

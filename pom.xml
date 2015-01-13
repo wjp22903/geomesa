@@ -68,6 +68,60 @@
         <map.initExtent>[-180,-90,180,90]</map.initExtent>
         <map.initLayers>[{Name: "mapproxy:globe.osm.default"}]</map.initLayers>
         <map.extraLayers>[]</map.extraLayers>
+        <map.liveOptions>
+            [
+                {
+                    Name: "acc:twittermini",
+                    Title: "Tweets by Annie or Kara"
+                    attrs: [
+                        {
+                            name: "user_name",
+                            choices: [
+                                {
+                                    value: 'Annie',
+                                    isSelected: true
+                                },
+                                {
+                                    value: 'Kara',
+                                    isSelected: false
+                                }
+                            ]
+                        },
+                        {
+                          name: "user_id",
+                          choices: [
+                                {
+                                    value: 607417867,
+                                    isSelected: true
+                                },
+                                {
+                                    value: 1452688562,
+                                    isSelected: false
+                                }
+                          ]
+                        }
+                    ]
+                },
+                {
+                    Name: "acc:twittermini"
+                },
+                {
+                    Name: "geomesa:aistest",
+                    Title: "AIS Test"
+                    attrs: [
+                        {
+                            name: "ReceiverID",
+                            choices: [
+                                {
+                                    value: '11NPSU1',
+                                    isSelected: true
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        </map.liveOptions>
         <map.projection>EPSG:4326</map.projection>
 
         <classification.text>Dynamic Page - Highest Possible Classification is UNCLASSIFIED//FOR OFFICIAL USE ONLY</classification.text>
