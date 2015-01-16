@@ -112,27 +112,6 @@
                 </configuration>
             </plugin>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>jetty-classpath</id>
-                        <phase>prepare-package</phase>
-                        <goals>
-                            <goal>unpack-dependencies</goal>
-                        </goals>
-                        <configuration>
-                            <includeGroupIds>org.eclipse.jetty,javax.servlet,com.typesafe</includeGroupIds>
-                            <excludeArtifactIds>jsp-api,jstl,akka-actor_2.10</excludeArtifactIds>
-                            <excludes>META-INF/ECLIPSEF.*</excludes>
-                            <outputDirectory>
-                                ${project.build.directory}/${project.build.finalName}
-                            </outputDirectory>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
                 <groupId>net.alchim31.maven</groupId>
                 <artifactId>scala-maven-plugin</artifactId>
                 <version>3.1.6</version>
@@ -180,23 +159,6 @@
                                 </condition>
                                 <fail unless="cmdsuccess"/>
                             </target>
-                        </configuration>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>main-class-placement</id>
-                        <phase>prepare-package</phase>
-                        <configuration>
-                            <tasks>
-                                <copy todir="${project.build.directory}/${project.build.finalName}/">
-                                    <fileset dir="${project.build.directory}/classes/">
-                                        <include name="Runner.class" />
-                                        <include name="application.conf" />
-                                    </fileset>
-                                </copy>
-                            </tasks>
                         </configuration>
                         <goals>
                             <goal>run</goal>
@@ -504,6 +466,58 @@
             <properties>
                 <grunt.target>--target=prod</grunt.target>
             </properties>
+        </profile>
+
+        <profile>
+            <id>standalone</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-dependency-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>jetty-classpath</id>
+                                <phase>prepare-package</phase>
+                                <goals>
+                                    <goal>unpack-dependencies</goal>
+                                </goals>
+                                <configuration>
+                                    <includeGroupIds>org.eclipse.jetty,javax.servlet,com.typesafe</includeGroupIds>
+                                    <excludeArtifactIds>jsp-api,jstl,akka-actor_2.10</excludeArtifactIds>
+                                    <excludes>META-INF/ECLIPSEF.*</excludes>
+                                    <outputDirectory>
+                                        ${project.build.directory}/${project.build.finalName}
+                                    </outputDirectory>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <version>1.7</version>
+                        <executions>
+                            <execution>
+                                <id>main-class-placement</id>
+                                <phase>prepare-package</phase>
+                                <configuration>
+                                    <tasks>
+                                        <copy todir="${project.build.directory}/${project.build.finalName}/">
+                                            <fileset dir="${project.build.directory}/classes/">
+                                                <include name="Runner.class" />
+                                                <include name="application.conf" />
+                                            </fileset>
+                                        </copy>
+                                    </tasks>
+                                </configuration>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
 
         <!-- for high-side demos -->
