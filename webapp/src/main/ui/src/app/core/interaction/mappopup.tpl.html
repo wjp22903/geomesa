@@ -1,7 +1,8 @@
-<div class="mapPopupContainer" ng-show="mapPopCtrl.showPopup">
+<div class="mapPopupContainer" ng-show="mapPopCtrl.showPopup" ng-click="mapPopCtrl.focus()">
     <div style="background-color: #ddd; width: 100%">
         <i class="fa fa-fw fa-search"></i> Lat: {{ mapPopCtrl.lat | number }}, Lon: {{ mapPopCtrl.lon | number }}
         <span style="padding-right: 5px; float: right;">
+            <i class="fa" ng-class="mapPopCtrl.getPinClass()" style="cursor: pointer" ng-click="mapPopCtrl.togglePin()"></i>
             <i class="fa fa-times-circle" style="color: red; cursor: pointer" ng-click="mapPopCtrl.closePopup()"></i>
         </span>
     </div>

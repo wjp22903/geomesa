@@ -64,14 +64,18 @@ function ($log, $rootScope, ol3Map) {
 '$element',
 '$filter',
 '$scope',
+'$rootScope',
 'mapClickService',
 'ol3Map',
-function ($element, $filter, $scope, mapClickService, ol3Map) {
+function ($element, $filter, $scope, $rootScope, mapClickService, ol3Map) {
     var overlay = new ol.Overlay({
-        element: $element
+        element: $element,
+        insertFirst: false
     });
     ol3Map.addOverlay(overlay);
     var mapSize = ol3Map.getSize();
+    var isPinned = false;
+    var id = parseInt($element.attr('popup-id'), 10);
     var _self = this;
 
     /**
@@ -84,6 +88,10 @@ function ($element, $filter, $scope, mapClickService, ol3Map) {
     this.containerStyle = {
         'max-width': mapSize[0] * 0.6 + 'px',
         'max-height': mapSize[1] * 0.6 + 'px'
+    };
+    this.focus = function () {
+        $element.css('z-index', '92');
+        $rootScope.$emit('Popup Focus Change', id);
     };
     this.stopDrag = function (event) {
         event.stopPropagation();
@@ -113,6 +121,16 @@ function ($element, $filter, $scope, mapClickService, ol3Map) {
         }
         return style;
     };
+    this.getPinClass = function () {
+        if (isPinned) {
+            return "fa-lock";
+        } else {
+            return "fa-unlock";
+        }
+    };
+    this.togglePin = function () {
+        isPinned = !isPinned;
+    };
     this.removeMaxDimensions = function () {
         delete _self.containerStyle['max-width'];
         delete _self.containerStyle['max-height'];
@@ -137,22 +155,49 @@ function ($element, $filter, $scope, mapClickService, ol3Map) {
             _self.containerStyle['max-height'] = mapSize[1] * 0.6 + 'px';
             _self.showPopup = true;
             overlay.setPosition([_self.lon, _self.lat]);
+            $rootScope.$emit('Popup Focus Change', id);
         } else {
             $scope.$destroy();
             $element.remove();
         }
+    });
+
+    var closeUnpinned = function (event) {
+        if (!isPinned) {
+            ol3Map.un('click', closeUnpinned);
+            _self.closePopup();
+        }
+    };
+    ol3Map.on('click', closeUnpinned);
+
+    var unbind = $rootScope.$on('Popup Focus Change', function (event, popupId) {
+        if (popupId !== id) {
+            $element.css('z-index', '91');
+        }
+    });
+
+    $scope.$on('$destroy', function () {
+        unbind();
     });
 }])
 
 .directive('stOl3MapPopup', [
 function () {
     return {
+        restrict: 'A',
         scope: {},
         controller: 'ol3MapPopupController',
         controllerAs: 'mapPopCtrl',
         templateUrl: 'core/interaction/mappopup.tpl.html',
         link: function (scope, element, attrs) {
-            element.draggable();
+            element.parent().css('height', 0);
+            element.draggable({
+                stop: function (event, ui) {
+                    scope.$apply(function () {
+                        element.css('width', '');
+                    });
+                }
+            });
             scope.$on('$destroy', function () {
                 element.draggable('destroy');
             });
@@ -188,10 +233,12 @@ function ($compile, ol3Map) {
     return {
         restrict: 'E',
         link: function (scope, element, attrs) {
+            var _idSeq = 0;
             ol3Map.on('click', function (event) {
                 scope.$evalAsync(function () {
-                    var html = '<st-ol3-map-popup lat="' + event.coordinate[1] + '" lon="' +
-                        event.coordinate[0] + '"></st-ol3-map-popup>';
+                    var html = '<div st-ol3-map-popup lat="' + event.coordinate[1] + '" lon="' +
+                        event.coordinate[0] + '" popup-id="' + (_idSeq++) + '" ' +
+                        'style="z-index: 92"></div>';
                     var el = angular.element(html);
                     element.append(el);
                     $compile(el)(scope);
