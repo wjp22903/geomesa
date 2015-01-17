@@ -6,42 +6,49 @@
         <div id="col0Table" class="cellTable">
             <div class="cellTableRow">
                 <div class="innerField center">
-                    <button type="button" ng-click="display.togglePlay()">
-                        <i class="fa fa-play" ng-show="display.isPaused"></i>
-                        <i class="fa fa-pause" ng-show="display.isPlaying"></i>
-                    </button>
+                    <div ng-click="display.togglePlay()" class="btn btn-default" ng-class="{active: display.isPlaying}">
+                        <i class="fa fa-fw fa-play"></i>
+                    </div>
                 </div>
             </div>
             <div class="cellTableRow">
-                <div class="innerField rightJustify">Span:</div>
+                <div class="innerField rightJustify">
+                    <span class="displayShadow">Span:</span>
+                </div>
             </div>
             <div class="cellTableRow">
-                <div class="innerField rightJustify">Window:</div>
+                <div class="innerField rightJustify">
+                    <span class="displayShadow">Window:</span>
+                </div>
             </div>
             <div class="cellTableRow">
-                <div class="innerField rightJustify">Step:</div>
+                <div class="innerField rightJustify">
+                    <span class="displayShadow">Step:</span>
+                </div>
             </div>
         </div>
     </div>
     <div id="col1" class="cell">
         <div id="col1Table" class="cellTable">
             <div class="cellTableRow">
-                <div class="innerField rightJustify">Period Displayed:</div>
+                <div class="innerField rightJustify">
+                    <span class="displayShadow">Period Displayed:</span>
+                </div>
             </div>
             <div class="cellTableRow">
                 <!-- TODO: Make this user editable -->
                 <div class="innerField rightJustify">
-                    <span class="displayShadow glass">{{displayInUtc(dtg.min * 1000)}}</span>
+                    <span class="displayShadow">{{displayInUtc(dtg.min * 1000)}}</span>
                 </div>
             </div>
             <div class="cellTableRow">
                 <div class="innerField rightJustify">
-                    <span class="displayShadow glass">{{window.millis | millisToDHMS}}</span>
+                    <span class="displayShadow">{{window.millis | millisToDHMS}}</span>
                 </div>
             </div>
             <div class="cellTableRow">
                 <div class="innerField rightJustify">
-                    <span class="displayShadow glass">{{step.millis | millisToDHMS}}</span>
+                    <span class="displayShadow">{{step.millis | millisToDHMS}}</span>
                 </div>
             </div>
         </div>
@@ -50,7 +57,7 @@
         <div id="col2Table" class="cellTable">
             <div class="cellTableRow">
                 <div class="innerField center">
-                    <span class="displayShadow glass">
+                    <span class="displayShadow">
                         {{displayInUtc(display.windowBeginMillis())}} &#8193; &#8213; &#8193; {{displayInUtc(dtg.millis)}}
                     </span>
                 </div>
@@ -80,18 +87,18 @@
             <div class="cellTableRow">
                 <!-- TODO: Make this user editable -->
                 <div class="innerField">
-                    <span class="displayShadow glass">{{displayInUtc(dtg.max * 1000)}}</span>
+                    <span class="displayShadow">{{displayInUtc(dtg.max * 1000)}}</span>
                 </div>
             </div>
             <div class="cellTableRow">
                 <div class="innerField">
-                    <input type="number" class="glass" ng-model="window.max" ng-change="window.changed()">
+                    <input type="number" ng-model="window.max" ng-change="window.changed()">
                     <select ng-model="window.unit" ng-options="u for u in units" ng-change="window.changed()"></select>
                 </div>
             </div>
             <div class="cellTableRow">
                 <div class="innerField">
-                    <input type="number" class="glass" ng-model="step.max" ng-change="step.changed()">
+                    <input type="number" ng-model="step.max" ng-change="step.changed()">
                     <select ng-model="step.unit" ng-options="u for u in units" ng-change="step.changed()"></select>
                 </div>
             </div>

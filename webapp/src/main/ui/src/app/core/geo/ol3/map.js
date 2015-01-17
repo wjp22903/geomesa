@@ -76,7 +76,10 @@ function ($log, $filter, MapLayer, GeoJsonLayer, CONFIG) {
                     return ol.coordinate.format(coord, template, 4);
                 },
                 projection: _projection
-            })
+            }),
+            new ol.control.ScaleLine(),
+            new ol.control.Rotate(),
+            new ol.control.Zoom()
         ]
     });
     //Layer list stored in reverse. Bottom layer at end of list.
