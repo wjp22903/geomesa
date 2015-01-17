@@ -1,52 +1,87 @@
-<div class="mapPopupContainer" ng-show="mapPopCtrl.showPopup" ng-click="mapPopCtrl.focus()">
-    <div style="background-color: #ddd; width: 100%">
-        <i class="fa fa-fw fa-search"></i> Lat: {{ mapPopCtrl.lat | number }}, Lon: {{ mapPopCtrl.lon | number }}
-        <span class="pull-right">
-            <span class="btn btn-default fa-stack toggleButton"
-                  ng-class="{active: mapPopCtrl.isPinned()}"
-                  style="vertical-align:top;"
-                  ng-click="mapPopCtrl.togglePin()">
-                <i class="fa fa-fw fa-thumb-tack fa-stack-1x"></i>
-            </span>
-            <span class="btn btn-default fa-stack toggleButton"
-                  style="vertical-align:top;"
-                  ng-click="mapPopCtrl.closePopup()">
-                <i class="fa fa-fw fa-remove fa-stack-1x text-danger"></i>
-            </span>
-        </span>
+<div ng-click="mapPopCtrl.focus()">
+    <div class="fa fa-fw fa-spinner fa-spin fa-lg outlineTextWhite"
+         style="position:relative;top:-13px;left:-13px;"
+         ng-class="{'ng-hide': mapPopCtrl.showPopup}">
     </div>
-    <div st-ol3-map-popup-resize ng-style="mapPopCtrl.containerStyle">
-        <div class="mapPopupTableContainer" ng-mousedown="mapPopCtrl.stopDrag($event)" ng-mouseup="mapPopCtrl.stopDrag($event)">
-            <div style="display: table">
-                <div style="display: table-row">
-                    <div style="display: table-cell" ng-repeat="result in mapPopCtrl.results">
-                        <div class="mapPopupRecord">
-                            <div class="mapPopupRecordHeader">
-                                <i class="fa fa-fw fa-square" ng-style="result.layerFill"></i>
-                                {{ result.name }}
-                            </div>
-                            <div style="display: table-row-group">
-                                <div style="display: table-row">
-                                    <div style="display: table-cell">
-                                        <div style="display: table">
-                                            <div style="display: table-row">
-                                                <div style="display: table-cell"></div>
-                                                <div class="mapPopupRecordCell" style="text-align: right" ng-style="mapPopCtrl.getBorder($first)"
-                                                     ng-repeat="rec in result.records">
-                                                    <span class="pull-left">
-                                                        <span class="btn btn-default fa-stack toggleButton"
-                                                              style="vertical-align:top;"
-                                                              ng-click="mapPopCtrl.removeRecord(result, $index)">
-                                                            <i class="fa fa-fw fa-remove fa-stack-1x text-danger"></i>
-                                                        </span>
-                                                    </span>
+    <div class="mapPopupContainer" ng-class="{'ng-hide': !mapPopCtrl.showPopup}">
+        <div style="background-color: #ddd; width: 100%">
+            <i class="fa fa-fw fa-search"></i> Lat: {{ mapPopCtrl.lat | number }}, Lon: {{ mapPopCtrl.lon | number }}
+            <span class="pull-right">
+                <span class="btn btn-default fa-stack toggleButton"
+                      ng-class="{active: mapPopCtrl.isPinned()}"
+                      style="vertical-align:top;"
+                      ng-click="mapPopCtrl.togglePin()">
+                    <i class="fa fa-fw fa-thumb-tack fa-stack-1x"></i>
+                </span>
+                <span class="btn btn-default fa-stack toggleButton"
+                      style="vertical-align:top;"
+                      ng-click="mapPopCtrl.closePopup()">
+                    <i class="fa fa-fw fa-remove fa-stack-1x text-danger"></i>
+                </span>
+            </span>
+        </div>
+        <div st-ol3-map-popup-resize ng-style="mapPopCtrl.containerStyle">
+            <div class="mapPopupTableContainer" ng-mousedown="mapPopCtrl.stopDrag($event)" ng-mouseup="mapPopCtrl.stopDrag($event)">
+                <div style="display: table">
+                    <div style="display: table-row">
+                        <div style="display: table-cell" ng-repeat="result in mapPopCtrl.results">
+                            <div class="mapPopupRecord">
+                                <div class="mapPopupRecordHeader">
+                                    <span class="pull-left" style="font-weight:normal;" ng-class="{'ng-hide': (result.paging.numberOfPages() < 2)}">
+                                        <span>Page</span>
+                                        <form class="form-inline" style="display:inline;">
+                                            <div class="form-group">
+                                                <div class="input-group">
+                                                    <div class="input-group-addon" style="padding:1px;height:18px;"
+                                                         ng-click="result.paging.suggestedPage = (result.paging.currentPage = (result.paging.currentPage < 2) ? (result.paging.numberOfPages()) : (result.paging.currentPage-1))">
+                                                        <i class="fa fa-chevron-left"></i>
+                                                    </div>
+                                                    <input type="number"
+                                                           ng-change="result.paging.checkSuggestedPage()"
+                                                           ng-blur="result.paging.suggestedPage = result.paging.currentPage"
+                                                           ng-model="result.paging.suggestedPage"
+                                                           class="form-control input-sm"
+                                                           style="width:25px;font-size:0.7em;padding:1px;height:18px;">
+                                                    <div class="input-group-addon" style="padding:1px;height:18px;"
+                                                         ng-click="result.paging.suggestedPage = (result.paging.currentPage = (result.paging.currentPage >= result.paging.numberOfPages()) ? 1 : (result.paging.currentPage+1))">
+                                                        <i class="fa fa-chevron-right"></i>
+                                                    </div>
                                                 </div>
                                             </div>
-                                            <div style="display: table-row" ng-style="mapPopCtrl.getRowColor($even)"
-                                                 ng-repeat="(key, val) in result.records[0]">
-                                                <div class="mapPopupColumnTitle">{{ key }}</div>
-                                                <div class="mapPopupRecordCell" ng-style="mapPopCtrl.getBorder($first)"
-                                                     ng-repeat="rec in result.records">{{ rec[key] }}</div>
+                                        </form>
+                                        <span>/{{result.paging.numberOfPages()}}</span>
+                                    </span>
+                                    <i class="fa fa-fw fa-square" ng-style="result.layerFill"></i>
+                                    {{ result.name }}
+                                    <span class="pull-right" style="font-weight:normal;">
+                                        <span class="btn btn-default fa-stack toggleButton"
+                                              style="vertical-align:top;"
+                                              ng-click="mapPopCtrl.removeResult(result)">
+                                            <i class="fa fa-fw fa-remove fa-stack-1x text-danger"></i>
+                                        </span>
+                                    </span>
+                                </div>
+                                <div style="display: table-row-group">
+                                    <div style="display: table-row">
+                                        <div style="display: table-cell">
+                                            <div style="display: table">
+                                                <div style="display: table-row">
+                                                    <div style="display: table-cell"></div>
+                                                    <div class="mapPopupRecordCell" ng-style="mapPopCtrl.getBorder($first)"
+                                                         ng-repeat="rec in result.records | startFrom:(result.paging.currentPage-1)*result.paging.pageSize | limitTo:result.paging.pageSize">
+                                                        <span class="btn btn-default fa-stack toggleButton"
+                                                              style="vertical-align:top;"
+                                                              ng-click="mapPopCtrl.removeRecord(result, rec)">
+                                                            <i class="fa fa-fw fa-remove fa-stack-1x text-danger"></i>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div style="display: table-row" ng-style="mapPopCtrl.getRowColor($even)"
+                                                     ng-repeat="(key, val) in result.records[0]">
+                                                    <div class="mapPopupColumnTitle">{{ key }}</div>
+                                                    <div class="mapPopupRecordCell" ng-style="mapPopCtrl.getBorder($first)"
+                                                         ng-repeat="rec in result.records | startFrom:(result.paging.currentPage-1)*result.paging.pageSize | limitTo:result.paging.pageSize">{{ rec[key] }}</div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

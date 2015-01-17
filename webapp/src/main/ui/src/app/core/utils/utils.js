@@ -68,4 +68,21 @@ function () {
         }
     }
 })
+
+.filter('startFrom', [
+function () {
+    return function (input, start) {
+        if (_.isArray(input)) {
+            start = +start; //parse to int
+            if (start < 0) {
+                start = 0;
+            }
+            if (start > input.length - 1) {
+                start = input.length;
+            }
+            return input.slice(start);
+        }
+        return 0;
+    };
+}])
 ;

@@ -57,6 +57,10 @@ function ($log, $rootScope) {
         _searchables[id] = callback;
         return id;
     };
+    /**
+     * Removes a searchable.
+     * Requires the ID returned by registerSearchable().
+     */
     this.unregisterSearchableById = function (id) {
         delete _searchables[id];
     };
@@ -90,9 +94,12 @@ function ($element, $filter, $scope, $rootScope, mapClickService, ol3Map) {
     this.lat = parseFloat($element.attr('lat'));
     this.lon = parseFloat($element.attr('lon'));
     this.containerStyle = {
+        height: 'auto',
+        width: 'auto',
         'max-width': mapSize[0] * 0.6 + 'px',
         'max-height': mapSize[1] * 0.6 + 'px'
     };
+    overlay.setPosition([_self.lon, _self.lat]);
     this.focus = function () {
         $element.css('z-index', '92');
         $rootScope.$emit('Popup Focus Change', id);
@@ -100,15 +107,23 @@ function ($element, $filter, $scope, $rootScope, mapClickService, ol3Map) {
     this.stopDrag = function (event) {
         event.stopPropagation();
     };
-    this.removeRecord = function (result, index) {
-        if (result.records.length > index) {
-            result.records.splice(index, 1);
-            if (result.records.length === 0) {
-                _.pull(this.results, result);
-                if (this.results.length === 0) {
-                    this.closePopup();
-                }
-            }
+    this.removeRecord = function (result, record) {
+        _.pull(result.records, record);
+
+        if (result.records.length === 0) {
+            this.removeResult(result);
+            return;
+        }
+
+        var numPages = result.paging.numberOfPages();
+        if (result.paging.currentPage > numPages) {
+            result.paging.suggestedPage = result.paging.currentPage = numPages;
+        }
+    };
+    this.removeResult = function (result) {
+        _.pull(this.results, result);
+        if (this.results.length === 0) {
+            this.closePopup();
         }
     };
     this.getRowColor = function (isEven) {
@@ -145,20 +160,32 @@ function ($element, $filter, $scope, $rootScope, mapClickService, ol3Map) {
     mapClickService.search([this.lon, this.lat], ol3Map.getResolution(), function(responses) {
         _.forEach(responses, function (response) {
             if (!response.isError && response.records.length > 0) {
+                response.paging = {
+                    suggestedPage: 1,
+                    currentPage: 1,
+                    pageSize: 4,
+                    checkSuggestedPage: function () {
+                        if (response.paging.suggestedPage > 0 &&
+                            response.paging.suggestedPage <= response.paging.numberOfPages()) {
+                            response.paging.currentPage = response.paging.suggestedPage;
+                        }
+                    },
+                    numberOfPages: function () {
+                        var num = 0;
+                        if (_.isArray(response.records)) {
+                            num = Math.ceil(response.records.length/response.paging.pageSize);
+                        }
+                        return num;
+                    }
+                };
                 _self.results.push(response);
             }
         });
         if (_self.results.length > 0) {
-            _self.containerStyle.height = 'auto';
-            _self.containerStyle.width = 'auto';
-            _self.containerStyle['max-width'] = mapSize[0] * 0.6 + 'px';
-            _self.containerStyle['max-height'] = mapSize[1] * 0.6 + 'px';
             _self.showPopup = true;
-            overlay.setPosition([_self.lon, _self.lat]);
             $rootScope.$emit('Popup Focus Change', id);
         } else {
-            $scope.$destroy();
-            $element.remove();
+            _self.closePopup();
         }
     });
 
