@@ -546,6 +546,14 @@
                 </plugins>
             </build>
         </profile>
+        <profile>
+            <id>thresher</id>
+            <properties>
+                <app.title>Thresher</app.title>
+                <classification.text>Dynamic Page - Highest Possible Classification is TOP SECRET//SI//TK//NOFORN</classification.text>
+                <classification.level>sci</classification.level>
+            </properties>
+        </profile>
 
         <!-- The remaining profiles are auto-activated based on OS.  No reason to explicitly activate them. -->
         <profile>
