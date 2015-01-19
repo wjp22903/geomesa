@@ -13,6 +13,10 @@ function ($log, $interval, MapLayer, CONFIG) {
         var _tiles = [];
         _self.loading = null;
 
+        if (_.isUndefined(requestParams.BUFFER)) {
+            requestParams.BUFFER = 5; // pixels
+        }
+
         var _olSource = new ol.source.TileWMS({
             url: CONFIG.geoserver.defaultUrl + '/wms',
             params: requestParams,
