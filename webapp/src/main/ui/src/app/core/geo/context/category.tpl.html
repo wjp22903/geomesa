@@ -12,41 +12,21 @@
                 </div>
             </div>
             <div class="categoryCell">
-                <span ng-if="!layer.viewState.isOnMap && !layer.viewState.isLoading"
-                      class="btn btn-default fa-stack toggleButton"
+                <span class="btn btn-default fa-stack toggleButton"
                       ng-click="toggleLayer(layer, workspace)"
-                      tooltip-html-unsafe="<span style='white-space:nowrap'>Add to map</span>"
+                      tooltip-html-unsafe="<span style='white-space:nowrap'>{{layer.getTooltip()}}</span>"
                       tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
                       tooltip-trigger="mouseenter">
-                </span>
-                <span ng-if="layer.viewState.isOnMap && layer.viewState.isLoading"
-                      style="padding-left:6px;padding-right:6px"
-                      tooltip-html-unsafe="<span style='white-space:nowrap'>{{layer.viewState.numLoaded}}/{{layer.viewState.numTiles}} loaded</span>"
-                      tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
-                      tooltip-trigger="mouseenter">
-                    <i class="fa fa-circle-o-notch fa-spin"></i>
-                </span>
-                <span ng-if="layer.viewState.isOnMap && !layer.viewState.isLoading"
-                      class="btn btn-default fa-stack toggleButton"
-                      ng-click="toggleLayer(layer, workspace)"
-                      tooltip-html-unsafe="<span style='white-space:nowrap'>Remove from map</span>"
-                      tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
-                      tooltip-trigger="mouseenter">
-                    <i class="fa fa-fw fa-check fa-stack-1x"></i>
+                    <i class="fa fa-fw fa-spin fa-lg fa-stack-1x" style="color:#98C3EE;"
+                       ng-class="{'fa-refresh': layer.viewState.isOnMap && layer.viewState.isLoading}"></i>
+                    <i class="fa fa-fw fa-stack-1x"
+                       ng-class="{'fa-check': layer.viewState.isOnMap}"></i>
                 </span>
             </div>
             <div class="categoryCell">
-                <span ng-if="layer.viewState.isOnMap"
-                      class="btn btn-default fa-stack toggleButton"
-                      ng-click="toggleVisibility(layer)"
-                      tooltip-html-unsafe="<span style='white-space:nowrap'>Toggle visibility</span>"
-                      tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
-                      tooltip-trigger="mouseenter">
-                    <i class="fa fa-fw fa-eye fa-stack-1x text-danger"
-                       ng-if="!layer.viewState.toggledOn"></i>
-                    <i class="fa fa-fw fa-eye fa-stack-1x text-success"
-                       ng-if="layer.viewState.toggledOn"></i>
-                </span>
+                <st-toggle-visibility ng-if="layer.viewState.isOnMap"
+                                      visible="layer.viewState.toggledOn"
+                                      toggle="toggleVisibility(layer)"></st-toggle-visibility>
             </div>
             <div class="categoryCell">
                 {{::layer.Title | characters:35:true}}

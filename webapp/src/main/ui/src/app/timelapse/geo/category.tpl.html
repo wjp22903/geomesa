@@ -67,41 +67,21 @@
 
                 <div ng-repeat="filterLayer in layer.filterLayers" class="categoryGrouping">
                     <div class="categoryCell">
-                        <span ng-if="!filterLayer.viewState.isOnMap && !filterLayer.viewState.isLoading"
-                              class="btn btn-default fa-stack toggleButton"
+                        <span class="btn btn-default fa-stack toggleButton"
                               ng-click="toggleLiveLayer(filterLayer)"
-                              tooltip-html-unsafe="<span style='white-space:nowrap'>Add to map</span>"
+                              tooltip-html-unsafe="<span style='white-space:nowrap'>{{filterLayer.viewState.isOnMap ? 'Remove from map' : 'Add to map'}}</span>"
                               tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
                               tooltip-trigger="mouseenter">
-                        </span>
-                        <span ng-if="filterLayer.viewState.isOnMap && filterLayer.viewState.isLoading"
-                              style="padding-left:6px;padding-right:6px;"
-                              tooltip-html-unsafe="<span style='white-space:nowrap'>Loading</span>"
-                              tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
-                              tooltip-trigger="mouseenter">
-                            <i class="fa fa-circle-o-notch fa-spin"></i>
-                        </span>
-                        <span ng-if="filterLayer.viewState.isOnMap && !filterLayer.viewState.isLoading"
-                              class="btn btn-default fa-stack toggleButton"
-                              ng-click="toggleLiveLayer(filterLayer)"
-                              tooltip-html-unsafe="<span style='white-space:nowrap'>Remove from map</span>"
-                              tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
-                              tooltip-trigger="mouseenter">
-                            <i class="fa fa-fw fa-check fa-stack-1x"></i>
+                        <i class="fa fa-fw fa-spin fa-lg fa-stack-1x" style="color:#98C3EE;"
+                           ng-class="{'fa-refresh': filterLayer.viewState.isOnMap && filterLayer.viewState.isLoading}"></i>
+                        <i class="fa fa-fw fa-stack-1x"
+                           ng-class="{'fa-check': filterLayer.viewState.isOnMap}"></i>
                         </span>
                     </div>
                     <div class="categoryCell">
-                        <span ng-if="filterLayer.viewState.isOnMap"
-                              class="btn btn-default fa-stack toggleButton"
-                              ng-click="toggleLiveVisibility(filterLayer)"
-                              tooltip-html-unsafe="<span style='white-space:nowrap'>Toggle visibility</span>"
-                              tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
-                              tooltip-trigger="mouseenter">
-                            <i class="fa fa-fw fa-eye fa-stack-1x text-danger"
-                               ng-if="!filterLayer.viewState.toggledOn"></i>
-                            <i class="fa fa-fw fa-eye fa-stack-1x text-success"
-                               ng-if="filterLayer.viewState.toggledOn"></i>
-                        </span>
+                        <st-toggle-visibility ng-if="filterLayer.viewState.isOnMap"
+                                              visible="filterLayer.viewState.toggledOn"
+                                              toggle="toggleLiveVisibility(filterLayer)"></st-toggle-visibility>
                     </div>
                     <div class="categoryCell" style="width:100%">
                         <input type="text" ng-model="filterLayer.Title" style="border-radius:3px;width:100%;"
@@ -251,17 +231,9 @@
                 </span>
             </div>
             <div id="col1" class="categoryCell">
-                <span ng-if="store.getViewState().isDataReady()"
-                      class="btn btn-default fa-stack toggleButton"
-                      ng-click="store.toggleVisibility()"
-                      tooltip-html-unsafe="<span style='white-space:nowrap'>Toggle visibility</span>"
-                      tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
-                      tooltip-trigger="mouseenter">
-                    <i class="fa fa-fw fa-eye fa-stack-1x text-danger"
-                       ng-if="!store.getViewState().toggledOn"></i>
-                    <i class="fa fa-fw fa-eye fa-stack-1x text-success"
-                       ng-if="store.getViewState().toggledOn"></i>
-                </span>
+                <st-toggle-visibility ng-if="store.getViewState().isDataReady()"
+                                      visible="store.getViewState().toggledOn"
+                                      toggle="store.toggleVisibility()"></st-toggle-visibility>
             </div>
             <div id="col2" class="categoryCell">
                 {{store.getName()}}

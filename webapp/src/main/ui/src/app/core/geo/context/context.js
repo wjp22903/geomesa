@@ -1,4 +1,6 @@
-angular.module('stealth.core.geo.context')
+angular.module('stealth.core.geo.context', [
+    'stealth.core.utils'
+])
 
 .run([
 '$log',
@@ -77,6 +79,15 @@ function ($log, $rootScope, $timeout, catMgr, Category, WidgetDef, wms, ol3Map, 
                             isOnMap: false,
                             toggledOn: false,
                             isLoading: false
+                        };
+                        layer.getTooltip = function () {
+                            if (layer.viewState.isOnMap) {
+                                if (layer.viewState.isLoading) {
+                                    return layer.viewState.numLoaded + '/' + layer.viewState.numTiles + ' loaded';
+                                }
+                                return 'Remove from map';
+                            }
+                            return 'Add to map';
                         };
                         var workspace = keywordParts[2];
                         if (_.isArray(categoryScope.workspaces[workspace])) {

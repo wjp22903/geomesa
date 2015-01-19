@@ -15,16 +15,9 @@
                             </i>
                         </div>
                         <div class="cell">
-                            <span class="btn btn-default fa-stack toggleButton"
-                                  ng-click="store.toggleVisibility()"
-                                  tooltip-html-unsafe="<span style='white-space:nowrap'>Toggle visibility</span>"
-                                  tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
-                                  tooltip-trigger="mouseenter">
-                                <i class="fa fa-fw fa-eye fa-stack-1x text-danger"
-                                   ng-if="!store.getViewState().toggledOn"></i>
-                                <i class="fa fa-fw fa-eye fa-stack-1x text-success"
-                                   ng-if="store.getViewState().toggledOn"></i>
-                            </span>
+                            <st-toggle-visibility ng-if="store.getViewState().isDataReady()"
+                                                  visible="store.getViewState().toggledOn"
+                                                  toggle="store.toggleVisibility()"></st-toggle-visibility>
                         </div>
                         <div class="cell">{{::store.getName()}}</div>
                         <div class="cell" style="width:100%;text-align:right">
