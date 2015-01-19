@@ -72,14 +72,18 @@ function ($log, $timeout, wms, ol3Map, PollingImageWmsLayer, tlLayerManager, Bin
                 });
             };
 
-            var filterLayerCount = 0;
+            var filterLayerCount = {};
             function newLiveFilterLayer (name, title, options, layerThisBelongsTo) {
-                filterLayerCount++;
+                if (_.isNumber(filterLayerCount[name])) {
+                    filterLayerCount[name]++;
+                } else {
+                    filterLayerCount[name] = 1;
+                }
                 var filterLayer = {
-                    cnt: filterLayerCount,
+                    cnt: filterLayerCount[name],
                     layerThisBelongsTo: layerThisBelongsTo,
                     Name: name,
-                    Title: title || ('Options ' + filterLayerCount),
+                    Title: title || ((layerThisBelongsTo.Title || name) + ' (Options ' + filterLayerCount[name] + ')'),
                     viewState: {
                         isOnMap: false,
                         toggledOn: false,
@@ -235,12 +239,12 @@ function ($log, $timeout, wms, ol3Map, PollingImageWmsLayer, tlLayerManager, Bin
                                         }
                                         // Configured live filter layers
                                         if (_.contains('live', keywordParts[2])) {
-                                            var found = _.find(CONFIG.map.liveOptions, {Name: layer.Name, serverUrl: layer.serverUrl});
+                                            var found = _.find(CONFIG.map.liveOptions, {KeywordWorkspace: workspace, serverUrl: layer.serverUrl});
                                             if (found) {
                                                 var options = CONFIG.map.liveOptions;
                                                 _.each(options, function (theOptions) {
-                                                    if (theOptions.Name == layer.Name) {
-                                                        var filterLayer = newLiveFilterLayer(theOptions.Name, theOptions.Title, theOptions, layer);
+                                                    if (theOptions.KeywordWorkspace == workspace) {
+                                                        var filterLayer = newLiveFilterLayer(layer.Name, theOptions.Title, theOptions, layer);
                                                         if (filterLayer.cnt === 1) {
                                                             filterLayer.viewState.isExpanded = true;
                                                         }
@@ -248,6 +252,13 @@ function ($log, $timeout, wms, ol3Map, PollingImageWmsLayer, tlLayerManager, Bin
                                                         layer.filterLayers.push(filterLayer);
                                                     }
                                                 });
+                                            } else {
+                                                var filterLayer = newLiveFilterLayer(layer.Name, null, {}, layer);
+                                                if (filterLayer.cnt === 1) {
+                                                    filterLayer.viewState.isExpanded = true;
+                                                }
+                                                $scope.updateLiveFilterCql(filterLayer);
+                                                layer.filterLayers.push(filterLayer);
                                             }
                                         }
                                     }

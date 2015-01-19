@@ -71,7 +71,7 @@
         <map.liveOptions>
             [
                 {
-                    Name: "acc:twittermini",
+                    KeywordWorkspace: "TWITTERMINI",
                     Title: "Tweets by Annie or Kara"
                     attrs: [
                         {
@@ -103,10 +103,10 @@
                     ]
                 },
                 {
-                    Name: "acc:twittermini"
+                    KeywordWorkspace: "TWITTERMINI",
                 },
                 {
-                    Name: "geomesa:aistest",
+                    KeywordWorkspace: "AISTEST",
                     Title: "AIS Test"
                     attrs: [
                         {
