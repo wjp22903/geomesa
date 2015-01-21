@@ -57,4 +57,13 @@ function () {
         }
     };
 }])
+
+.value('uiJqConfig', {
+    spinner: {
+        incremental: false,
+        stop: function () {
+            $(this).change();
+        }
+    }
+})
 ;

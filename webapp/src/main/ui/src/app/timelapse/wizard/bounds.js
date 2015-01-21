@@ -17,7 +17,7 @@ function (WidgetDef, Step, Wizard, Query) {
                 wizardScope.query = new Query();
             }
             return new Wizard(null, null, null, [
-                new Step('Select Bounds', new WidgetDef('st-tl-wiz-bounds', wizardScope), null, false, _.noop, _.noop)
+                new Step('Define search area', new WidgetDef('st-tl-wiz-bounds', wizardScope), null, false, _.noop, _.noop)
             ]);
         }
     };

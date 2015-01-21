@@ -24,42 +24,27 @@ function (queryService, WidgetDef, Step, Wizard, Query) {
             };
 
             return new Wizard(null, null, null, [
-                new Step('Select Query Type', new WidgetDef('st-tl-wiz-query-type', wizardScope), null, true, _.noop, _.noop),
-                new Step('Query Options', new WidgetDef('st-tl-wiz-query-options', wizardScope), null, true, _.noop, submitQuery)
+                new Step('Define time range', new WidgetDef('st-tl-wiz-time', wizardScope), null, true),
+                new Step('Set options', new WidgetDef('st-tl-wiz-options', wizardScope), null, true, null, submitQuery)
             ]);
         }
     };
     return self;
 }])
 
-.directive('stTlWizQueryType',
+.directive('stTlWizTime',
 function () {
     return {
         restrict: 'E',
-        templateUrl: 'timelapse/wizard/templates/querytype.tpl.html'
+        templateUrl: 'timelapse/wizard/templates/time.tpl.html'
     };
 })
 
-.directive('stTlWizQueryOptions',
+.directive('stTlWizOptions',
 function () {
     return {
         restrict: 'E',
-        templateUrl: 'timelapse/wizard/templates/queryoptions.tpl.html'
+        templateUrl: 'timelapse/wizard/templates/options.tpl.html'
     };
-})
-
-/* Work-around for bootstrap datepicker not initially formatting date values
- * when running with angular 1.3.
- * https://github.com/angular-ui/bootstrap/issues/2659
- */
-.directive('datepickerPopup', function (){
-  return {
-    restrict: 'EAC',
-    require: 'ngModel',
-    link: function(scope, element, attr, controller) {
-      //remove the default formatter from the input directive to prevent conflict
-      controller.$formatters.shift();
-    }
-  };
 })
 ;

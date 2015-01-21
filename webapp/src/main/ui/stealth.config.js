@@ -68,7 +68,7 @@ module.exports = {
         ],
         css: {
             images: [
-                'vendor/bower/jquery-ui/themes/smoothness/images/ui-icons_222222_256x240.png'
+                'vendor/bower/jquery-ui/themes/smoothness/images/*'
             ]
         }
     }

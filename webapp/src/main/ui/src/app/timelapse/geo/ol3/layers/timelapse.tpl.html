@@ -43,7 +43,7 @@
                     <div class="layerStyleRow">
                         <div class="cell">Size:</div>
                         <div class="cell">
-                            <input type="number"
+                            <input type="number" ui-jq="spinner"
                                    ng-model="store.getViewState().size"
                                    ng-change="sizeChanged(store, store.getViewState().size)"
                                    min="1" max="100">

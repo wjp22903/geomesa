@@ -26,9 +26,7 @@ function ($log, $rootScope, $q, $filter, CONFIG, wfs, BinStore) {
         this.launchQuery = function (query) {
             _query = query;
             _featureTypeProperties = query.featureTypeData.featureTypes[0].properties;
-            var url = query.serverData.currentGeoserverUrl + '/' +
-                      query.layerData.currentLayer.prefix;
-            var typeName = query.layerData.currentLayer.name;
+            var typeName = query.layerData.currentLayer.Name;
             var responseType = 'arraybuffer';
             var storeName = query.params.storeName;
             var geom = query.params.geomField.name;
@@ -42,7 +40,7 @@ function ($log, $rootScope, $q, $filter, CONFIG, wfs, BinStore) {
                 cql_filter: buildCQLFilter(query)
             };
 
-            wfs.getFeature(url, typeName, CONFIG.geoserver.omitProxy, overrides, responseType)
+            wfs.getFeature(CONFIG.geoserver.defaultUrl, typeName, CONFIG.geoserver.omitProxy, overrides, responseType)
             .success(function (data, status, headers, config, statusText) {
                 var contentType = headers('content-type');
                 if (contentType.indexOf('xml') > -1) {
@@ -86,9 +84,7 @@ function ($log, $rootScope, $q, $filter, CONFIG, wfs, BinStore) {
 
             var startMillis = Math.max(_thisStore.getMinTimeInMillis(), (timeMillis - windowMillis));
             var endMillis = Math.min(_thisStore.getMaxTimeInMillis(), timeMillis);
-            var url = _query.serverData.currentGeoserverUrl + '/' +
-                      _query.layerData.currentLayer.prefix;
-            var typeName = _query.layerData.currentLayer.name;
+            var typeName = _query.layerData.currentLayer.Name;
             var modifier = res * Math.max(this.getPointRadius(), 4);
             var cqlParams = {
                 params: {
@@ -98,10 +94,8 @@ function ($log, $rootScope, $q, $filter, CONFIG, wfs, BinStore) {
                     maxLat: Math.min((coord[1] + modifier), 90),
                     minLon: Math.max((coord[0] - modifier), -180),
                     maxLon: Math.min((coord[0] + modifier), 180),
-                    startDate: moment.utc(startMillis),
-                    startTime: moment.utc(startMillis),
-                    endDate: moment.utc(endMillis),
-                    endTime: moment.utc(endMillis),
+                    startDtg: moment.utc(startMillis),
+                    endDtg: moment.utc(endMillis),
                     cql: _query.params.cql
                 }
             };
@@ -110,7 +104,7 @@ function ($log, $rootScope, $q, $filter, CONFIG, wfs, BinStore) {
                 cql_filter: buildCQLFilter(cqlParams),
                 format_options: 'dtg:' + _query.dtg
             };
-            wfs.getFeature(url, typeName, CONFIG.geoserver.omitProxy, overrides)
+            wfs.getFeature(CONFIG.geoserver.defaultUrl, typeName, CONFIG.geoserver.omitProxy, overrides)
             .success(function (data, status, headers, config, statusText) {
                 var records = _.map(_.pluck(data.features, 'properties'), function (properties) {
                                     _.forEach(properties, function (value, name) {
@@ -153,11 +147,9 @@ function ($log, $rootScope, $q, $filter, CONFIG, wfs, BinStore) {
             query.params.minLat + ',' + query.params.minLon + ',' +
             query.params.maxLat + ',' + query.params.maxLon + ')' +
             ' AND ' + query.params.dtgField.name + ' DURING ' +
-            moment(query.params.startDate).format('YYYY-MM-DD') + 'T' +
-            moment(query.params.startTime).format('HH:mm:ss.SSS') + 'Z' +
+            query.params.startDtg.format('YYYY-MM-DD[T]HH:mm:ss[Z]') +
             '/' +
-            moment(query.params.endDate).format('YYYY-MM-DD') + 'T' +
-            moment(query.params.endTime).format('HH:mm:ss.SSS') + 'Z';
+            query.params.endDtg.format('YYYY-MM-DD[T]HH:mm:ss[Z]');
         if (query.params.cql) {
             cql_filter += ' AND ' + query.params.cql;
         }

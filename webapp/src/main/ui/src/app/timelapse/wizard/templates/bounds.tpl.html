@@ -1,39 +1,43 @@
 <ng-form name="wizardForm">
-    <div class="form-group" style="width: 400px" ng-show="!boundWiz.drawing">
-        <div class="row" style="margin-top:5px">
-            <div class="col-md-4">Spatial Bounds:</div>
-            <div class="col-md-4">
-                <input type="number" class="form-control input-sm" placeholder="Max Lat (deg)"
+    <p>
+        Enter spatial bounds.
+    </p>
+    <div style="text-align:center;" ng-class="{'ng-hide': boundWiz.drawing}">
+        <table style="border-collapse:separate;border-spacing:2px;margin:5px auto;">
+            <tr>
+                <td></td>
+                <td colspan="2">
+                    <input type="number" placeholder="Max Lat (deg)" ui-jq="spinner" style="max-width:90px;"
                        min="-90" max="90" step="0.00001" ng-model="query.params.maxLat" required></input>
-            </div>
-        </div>
-        <div class="row" style="margin-top:5px">
-            <div class="col-md-4 col-md-offset-2">
-                <input type="number" class="form-control input-sm" placeholder="Min Lon (deg)"
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <input type="number" placeholder="Min Lon (deg)" ui-jq="spinner" style="max-width:90px;"
                        min="-180" max="180" step="0.00001" ng-model="query.params.minLon" required></input>
-            </div>
-            <div class="col-md-4">
-                <input type="number" class="form-control input-sm" placeholder="Max Lon (deg)"
+                </td>
+                <td colspan="2">
+                    <input type="number" placeholder="Max Lon (deg)" ui-jq="spinner" style="max-width:90px;"
                        min="-180" max="180" step="0.00001" ng-model="query.params.maxLon" required></input>
-            </div>
-        </div>
-        <div class="row" style="margin-top:5px">
-            <div class="col-md-4 col-md-offset-4">
-                <input type="number" class="form-control input-sm" placeholder="Min Lat (deg)"
-                       min="-90" max="90" step="0.00001" ng-model="query.params.minLat" required></input>
-            </div>
-        </div>
-        <div class="row" style="margin-top:15px">
-            <div style="text-align:center" class="col-md-12">
-                <div class="btn-group">
-                    <div class="btn btn-default btn-sm" ng-click="boundWiz.setWholeEarth()">Whole Earth</div>
-                    <div class="btn btn-default btn-sm" ng-click="boundWiz.setMapExtent()">Map Bounds</div>
-                    <div class="btn btn-default btn-sm" ng-click="boundWiz.drawExtent()">Draw Bounds</div>
-                </div>
-            </div>
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td colspan="2">
+                    <input type="number" placeholder="Min Lat (deg)" ui-jq="spinner" style="max-width:90px;"
+                           min="-90" max="90" step="0.00001" ng-model="query.params.minLat" required></input>
+                </td>
+                <td></td>
+            </tr>
+        </table>
+        <div style="margin-top:10px;">
+            <div class="btn btn-default btn-xs" ng-click="boundWiz.setWholeEarth()">Whole Earth</div>
+            <div class="btn btn-default btn-xs" ng-click="boundWiz.setMapExtent()">Use Map Extent</div>
+            <div class="btn btn-default btn-xs" ng-click="boundWiz.drawExtent()">Draw Bounds</div>
         </div>
     </div>
-    <div ng-show="boundWiz.drawing">
-        Please click and drag on the map to draw bounds.
+    <div style="margin-top:2px;" ng-class="{'ng-hide': !boundWiz.drawing}">
+        Click and drag on the map to draw bounding box.
     </div>
 </ng-form>

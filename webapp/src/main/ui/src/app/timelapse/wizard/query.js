@@ -25,89 +25,62 @@ function ($rootScope, tlLayerManager, QueryBinStore) {
 }])
 
 .factory('stealth.timelapse.wizard.Query', [
-'CONFIG',
 'wfs',
-function (CONFIG, wfs) {
-    var now = new Date();
-    var oneWeekAgo = new Date();
-    var noTime = new Date();
+'wms',
+'CONFIG',
+function (wfs, wms, CONFIG) {
+    var idSeq = 1;
+    var now = moment().utc();
+    var oneWeekAgo = now.clone().subtract(7, 'days');
 
-    oneWeekAgo.setDate(now.getDate() - 7);
-    noTime.setHours(0);
-    noTime.setMinutes(0);
-
-    var startDate = oneWeekAgo;
-    var endDate = now;
-    var startTime = _.cloneDeep(startDate);
-    var endTime = _.cloneDeep(endDate);
     var query = function () {
         var _self = this;
 
-        this.serverData = {
-            // The value the user enters into the form.
-            proposedGeoserverUrl: CONFIG.geoserver.defaultUrl,
-            // The value after the user clicks 'Choose'.
-            currentGeoserverUrl: null,
-            error: null
-        };
         this.layerData = {};
         this.params = {
             idField: null,
             geomField: null,
             dtgField: null,
-            storeName: null,
-            maxLat: null,
-            minLat: null,
-            maxLon: null,
-            minLon: null,
-            isStartCalOpen: false,
-            startDate: startDate,
-            isEndCalOpen: false,
-            endDate: endDate,
-            startTime: startTime,
-            endTime: endTime,
-            cql: null,
-            type: 'static'
+            storeName: 'History ' + idSeq++,
+            maxLat: 90,
+            minLat: -90,
+            maxLon: 180,
+            minLon: -180,
+            startDtg: oneWeekAgo,
+            endDtg: now,
+            cql: null
         };
 
-        this.toggleCalendar = function ($event, isOpen) {
-            $event.preventDefault();
-            $event.stopPropagation();
-            return !isOpen;
-        };
-
-        this.clearStartDatetime = function () {
-            _self.params.startDate = null;
-            _self.params.startTime = _.cloneDeep(noTime);
-        };
-
-        this.clearEndDatetime = function () {
-            _self.params.endDate = null;
-            _self.params.endTime = _.cloneDeep(noTime);
-        };
-
-        this.updateServer = function () {
-            _self.serverData.error = null;
-            _self.serverData.currentGeoserverUrl = null;
-            _self.layerData = {};
-
-            wfs.getCapabilities(_self.serverData.proposedGeoserverUrl,
-                                _self.serverData.proposedGeoserverUrl === CONFIG.geoserver.defaultUrl ?
-                                    CONFIG.geoserver.omitProxy : false)
+        wms.getCapabilities(CONFIG.geoserver.defaultUrl, CONFIG.geoserver.omitProxy)
             .then(
                 function (data) {
-                    _self.layerData.layers =
-                        _.flatten(_.pluck(_.pluck(data, 'featureTypeList'), 'featureTypes'), true);
-                    _self.serverData.currentGeoserverUrl = _self.serverData.proposedGeoserverUrl;
-                },
-                function (error) {
-                    // The GetCapabilities request failed.
-                    _self.serverData.error =
-                        'GetCapabilities request failed. Error: ' +
-                        error.status + ' ' + error.statusText;
+                    var keywordPrefix = [CONFIG.app.context, 'timelapse', 'historical'].join('.');
+                    var fieldKeywordPrefix = [CONFIG.app.context, 'field'].join('.');
+                    _self.layerData.layers = _.sortBy(_.filter(data.Capability.Layer.Layer, function (layer) {
+                        return _.any(layer.KeywordList, function (keyword) {
+                            return keyword.indexOf(keywordPrefix) === 0;
+                        });
+                    }), 'Title');
+                    _.each(_self.layerData.layers, function (layer) {
+                        layer.fieldNames = {
+                            trkId: 'trkId',
+                            geom: 'geom',
+                            dtg: 'dtg'
+                        };
+                        _.each(layer.KeywordList, function (keyword) {
+                            _.each(layer.fieldNames, function (value, key) {
+                                if (keyword.indexOf(fieldKeywordPrefix + '.' + key + '=') === 0) {
+                                    layer.fieldNames[key] = keyword.substr(keyword.indexOf('=') + 1); 
+                                }
+                            });
+                        });
+                    });
+                    if (!_.isEmpty(_self.layerData.layers)) {
+                        _self.layerData.currentLayer = _self.layerData.layers[0];
+                        _self.getFeatureTypeDescription();
+                    }
                 }
             );
-        };
 
         // Invoked when the current selected layer changes on query form.
         this.getFeatureTypeDescription = function () {
@@ -117,10 +90,9 @@ function (CONFIG, wfs) {
             _self.params.geomField = null;
             _self.params.dtgField = null;
 
-            wfs.getFeatureTypeDescription(_self.serverData.currentGeoserverUrl,
-                                          _self.layerData.currentLayer.name,
-                                          _self.serverData.currentGeoserverUrl === CONFIG.geoserver.defaultUrl ?
-                                              CONFIG.geoserver.omitProxy : false)
+            wfs.getFeatureTypeDescription(CONFIG.geoserver.defaultUrl,
+                                          _self.layerData.currentLayer.Name,
+                                          CONFIG.geoserver.omitProxy)
             .then(
                 function (data) {
                     _self.featureTypeData = data;
@@ -129,11 +101,15 @@ function (CONFIG, wfs) {
                                       // found for the type.
                         _self.featureTypeData = 'unavailable';
                     } else {
-                        var dtg = _.find(_self.featureTypeData.featureTypes[0].properties, {'name': 'dtg'});
+                        var id = _.find(_self.featureTypeData.featureTypes[0].properties, {'name': _self.layerData.currentLayer.fieldNames.trkId});
+                        if (id !== undefined) {
+                            _self.params.idField = id;
+                        }
+                        var dtg = _.find(_self.featureTypeData.featureTypes[0].properties, {'name': _self.layerData.currentLayer.fieldNames.dtg});
                         if (dtg !== undefined) {
                             _self.params.dtgField = dtg;
                         }
-                        var geom = _.find(_self.featureTypeData.featureTypes[0].properties, {'name': 'geom'});
+                        var geom = _.find(_self.featureTypeData.featureTypes[0].properties, {'name': _self.layerData.currentLayer.fieldNames.geom});
                         if (geom !== undefined) {
                             _self.params.geomField = geom;
                         }

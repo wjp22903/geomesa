@@ -19,16 +19,28 @@ function (startMenuManager, tlWizard) {
 'boundTlWizFactory',
 'optionTlWizFactory',
 'stealth.core.wizard.Wizard',
+'stealth.core.wizard.Step',
+'stealth.core.utils.WidgetDef',
 'stealth.timelapse.wizard.Query',
 function ($rootScope, wizardManager, boundTlWizFactory,
-          optionTlWizFactory, Wizard, Query) {
+          optionTlWizFactory, Wizard, Step, WidgetDef, Query) {
     this.launchWizard = function () {
         var wizardScope = $rootScope.$new();
         wizardScope.query = new Query();
-        var baseWizard = new Wizard('Time-enabled Query', 'fa-clock-o', 'fa-check text-success', [], wizardScope);
+        var baseWizard = new Wizard('Time-enabled Query', 'fa-clock-o', 'fa-check text-success', [
+            new Step('Select data source', new WidgetDef('st-tl-wiz-source', wizardScope), null, true)
+        ], wizardScope);
         baseWizard.appendWizard(boundTlWizFactory.createBoundWiz(wizardScope));
         baseWizard.appendWizard(optionTlWizFactory.createQueryOptionWiz(wizardScope));
         wizardManager.launchWizard(baseWizard);
     };
 }])
+
+.directive('stTlWizSource',
+function () {
+    return {
+        restrict: 'E',
+        templateUrl: 'timelapse/wizard/templates/source.tpl.html'
+    };
+})
 ;

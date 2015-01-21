@@ -1,0 +1,32 @@
+<ng-form name="wizardForm">
+    <label>Additional filter</label>
+    <input type="text" placeholder="CQL filter" ng-model="query.params.cql" style="width:300px">
+    <div ng-switch="query.featureTypeData"
+         style="color:black;background:#eee;border 1px solid #aaa;border-radius:4px;padding:0;margin-left:12px;margin-right:12px;">
+        <div ng-switch-when="unavailable" class="alert alert-warning">
+            <i class="fa fa-warning"></i> There is no feature type description for this layer.
+        </div>
+        <div ng-switch-default>
+            <section ng-show="query.featureTypeData !== 'unavailable'"
+                ng-repeat="featureType in query.featureTypeData.featureTypes">
+                <div style="background:#aaa;border-top-left-radius:4px;border-top-right-radius:4px;padding:0 4px;">
+                    Properties for <strong>{{ query.layerData.currentLayer.Title }}</strong>
+                </div>
+                <div style="max-height:175px;overflow:auto;padding:0 10px;">
+                    <table class="table-condensed">
+                        <tr ng-repeat="property in featureType.properties">
+                            <td>{{ property.name }}</td>
+                            <td><code>{{ property.localType }}</code></td>
+                        </tr>
+                    </table>
+                </div>
+            </section>
+        </div>
+    </div>
+    <hr>
+    <p style="margin-top:20px;">
+        Give this query a meaningful name.<br>
+    </p>
+    <label>Name: </label>
+    <input type="text" ng-model="query.params.storeName" style="width:250px;" required>
+</ng-form>

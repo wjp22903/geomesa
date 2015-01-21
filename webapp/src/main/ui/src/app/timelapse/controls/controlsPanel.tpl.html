@@ -92,13 +92,15 @@
             </div>
             <div class="cellTableRow">
                 <div class="innerField">
-                    <input type="number" ng-model="window.max" ng-change="window.changed()">
+                    <input type="number" ui-jq="spinner" min="1"
+                           ng-model="window.max" ng-change="window.changed()">
                     <select ng-model="window.unit" ng-options="u for u in units" ng-change="window.changed()"></select>
                 </div>
             </div>
             <div class="cellTableRow">
                 <div class="innerField">
-                    <input type="number" ng-model="step.max" ng-change="step.changed()">
+                    <input type="number" ui-jq="spinner" min="1"
+                           ng-model="step.max" ng-change="step.changed()">
                     <select ng-model="step.unit" ng-options="u for u in units" ng-change="step.changed()"></select>
                 </div>
             </div>

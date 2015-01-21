@@ -5,7 +5,11 @@
     <table>
         <tr>
             <td><label>Proximity:&nbsp;&nbsp;</label></td>
-            <td><input type="number" ng-model="proximityMeters" style="width:60px;" min="0" required> meters</td>
+            <td>
+                <input type="number" ui-jq="spinner"
+                       ng-model="proximityMeters" style="width:60px;" min="0" required>
+                meters
+            </td>
         </tr>
         <tr>
             <td><label>Start: </label></td>
