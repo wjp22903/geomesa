@@ -45,9 +45,8 @@
             </span>
         </div>
         <div ng-repeat="(workspace, layers) in workspaces.live"
-             class="categoryGrouping categoryIndent"
              ng-show="timelapse.isLiveOn">
-            <div ng-repeat="layer in layers">
+            <div ng-repeat="layer in layers" class="categoryGrouping categoryIndent">
                 <div class="categoryCell">
                     <i>{{::layer.Title || layer.Name | characters:35:true}}</i>
                 </div>

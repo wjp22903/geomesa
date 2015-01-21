@@ -6,14 +6,19 @@ angular.module('stealth.core.geo.context', [
 '$log',
 '$rootScope',
 '$timeout',
+'$http',
+'$filter',
+'$q',
 'categoryManager',
 'stealth.core.geo.ol3.manager.Category',
 'stealth.core.utils.WidgetDef',
 'wms',
 'ol3Map',
 'stealth.core.geo.ol3.layers.WmsLayer',
+'mapClickService',
 'CONFIG',
-function ($log, $rootScope, $timeout, catMgr, Category, WidgetDef, wms, ol3Map, WmsLayer, CONFIG) {
+function ($log, $rootScope, $timeout, $http, $filter, $q,
+          catMgr, Category, WidgetDef, wms, ol3Map, WmsLayer, mapClickService, CONFIG) {
     var tag = 'stealth.core.geo.context: ';
     var categoryScope = $rootScope.$new();
     categoryScope.workspaces = {};
@@ -34,6 +39,35 @@ function ($log, $rootScope, $timeout, catMgr, Category, WidgetDef, wms, ol3Map, 
             layer.viewState.toggledOn = ol3Layer.getVisible();
             wmsLayer.styleDirectiveScope.styleVars.iconClass = 'fa fa-fw fa-lg fa-compass';
             ol3Map.addLayer(wmsLayer);
+            layer.searchId = mapClickService.registerSearchable(function (coord, res) {
+                if (wmsLayer.getOl3Layer().getVisible()) {
+                    var url = wmsLayer.getOl3Layer().getSource().getGetFeatureInfoUrl(
+                        coord, res, CONFIG.map.projection, {
+                            INFO_FORMAT: 'application/json',
+                            FEATURE_COUNT: 999999
+                        }
+                    );
+                    return $http.get($filter('cors')(url, null, CONFIG.geoserver.omitProxy))
+                        .then(function (response) {
+                            return {
+                                name: layer.Title,
+                                records: _.pluck(response.data.features, 'properties'),
+                                layerFill: {
+                                    display: 'none'
+                                }
+                            };
+                        }, function (response) {
+                            return {
+                                name: layer.Title,
+                                records: [],
+                                isError: true,
+                                reason: 'Server error'
+                            };
+                        });
+                } else {
+                    return $q.when({name: layer.Title, records:[]}); //empty results
+                }
+            });
 
             // Update viewState on layer visibility change.
             ol3Layer.on('change:visible', function () {
@@ -58,6 +92,10 @@ function ($log, $rootScope, $timeout, catMgr, Category, WidgetDef, wms, ol3Map, 
             delete layer.mapLayerId;
             layer.viewState.isOnMap = false;
             layer.viewState.toggledOn = false;
+            if (_.isNumber(layer.searchId)) {
+                mapClickService.unregisterSearchableById(layer.searchId);
+                delete layer.searchId;
+            }
         }
     };
 

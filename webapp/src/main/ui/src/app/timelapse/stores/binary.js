@@ -127,7 +127,6 @@ function ($log, $q, $filter, colors) {
         }
 
         this.searchPointAndTime = function (coord, res, timeMillis, windowMillis) {
-            var deferred = $q.defer();
             var result = {
                 name: _name,
                 isError: false,
@@ -158,8 +157,7 @@ function ($log, $q, $filter, colors) {
                     });
                 }
             }
-            deferred.resolve(result);
-            return deferred.promise;
+            return $q.when(result);
         };
     };
 

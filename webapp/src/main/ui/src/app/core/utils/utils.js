@@ -33,7 +33,9 @@ function ($log) {
 .filter('cors', function () {
     return function (url, path, omitProxy) {
         var uri = url.replace(/\/+$/, '');
-        uri += '/' + path;
+        if (!_.isEmpty(path)) {
+           uri += '/' + path;
+        }
         if (!omitProxy) {
             uri = 'cors/' + uri;
         }

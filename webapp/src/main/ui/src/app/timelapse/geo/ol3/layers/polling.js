@@ -87,7 +87,9 @@ function ($log, $interval, $timeout, MapLayer, CONFIG) {
 
         var _mapListenerKey = null;
         _self.setRefreshOnMapChange = function (ol3Map) {
-            _mapListenerKey = ol3Map.on('moveend', _self.refresh);
+            _mapListenerKey = ol3Map.on('moveend', function () {
+                _self.refresh();
+            });
         };
         _self.removeRefreshOnMapChange = function (ol3Map) {
             ol3Map.unByKey(_mapListenerKey);

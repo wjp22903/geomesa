@@ -1,9 +1,18 @@
 <div class="mapPopupContainer" ng-show="mapPopCtrl.showPopup" ng-click="mapPopCtrl.focus()">
     <div style="background-color: #ddd; width: 100%">
         <i class="fa fa-fw fa-search"></i> Lat: {{ mapPopCtrl.lat | number }}, Lon: {{ mapPopCtrl.lon | number }}
-        <span style="padding-right: 5px; float: right;">
-            <i class="fa" ng-class="mapPopCtrl.getPinClass()" style="cursor: pointer" ng-click="mapPopCtrl.togglePin()"></i>
-            <i class="fa fa-times-circle" style="color: red; cursor: pointer" ng-click="mapPopCtrl.closePopup()"></i>
+        <span class="pull-right">
+            <span class="btn btn-default fa-stack toggleButton"
+                  ng-class="{active: mapPopCtrl.isPinned()}"
+                  style="vertical-align:top;"
+                  ng-click="mapPopCtrl.togglePin()">
+                <i class="fa fa-fw fa-thumb-tack fa-stack-1x"></i>
+            </span>
+            <span class="btn btn-default fa-stack toggleButton"
+                  style="vertical-align:top;"
+                  ng-click="mapPopCtrl.closePopup()">
+                <i class="fa fa-fw fa-remove fa-stack-1x text-danger"></i>
+            </span>
         </span>
     </div>
     <div st-ol3-map-popup-resize ng-style="mapPopCtrl.containerStyle">
@@ -24,8 +33,13 @@
                                                 <div style="display: table-cell"></div>
                                                 <div class="mapPopupRecordCell" style="text-align: right" ng-style="mapPopCtrl.getBorder($first)"
                                                      ng-repeat="rec in result.records">
-                                                    <i class="fa fa-times-circle" style="color: red; cursor: pointer"
-                                                       ng-click="mapPopCtrl.removeRecord(result, $index)"></i>
+                                                    <span class="pull-left">
+                                                        <span class="btn btn-default fa-stack toggleButton"
+                                                              style="vertical-align:top;"
+                                                              ng-click="mapPopCtrl.removeRecord(result, $index)">
+                                                            <i class="fa fa-fw fa-remove fa-stack-1x text-danger"></i>
+                                                        </span>
+                                                    </span>
                                                 </div>
                                             </div>
                                             <div style="display: table-row" ng-style="mapPopCtrl.getRowColor($even)"

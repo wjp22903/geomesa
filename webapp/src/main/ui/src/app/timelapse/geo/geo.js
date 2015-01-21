@@ -8,17 +8,32 @@ angular.module('stealth.timelapse.geo', [
 ])
 
 .run([
+'$rootScope',
 'categoryManager',
 'stealth.core.geo.ol3.manager.Category',
 'stealth.core.utils.WidgetDef',
-function (catMgr, Category, WidgetDef) {
+function ($rootScope, catMgr, Category, WidgetDef) {
+    var catScope = $rootScope.$new();
+    catScope.timelapse = {
+        isLiveOn: true,
+        isHistoricalOn: true,
+        summaryOn: true
+    };
+    catScope.liveRefresh = {
+        value: 10,
+        options: [2, 5, 10, 30, 60]
+    };
+
     catMgr.addCategory(1, new Category(0, 'Time-enabled', 'fa-clock-o',
-        new WidgetDef('st-timelapse-geo-category'), null, true));
+        new WidgetDef('st-timelapse-geo-category', catScope), null, true));
 }])
 
 .directive('stTimelapseGeoCategory', [
 '$log',
 '$timeout',
+'$q',
+'$http',
+'$filter',
 'wms',
 'ol3Map',
 'stealth.timelapse.geo.ol3.layers.PollingImageWmsLayer',
@@ -26,8 +41,10 @@ function (catMgr, Category, WidgetDef) {
 'stealth.timelapse.stores.BinStore',
 'colors',
 'tlWizard',
+'mapClickService',
 'CONFIG',
-function ($log, $timeout, wms, ol3Map, PollingImageWmsLayer, tlLayerManager, BinStore, colors, tlWizard, CONFIG) {
+function ($log, $timeout, $q, $http, $filter, wms, ol3Map, PollingImageWmsLayer, tlLayerManager,
+          BinStore, colors, tlWizard, mapClickService, CONFIG) {
     var tag = 'stealth.core.geo.context.stTimelapseGeoCategory: ';
     $log.debug(tag + 'directive defined');
     return {
@@ -51,13 +68,6 @@ function ($log, $timeout, wms, ol3Map, PollingImageWmsLayer, tlLayerManager, Bin
 
             $scope.removeHistorical = function (store) {
                 $scope.historicalLayer.removeStore(store);
-            };
-
-            $scope.timelapse = {
-                mode: 'historical',
-                isLiveOn: true,
-                isHistoricalOn: true,
-                summaryOn: true
             };
 
             $scope.collapseAllLiveFilterLayers = function (layers) {
@@ -270,14 +280,16 @@ function ($log, $timeout, wms, ol3Map, PollingImageWmsLayer, tlLayerManager, Bin
             $scope.uploadFile = function () {
                 var e = document.getElementById('upfile');
                 e.value = null;
-                e.click();
+                $timeout(function () {
+                    e.click();
+                });
             };
             $scope.fileSelected = function (element) {
                 $scope.$apply(function () {
                     var file = element.files[0];
                     currentFileName = file.name;
                     currentStore = new BinStore(file.name);
-                    tlLayerManager.getHistoricalLayer().addStore(currentStore);
+                    $scope.historicalLayer.addStore(currentStore);
                     fileReader.readAsArrayBuffer(file);
                 });
             };
@@ -296,6 +308,36 @@ function ($log, $timeout, wms, ol3Map, PollingImageWmsLayer, tlLayerManager, Bin
                     pollingLayer.styleDirectiveScope.styleVars.iconClass = 'fa fa-fw fa-lg fa-clock-o';
                     pollingLayer.setRefreshOnMapChange(ol3Map);
                     ol3Map.addLayer(pollingLayer);
+                    layer.searchId = mapClickService.registerSearchable(function (coord, res) {
+                        if (pollingLayer.getOl3Layer().getVisible()) {
+                            var url = pollingLayer.getOl3Layer().getSource().getGetFeatureInfoUrl(
+                                coord, res, CONFIG.map.projection, {
+                                    INFO_FORMAT: 'application/json',
+                                    FEATURE_COUNT: 999999,
+                                    BUFFER: 5 //more generous search radius because live layer moves
+                                }
+                            );
+                            return $http.get($filter('cors')(url, null, CONFIG.geoserver.omitProxy))
+                                .then(function (response) {
+                                    return {
+                                        name: layer.Title,
+                                        records: _.pluck(response.data.features, 'properties'),
+                                        layerFill: {
+                                            display: 'none'
+                                        }
+                                    };
+                                }, function (response) {
+                                    return {
+                                        name: layer.Title,
+                                        records: [],
+                                        isError: true,
+                                        reason: 'Server error'
+                                    };
+                                });
+                        } else {
+                            return $q.when({name: layer.Title, records:[]}); //empty results
+                        }
+                    });
                     $scope.updateLiveFilterCql(layer);
 
                     pollingLayer.styleDirectiveScope.$on(pollingLayer.id + ':isLoading', function (e) {
@@ -322,6 +364,10 @@ function ($log, $timeout, wms, ol3Map, PollingImageWmsLayer, tlLayerManager, Bin
                     delete layer.mapLayerId;
                     layer.viewState.isOnMap = false;
                     layer.viewState.toggledOn = false;
+                    if (_.isNumber(layer.searchId)) {
+                        mapClickService.unregisterSearchableById(layer.searchId);
+                        delete layer.searchId;
+                    }
                 }
             };
 
@@ -341,11 +387,6 @@ function ($log, $timeout, wms, ol3Map, PollingImageWmsLayer, tlLayerManager, Bin
 
             $scope.launchSummaryQueryWizard = function () {
                 alert('TODO');
-            };
-
-            $scope.liveRefresh = {
-                value: 10,
-                options: [2, 5, 10, 30, 60]
             };
 
             $scope.refreshValChanged = function (refreshInSecs) {

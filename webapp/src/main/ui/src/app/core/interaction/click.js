@@ -5,16 +5,15 @@ angular.module('stealth.core.interaction.click', [
 .service('mapClickService', [
 '$log',
 '$rootScope',
-'ol3Map',
-function ($log, $rootScope, ol3Map) {
+function ($log, $rootScope) {
     var tag = 'stealth.core.interaction.click: ';
-    var _searchables = [];
+    var _idSeq = 0;
+    var _searchables = {};
     var _searchResults = [];
 
-    this.search = function (coord, callback) {
+    this.search = function (coord, resolution, callback) {
         $log.debug(tag + 'Starting new click search.');
         var _searchResults = [];
-        var resolution = ol3Map.getResolution();
         var promises = _.flatten(_.map(_searchables, function (search) {
             return search(coord, resolution);
         }));
@@ -54,7 +53,12 @@ function ($log, $rootScope, ol3Map) {
      */
     this.registerSearchable = function (callback) {
         $log.debug(tag + 'Registering searchable.');
-        _searchables.push(callback);
+        var id = _idSeq++;
+        _searchables[id] = callback;
+        return id;
+    };
+    this.unregisterSearchableById = function (id) {
+        delete _searchables[id];
     };
 
     $log.debug(tag + 'Service started.');
@@ -121,12 +125,8 @@ function ($element, $filter, $scope, $rootScope, mapClickService, ol3Map) {
         }
         return style;
     };
-    this.getPinClass = function () {
-        if (isPinned) {
-            return "fa-lock";
-        } else {
-            return "fa-unlock";
-        }
+    this.isPinned = function () {
+        return isPinned;
     };
     this.togglePin = function () {
         isPinned = !isPinned;
@@ -142,7 +142,7 @@ function ($element, $filter, $scope, $rootScope, mapClickService, ol3Map) {
         $element.remove();
     };
 
-    mapClickService.search([this.lon, this.lat], function(responses) {
+    mapClickService.search([this.lon, this.lat], ol3Map.getResolution(), function(responses) {
         _.forEach(responses, function (response) {
             if (!response.isError && response.records.length > 0) {
                 _self.results.push(response);
