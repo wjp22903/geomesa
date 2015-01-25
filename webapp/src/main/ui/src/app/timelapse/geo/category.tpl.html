@@ -179,18 +179,7 @@
             </span>
         </div>
         <div class="categoryCell">
-            <span class="btn btn-default fa-stack toggleButton"
-                  ng-click="uploadFile()"
-                  tooltip-html-unsafe="<span style='white-space:nowrap'>Load file</span>"
-                  tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
-                  tooltip-trigger="mouseenter"
-                  style="line-height:6px;">
-                <i class="fa fa-fw fa-folder-open fa-stack-1x text-primary" style="padding-left:2px"></i>
-            </span>
-        </div>
-        <div style="height:0px;width:0px;overflow:hidden">
-            <input id="upfile" type="file"
-                   onchange="angular.element(this).scope().fileSelected(this)">
+            <st-upload-file id="binFileUpload1" process-file="readHistoricalBinFile(file)"></st-upload-file>
         </div>
         <div ng-repeat="store in historicalLayer.getStores()"
              class="categoryGrouping categoryIndent"

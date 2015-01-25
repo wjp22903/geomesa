@@ -50,7 +50,6 @@ function ($log, $timeout, $q, $http, $filter, wms, ol3Map, PollingImageWmsLayer,
     return {
         templateUrl: 'timelapse/geo/category.tpl.html',
         controller: ['$scope', function ($scope) {
-            var currentFileName = 'unknown';
             var currentStore;
             var fileReader = new FileReader();
             fileReader.onload = function (e) {
@@ -277,21 +276,10 @@ function ($log, $timeout, $q, $http, $filter, wms, ol3Map, PollingImageWmsLayer,
                         });
                     });
             }
-            $scope.uploadFile = function () {
-                var e = document.getElementById('upfile');
-                e.value = null;
-                $timeout(function () {
-                    e.click();
-                });
-            };
-            $scope.fileSelected = function (element) {
-                $scope.$apply(function () {
-                    var file = element.files[0];
-                    currentFileName = file.name;
-                    currentStore = new BinStore(file.name);
-                    $scope.historicalLayer.addStore(currentStore);
-                    fileReader.readAsArrayBuffer(file);
-                });
+            $scope.readHistoricalBinFile = function (file) {
+                currentStore = new BinStore(file.name);
+                $scope.historicalLayer.addStore(currentStore);
+                fileReader.readAsArrayBuffer(file);
             };
             $scope.toggleLiveLayer = function (layer) {
                 if (_.isUndefined(layer.mapLayerId) || _.isNull(layer.mapLayerId)) {
