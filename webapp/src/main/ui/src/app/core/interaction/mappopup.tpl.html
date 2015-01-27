@@ -3,7 +3,7 @@
          style="position:relative;top:-13px;left:-13px;"
          ng-class="{'ng-hide': mapPopCtrl.showPopup}">
     </div>
-    <div class="mapPopupContainer" ng-class="{'ng-hide': !mapPopCtrl.showPopup}">
+    <div class="mapPopupContainer" ng-class="{'ng-hide': !mapPopCtrl.showPopup || mapPopCtrl.wizardActive}">
         <div style="background-color: #ddd; width: 100%">
             <i class="fa fa-fw fa-search"></i> Lat: {{ mapPopCtrl.lat | number }}, Lon: {{ mapPopCtrl.lon | number }}
             <span class="pull-right">
@@ -80,7 +80,10 @@
                                                      ng-repeat="(key, val) in result.records[0]">
                                                     <div class="mapPopupColumnTitle">{{ key }}</div>
                                                     <div class="mapPopupRecordCell" ng-style="mapPopCtrl.getBorder($first)"
-                                                         ng-repeat="rec in result.records | startFrom:(result.paging.currentPage-1)*result.paging.pageSize | limitTo:result.paging.pageSize">{{ rec[key] }}</div>
+                                                         ng-repeat="rec in result.records | startFrom:(result.paging.currentPage-1)*result.paging.pageSize | limitTo:result.paging.pageSize">
+                                                        <a href="" ng-if="result.isFilterable" ng-click="result.filterHandler(key, rec[key])">{{ mapPopCtrl.formatValue(key, rec[key], result) }}</a>
+                                                        <span ng-if="!result.isFilterable">{{ mapPopCtrl.formatValue(key, rec[key], result) }}</span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>

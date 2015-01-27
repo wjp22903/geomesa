@@ -24,9 +24,10 @@ function (startMenuManager, tlWizard) {
 'stealth.timelapse.wizard.Query',
 function ($rootScope, wizardManager, boundTlWizFactory,
           optionTlWizFactory, Wizard, Step, WidgetDef, Query) {
-    this.launchWizard = function () {
+    var _self = this;
+    this.launchWizard = function (baseQuery) {
         var wizardScope = $rootScope.$new();
-        wizardScope.query = new Query();
+        wizardScope.query = baseQuery ? baseQuery : new Query();
         var baseWizard = new Wizard('Time-enabled Query', 'fa-clock-o', 'fa-check text-success', [
             new Step('Select data source', new WidgetDef('st-tl-wiz-source', wizardScope), null, true)
         ], wizardScope);
@@ -34,6 +35,9 @@ function ($rootScope, wizardManager, boundTlWizFactory,
         baseWizard.appendWizard(optionTlWizFactory.createQueryOptionWiz(wizardScope));
         wizardManager.launchWizard(baseWizard);
     };
+    $rootScope.$on('Launch Timelapse Wizard', function (event, baseQuery) {
+        _self.launchWizard (baseQuery);
+    });
 }])
 
 .directive('stTlWizSource',

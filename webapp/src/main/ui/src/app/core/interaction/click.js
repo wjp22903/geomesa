@@ -90,6 +90,7 @@ function ($element, $filter, $scope, $rootScope, mapClickService, ol3Map) {
      * Members available to the view.
      */
     this.showPopup = false;
+    this.wizardActive = false;
     this.results = [];
     this.lat = parseFloat($element.attr('lat'));
     this.lon = parseFloat($element.attr('lon'));
@@ -156,6 +157,22 @@ function ($element, $filter, $scope, $rootScope, mapClickService, ol3Map) {
         $scope.$destroy();
         $element.remove();
     };
+    this.formatValue = function (key, value, result) {
+        if (result.fieldTypes) {
+            var type = _.find(result.fieldTypes, {'name': key});
+            if (type.localType) {
+                switch (type.localType) {
+                    case 'date-time':
+                        return moment.utc(value).format('YYYY-MM-DD[T]HH:mm:ss[Z]');
+                    case 'number':
+                        return $filter('number')(value);
+                    default:
+                        return value;
+                }
+            }
+        }
+        return value;
+    };
 
     mapClickService.search([this.lon, this.lat], ol3Map.getResolution(), function(responses) {
         _.forEach(responses, function (response) {
@@ -206,6 +223,16 @@ function ($element, $filter, $scope, $rootScope, mapClickService, ol3Map) {
     $scope.$on('$destroy', function () {
         unbind();
     });
+
+    $rootScope.$on('wizard:launchWizard', function () {
+        _self.wizardActive = true;
+        ol3Map.un('click', closeUnpinned);
+    });
+
+    $rootScope.$on('wizard:closeWizard', function () {
+        _self.wizardActive = false;
+        ol3Map.on('click', closeUnpinned);
+    });
 }])
 
 .directive('stOl3MapPopup', [
@@ -254,14 +281,15 @@ function () {
 })
 
 .directive('stOl3MapPopupBuilder', [
+'$rootScope',
 '$compile',
 'ol3Map',
-function ($compile, ol3Map) {
+function ($rootScope, $compile, ol3Map) {
     return {
         restrict: 'E',
         link: function (scope, element, attrs) {
             var _idSeq = 0;
-            ol3Map.on('click', function (event) {
+            var buildFn = function (event) {
                 scope.$evalAsync(function () {
                     var html = '<div st-ol3-map-popup lat="' + event.coordinate[1] + '" lon="' +
                         event.coordinate[0] + '" popup-id="' + (_idSeq++) + '" ' +
@@ -270,6 +298,13 @@ function ($compile, ol3Map) {
                     element.append(el);
                     $compile(el)(scope);
                 });
+            };
+            ol3Map.on('click', buildFn);
+            $rootScope.$on('wizard:launchWizard', function () {
+                ol3Map.un('click', buildFn);
+            });
+            $rootScope.$on('wizard:closeWizard', function () {
+                ol3Map.on('click', buildFn);
             });
         }
     };

@@ -3,9 +3,8 @@ angular.module('stealth.timelapse.stores')
 .factory('stealth.timelapse.stores.BinStore', [
 '$log',
 '$q',
-'$filter',
 'colors',
-function ($log, $q, $filter, colors) {
+function ($log, $q, colors) {
     var tag = 'stealth.timelapse.stores.BinStore: ';
     $log.debug(tag + 'factory started');
 
@@ -133,7 +132,13 @@ function ($log, $q, $filter, colors) {
                 layerFill: {
                     color: _fillColorHexString
                 },
-                records: []
+                records: [],
+                fieldTypes: [
+                    { name: 'lat', localType: 'number' },
+                    { name: 'lon', localType: 'number' },
+                    { name: 'dtg', localType: 'date-time' },
+                    { name: 'id', localType: 'string' }
+                ]
             };
             var modifier = res * Math.max(_pointRadius, 4);
             var minLat = Math.max((coord[1] - modifier), -90);
@@ -150,9 +155,9 @@ function ($log, $q, $filter, colors) {
                     millis <= timeMillis && millis >= (timeMillis - windowMillis))
                 {
                     result.records.push({
-                        lat: $filter('number')(lat, 5),
-                        lon: $filter('number')(lon, 5),
-                        dtg: moment.utc(millis).format('YYYY-MM-DD[T]HH:mm:ss[Z]'),
+                        lat: lat,
+                        lon: lon,
+                        dtg: millis,
                         id: _idView[i * _stride]
                     });
                 }

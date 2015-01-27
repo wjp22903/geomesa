@@ -6,11 +6,10 @@ angular.module('stealth.timelapse.stores', [
 '$log',
 '$rootScope',
 '$q',
-'$filter',
 'CONFIG',
 'wfs',
 'stealth.timelapse.stores.BinStore',
-function ($log, $rootScope, $q, $filter, CONFIG, wfs, BinStore) {
+function ($log, $rootScope, $q, CONFIG, wfs, BinStore) {
     var tag = 'stealth.timelapse.stores.QueryBinStore: ';
     $log.debug(tag + 'factory started.');
 
@@ -108,26 +107,29 @@ function ($log, $rootScope, $q, $filter, CONFIG, wfs, BinStore) {
             };
             wfs.getFeature(CONFIG.geoserver.defaultUrl, typeName, CONFIG.geoserver.omitProxy, overrides)
             .success(function (data, status, headers, config, statusText) {
-                var records = _.map(_.pluck(data.features, 'properties'), function (properties) {
-                                    _.forEach(properties, function (value, name) {
-                                        switch (_.find(_featureTypeProperties, {'name': name}).localType) {
-                                            case 'date-time':
-                                                properties[name] = moment.utc(value).format('YYYY-MM-DD[T]HH:mm:ss[Z]');
-                                                break;
-                                            case 'number':
-                                                properties[name] = $filter('number')(value);
-                                                break;
-                                        }
-                                    });
-                                    return properties;
-                });
+                var records = _.pluck(data.features, 'properties');
                 deferred.resolve({
                     name: _thisStore.getName(),
                     isError: false,
                     layerFill: {
                         color: _thisStore.getFillColorHexString()
                     },
-                    records: records
+                    records: records,
+                    fieldTypes: _featureTypeProperties,
+                    isFilterable: true,
+                    filterHandler: function (key, val) {
+                        var newQuery = _.cloneDeep(_query);
+                        newQuery.params.startDtg = moment(_query.params.startDtg);
+                        newQuery.params.endDtg = moment(_query.params.endDtg);
+                        var filter = key + '=' + (angular.isString(val) ? "'" + val + "'" : val);
+                        if (!newQuery.params.cql || _.trim(newQuery.params.cql) === '') {
+                            newQuery.params.cql = filter;
+                        } else {
+                            newQuery.params.cql = _.trim(newQuery.params.cql) + ' AND ' + filter;
+                        }
+                        newQuery.params.storeName = newQuery.params.storeName + ' (' + filter + ')';
+                        $rootScope.$emit('Launch Timelapse Wizard', newQuery);
+                    }
                 });
             })
             .error(function (data, status, headers, config, statusText) {
