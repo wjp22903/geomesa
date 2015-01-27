@@ -1,0 +1,10 @@
+<span class="btn btn-default fa-stack toggleButton"
+      ng-click="::toggle()"
+      tooltip-html-unsafe="<span style='white-space:nowrap'>{{visible ? 'Remove from map' : 'Add to map'}}</span>"
+      tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
+      tooltip-trigger="mouseenter">
+    <i class="fa fa-fw fa-spin fa-lg fa-stack-1x" style="color:#98C3EE;"
+       ng-class="{'fa-refresh': visible && loading}"></i>
+    <i class="fa fa-fw fa-stack-1x"
+       ng-class="{'fa-check': visible}"></i>
+</span>

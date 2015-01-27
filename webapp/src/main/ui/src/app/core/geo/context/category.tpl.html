@@ -12,16 +12,9 @@
                 </div>
             </div>
             <div class="categoryCell">
-                <span class="btn btn-default fa-stack toggleButton"
-                      ng-click="toggleLayer(layer, workspace)"
-                      tooltip-html-unsafe="<span style='white-space:nowrap'>{{layer.getTooltip()}}</span>"
-                      tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
-                      tooltip-trigger="mouseenter">
-                    <i class="fa fa-fw fa-spin fa-lg fa-stack-1x" style="color:#98C3EE;"
-                       ng-class="{'fa-refresh': layer.viewState.isOnMap && layer.viewState.isLoading}"></i>
-                    <i class="fa fa-fw fa-stack-1x"
-                       ng-class="{'fa-check': layer.viewState.isOnMap}"></i>
-                </span>
+                <st-toggle-map-layer visible="layer.viewState.isOnMap"
+                                     loading="layer.viewState.isLoading"
+                                     toggle="toggleLayer(layer, workspace)"></st-toggle-map-layer>
             </div>
             <div class="categoryCell">
                 <st-toggle-visibility ng-if="layer.viewState.isOnMap"

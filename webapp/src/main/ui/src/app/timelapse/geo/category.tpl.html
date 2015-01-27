@@ -66,16 +66,9 @@
 
                 <div ng-repeat="filterLayer in layer.filterLayers" class="categoryGrouping">
                     <div class="categoryCell">
-                        <span class="btn btn-default fa-stack toggleButton"
-                              ng-click="toggleLiveLayer(filterLayer)"
-                              tooltip-html-unsafe="<span style='white-space:nowrap'>{{filterLayer.viewState.isOnMap ? 'Remove from map' : 'Add to map'}}</span>"
-                              tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
-                              tooltip-trigger="mouseenter">
-                        <i class="fa fa-fw fa-spin fa-lg fa-stack-1x" style="color:#98C3EE;"
-                           ng-class="{'fa-refresh': filterLayer.viewState.isOnMap && filterLayer.viewState.isLoading}"></i>
-                        <i class="fa fa-fw fa-stack-1x"
-                           ng-class="{'fa-check': filterLayer.viewState.isOnMap}"></i>
-                        </span>
+                        <st-toggle-map-layer visible="filterLayer.viewState.isOnMap"
+                                             loading="filterLayer.viewState.isLoading"
+                                             toggle="toggleLiveLayer(filterLayer)"></st-toggle-map-layer>
                     </div>
                     <div class="categoryCell">
                         <st-toggle-visibility ng-if="filterLayer.viewState.isOnMap"
