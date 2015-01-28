@@ -193,10 +193,10 @@ function ($log, $q, $filter, colors) {
             middleTimeSecs;
 
         if (this.getMinTimeInMillis() >= timeMillis) {
-            return 0;
+            return -1;
         }
 
-        if (this.getMaxTimeInMillis() <= timeMillis) {
+        if (this.getMaxTimeInMillis() < timeMillis) {
             return (len - 1);
         }
 
@@ -204,9 +204,7 @@ function ($log, $q, $filter, colors) {
             half = len >> 1;
             middle = first + half;
             middleTimeSecs = this.getTimeInSeconds(middle);
-            if ((timeSeconds - middleTimeSecs) === 0) {
-              return middle;
-            } else if (middleTimeSecs < timeSeconds) {
+            if (middleTimeSecs < timeSeconds) {
                 first = middle;
                 len = len - half;
             } else {
@@ -221,28 +219,26 @@ function ($log, $q, $filter, colors) {
             len = this.getNumRecords(),
             half = 0,
             middle = 0,
-            first = 0,
+            first = this.getNumRecords(),
             middleTimeSecs;
 
-        if (this.getMinTimeInMillis() >= timeMillis) {
+        if (this.getMinTimeInMillis() > timeMillis) {
             return 0;
         }
 
         if (this.getMaxTimeInMillis() <= timeMillis) {
-            return (len - 1);
+            return (len);
         }
 
         while (len > 1) {
             half = len >> 1;
-            middle = first + half;
+            middle = first - half;
             middleTimeSecs = this.getTimeInSeconds(middle);
-            if ((timeSeconds - middleTimeSecs) === 0) {
-                return middle;
-            } else if (timeSeconds < middleTimeSecs) {
-                len = half;
-            } else {
+            if (timeSeconds < middleTimeSecs) {
                 first = middle;
                 len = len - half;
+            } else {
+                len = half;
             }
         }
         return first;

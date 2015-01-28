@@ -83,7 +83,9 @@ function ($log, $rootScope, $q, $filter, CONFIG, wfs, BinStore) {
             }
 
             var startMillis = Math.max(_thisStore.getMinTimeInMillis(), (timeMillis - windowMillis));
+            startMillis -= 1000;
             var endMillis = Math.min(_thisStore.getMaxTimeInMillis(), timeMillis);
+            endMillis += 1000;
             var typeName = _query.layerData.currentLayer.Name;
             var modifier = res * Math.max(this.getPointRadius(), 4);
             var cqlParams = {

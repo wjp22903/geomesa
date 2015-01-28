@@ -101,30 +101,30 @@ describe('Factory', function () {
         it('should calculate min time bounds', function () {
             var i = 0;
             // Check a time before beginning of buffer:
-            expect(store16.getLowerBoundIdx((nowInSecs - 3600) * 1000)).to.equal(i);
-            expect(store24.getLowerBoundIdx((nowInSecs - 3600) * 1000)).to.equal(i);
+            expect(store16.getLowerBoundIdx((nowInSecs - 3600) * 1000)).to.equal(i - 1);
+            expect(store24.getLowerBoundIdx((nowInSecs - 3600) * 1000)).to.equal(i - 1);
 
             // Check time at beginning of buffer:
-            expect(store16.getLowerBoundIdx(nowInSecs * 1000)).to.equal(i);
-            expect(store24.getLowerBoundIdx(nowInSecs * 1000)).to.equal(i);
+            expect(store16.getLowerBoundIdx(nowInSecs * 1000)).to.equal(i - 1);
+            expect(store24.getLowerBoundIdx(nowInSecs * 1000)).to.equal(i - 1);
 
             // Check time at 2nd index:
             i = 1;
-            expect(store16.getLowerBoundIdx((nowInSecs + i) * 1000)).to.equal(i);
-            expect(store24.getLowerBoundIdx((nowInSecs + i) * 1000)).to.equal(i);
+            expect(store16.getLowerBoundIdx((nowInSecs + i) * 1000)).to.equal(i - 1);
+            expect(store24.getLowerBoundIdx((nowInSecs + i) * 1000)).to.equal(i - 1);
 
             // Check times in the middle:
             i = NUM_RECORDS/2;
-            expect(store16.getLowerBoundIdx((nowInSecs + i) * 1000)).to.equal(i);
-            expect(store24.getLowerBoundIdx((nowInSecs + i) * 1000)).to.equal(i);
+            expect(store16.getLowerBoundIdx((nowInSecs + i) * 1000)).to.equal(i - 1);
+            expect(store24.getLowerBoundIdx((nowInSecs + i) * 1000)).to.equal(i - 1);
             i = NUM_RECORDS/2 - 154;
-            expect(store16.getLowerBoundIdx((nowInSecs + i) * 1000)).to.equal(i);
-            expect(store24.getLowerBoundIdx((nowInSecs + i) * 1000)).to.equal(i);
+            expect(store16.getLowerBoundIdx((nowInSecs + i) * 1000)).to.equal(i - 1);
+            expect(store24.getLowerBoundIdx((nowInSecs + i) * 1000)).to.equal(i - 1);
 
             // Check time at end of buffer:
             i = NUM_RECORDS - 1;
-            expect(store16.getLowerBoundIdx((nowInSecs + i) * 1000)).to.equal(i);
-            expect(store24.getLowerBoundIdx((nowInSecs + i) * 1000)).to.equal(i);
+            expect(store16.getLowerBoundIdx((nowInSecs + i) * 1000)).to.equal(i - 1);
+            expect(store24.getLowerBoundIdx((nowInSecs + i) * 1000)).to.equal(i - 1);
 
             // Check a time after end of buffer:
             expect(store16.getLowerBoundIdx((nowInSecs + i + 3600) * 1000)).to.equal(i);
@@ -138,30 +138,30 @@ describe('Factory', function () {
             expect(store24.getUpperBoundIdx((nowInSecs - 3600) * 1000)).to.equal(i);
 
             // Check time at beginning of buffer:
-            expect(store16.getUpperBoundIdx(nowInSecs * 1000)).to.equal(i);
-            expect(store24.getUpperBoundIdx(nowInSecs * 1000)).to.equal(i);
+            expect(store16.getUpperBoundIdx(nowInSecs * 1000)).to.equal(i + 1);
+            expect(store24.getUpperBoundIdx(nowInSecs * 1000)).to.equal(i + 1);
 
             // Check time at 2nd index:
             i = 1;
-            expect(store16.getUpperBoundIdx((nowInSecs + i) * 1000)).to.equal(i);
-            expect(store24.getUpperBoundIdx((nowInSecs + i) * 1000)).to.equal(i);
+            expect(store16.getUpperBoundIdx((nowInSecs + i) * 1000)).to.equal(i + 1);
+            expect(store24.getUpperBoundIdx((nowInSecs + i) * 1000)).to.equal(i + 1);
 
             // Check times in the middle:
             i = NUM_RECORDS/2;
-            expect(store16.getUpperBoundIdx((nowInSecs + i) * 1000)).to.equal(i);
-            expect(store24.getUpperBoundIdx((nowInSecs + i) * 1000)).to.equal(i);
+            expect(store16.getUpperBoundIdx((nowInSecs + i) * 1000)).to.equal(i + 1);
+            expect(store24.getUpperBoundIdx((nowInSecs + i) * 1000)).to.equal(i + 1);
             i = NUM_RECORDS/2 - 154;
-            expect(store16.getUpperBoundIdx((nowInSecs + i) * 1000)).to.equal(i);
-            expect(store24.getUpperBoundIdx((nowInSecs + i) * 1000)).to.equal(i);
+            expect(store16.getUpperBoundIdx((nowInSecs + i) * 1000)).to.equal(i + 1);
+            expect(store24.getUpperBoundIdx((nowInSecs + i) * 1000)).to.equal(i + 1);
 
             // Check time at end of buffer:
             i = NUM_RECORDS - 1;
-            expect(store16.getUpperBoundIdx((nowInSecs + i) * 1000)).to.equal(i);
-            expect(store24.getUpperBoundIdx((nowInSecs + i) * 1000)).to.equal(i);
+            expect(store16.getUpperBoundIdx((nowInSecs + i) * 1000)).to.equal(i + 1);
+            expect(store24.getUpperBoundIdx((nowInSecs + i) * 1000)).to.equal(i + 1);
 
             // Check a time after end of buffer:
-            expect(store16.getUpperBoundIdx((nowInSecs + i + 3600) * 1000)).to.equal(i);
-            expect(store24.getUpperBoundIdx((nowInSecs + i + 3600) * 1000)).to.equal(i);
+            expect(store16.getUpperBoundIdx((nowInSecs + i + 3600) * 1000)).to.equal(i + 1);
+            expect(store24.getUpperBoundIdx((nowInSecs + i + 3600) * 1000)).to.equal(i + 1);
          });
 
         it('should know the number of records', function () {

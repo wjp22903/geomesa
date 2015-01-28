@@ -15,18 +15,18 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
 
     var _nDiv = 10 | 0;  // Number of divisions for styling.
     var _radiusRamps = _.map(_.range(1, 101), function (max) {
-        var radius = new Uint32Array(_nDiv + 1);
+        var radius = new Uint32Array(_nDiv);
         radius[0] = 1;
-        radius[_nDiv] = max;
-        makeLinearRamp(radius, 0, _nDiv);
+        radius[_nDiv - 1] = max;
+        makeLinearRamp(radius, 0, _nDiv - 1);
         return radius;
     });
 
-    var _alphaRamps = _.map(_.range(0, 101), function (max) {
-        var alpha = new Uint8Array(_nDiv + 1);
-        alpha[0] = 0x00;
-        alpha[_nDiv] = max / 100 * 0xff | 0;
-        makeLinearRamp(alpha, 0, _nDiv);
+    var _alphaRamps = _.map(_.range(1, 101), function (max) {
+        var alpha = new Uint8Array(_nDiv);
+        alpha[0] = 2;
+        alpha[_nDiv - 1] = max / 100 * 0xff | 0;
+        makeLinearRamp(alpha, 0, _nDiv - 1);
         return alpha;
     });
 
@@ -129,9 +129,9 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
             var iLower = store.getLowerBoundIdx(timeLower);
             var iUpper = store.getUpperBoundIdx(timeUpper);
 
-            var nDivIdx = ((iUpper - iLower) / _nDiv) | 0;
+            var nDivIdx = (_windowMillis / _nDiv) + 1 | 0;
             var radius = _radiusRamps[store.getPointRadius() - 1];
-            var alpha = _alphaRamps[store.getOpacity()];
+            var alpha = _alphaRamps[store.getOpacity() - 1];
 
             var south = _bounds.south;
             var north = _bounds.north;
@@ -139,16 +139,20 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
             var east = _bounds.east;
 
             var colorById = store.getViewState().colorById;
-            for (var i = iLower; i < iUpper; i++) {
+            for (var i = iLower + 1; i < iUpper; i++) {
                 if (colorById) {
                     var iCol = store.getId(i) % _numColors;
                     color = _colorRgbArray[iCol];
                 }
                 var lat = store.getLat(i);
                 var lon = store.getLon(i);
-                _iDiv = ((i - iLower) / nDivIdx) | 0;
-                if ( _iDiv < _nDiv &&
-                     lat > south &&
+                if (nDivIdx === 0) {
+                    _iDiv = _nDiv - 1;
+                } else {
+                    var millis = store.getTimeInSeconds(i) * 1000;
+                    _iDiv = (millis - timeLower) / nDivIdx | 0;
+                }
+                if ( lat > south &&
                      lat < north &&
                      lon > west &&
                      lon < east )
@@ -228,7 +232,7 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
 
             // Fill image buffer with data from each store in the list.
             _.eachRight(_stores, function (store) {
-                if (store.getViewState().toggledOn) {
+                if (store.getViewState().toggledOn && store.getOpacity() > 0) {
                     _fillImageBuffer(store);
                 }
             });
