@@ -70,6 +70,11 @@ module.exports = {
             images: [
                 'vendor/bower/jquery-ui/themes/smoothness/images/*'
             ]
-        }
+        },
+        map: [
+            'vendor/bower/jquery/dist/jquery.min.map',
+            'vendor/bower/angular/angular.min.js.map',
+            'vendor/bower/angular-animate/angular-animate.min.js.map'
+        ]
     }
 };

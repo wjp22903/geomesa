@@ -28,10 +28,8 @@ function ($log, $rootScope, $timeout, $http, $filter, $q,
             var requestParams = {
                 LAYERS: layer.Name
             };
-            var preload = Infinity;
             var wmsLayer = new WmsLayer(layer.Title,
                                         requestParams,
-                                        preload,
                                         (workspace.toLowerCase().indexOf('base') === 0 ? -20 : -10));
             var ol3Layer = wmsLayer.getOl3Layer();
             layer.mapLayerId = wmsLayer.id;
@@ -76,10 +74,8 @@ function ($log, $rootScope, $timeout, $http, $filter, $q,
                 });
             });
 
-            wmsLayer.styleDirectiveScope.$on(wmsLayer.id + ':isLoading', function (e, tilesCnt) {
+            wmsLayer.styleDirectiveScope.$on(wmsLayer.id + ':isLoading', function (e) {
                 layer.viewState.isLoading = true;
-                layer.viewState.numLoaded = tilesCnt.total - tilesCnt.loading;
-                layer.viewState.numTiles = tilesCnt.total;
                 e.stopPropagation();
             });
 

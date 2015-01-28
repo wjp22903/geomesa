@@ -15,7 +15,7 @@ function ($log, $interval, $timeout, MapLayer, CONFIG) {
         var _self = this;
         var _pollingInterval = 3600000;
         var _params = requestParams;
-        var _loading = false;
+        var _isLoading = false;
         var _refreshAfterLoad = false;
 
         var _olSource = new ol.source.ImageWMS({
@@ -23,11 +23,12 @@ function ($log, $interval, $timeout, MapLayer, CONFIG) {
             params: requestParams,
             imageLoadFunction: function (image, src) {
                 $timeout(function () {
-                    _loading = true;
+                    _isLoading = true;
                     _self.styleDirectiveScope.$emit(_self.id + ':isLoading');
+
                     image.listenOnce(goog.events.EventType.CHANGE, function (evt) {
-                        $timeout(function () {
-                            _loading = false;
+                        _self.styleDirectiveScope.$evalAsync(function () {
+                            _isLoading = false;
                             _self.styleDirectiveScope.$emit(_self.id + ':finishedLoading');
                             if (_refreshAfterLoad) {
                                 _refreshAfterLoad = false;
@@ -35,6 +36,7 @@ function ($log, $interval, $timeout, MapLayer, CONFIG) {
                             }
                         });
                     });
+
                     ol.source.Image.defaultImageLoadFunction.call(this, image, src);
                 });
             }
@@ -50,7 +52,7 @@ function ($log, $interval, $timeout, MapLayer, CONFIG) {
         _self.refresh = function (requestParams) {
             _params = requestParams || _params;
             _params.unique = _.now();
-            if (_loading) {
+            if (_isLoading) {
                 _refreshAfterLoad = true;
             } else if (_self.getOl3Layer().getVisible()) {
                 $log.debug(tag + name + ': refresh layer');

@@ -92,6 +92,14 @@ module.exports = function (grunt) {
                 expand: true
             }]
         },
+        build_vendor_maps: {
+            files: [{
+                src: ['<%= vendorFiles.map %>'],
+                dest: '<%= buildDir %>/',
+                cwd: '.',
+                expand: true
+            }]
+        },
         compile_assets: {
             files: [{
                 src: ['**'],
@@ -389,6 +397,7 @@ module.exports = function (grunt) {
         'copy:build_vendor_assets',
         'copy:build_appjs',
         'copy:build_vendorjs',
+        'copy:build_vendor_maps',
         'index:build'
     ]);
 
