@@ -8,7 +8,7 @@
     </div>
     <div ng-repeat="c in catMgr.getCategories()"
          ng-show="c.toggledOn"
-         style="margin:2px 4px;background-color:white;border:2px solid #ddd;border-radius:3px;">
+         class="category">
         <div style="background-color:#dddddd;">
             <i class="fa fa-fw fa-lg" ng-class="::c.iconClass"></i>
             {{::c.title | characters:30:true}}
@@ -19,8 +19,12 @@
             </st-widget-compiler>
         </div>
         <!-- category content added via st-widget-compiler -->
-        <st-widget-compiler widget-def="::c.contentDef"
-                            ng-if="::c.contentDef">
-        </st-widget-compiler>
+        <div st-category-resizable category="c" class="categoryResizable">
+            <div style="height:100%;overflow:auto;">
+                <st-widget-compiler widget-def="::c.contentDef"
+                                    ng-if="::c.contentDef">
+                </st-widget-compiler>
+            </div>
+        </div>
     </div>
 </div>

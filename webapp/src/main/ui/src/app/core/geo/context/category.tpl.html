@@ -1,29 +1,27 @@
-<div style="max-height:250px;overflow:auto;">
-    <div ng-if="workspaces | lodash:'isEmpty'" class="categoryGrouping">
-        <i>None</i>
-    </div>
-    <div ng-repeat="(workspace, layers) in workspaces" class="categoryGrouping">
-        <div class="categoryCell"><b>{{workspace}}</b></div>
-        <div ng-repeat="layer in layers" class="categoryGrouping">
-            <div class="categoryCell">
-                <div class="legendIconContainer">
-                    <img ng-src="{{layer.serverUrl || CONFIG.geoserver.defaultUrl + '/wms'}}?REQUEST=GetLegendGraphic&FORMAT=image/png&WIDTH=16&HEIGHT=16&LAYER={{layer.Name}}"
-                         ng-if="layer.queryable"/>
-                </div>
+<div ng-if="workspaces | lodash:'isEmpty'" class="categoryGrouping">
+    <i>None</i>
+</div>
+<div ng-repeat="(workspace, layers) in workspaces" class="categoryGrouping">
+    <div class="categoryCell"><b>{{workspace}}</b></div>
+    <div ng-repeat="layer in layers" class="categoryGrouping">
+        <div class="categoryCell">
+            <div class="legendIconContainer">
+                <img ng-src="{{layer.serverUrl || CONFIG.geoserver.defaultUrl + '/wms'}}?REQUEST=GetLegendGraphic&FORMAT=image/png&WIDTH=16&HEIGHT=16&LAYER={{layer.Name}}"
+                     ng-if="layer.queryable"/>
             </div>
-            <div class="categoryCell">
-                <st-toggle-map-layer visible="layer.viewState.isOnMap"
-                                     loading="layer.viewState.isLoading"
-                                     toggle="toggleLayer(layer, workspace)"></st-toggle-map-layer>
-            </div>
-            <div class="categoryCell">
-                <st-toggle-visibility ng-if="layer.viewState.isOnMap"
-                                      visible="layer.viewState.toggledOn"
-                                      toggle="toggleVisibility(layer)"></st-toggle-visibility>
-            </div>
-            <div class="categoryCell">
-                {{::layer.Title | characters:35:true}}
-            </div>
+        </div>
+        <div class="categoryCell">
+            <st-toggle-map-layer visible="layer.viewState.isOnMap"
+                                 loading="layer.viewState.isLoading"
+                                 toggle="toggleLayer(layer, workspace)"></st-toggle-map-layer>
+        </div>
+        <div class="categoryCell">
+            <st-toggle-visibility ng-if="layer.viewState.isOnMap"
+                                  visible="layer.viewState.toggledOn"
+                                  toggle="toggleVisibility(layer)"></st-toggle-visibility>
+        </div>
+        <div class="categoryCell">
+            {{::layer.Title | characters:35:true}}
         </div>
     </div>
 </div>

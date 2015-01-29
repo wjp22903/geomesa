@@ -74,6 +74,31 @@ function ($log, ol3Map, catMgr) {
     };
 }])
 
+.directive('stCategoryResizable',
+function () {
+    return {
+        restrict: 'A',
+        scope: {
+            category: '='
+        },
+        link: function (scope, element) {
+            element.children().css('max-height', (scope.category.height || 250) + 'px');
+            element.resizable({
+                handles: 's',
+                start: function (event, ui) {
+                    element.css('max-height', '');
+                    element.children().css('max-height', '');
+                },
+                stop: function (event, ui) {
+                    scope.$evalAsync(function () {
+                        scope.category.height = ui.size.height;
+                    });
+                }
+            });
+        }
+    };
+})
+
 .service('categoryManager', [
 function () {
     //2D array of categories
