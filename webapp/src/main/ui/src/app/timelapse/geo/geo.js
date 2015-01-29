@@ -248,7 +248,7 @@ function ($log, $timeout, $q, $http, $filter, wms, ol3Map, PollingImageWmsLayer,
                                         }
                                         // Configured live filter layers
                                         if (_.contains('live', keywordParts[2])) {
-                                            var found = _.find(CONFIG.map.liveOptions, {KeywordWorkspace: workspace, serverUrl: layer.serverUrl});
+                                            var found = _.find(CONFIG.map.liveOptions, {KeywordWorkspace: workspace});
                                             if (found) {
                                                 var options = CONFIG.map.liveOptions;
                                                 _.each(options, function (theOptions) {

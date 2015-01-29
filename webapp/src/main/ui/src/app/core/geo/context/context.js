@@ -30,42 +30,45 @@ function ($log, $rootScope, $timeout, $http, $filter, $q,
             };
             var wmsLayer = new WmsLayer(layer.Title,
                                         requestParams,
-                                        (workspace.toLowerCase().indexOf('base') === 0 ? -20 : -10));
+                                        (workspace.toLowerCase().indexOf('base') === 0 ? -20 : -10),
+                                        layer.serverUrl);
             var ol3Layer = wmsLayer.getOl3Layer();
             layer.mapLayerId = wmsLayer.id;
             layer.viewState.isOnMap = true;
             layer.viewState.toggledOn = ol3Layer.getVisible();
             wmsLayer.styleDirectiveScope.styleVars.iconClass = 'fa fa-fw fa-lg fa-compass';
             ol3Map.addLayer(wmsLayer);
-            layer.searchId = mapClickService.registerSearchable(function (coord, res) {
-                if (wmsLayer.getOl3Layer().getVisible()) {
-                    var url = wmsLayer.getOl3Layer().getSource().getGetFeatureInfoUrl(
-                        coord, res, CONFIG.map.projection, {
-                            INFO_FORMAT: 'application/json',
-                            FEATURE_COUNT: 999999
-                        }
-                    );
-                    return $http.get($filter('cors')(url, null, CONFIG.geoserver.omitProxy))
-                        .then(function (response) {
-                            return {
-                                name: layer.Title,
-                                records: _.pluck(response.data.features, 'properties'),
-                                layerFill: {
-                                    display: 'none'
-                                }
-                            };
-                        }, function (response) {
-                            return {
-                                name: layer.Title,
-                                records: [],
-                                isError: true,
-                                reason: 'Server error'
-                            };
-                        });
-                } else {
-                    return $q.when({name: layer.Title, records:[]}); //empty results
-                }
-            });
+            if (layer.queryable) {
+                layer.searchId = mapClickService.registerSearchable(function (coord, res) {
+                    if (wmsLayer.getOl3Layer().getVisible()) {
+                        var url = wmsLayer.getOl3Layer().getSource().getGetFeatureInfoUrl(
+                            coord, res, CONFIG.map.projection, {
+                                INFO_FORMAT: 'application/json',
+                                FEATURE_COUNT: 999999
+                            }
+                        );
+                        return $http.get($filter('cors')(url, null, CONFIG.geoserver.omitProxy))
+                            .then(function (response) {
+                                return {
+                                    name: layer.Title,
+                                    records: _.pluck(response.data.features, 'properties'),
+                                    layerFill: {
+                                        display: 'none'
+                                    }
+                                };
+                            }, function (response) {
+                                return {
+                                    name: layer.Title,
+                                    records: [],
+                                    isError: true,
+                                    reason: 'Server error'
+                                };
+                            });
+                    } else {
+                        return $q.when({name: layer.Title, records:[]}); //empty results
+                    }
+                });
+            }
 
             // Update viewState on layer visibility change.
             ol3Layer.on('change:visible', function () {
@@ -102,44 +105,49 @@ function ($log, $rootScope, $timeout, $http, $filter, $q,
     };
 
     wms.getCapabilities(CONFIG.geoserver.defaultUrl, CONFIG.geoserver.omitProxy)
-        .then(function (wmsCap) {
-            _.each(wmsCap.Capability.Layer.Layer, function (l) {
-                _.each(l.KeywordList, function (keyword) {
-                    var keywordParts = keyword.split('.');
-                    if (keywordParts.length > 2 && keywordParts[0] === CONFIG.app.context &&
-                            keywordParts[1] === 'context') {
-                        var layer = _.cloneDeep(l);
-                        layer.viewState = {
-                            isOnMap: false,
-                            toggledOn: false,
-                            isLoading: false
-                        };
-                        layer.getTooltip = function () {
-                            if (layer.viewState.isOnMap) {
-                                if (layer.viewState.isLoading) {
-                                    return layer.viewState.numLoaded + '/' + layer.viewState.numTiles + ' loaded';
-                                }
-                                return 'Remove from map';
-                            }
-                            return 'Add to map';
-                        };
-                        var workspace = keywordParts[2];
-                        if (_.isArray(categoryScope.workspaces[workspace])) {
-                            categoryScope.workspaces[workspace].push(layer);
-                        } else {
-                            categoryScope.workspaces[workspace] = [layer];
+    .then(function (wmsCap) {
+        $log.debug(tag + 'GetCapabilities request has returned');
+
+        var layers = wmsCap.Capability.Layer.Layer;
+        _.each(CONFIG.map.extraLayers, function (layer) {
+            layers.push(layer);
+        });
+
+        _.each(layers, function (l) {
+            _.each(l.KeywordList, function (keyword) {
+                var keywordParts = keyword.split('.');
+                if (keywordParts.length > 2 && keywordParts[0] === CONFIG.app.context &&
+                        keywordParts[1] === 'context') {
+                    var layer = _.cloneDeep(l);
+                    layer.viewState = {
+                        isOnMap: false,
+                        toggledOn: false,
+                        isLoading: false
+                    };
+                    layer.getTooltip = function () {
+                        if (layer.viewState.isOnMap) {
+                            return 'Remove from map';
                         }
-                        //Turn on configured layers
-                        if (_.find(CONFIG.map.initLayers, {Name: layer.Name, serverUrl: layer.serverUrl})) {
-                            layer.viewState.isOnMap = true;
-                            layer.viewState.toggledOn = true;
-                            categoryScope.toggleLayer(layer, workspace);
-                        }
-                        return false;
+                        return 'Add to map';
+                    };
+                    var workspace = keywordParts[2];
+                    if (_.isArray(categoryScope.workspaces[workspace])) {
+                        categoryScope.workspaces[workspace].push(layer);
+                    } else {
+                        categoryScope.workspaces[workspace] = [layer];
                     }
-                });
+                    //Turn on configured layers
+                    if (_.find(CONFIG.map.initLayers, {Name: layer.Name, serverUrl: layer.serverUrl})) {
+                        layer.viewState.isOnMap = true;
+                        layer.viewState.toggledOn = true;
+                        categoryScope.toggleLayer(layer, workspace);
+                    }
+                    return false;
+                }
             });
         });
+    });
+
     catMgr.addCategory(0, new Category(0, 'Context', 'fa-compass',
         new WidgetDef('st-context-geo-category', categoryScope), null, true));
 }])

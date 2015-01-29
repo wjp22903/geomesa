@@ -527,6 +527,9 @@
                 <app.title>DragonSpell</app.title>
                 <classification.text>Dynamic Page - Highest Possible Classification is TOP SECRET//SI//TK//NOFORN</classification.text>
                 <classification.level>sci</classification.level>
+                <map.initLayers>[]</map.initLayers>
+                <map.extraLayers>[]</map.extraLayers>
+                <map.liveOptions>[]</map.liveOptions>
             </properties>
             <build>
                 <plugins>
@@ -566,6 +569,9 @@
                 <app.title>Thresher</app.title>
                 <classification.text>Dynamic Page - Highest Possible Classification is TOP SECRET//SI//TK//NOFORN</classification.text>
                 <classification.level>sci</classification.level>
+                <map.initLayers>[]</map.initLayers>
+                <map.extraLayers>[]</map.extraLayers>
+                <map.liveOptions>[]</map.liveOptions>
             </properties>
         </profile>
 

@@ -8,7 +8,7 @@ angular.module('stealth.core.geo.ol3.layers')
 function ($log, $timeout, MapLayer, CONFIG) {
     var tag = 'stealth.core.geo.ol3.layers.WmsLayer: ';
     $log.debug(tag + 'factory started');
-    var WmsLayer = function (name, requestParams, zIndexHint) {
+    var WmsLayer = function (name, requestParams, zIndexHint, wmsUrl) {
         var _self = this;
         var _isLoading = false;
 
@@ -17,7 +17,7 @@ function ($log, $timeout, MapLayer, CONFIG) {
         }
 
         var _olSource = new ol.source.ImageWMS({
-            url: CONFIG.geoserver.defaultUrl + '/wms',
+            url: wmsUrl || (CONFIG.geoserver.defaultUrl + '/wms'),
             params: requestParams,
             imageLoadFunction: function (image, src) {
                 $timeout(function () {
