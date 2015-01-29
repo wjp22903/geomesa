@@ -1,17 +1,32 @@
 angular.module('stealth.static.wizard')
 
 .service('staticDataWiz', [
+'$log',
 '$rootScope',
 'ol3Map',
-'stealth.core.geo.ol3.layers.MapLayer',
 'wizardManager',
+'wfs',
+'stealth.core.geo.ol3.layers.MapLayer',
 'stealth.core.wizard.Wizard',
 'stealth.core.wizard.Step',
 'stealth.core.utils.WidgetDef',
 'CONFIG',
-function ($rootScope, ol3Map, MapLayer, wizardManager, Wizard, Step, WidgetDef, CONFIG) {
+function ($log, $rootScope,
+          ol3Map, wizardManager, wfs,
+          MapLayer, Wizard, Step, WidgetDef, CONFIG) {
     this.launch = function (layer) {
         var wizardScope = $rootScope.$new();
+        wizardScope.layer = layer;
+        wizardScope.featureTypeData = "pending";
+        var ftdPromise =
+            wfs.getFeatureTypeDescription(CONFIG.geoserver.defaultUrl, layer.Name, CONFIG.geoserver.omitProxy)
+            .then(function (data) {
+                if (data.error) {
+                    return 'unavailable';
+                }
+                return data;
+            });
+
         angular.extend(wizardScope, {
             style: {
                 'background-color': '#0099CC'
@@ -67,7 +82,12 @@ function ($rootScope, ol3Map, MapLayer, wizardManager, Wizard, Step, WidgetDef, 
                     }
                 ),
                 new Step('Set options', new WidgetDef('st-static-options-wiz', wizardScope), null, true,
-                    null, function (stepNum, success) {
+                    function (stepNum) {
+                        ftdPromise.then(function (data) {
+                            wizardScope.featureTypeData = data;
+                        });
+                    },
+                    function (stepNum, success) {
                         if (success) {
                             var cql = wizardScope.geoFeature ? 'INTERSECTS(geom, ' +
                                 (new ol.format.WKT()).writeFeature(wizardScope.geoFeature) +
