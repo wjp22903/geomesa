@@ -13,7 +13,6 @@ div.categoryResizable
 
 div.categoryGrouping
     padding 1px
-    white-space nowrap
     margin 1px
     border-radius 3px
     border 1px dotted #ccc
@@ -46,13 +45,21 @@ div.categoryCell
         border 1px solid white
         &:hover
             border 1px dotted #444
-
+    .heatmap
+        display inline-block
+        height 16px
+        width 16px
+        background radial-gradient(black 2%, #FF5F5F 40%, white 80%)
+        border 1px solid white
 
 div.legendIconContainer
-    height 16px
-    width 16px
-    overflow hidden
     display inline-block
+    height 20px
+
+div.cropIcon
+    width 16px
+    height 16px
+    overflow hidden
 
 span.catGroupButton
     padding 0

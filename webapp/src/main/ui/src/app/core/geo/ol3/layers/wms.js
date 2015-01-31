@@ -12,10 +12,6 @@ function ($log, $timeout, MapLayer, CONFIG) {
         var _self = this;
         var _isLoading = false;
 
-        if (_.isUndefined(requestParams.BUFFER)) {
-            requestParams.BUFFER = 5; // pixels
-        }
-
         var _olSource = new ol.source.ImageWMS({
             url: wmsUrl || (CONFIG.geoserver.defaultUrl + '/wms'),
             params: requestParams,
@@ -42,6 +38,11 @@ function ($log, $timeout, MapLayer, CONFIG) {
 
         $log.debug(tag + 'new WmsLayer(' + arguments[0] + ')');
         MapLayer.apply(this, [name, _olLayer, zIndexHint]);
+
+        _self.updateRequestParams = function (params) {
+            params.unique = _.now();
+            _olSource.updateParams(params);
+        };
     };
     WmsLayer.prototype = Object.create(MapLayer.prototype);
 

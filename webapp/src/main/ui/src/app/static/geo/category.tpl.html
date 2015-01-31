@@ -1,24 +1,60 @@
-<div ng-if="workspaces | lodash:'isEmpty'" >
-    <i>None</i>
-</div>
-<div ng-repeat="(workspace, layers) in workspaces" class="categoryGrouping">
-    <b>{{::workspace}}</b>
-    <div ng-repeat="layer in layers" class="categoryGrouping categoryIndent">
-        <i>{{::layer.Title || layer.Name | characters:40:true}}</i>
-        <span class="btn btn-default fa-stack toggleButton"
-              ng-if="layer.queryable"
-              ng-click="launchLayerFilterWizard(layer)">
-            <i class="fa fa-fw fa-plus fa-stack-1x text-primary"></i>
-        </span>
-        <div ng-repeat="filterLayer in layer.filterLayers" class="categoryGrouping categoryIndent">
-            <input type="checkbox" ng-model="filterLayer.toggledOn" ng-change="toggleLayer(layer, filterLayer)">
-            {{::filterLayer.name}}
-            <span class="btn btn-default fa-stack toggleButton"
-                  ng-if="filterLayer.removeable" ng-click="removeLayer(layer, filterLayer)">
-                <i class="fa fa-fw fa-close fa-stack-1x text-danger"></i>
-            </span>
-            <div style="color:#888;font-style:italic;font-size:0.9em;margin-left:16px;">
-                {{::filterLayer.cqlFilter}}
+<div>
+    <div ng-hide="workspaces | lodash:'isEmpty'" class="categoryGrouping">
+        <div ng-repeat="(workspace, layers) in workspaces" class="categoryGrouping">
+            <div class="categoryCell"><b>{{::workspace}}</b></div>
+            <div ng-repeat="layer in layers" class="categoryGrouping categoryIndent">
+                <div class="categoryCell">
+                    <i>{{::layer.Title || layer.Name | characters:35:true}}</i>
+                </div>
+                <div class="categoryCell">
+                    <span class="btn btn-default fa-stack toggleButton"
+                          ng-if="layer.queryable"
+                          ng-click="launchLayerFilterWizard(layer)"
+                          tooltip-html-unsafe="<span style='white-space:nowrap'>Add layer</span>"
+                          tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
+                          tooltip-trigger="mouseenter"
+                          style="line-height:6px;">
+                        <i class="fa fa-fw fa-plus fa-stack-1x text-primary"></i>
+                    </span>
+                </div>
+
+                <div ng-repeat="filterLayer in layer.filterLayers" class="categoryGrouping">
+                    <div class="categoryCell">
+                        <div class="legendIconContainer" style="line-height:0px">
+                            <img ng-src="{{getIconImgSrc(filterLayer)}}"
+                                 ng-if="layer.queryable && filterLayer.viewState.markerStyle === 'point'"/>
+                        </div>
+                        <div ng-if="filterLayer.viewState.markerStyle === 'heatmap'"
+                             class="heatmap"
+                             style="vertical-align:baseline;margin-left:-4px;"></div>
+                    </div>
+                    <div class="categoryCell">
+                        <st-toggle-map-layer visible="filterLayer.viewState.isOnMap"
+                                             loading="filterLayer.viewState.isLoading"
+                                             toggle="toggleLayer(layer, filterLayer)"></st-toggle-map-layer>
+                    </div>
+                    <div class="categoryCell">
+                        <st-toggle-visibility ng-if="filterLayer.viewState.isOnMap"
+                                              visible="filterLayer.viewState.toggledOn"
+                                              toggle="toggleVisibility(filterLayer)"></st-toggle-visibility>
+                    </div>
+                    <div class="categoryCell" style="width:100%;">{{::filterLayer.title}}</div>
+                    <div class="categoryCell" style="text-align:right;">
+                        <span class="btn btn-default fa-stack toggleButton"
+                              ng-if="filterLayer.viewState.isRemovable"
+                              ng-click="removeLayer(layer, filterLayer)">
+                            <i class="fa fa-fw fa-close fa-stack-1x text-danger"></i>
+                        </span>
+                    </div>
+                    <div ng-if="::filterLayer.cqlFilter">
+                        <div class="categoryCell categoryIndent">
+                            <div>CQL filter used:</div>
+                            <textarea readonly
+                                      ng-model="::filterLayer.cqlFilter"
+                                      style="resize:vertical;border-radius:3px;width:275px;outline:none;background-color:#e5e5e5;overflow:hidden"></textarea>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

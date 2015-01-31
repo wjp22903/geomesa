@@ -5,16 +5,27 @@ angular.module('stealth.static.wizard')
 '$rootScope',
 'ol3Map',
 'wizardManager',
+'colors',
 'wfs',
-'stealth.core.geo.ol3.layers.MapLayer',
 'stealth.core.wizard.Wizard',
 'stealth.core.wizard.Step',
 'stealth.core.utils.WidgetDef',
 'CONFIG',
 function ($log, $rootScope,
-          ol3Map, wizardManager, wfs,
-          MapLayer, Wizard, Step, WidgetDef, CONFIG) {
-    this.launch = function (layer) {
+          ol3Map, wizardManager, colors, wfs,
+          Wizard, Step, WidgetDef, CONFIG) {
+
+    var markerShapes = ['circle', 'square', 'triangle', 'star', 'cross', 'x'];
+    var counter = 0;
+    function getShape () {
+        var shape = markerShapes[counter++ % 6];
+        if (counter % 6 === 0) {
+            counter = 0;
+        }
+        return shape;
+    }
+
+    this.launch = function (layer, toggleLayer) {
         var wizardScope = $rootScope.$new();
         wizardScope.layer = layer;
         wizardScope.featureTypeData = "pending";
@@ -29,7 +40,7 @@ function ($log, $rootScope,
 
         angular.extend(wizardScope, {
             style: {
-                'background-color': '#0099CC'
+                'background-color': colors.getColor()
             }
         });
 
@@ -93,29 +104,31 @@ function ($log, $rootScope,
                                 (new ol.format.WKT()).writeFeature(wizardScope.geoFeature) +
                                 ')' : null;
                             cql = _.compact([wizardScope.cqlFilter, cql]).join(' AND ');
+
                             var filterLayer = {
-                                name: wizardScope.name,
-                                toggledOn: true,
-                                removeable: true,
+                                title: wizardScope.title,
+                                layerName: layer.Name,
+                                layerTitle: layer.Title,
+                                wmsUrl: layer.wmsUrl,
+                                queryable: layer.queryable,
+                                viewState: {
+                                    isOnMap: false,
+                                    toggledOn: false,
+                                    isLoading: false,
+                                    isRemovable: true,
+                                    markerStyle: 'point',
+                                    markerShape: getShape(),
+                                    size: 9,
+                                    fillColor: wizardScope.style['background-color']
+                                },
                                 cqlFilter: _.isEmpty(cql) ? null : cql,
                                 style: 'stealth_dataPoints',
                                 env: wizardScope.style['background-color'] ? 'color:' + wizardScope.style['background-color'].substring(1) : null
                             };
+
                             layer.filterLayers.push(filterLayer);
-                            var mapLayer = new MapLayer(layer.Title + ' - ' + filterLayer.name, new ol.layer.Tile({
-                                source: new ol.source.TileWMS({
-                                    url: CONFIG.geoserver.defaultUrl + '/wms',
-                                    params: {
-                                        LAYERS: layer.Name,
-                                        CQL_FILTER: filterLayer.cqlFilter,
-                                        STYLES: filterLayer.style,
-                                        ENV: filterLayer.env,
-                                        BUFFER: 6
-                                    }
-                                })
-                            }));
-                            filterLayer.mapLayerId = mapLayer.id;
-                            ol3Map.addLayer(mapLayer);
+
+                            toggleLayer(layer, filterLayer);
                         }
                     }
                 )
