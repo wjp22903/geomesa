@@ -32,6 +32,7 @@ function ($log, $rootScope, $timeout, $http, $filter, $q,
                                         requestParams,
                                         (workspace.toLowerCase().indexOf('base') === 0 ? -20 : -10),
                                         layer.serverUrl);
+            wmsLayer.applyCql(layer.cqlFilter);
             var ol3Layer = wmsLayer.getOl3Layer();
             layer.mapLayerId = wmsLayer.id;
             layer.viewState.isOnMap = true;
@@ -102,6 +103,15 @@ function ($log, $rootScope, $timeout, $http, $filter, $q,
         var mapLayer = ol3Map.getLayerById(layer.mapLayerId);
         var ol3Layer = mapLayer.getOl3Layer();
         ol3Layer.setVisible(!ol3Layer.getVisible());
+    };
+
+    categoryScope.updateLayerCql = function (layer) {
+        if (!_.isUndefined(layer.mapLayerId)) {
+            var mapLayer = ol3Map.getLayerById(layer.mapLayerId);
+            if (mapLayer) {
+                mapLayer.applyCql(layer.cqlFilter);
+            }
+        }
     };
 
     wms.getCapabilities(CONFIG.geoserver.defaultUrl, CONFIG.geoserver.omitProxy)

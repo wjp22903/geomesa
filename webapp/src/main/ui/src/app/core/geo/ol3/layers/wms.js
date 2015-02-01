@@ -43,7 +43,13 @@ function ($log, $timeout, MapLayer, CONFIG) {
             params.unique = _.now();
             _olSource.updateParams(params);
         };
-    };
+
+        this.applyCql = function (cql) {
+            this.updateRequestParams({
+                CQL_FILTER: (_.isEmpty(cql) || _.isEmpty(cql.trim())) ? null : cql
+            });
+        };
+     };
     WmsLayer.prototype = Object.create(MapLayer.prototype);
 
     return WmsLayer;

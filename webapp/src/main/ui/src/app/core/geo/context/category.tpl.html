@@ -24,6 +24,16 @@
             <div class="categoryCell">
                 {{::layer.Title | characters:35:true}}
             </div>
+            <div class="categoryIndent" ng-class="{'ng-hide': !layer.queryable}">
+                <input type="text" style="margin-left:30px;width:200px;" placeholder="CQL filter" ng-model="layer.cqlFilter">
+                <span class="btn btn-default fa-stack toggleButton"
+                      ng-click="updateLayerCql(layer)"
+                      tooltip-html-unsafe="<span style='white-space:nowrap'>Apply filter</span>"
+                      tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
+                      tooltip-trigger="mouseenter">
+                    <i class="fa fa-fw fa-arrow-circle-right fa-stack-1x text-primary"></i>
+                </span>
+            </div>
         </div>
     </div>
 </div>
