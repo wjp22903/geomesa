@@ -54,8 +54,11 @@ function ($log, $timeout, $q, $http, $filter, wms, ol3Map, PollingImageWmsLayer,
             var fileReader = new FileReader();
             fileReader.onload = function (e) {
                 $timeout(function () { // Prevents '$apply already in progress' error
-                    currentStore.setArrayBuffer(fileReader.result);
-                    $scope.historicalLayer.setDtgBounds();
+                    var arrayBuffer = fileReader.result;
+                    if (arrayBuffer.byteLength > 0) {
+                        currentStore.setArrayBuffer(arrayBuffer);
+                        $scope.historicalLayer.setDtgBounds();
+                    }
                 });
             };
 
@@ -66,7 +69,13 @@ function ($log, $timeout, $q, $http, $filter, wms, ol3Map, PollingImageWmsLayer,
             };
 
             $scope.removeHistorical = function (store) {
+                store.destroy();
                 $scope.historicalLayer.removeStore(store);
+
+                // In FF, FileReader holds on to the ArrayBuffer that was loaded last.
+                // This work-around will force fileReader.result to point to a zero-length ArrayBuffer.
+                var ui8a = new Uint8Array([]);
+                fileReader.readAsArrayBuffer(new Blob([ui8a.buffer]));
             };
 
             $scope.collapseAllLiveFilterLayers = function (layers) {

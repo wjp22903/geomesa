@@ -125,6 +125,20 @@ function ($log, $q, colors) {
             this.setArrayBuffer(arrayBuffer);
         }
 
+        this.destroy = function () {
+            _arrayBuffer = undefined;
+            _idView = undefined;
+            _secondsView = undefined;
+            _latView = undefined;
+            _lonView = undefined;
+            _recordSizeBytes = undefined;
+            _stride = undefined;
+            _lastRecordIndex = undefined;
+            _minTimeMillis = undefined;
+            _maxTimeMillis = undefined;
+            _numRecords = undefined;
+        };
+
         this.searchPointAndTime = function (coord, res, timeMillis, windowMillis) {
             var result = {
                 name: _name,
