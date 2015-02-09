@@ -575,6 +575,33 @@
             </properties>
         </profile>
 
+        <profile>
+            <id>jenkins-jboss-ci</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.jboss.as.plugins</groupId>
+                        <artifactId>jboss-as-maven-plugin</artifactId>
+                        <version>7.1.1.Final</version>
+                        <executions>
+                            <execution>
+                                <phase>install</phase>
+                                <goals>
+                                    <goal>deploy</goal>
+                                </goals>
+                                <configuration>
+                                    <hostname>stealth.ccri.com</hostname>
+                                    <port>9999</port>
+                                    <username>root</username>
+                                    <password>toor</password>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
         <!-- The remaining profiles are auto-activated based on OS.  No reason to explicitly activate them. -->
         <profile>
             <id>macos-x86</id>

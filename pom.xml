@@ -59,7 +59,7 @@
             }
         </app.supported.browsers>
 
-        <geoserver.url>http://dgeo:8080/geoserver</geoserver.url>
+        <geoserver.url>http://dgeo.ccri.com:8080/geoserver</geoserver.url>
         <geoserver.omitProxy>false</geoserver.omitProxy>
 
         <grunt.target>--target=dev</grunt.target>
@@ -69,7 +69,7 @@
         <map.initLayers>
             [
                 {
-                    serverUrl: "http://dgeo:8080/geoserver/wms",
+                    serverUrl: "http://dgeo.ccri.com:8080/geoserver/wms",
                     Name: "mapproxy:globe.osm.default"
                 }
             ]
@@ -77,7 +77,7 @@
         <map.extraLayers>
             [
                 {
-                    serverUrl: "http://dgeo:8080/geoserver/wms",
+                    serverUrl: "http://dgeo.ccri.com:8080/geoserver/wms",
                     Name: "mapproxy:globe.osm.default",
                     Title: "Globe OSM Mapnik",
                     KeywordList: [
@@ -86,7 +86,7 @@
                     queryable: false
                 },
                 {
-                    serverUrl: "http://dgeo:8080/geoserver/wms",
+                    serverUrl: "http://dgeo.ccri.com:8080/geoserver/wms",
                     Name: "tiger:poi",
                     Title: "Manhattan Points of Interest",
                     KeywordList: [
