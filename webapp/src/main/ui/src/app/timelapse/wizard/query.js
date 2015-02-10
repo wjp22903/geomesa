@@ -96,7 +96,7 @@ function (wfs, wms, CONFIG) {
             .then(
                 function (data) {
                     _self.featureTypeData = data;
-                    if (data.error) { // Response is successfull,
+                    if (data.error) { // Response is successful,
                                       // but no description is
                                       // found for the type.
                         _self.featureTypeData = 'unavailable';

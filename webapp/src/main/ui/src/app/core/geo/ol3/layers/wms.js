@@ -12,6 +12,10 @@ function ($log, $timeout, MapLayer, CONFIG) {
         var _self = this;
         var _isLoading = false;
 
+        if (_.isUndefined(requestParams.VERSION)) {
+            requestParams.VERSION = '1.1.1';
+        }
+
         var _olSource = new ol.source.ImageWMS({
             url: wmsUrl || (CONFIG.geoserver.defaultUrl + '/wms'),
             params: requestParams,

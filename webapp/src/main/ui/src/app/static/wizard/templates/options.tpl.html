@@ -1,9 +1,7 @@
-<ng-form name="wizardForm">
-    <p>
-        Set additional options for finding and displaying data.
-    </p>
-    <input type="text" placeholder="CQL filter" ng-model="cqlFilter" style="width:400px;">
-    <div ng-switch="featureTypeData"
+<ng-form name="staticOptionsForm">
+    <label>Additional filter:</label>
+    <input type="text" placeholder="CQL filter" ng-model="query.params.cql" style="width:399px">
+    <div ng-switch="query.featureTypeData"
          style="color:black;background:#eee;border 1px solid #aaa;border-radius:4px;padding:0;margin-left:12px;margin-right:12px;margin-top:10px">
         <div ng-switch-when="pending">
             <i class="fa fa-spinner fa-spin fa-lg" style="padding-left:5px;padding-right:5px"></i>
@@ -13,12 +11,12 @@
             <i class="fa fa-warning"></i> There is no feature type description for this layer.
         </div>
         <div ng-switch-default>
-            <section ng-show="featureTypeData !== 'unavailable'"
-                ng-repeat="featureType in featureTypeData.featureTypes">
+            <section ng-show="query.featureTypeData !== 'unavailable'"
+                     ng-repeat="featureType in query.featureTypeData.featureTypes">
                 <div style="background:#aaa;border-top-left-radius:4px;border-top-right-radius:4px;padding:0 4px;">
                     Properties for <strong>{{ layer.Title }}</strong>
                 </div>
-                <div style="max-height:175px;overflow:auto;padding:0 10px;">
+                <div style="max-height:250px;overflow:auto;padding:0 10px;">
                     <table class="table-condensed">
                         <tr ng-repeat="property in featureType.properties">
                             <td>{{ property.name }}</td>
@@ -30,13 +28,38 @@
         </div>
     </div>
     <hr>
-    <label>Color: </label>
-    <span class="colorpickerBtn" ng-style="style"
-          colorpicker colorpicker-position="bottom"
-          ng-model="style['background-color']"></span>
+    <img ng-src="{{getIconImgSrc(layer)}}" ng-if="layer.queryable && query.params.markerStyle === 'point'"/>
+    <div ng-if="query.params.markerStyle === 'heatmap'" class="heatmap" style="vertical-align:middle;"></div>
+    <label>Style:</label>
+    <select class="form-control input-sm"
+            style="width:92px;display:inline"
+            ng-model="query.params.markerStyle"
+            ng-options="style for style in markerStyles"></select>
+
+    <span ng-if="query.params.markerStyle === 'point'">
+        <label>Marker:</label>
+        <select class="form-control input-sm"
+                style="width:92px;display:inline"
+                ng-model="query.params.markerShape"
+                ng-options="shape for shape in markerShapes"></select>
+
+        <label>Size:</label>
+        <input type="number" ui-jq="spinner"
+               class="form-control input-sm"
+               style="height:21px"
+               ng-model="query.params.size"
+               min="1" max="100">
+
+        <label>Color:</label>
+        <span class="colorpickerBtn" ng-style="style"
+              style="margin-left:2px"
+              colorpicker colorpicker-position="bottom"
+              ng-model="style['background-color']"
+              ng-change="query.params.fillColor = style['background-color']"></span>
+    </span>
     <p style="margin-top:20px;">
         Give this Data Layer a meaningful name.<br>
     </p>
     <label>Name: </label>
-    <input type="text" placeholder="Layer name" ng-model="title" style="width:250px;" required>
+    <input type="text" placeholder="Layer name" ng-model="query.params.title" style="width:300px;" required>
 </ng-form>

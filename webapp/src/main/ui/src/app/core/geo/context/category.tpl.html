@@ -7,7 +7,7 @@
         <div ng-repeat="layer in layers" class="categoryGrouping">
             <div class="categoryCell">
                 <div class="legendIconContainer cropIcon">
-                    <img ng-src="{{layer.serverUrl || CONFIG.geoserver.defaultUrl + '/wms'}}?REQUEST=GetLegendGraphic&FORMAT=image/png&WIDTH=16&HEIGHT=16&LAYER={{layer.Name}}"
+                    <img ng-src="{{layer.serverUrl || CONFIG.geoserver.defaultUrl + '/wms'}}?REQUEST=GetLegendGraphic&FORMAT=image/png&WIDTH=16&HEIGHT=16&TRANSPARENT=true&LAYER={{layer.Name}}"
                          ng-if="layer.queryable"/>
                 </div>
             </div>

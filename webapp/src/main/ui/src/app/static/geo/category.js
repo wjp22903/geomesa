@@ -8,7 +8,7 @@ angular.module('stealth.static.geo', [
 '$rootScope',
 '$timeout',
 'categoryManager',
-'staticDataWiz',
+'staticLayerWizard',
 'wms',
 'ol3Map',
 'colors',
@@ -34,14 +34,14 @@ function ($log, $rootScope, $timeout,
     function updateIconImgSrc (filterLayer) {
         var url = filterLayer.wmsUrl || CONFIG.geoserver.defaultUrl + '/wms';
         iconImgSrc = url +
-                     "?REQUEST=GetLegendGraphic&FORMAT=image/png&WIDTH=16&HEIGHT=16&LAYER=" +
+                     "?REQUEST=GetLegendGraphic&FORMAT=image/png&WIDTH=16&HEIGHT=16&TRANSPARENT=true&LAYER=" +
                      filterLayer.layerName +
                      "&ENV=" + getRequestEnv(filterLayer.viewState.fillColor,
                                              filterLayer.viewState.size,
                                              filterLayer.viewState.markerShape);
-                     if (!_.isUndefined(filterLayer.style)) {
-                         iconImgSrc += "&STYLE=" + filterLayer.style;
-                     }
+        if (!_.isUndefined(filterLayer.style)) {
+            iconImgSrc += "&STYLE=" + filterLayer.style;
+        }
     }
     var getIconImgSrc = function (filterLayer) {
         updateIconImgSrc(filterLayer);
@@ -68,24 +68,17 @@ function ($log, $rootScope, $timeout,
             };
             updateIconImgSrc(filterLayer);
 
-            var mapLayer = new WmsLayer(filterLayer.title + ' - ' + filterLayer.layerTitle, requestParams);
+            var mapLayer = new WmsLayer(filterLayer.title + ' - ' +
+                                        (filterLayer.layerTitle || filterLayer.layerName),
+                                        requestParams);
 
             var updateRequestParams = function (filterLayer) {
                 var markerStyle = filterLayer.viewState.markerStyle;
                 filterLayer.style = stealthMarkerStyles[markerStyle];
                 requestParams.STYLES = filterLayer.style;
-                switch (markerStyle) {
-                    case 'heatmap':
-                        requestParams.VERSION = '1.1.1';
-                        delete requestParams.ENV;
-                        break;
-                    default:
-                        requestParams.VERSION = '1.3.0';
-                        requestParams.ENV = getRequestEnv(filterLayer.viewState.fillColor,
-                                                          filterLayer.viewState.size,
-                                                          filterLayer.viewState.markerShape);
-                        break;
-                }
+                requestParams.ENV = getRequestEnv(filterLayer.viewState.fillColor,
+                                                  filterLayer.viewState.size,
+                                                  filterLayer.viewState.markerShape);
                 mapLayer.updateRequestParams(requestParams);
             };
 
