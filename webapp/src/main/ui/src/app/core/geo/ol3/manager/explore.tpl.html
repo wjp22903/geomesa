@@ -12,6 +12,11 @@
         <div style="background-color:#dddddd;">
             <i class="fa fa-fw fa-lg" ng-class="::c.iconClass"></i>
             {{::c.title | characters:30:true}}
+            <span class="btn btn-default fa-stack toggleButton pull-right"
+                  ng-class="{'ng-hide': !c.closable}"
+                  ng-click="catMgr.removeCategory(c.id)">
+                <i class="fa fa-fw fa-remove fa-stack-1x text-danger"></i>
+            </span>
             <!-- non-standard header elements added via st-widget-compiler -->
             <st-widget-compiler widget-def="::c.toolDef"
                                 class="pull-right"

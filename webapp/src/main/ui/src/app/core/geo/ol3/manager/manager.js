@@ -112,11 +112,16 @@ function () {
         } else {
             _categories[level] = [category];
         }
+        return category;
     };
     this.removeCategory = function (id) {
         _.each(_categories, function (level) {
             _.remove(level, function (c) {
-                return c.id === id;
+                var match = c.id === id;
+                if (match && _.isFunction(c.onClose)) {
+                    c.onClose();
+                }
+                return match;
             });
         });
     };
@@ -134,7 +139,7 @@ function () {
 .factory('stealth.core.geo.ol3.manager.Category', [
 function () {
     var _idSeq = 0;
-    var Category = function (order, title, iconClass, contentDef, toolDef, toggledOn) {
+    var Category = function (order, title, iconClass, contentDef, toolDef, toggledOn, closable, onClose) {
         this.id = _idSeq++;
         this.order = order;
         this.iconClass = iconClass;
@@ -142,6 +147,8 @@ function () {
         this.contentDef = contentDef;
         this.toolDef = toolDef;
         this.toggledOn = toggledOn;
+        this.closable = closable;
+        this.onClose = onClose;
     };
     return Category;
 }])
