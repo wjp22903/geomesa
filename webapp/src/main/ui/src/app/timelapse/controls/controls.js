@@ -57,6 +57,7 @@ function ($log, $interval, $timeout, $rootScope) {
         unit: units[0], // seconds
         toMillis: toMillis
     };
+    dtg.step = 1;
     dtg.millis = dtg.value * 1000; // convert from seconds
     dtg.notifyListeners = function (millis) {
         notifyListeners(dtgListeners, millis);
@@ -69,6 +70,7 @@ function ($log, $interval, $timeout, $rootScope) {
         unit: units[1], // minutes
         toMillis: toMillis
     };
+    window.step = 1;
     window.millis = window.value * 60000; // convert from minutes
     window.notifyListeners = function (millis) {
         notifyListeners(windowListeners, millis);
@@ -81,6 +83,7 @@ function ($log, $interval, $timeout, $rootScope) {
         unit: units[0], // seconds
         toMillis: toMillis
     };
+    step.step = 1;
     step.millis = step.value * 1000; // convert from seconds
     step.notifyListeners = function (millis) {
         notifyListeners(stepListeners, millis);
@@ -267,11 +270,14 @@ function ($log) {
 
 .directive('stTimeLapseSlider', [
 '$log',
-function ($log) {
+'$timeout',
+function ($log, $timeout) {
     var tag = 'stealth.timelapse.controls.stTimeLapseSlider: ';
     $log.debug(tag + 'directive defined');
 
     var link = function (scope, el, attrs, controller) {
+
+        var isReady = true;
 
         var model = angular.copy(scope.model);
         scope.model.changed = function () {
@@ -287,10 +293,17 @@ function ($log) {
                 scope.model.value = model.value * (scope.model.max - scope.model.min) / (model.max - model.min);
             }
 
-            scope.model.millis = Math.ceil(scope.model.toMillis(scope.model.value, scope.model.unit));
+            scope.model.millis = scope.model.toMillis(scope.model.value, scope.model.unit);
             model = angular.copy(scope.model);
 
-            scope.model.notifyListeners(scope.model.millis);
+            if (isReady) {
+                isReady = false;
+                $timeout(function () {
+                    scope.model.notifyListeners(scope.model.millis);
+                    isReady = true;
+                }, 100);
+            }
+
         };
 
         scope.model.changed();
@@ -304,7 +317,7 @@ function ($log) {
       tpl += ' ng-model="model.value" \
                ng-attr-min="{{model.min}}" \
                ng-attr-max="{{model.max}}" \
-               step="0.02" \
+               ng-attr-step="{{model.step}}" \
                ng-change="model.changed()">';
 
       return tpl;
