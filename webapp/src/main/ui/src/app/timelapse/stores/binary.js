@@ -17,7 +17,7 @@ function ($log, $q, colors) {
             _fillColorHexString = hexString;
             _fillColorRgbArray = colors.hexStringToRgbArray(hexString);
             if (!_.isUndefined(_layerThisBelongsTo)) {
-                _layerThisBelongsTo.redraw();
+                _layerThisBelongsTo.redrawCurrent();
             }
         };
         var _pointRadius = 2;
@@ -27,7 +27,7 @@ function ($log, $q, colors) {
             }
             _pointRadius = radius;
             if (!_.isUndefined(_layerThisBelongsTo)) {
-                _layerThisBelongsTo.redraw();
+                _layerThisBelongsTo.redrawCurrent();
             }
         };
 
@@ -79,7 +79,7 @@ function ($log, $q, colors) {
         this.setOpacity = function (opacity) {
             _opacity = opacity | 0;
             if (!_.isUndefined(_layerThisBelongsTo)) {
-                _layerThisBelongsTo.redraw();
+                _layerThisBelongsTo.redrawCurrent();
             }
         };
         this.getViewState = function () { return _viewState; };
@@ -103,7 +103,7 @@ function ($log, $q, colors) {
         };
         this.toggleColorById = function () {
             _viewState.colorById = !_viewState.colorById;
-            _layerThisBelongsTo.redraw();
+            _layerThisBelongsTo.redrawCurrent();
         };
 
         // Setter for ArrayBuffer and dependent vars.

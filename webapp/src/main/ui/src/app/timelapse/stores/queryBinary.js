@@ -72,17 +72,6 @@ function ($log, $rootScope, $q, CONFIG, wfs, BinStore) {
         this.searchPointAndTime = function (coord, res, timeMillis, windowMillis) {
             var deferred = $q.defer();
 
-            if (_thisStore.getMinTimeInMillis() > timeMillis ||
-                _thisStore.getMaxTimeInMillis() < (timeMillis - windowMillis))
-            {
-                deferred.resolve({
-                    name: _thisStore.getName(),
-                    isError: false,
-                    records: []
-                });
-                return deferred.promise;
-            }
-
             var startMillis = Math.max(_thisStore.getMinTimeInMillis(), (timeMillis - windowMillis));
             startMillis -= 1000;
             var endMillis = Math.min(_thisStore.getMaxTimeInMillis(), timeMillis);
@@ -93,15 +82,28 @@ function ($log, $rootScope, $q, CONFIG, wfs, BinStore) {
                 params: {
                     geomField: _query.params.geomField,
                     dtgField: _query.params.dtgField,
-                    minLat: Math.max((coord[1] - modifier), -90),
-                    maxLat: Math.min((coord[1] + modifier), 90),
-                    minLon: Math.max((coord[0] - modifier), -180),
-                    maxLon: Math.min((coord[0] + modifier), 180),
+                    minLat: Math.max((coord[1] - modifier), _query.params.minLat),
+                    maxLat: Math.min((coord[1] + modifier), _query.params.maxLat),
+                    minLon: Math.max((coord[0] - modifier), _query.params.minLon),
+                    maxLon: Math.min((coord[0] + modifier), _query.params.maxLon),
                     startDtg: moment.utc(startMillis),
                     endDtg: moment.utc(endMillis),
                     cql: _query.params.cql
                 }
             };
+
+            if (_thisStore.getMinTimeInMillis() > timeMillis ||
+                _thisStore.getMaxTimeInMillis() < (timeMillis - windowMillis) ||
+                cqlParams.params.minLat > cqlParams.params.maxLat ||
+                cqlParams.params.minLon > cqlParams.params.maxLon)
+            {
+                deferred.resolve({
+                    name: _thisStore.getName(),
+                    isError: false,
+                    records: []
+                });
+                return deferred.promise;
+            }
 
             var keywords = _query.layerData.currentLayer.KeywordList;
             var capabilities = {};

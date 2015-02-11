@@ -16,10 +16,15 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
     var _nDiv = 10 | 0;  // Number of divisions for styling.
     var _radiusRamps = _.map(_.range(1, 101), function (max) {
         var radius = new Uint32Array(_nDiv);
-        radius[0] = 1;
-        radius[_nDiv - 1] = max;
+        radius[0] = 0;
+        radius[_nDiv - 1] = max - 1;
         makeLinearRamp(radius, 0, _nDiv - 1);
         return radius;
+    });
+    var _r2Plus1Ramps = _.map(_radiusRamps, function (ramp) {
+        return _.map(ramp, function (radius) {
+            return radius * radius + 1;
+        });
     });
 
     var _alphaRamps = _.map(_.range(1, 101), function (max) {
@@ -31,7 +36,7 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
     });
 
     var _numColors = colors.getNumColors();
-    var _colorRgbArray = _.map(_.range(0,_numColors), function (i) {
+    var _colorRgbArray = _.map(_.range(0, _numColors), function (i) {
         var hex = colors.getColor(i);
         return colors.hexStringToRgbArray(hex);
     });
@@ -39,8 +44,8 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
     var TimeLapseLayer = function (name) {
         // ***** Private members *****
         // Drawing bounds.
-        var _w = 0;
-        var _h = 0;
+        var _w = 0 | 0;
+        var _h = 0 | 0;
         var _bounds = {
             north: null,
             south: null,
@@ -66,6 +71,10 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
         var _x, _y, _z, _center, _rgba;
         var _curSize = [0,0], _curExtent = [0,0,0,0];
         var _timeMillis = 0, _windowMillis = 0;
+        var zn, x, y, y2, pixel, rPlus1, yw, lat, lon;
+        var south, north, west, east;
+        var color, timeLower, timeLowerSeconds, iLower, iUpper;
+        var nDivIdx, radiusRamp, r2Plus1Ramp, alphaRamp, colorById, iCol;
 
         // Binary stores holding observations.
         var _stores = [];
@@ -89,7 +98,7 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
                 _canvas.setAttribute('height', _h);
 
                 // Change image buffer size
-                _imageLen = _w * _h * 4; // 4-bytes per pixel (RGBA)
+                _imageLen = _w * _h * 4 | 0; // 4-bytes per pixel (RGBA)
                 _imageBuf = new ArrayBuffer(_imageLen);
                 _imageBuf8 = new Uint8ClampedArray(_imageBuf);
                 _imageView = new Uint32Array(_imageBuf);
@@ -122,35 +131,31 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
         };
 
         function _fillImageBuffer (store) {
+            color = store.getFillColorRgbArray();
+            iLower = store.getLowerBoundIdx(timeLower);
+            iUpper = store.getUpperBoundIdx(_timeMillis);
 
-            var color = store.getFillColorRgbArray();
-            var timeLower = _timeMillis - _windowMillis;
-            var timeUpper = _timeMillis;
-            var iLower = store.getLowerBoundIdx(timeLower);
-            var iUpper = store.getUpperBoundIdx(timeUpper);
+            radiusRamp = _radiusRamps[store.getPointRadius() - 1];
+            r2Plus1Ramp = _r2Plus1Ramps[store.getPointRadius() - 1];
+            alphaRamp = _alphaRamps[store.getOpacity() - 1];
 
-            var nDivIdx = (_windowMillis / _nDiv) + 1 | 0;
-            var radius = _radiusRamps[store.getPointRadius() - 1];
-            var alpha = _alphaRamps[store.getOpacity() - 1];
+            south = _bounds.south;
+            north = _bounds.north;
+            west = _bounds.west;
+            east = _bounds.east;
 
-            var south = _bounds.south;
-            var north = _bounds.north;
-            var west = _bounds.west;
-            var east = _bounds.east;
-
-            var colorById = store.getViewState().colorById;
+            colorById = store.getViewState().colorById;
             for (var i = iLower + 1; i < iUpper; i++) {
                 if (colorById) {
-                    var iCol = store.getId(i) % _numColors;
+                    iCol = store.getId(i) % _numColors;
                     color = _colorRgbArray[iCol];
                 }
-                var lat = store.getLat(i);
-                var lon = store.getLon(i);
+                lat = store.getLat(i);
+                lon = store.getLon(i);
                 if (nDivIdx === 0) {
                     _iDiv = _nDiv - 1;
                 } else {
-                    var millis = store.getTimeInSeconds(i) * 1000;
-                    _iDiv = (millis - timeLower) / nDivIdx | 0;
+                    _iDiv = (store.getTimeInSeconds(i) - timeLowerSeconds) / nDivIdx | 0;
                 }
                 if ( lat > south &&
                      lat < north &&
@@ -159,20 +164,58 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
                 {
                     _x = ((lon - west)  * _lonFactor) | 0;
                     _y = ((north - lat) * _latFactor) | 0;
-                    _center = _y*_w + _x;
+                    _center = _y*_w + _x | 0;
 
-                    _rgba = (alpha[_iDiv] << 24) | // alpha
+                    _rgba = (alphaRamp[_iDiv] << 24) | // alpha
                             (color[2]     << 16) | // blue
                             (color[1]     <<  8) | // green
                              color[0];             // red
 
                     // Fill circle at center with radius.
-                    fillCircle(_imageView, _imageLen, _w, _center, radius[_iDiv], _rgba);
+                    _fillCircle(_imageView, _imageLen, _w, _center, radiusRamp[_iDiv], r2Plus1Ramp[_iDiv], _rgba);
+                }
+            }
+        }
+
+        function _clear (z) {
+            zn = z.length | 0;
+            while(zn--) {
+                z[zn] = 0;
+            }
+        }
+
+        function _fillCircle (buffer, bufLen, w, center, radius, r2Plus1, value) {
+            rPlus1 = radius + 1 | 0;
+            y = 0 | 0;
+            for (; y < rPlus1; y = (y + 1 | 0)) {
+                y2 = y * y | 0;
+                yw = y * w | 0;
+                x = 0 | 0;
+                for (; x < rPlus1; x = (x + 1 | 0)) {
+                    if (x * x + y2 < r2Plus1) {
+                        pixel = center + yw + x | 0;
+                        if (pixel < bufLen) {
+                            buffer[pixel] = value;
+                        }
+                        pixel = center - yw + x | 0;
+                        if (pixel > -1 && pixel < bufLen) {
+                            buffer[pixel] = value;
+                        }
+                        pixel = center + yw - x | 0;
+                        if (pixel > -1 && pixel < bufLen) {
+                            buffer[pixel] = value;
+                        }
+                        pixel = center - yw - x | 0;
+                        if (pixel > -1) {
+                            buffer[pixel] = value;
+                        }
+                    }
                 }
             }
         }
 
         var _olSource = new ol.source.ImageCanvas({
+            ratio: 1,
             canvasFunction: _drawFn,
             projection: CONFIG.map.projection
         });
@@ -219,16 +262,19 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
             this.setDtgBounds();
         };
 
+        this.redrawCurrent = function () {
+            this.redraw(_timeMillis, _windowMillis);
+        };
+
         this.redraw = function (timeMillis, windowMillis) {
-            if (!_.isUndefined(timeMillis)) {
-                _timeMillis = timeMillis;
-            }
-            if (!_.isUndefined(windowMillis)) {
-                _windowMillis = windowMillis;
-            }
+            _timeMillis = timeMillis;
+            _windowMillis = windowMillis;
+            timeLower = _timeMillis - _windowMillis;
+            nDivIdx = (_windowMillis / _nDiv / 1000) + 1.5 | 0;
+            timeLowerSeconds = ((timeLower - 500) / 1000) | 0;
 
             // Clear image buffer.
-            clear(_imageView);
+            _clear(_imageView);
 
             // Fill image buffer with data from each store in the list.
             _.eachRight(_stores, function (store) {
@@ -270,30 +316,6 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
     TimeLapseLayer.prototype = Object.create(MapLayer.prototype);
 
     // Static helper functions
-    function clear (z) {
-        var zn = z.length | 0;
-        var i = 0 | 0;
-        for ( ; (i | 0) < (zn | 0); i = (i+1 | 0)) {
-            z[i] = 0;
-        }
-    }
-
-    function fillCircle (buffer, bufLen, w, center, radius, value) {
-        var x2 = 0, y2 = 0, r2 = radius * radius;
-        for (var y=-radius; y<radius+1; ++y) {
-            y2 = y * y;
-            for (var x=-radius; x<radius+1; ++x) {
-                x2 = x * x;
-                if (x2 + y2 < r2+1) {
-                    var pixel = center + y*w + x;
-                    if (0 < pixel && pixel < bufLen) {
-                        buffer[pixel] = value;
-                    }
-                }
-            }
-        }
-    }
-
     function makeLinearRamp (x, i, j) {
         var k = (j-i) >> 1;
         if (k<1) {
@@ -351,5 +373,4 @@ function ($log) {
         templateUrl: 'timelapse/geo/ol3/layers/timelapse.tpl.html'
     };
 }])
-
 ;
