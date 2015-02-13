@@ -7,6 +7,9 @@ angular.module('stealth.static.geo', [
 '$log',
 '$rootScope',
 '$timeout',
+'$http',
+'$filter',
+'$q',
 'categoryManager',
 'staticLayerWizard',
 'wms',
@@ -15,10 +18,11 @@ angular.module('stealth.static.geo', [
 'stealth.core.geo.ol3.manager.Category',
 'stealth.core.utils.WidgetDef',
 'stealth.core.geo.ol3.layers.WmsLayer',
+'mapClickService',
 'CONFIG',
-function ($log, $rootScope, $timeout,
+function ($log, $rootScope, $timeout, $http, $filter, $q,
           catMgr, wizard, wms, ol3Map, colors,
-          Category, WidgetDef, WmsLayer, CONFIG) {
+          Category, WidgetDef, WmsLayer, mapClickService, CONFIG) {
     var tag = 'stealth.static.geo: ';
     var catScope = $rootScope.$new();
     catScope.workspaces = {};
@@ -100,6 +104,36 @@ function ($log, $rootScope, $timeout,
             mapLayer.styleDirectiveScope.markerStyles = markerStyles;
             mapLayer.styleDirectiveScope.markerShapes = markerShapes;
             ol3Map.addLayer(mapLayer);
+            filterLayer.searchId = mapClickService.registerSearchable(function (coord, res) {
+                if (mapLayer.getOl3Layer().getVisible() &&
+                    filterLayer.viewState.markerStyle === 'point') {
+                    var url = mapLayer.getOl3Layer().getSource().getGetFeatureInfoUrl(
+                        coord, res, CONFIG.map.projection, {
+                            INFO_FORMAT: 'application/json',
+                            FEATURE_COUNT: 999999
+                        }
+                    );
+                    return $http.get($filter('cors')(url, null, CONFIG.geoserver.omitProxy))
+                        .then(function (response) {
+                            return {
+                                name: mapLayer.name,
+                                records: _.pluck(response.data.features, 'properties'),
+                                layerFill: {
+                                    display: 'none'
+                                }
+                            };
+                        }, function (response) {
+                            return {
+                                name: mapLayer.name,
+                                records: [],
+                                isError: true,
+                                reason: 'Server error'
+                            };
+                        });
+                } else {
+                    return $q.when({name: mapLayer.name, records:[]}); //empty results
+                }
+            });
 
             mapLayer.styleDirectiveScope.setFillColor = function (filterLayer) {
                 updateIconImgSrc(filterLayer);
@@ -160,6 +194,10 @@ function ($log, $rootScope, $timeout,
                                             filterLayer.viewState.size,
                                             filterLayer.viewState.markerShape,
                                             filterLayer.viewState.radiusPixels);
+            if (_.isNumber(filterLayer.searchId)) {
+                mapClickService.unregisterSearchableById(filterLayer.searchId);
+                delete filterLayer.searchId;
+            }
         }
     };
 
