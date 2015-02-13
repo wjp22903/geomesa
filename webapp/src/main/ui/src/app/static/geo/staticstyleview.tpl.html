@@ -43,5 +43,13 @@
                   tooltip-trigger="mouseenter">
             </span>
         </div>
+        <div class="cell" ng-if="filterLayer.viewState.markerStyle === 'heatmap'" style="padding-left:5px;">Pixels/radius:</div>
+        <div class="cell" ng-if="filterLayer.viewState.markerStyle === 'heatmap'">
+            <select style="outline:none;margin-bottom:5px;margin-top:5px;"
+                    ng-options="n for n in 10 | lodash:'range':101:10"
+                    ng-model="filterLayer.viewState.radiusPixels"
+                    ng-change="heatmapRadiusChanged(filterLayer, filterLayer.viewState.radiusPixels)">
+            </select>
+        </div>
     </div>
 </div>

@@ -23,10 +23,13 @@ function ($log, $rootScope, $timeout,
     var catScope = $rootScope.$new();
     catScope.workspaces = {};
 
-    function getRequestEnv (fillColor, size, shape) {
+    function getRequestEnv (fillColor, size, shape, radiusPixels) {
         var env = 'color:' + fillColor.slice(1) +
                   ';size:' + size +
                   ';shape:' + shape;
+        if (_.isNumber(radiusPixels)) {
+            env += ';radiusPixels:' + radiusPixels;
+        }
         return env;
     }
 
@@ -38,7 +41,8 @@ function ($log, $rootScope, $timeout,
                      filterLayer.layerName +
                      "&ENV=" + getRequestEnv(filterLayer.viewState.fillColor,
                                              filterLayer.viewState.size,
-                                             filterLayer.viewState.markerShape);
+                                             filterLayer.viewState.markerShape,
+                                             filterLayer.viewState.radiusPixels);
         if (!_.isUndefined(filterLayer.style)) {
             iconImgSrc += "&STYLE=" + filterLayer.style;
         }
@@ -78,7 +82,8 @@ function ($log, $rootScope, $timeout,
                 requestParams.STYLES = filterLayer.style;
                 requestParams.ENV = getRequestEnv(filterLayer.viewState.fillColor,
                                                   filterLayer.viewState.size,
-                                                  filterLayer.viewState.markerShape);
+                                                  filterLayer.viewState.markerShape,
+                                                  filterLayer.viewState.radiusPixels);
                 mapLayer.updateRequestParams(requestParams);
             };
 
@@ -120,6 +125,14 @@ function ($log, $rootScope, $timeout,
                 updateRequestParams(filterLayer);
             };
 
+            mapLayer.styleDirectiveScope.heatmapRadiusChanged = function (filterLayer, radius) {
+                if (!angular.isNumber(filterLayer.viewState.radiusPixels)) {
+                    radius = 10;
+                    filterLayer.viewState.radiusPixels = 10;
+                }
+                updateRequestParams(filterLayer);
+            };
+
             // Update viewState on layer visibility change.
             ol3Layer.on('change:visible', function () {
                 $timeout(function () {
@@ -145,7 +158,8 @@ function ($log, $rootScope, $timeout,
             filterLayer.viewState.toggledOn = false;
             filterLayer.env = getRequestEnv(filterLayer.viewState.fillColor,
                                             filterLayer.viewState.size,
-                                            filterLayer.viewState.markerShape);
+                                            filterLayer.viewState.markerShape,
+                                            filterLayer.viewState.radiusPixels);
         }
     };
 
@@ -199,12 +213,14 @@ function ($log, $rootScope, $timeout,
                             markerStyle: 'point',
                             markerShape: getShape(),
                             size: 9,
-                            fillColor: colors.getColor()
+                            fillColor: colors.getColor(),
+                            radiusPixels: 10
                         }
                     };
                     filterLayer.env = getRequestEnv(filterLayer.viewState.fillColor,
                                                     filterLayer.viewState.size,
-                                                    filterLayer.viewState.markerShape);
+                                                    filterLayer.viewState.markerShape,
+                                                    filterLayer.viewState.radiusPixels);
                     filterLayer.style = stealthMarkerStyles[filterLayer.viewState.markerStyle];
                     updateIconImgSrc(filterLayer);
                     layer.filterLayers.push(filterLayer);

@@ -57,6 +57,14 @@
               ng-model="style['background-color']"
               ng-change="query.params.fillColor = style['background-color']"></span>
     </span>
+    <span ng-if="query.params.markerStyle === 'heatmap'">
+        <label>Pixels/radius:</label>
+        <select class="form-control input-sm"
+                style="width:60px;display:inline;"
+                ng-options="n for n in 10 | lodash:'range':101:10"
+                ng-model="query.params.radiusPixels">
+        </select>
+    </span>
     <p style="margin-top:20px;">
         Give this Data Layer a meaningful name.<br>
     </p>

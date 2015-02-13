@@ -146,6 +146,7 @@ function ($log, $rootScope, $filter,
                              "&ENV=" + 'color:' + wizScope.query.params.fillColor.slice(1) +
                                        ';size:' + wizScope.query.params.size +
                                        ';shape:' + wizScope.query.params.markerShape +
+                                       ';radiusPixels:' + wizScope.query.params.radiusPixels +
                              "&STYLE=" + wizScope.sld[wizScope.query.params.markerStyle];
             return iconImgSrc;
         };
@@ -182,7 +183,8 @@ function ($log, $rootScope, $filter,
                             markerStyle: wizScope.query.params.markerStyle,
                             markerShape: wizScope.query.params.markerShape,
                             size: wizScope.query.params.size,
-                            fillColor: wizScope.style['background-color']
+                            fillColor: wizScope.style['background-color'],
+                            radiusPixels: wizScope.query.params.radiusPixels
                         },
                         cqlFilter: _.isEmpty(cql) ? null : cql,
                         style: 'stealth_dataPoints',

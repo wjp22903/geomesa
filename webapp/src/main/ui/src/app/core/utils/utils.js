@@ -26,7 +26,7 @@ function ($log) {
 
 .filter('lodash', function () {
     return function (value, fnName) {
-        return _[fnName](value);
+        return _[fnName].apply(this, [value].concat(Array.prototype.slice.call(arguments, 2)));
     };
 })
 

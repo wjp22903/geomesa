@@ -31,7 +31,8 @@ function ($log, wms, wfs, CONFIG) {
             markerStyle: 'point',
             markerShape: 'circle',
             size: 9,
-            fillColor: '#000000'
+            fillColor: '#000000',
+            radiusPixels: 10
         };
 
         this.getFeatureTypeDescription = function (layer) {
