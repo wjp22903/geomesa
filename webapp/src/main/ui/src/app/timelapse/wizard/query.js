@@ -14,6 +14,7 @@ function ($rootScope, tlLayerManager, QueryBinStore) {
         hLayer = tlLayerManager.getHistoricalLayer();
         var name = query.params.storeName;
         var store = new QueryBinStore(name);
+        store.setSummaryQueryCallback(tlLayerManager.getSummaryExploreManager().summaryQuery);
         hLayer.addStore(store);
         store.launchQuery(query);
     };

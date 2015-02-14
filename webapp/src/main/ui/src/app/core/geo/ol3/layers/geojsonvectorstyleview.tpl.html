@@ -1,0 +1,41 @@
+<div class="layerStyleHistoricalLayer layerStyleGrouping">
+    <ui-include src="'core/geo/ol3/layers/layer-fragments.tpl.html'" fragment="'.dragHandle'"></ui-include>
+    <div class="layerStyleRow visibilityName">
+        <div class="cell"><i ng-class="::styleVars.iconClass"></i></div>
+        <div class="cell">
+            <st-toggle-visibility visible="layerState.visible"
+                                  toggle="toggleVisibility()"></st-toggle-visibility>
+        </div>
+        <div class="cell" style="width:100%;white-space:no-wrap">
+            {{ol3Layer.get("name") || ol3Layer.get("id") | characters:36:true}}
+        </div>
+        <div class="cell">
+            <span class="btn btn-default fa-stack toggleButton"
+                  ng-click="removeLayer()">
+                <i class="fa fa-fw fa-remove fa-stack-1x text-danger"></i>
+            </span>
+        </div>
+    </div>
+    <ui-include src="'core/geo/ol3/layers/layer-fragments.tpl.html'" fragment="'.layerStyleRow.opacitySlider'"></ui-include>
+    <div class="layerStyleRow">
+        <div class="cell">Size:</div>
+        <div class="cell">
+            <input type="number" ui-jq="spinner"
+                   ng-model="layer.getViewState().size"
+                   ng-change="sizeChanged(layer, layer.getViewState().size)"
+                   min="1" max="100">
+        </div>
+        <div class="cell" style="padding-left:5px">Fill:</div>
+        <div class="cell">
+            <span class="btn btn-default toggleButton"
+                  ng-style="{'background-color': layer.getViewState().fillColor}"
+                  colorpicker colorpicker-position="bottom"
+                  ng-model="layer.getViewState().fillColor"
+                  ng-change="fillColorChanged(layer, layer.getViewState().fillColor)"
+                  tooltip-html-unsafe="<span style='white-space:nowrap'>Change fill color</span>"
+                  tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
+                  tooltip-trigger="mouseenter">
+            </span>
+        </div>
+    </div>
+</div>

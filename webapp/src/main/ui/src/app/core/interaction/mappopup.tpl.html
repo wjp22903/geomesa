@@ -74,6 +74,16 @@
                                                               ng-click="mapPopCtrl.removeRecord(result, rec)">
                                                             <i class="fa fa-fw fa-remove fa-stack-1x text-danger"></i>
                                                         </span>
+                                                        <span ng-repeat="capa in result.capabilities"
+                                                              class="btn btn-default fa-stack toggleButton"
+                                                              style="vertical-align:top;"
+                                                              tooltip-html-unsafe="<span style='white-space:nowrap;'>{{::capa.toolTipText}}</span>"
+                                                              tooltip-placement="top" tooltip-animation="false" tootip-popup-delay="500"
+                                                              tooltip-trigger="mouseenter"
+                                                              ng-if="capa.onClick"
+                                                              ng-click="capa.onClick(result.name, rec, capa)">
+                                                            <i class="fa fa-fw fa-stack-1x text-primary" ng-class="capa.iconClass"></i>
+                                                        </span>
                                                     </div>
                                                 </div>
                                                 <div style="display: table-row" ng-style="mapPopCtrl.getRowColor($even)"

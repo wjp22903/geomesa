@@ -17,15 +17,17 @@ function ($rootScope, catMgr, Category, WidgetDef) {
     catScope.timelapse = {
         isLiveOn: true,
         isHistoricalOn: true,
-        summaryOn: true
+        isSummaryOn: true
     };
     catScope.liveRefresh = {
         value: 10,
         options: [2, 5, 10, 30, 60]
     };
 
-    catMgr.addCategory(1, new Category(0, 'Time-enabled', 'fa-clock-o',
-        new WidgetDef('st-timelapse-geo-category', catScope), null, true));
+    var widgetDef = new WidgetDef('st-timelapse-geo-category', catScope);
+    var category = new Category(0, 'Time-enabled', 'fa-clock-o', widgetDef, null, true);
+    category.height = 500;
+    catMgr.addCategory(1, category);
 }])
 
 .directive('stTimelapseGeoCategory', [
@@ -233,7 +235,7 @@ function ($log, $timeout, $q, $http, $filter, wms, ol3Map, PollingImageWmsLayer,
                 $scope.workspaces = {
                     live: {},
                     historical: {},
-                    summary: {}
+                    summary: tlLayerManager.getSummaryExploreManager().workspaces
                 };
                 wms.getCapabilities(CONFIG.geoserver.defaultUrl, CONFIG.geoserver.omitProxy)
                     .then(function (wmsCap) {
@@ -244,8 +246,12 @@ function ($log, $timeout, $q, $http, $filter, wms, ol3Map, PollingImageWmsLayer,
                                         keywordParts[1] === 'timelapse') {
 
                                     var layer = _.cloneDeep(l);
+                                    layer.hasViewables = function (list) {return !_.isEmpty(list);};
                                     if (_.contains('live', keywordParts[2])) {
                                         layer.filterLayers = [];
+                                    }
+                                    if (_.contains('summary', keywordParts[2])) {
+                                        layer.summaries = [];
                                     }
 
                                     var workspace = keywordParts[3];
@@ -305,6 +311,30 @@ function ($log, $timeout, $q, $http, $filter, wms, ol3Map, PollingImageWmsLayer,
                     pollingLayer.styleDirectiveScope.styleVars.iconClass = 'fa fa-fw fa-lg fa-clock-o';
                     pollingLayer.setRefreshOnMapChange(ol3Map);
                     ol3Map.addLayer(pollingLayer);
+
+                    var keywords = layer.layerThisBelongsTo.KeywordList;
+                    var capabilities = {};
+                    _.each(keywords, function (k) {
+                        var keywordParts = k.split('.');
+                        if (keywordParts[0] === CONFIG.app.context && keywordParts[1] === 'capability') {
+                            var type = keywordParts[2];
+                            var attr = keywordParts[3].split('=')[0];
+                            var value = keywordParts[3].split('=')[1];
+
+                            if (_.isUndefined(capabilities[type])) {
+                                capabilities[type] = {};
+                            }
+
+                            if (_.isUndefined(capabilities[type][attr])) {
+                                capabilities[type][attr] = value;
+                            }
+                        }
+                    });
+                    if (!_.isUndefined(capabilities['summary'])) {
+                        capabilities['summary']['toolTipText'] = 'Get summary';
+                        capabilities['summary']['iconClass'] = 'fa-location-arrow';
+                        capabilities['summary']['onClick'] = tlLayerManager.getSummaryExploreManager().summaryQuery;
+                    }
                     layer.searchId = mapClickService.registerSearchable(function (coord, res) {
                         if (pollingLayer.getOl3Layer().getVisible()) {
                             var url = pollingLayer.getOl3Layer().getSource().getGetFeatureInfoUrl(
@@ -321,7 +351,8 @@ function ($log, $timeout, $q, $http, $filter, wms, ol3Map, PollingImageWmsLayer,
                                         records: _.pluck(response.data.features, 'properties'),
                                         layerFill: {
                                             display: 'none'
-                                        }
+                                        },
+                                        capabilities: capabilities
                                     };
                                 }, function (response) {
                                     return {
@@ -378,6 +409,12 @@ function ($log, $timeout, $q, $http, $filter, wms, ol3Map, PollingImageWmsLayer,
                 alert('TODO');
             };
 
+            $scope.toggleSummaryVisibility = function (layer) {
+                var mapLayer = ol3Map.getLayerById(layer.mapLayerId);
+                var ol3Layer = mapLayer.getOl3Layer();
+                ol3Layer.setVisible(!ol3Layer.getVisible());
+            };
+
             $scope.launchHistoricalQueryWizard = function () {
                 tlWizard.launchWizard();
             };
@@ -422,8 +459,9 @@ function ($log, $timeout, $q, $http, $filter, wms, ol3Map, PollingImageWmsLayer,
                 if (isOn) {
                     _.each(workspaces, function (ws) {
                         _.each(ws, function (layer) {
-                            _.each(layer.filterLayers, function (filterLayer) {
-                                var id = filterLayer.mapLayerId;
+                            var subLayers = layer.filterLayers || layer.summaries;
+                            _.each(subLayers, function (subLayer) {
+                                var id = subLayer.mapLayerId;
                                 if (!_.isUndefined(id) && !_.isNull(id)) {
                                     var l = ol3Map.getLayerById(id);
                                     if (!_.isUndefined(l)) {
@@ -474,6 +512,16 @@ function ($log, $timeout, $q, $http, $filter, wms, ol3Map, PollingImageWmsLayer,
                 }
                 $scope.timelapse.isHistoricalOn = !isOn;
             };
+
+            var _summaryLayersVisible = [];
+            $scope.toggleSlideSummary = function (isOn) {
+                $log.debug(tag + 'toggleSlideSummary');
+                _summaryLayersVisible = toggleSlideVis($scope.workspaces.summary, _summaryLayersVisible, isOn);
+                $scope.timelapse.isSummaryOn = !isOn;
+            };
+
+            $scope.toggleSummaryLayer = tlLayerManager.getSummaryExploreManager().toggleSummaryLayer;
+            $scope.removeSummaryLayer = tlLayerManager.getSummaryExploreManager().removeSummaryLayer;
         }]
     };
 }])

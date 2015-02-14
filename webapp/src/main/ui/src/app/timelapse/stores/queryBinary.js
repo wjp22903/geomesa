@@ -22,6 +22,8 @@ function ($log, $rootScope, $q, CONFIG, wfs, BinStore) {
         var _viewState = this.getViewState();
         var _query;
         var _featureTypeProperties;
+        var _summaryQueryCallback;
+        this.setSummaryQueryCallback = function (callback) {_summaryQueryCallback = callback;};
         this.launchQuery = function (query) {
             _query = query;
             _featureTypeProperties = query.featureTypeData.featureTypes[0].properties;
@@ -100,11 +102,42 @@ function ($log, $rootScope, $q, CONFIG, wfs, BinStore) {
                     cql: _query.params.cql
                 }
             };
+
+            var keywords = _query.layerData.currentLayer.KeywordList;
+            var capabilities = {};
+            _.each(keywords, function (k) {
+                var keywordParts = k.split('.');
+                if (keywordParts[0] === CONFIG.app.context && keywordParts[1] === 'capability') {
+                    var type = keywordParts[2];
+                    var attr = keywordParts[3].split('=')[0];
+                    var value = keywordParts[3].split('=')[1];
+
+                    if (_.isUndefined(capabilities[type])) {
+                        capabilities[type] = {};
+                    }
+
+                    if (_.isUndefined(capabilities[type][attr])) {
+                        capabilities[type][attr] = value;
+                    }
+                }
+            });
+
+            if (!_.isUndefined(capabilities['summary'])) {
+                if (_.isUndefined(_summaryQueryCallback)) {
+                    delete capabilities['summary'];
+                } else {
+                    capabilities['summary']['toolTipText'] = 'Get summary';
+                    capabilities['summary']['iconClass'] = 'fa-location-arrow';
+                    capabilities['summary']['onClick'] = _summaryQueryCallback;
+                }
+            }
+
             var overrides = {
                 sortBy: _query.dtg,
                 cql_filter: buildCQLFilter(cqlParams),
                 format_options: 'dtg:' + _query.dtg
             };
+
             wfs.getFeature(CONFIG.geoserver.defaultUrl, typeName, CONFIG.geoserver.omitProxy, overrides)
             .success(function (data, status, headers, config, statusText) {
                 var records = _.pluck(data.features, 'properties');
@@ -115,6 +148,7 @@ function ($log, $rootScope, $q, CONFIG, wfs, BinStore) {
                         color: _thisStore.getFillColorHexString()
                     },
                     records: records,
+                    capabilities: capabilities,
                     fieldTypes: _featureTypeProperties,
                     isFilterable: true,
                     filterHandler: function (key, val) {

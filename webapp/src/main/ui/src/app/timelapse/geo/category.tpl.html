@@ -228,11 +228,64 @@
     </div>
 </div>
 <div ng-hide="workspaces.summary | lodash:'isEmpty'" class="categoryGrouping">
-    <input type="checkbox" ng-model="timelapse.summaryOn"
-           bs-switch switch-size="micro" switch-label-width="0">
-    <b>Summary</b>
-    <span class="btn btn-default fa-stack toggleButton"
-          ng-click="launchSummaryQueryWizard()">
-        <i class="fa fa-fw fa-plus fa-stack-1x text-primary"></i>
-    </span>
+    <div class="categoryCell">
+            <span class="btn fa-stack toggleSlide"
+                  ng-click="toggleSlideSummary(timelapse.isSummaryOn)">
+                <i class="fa fa-fw fa-toggle-on fa-stack-2x text-primary"
+                   ng-if="timelapse.isSummaryOn"
+                   style="margin-top:-7px">
+                </i>
+                <i class="fa fa-fw fa-toggle-off fa-stack-2x text-danger"
+                   ng-if="!timelapse.isSummaryOn"
+                   style="margin-top:-7px">
+                </i>
+            </span>
+    </div>
+    <div class="categoryCell"><b>Summary</b></div>
+    <div ng-repeat="(workspace, layers) in workspaces.summary"
+         ng-show="timelapse.isSummaryOn">
+        <div ng-repeat="layer in layers">
+            <div class="categoryCell categoryIndent"
+                 ng-if="layer.hasViewables(layer.summaries)">
+                <i>{{layer.Title || layer.Name | characters:35:true}}</i>
+            </div>
+            <div ng-repeat="summary in layer.summaries" class="categoryGrouping categoryIndent">
+                <div class="categoryCell">
+                    <span ng-if="summary.viewState.isOnMap && summary.summaryLayer.getViewState().isDataPending()"
+                          tooltip-html-unsafe="<span style='white-space:nowrap'>Loading</span>"
+                          tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
+                          tooltip-trigger="mouseenter">
+                        <i class="fa fa-circle-o-notch fa-spin"></i>
+                    </span>
+                    <div ng-if="summary.summaryLayer.getViewState().isError" class="errorIconWrapper">
+                        <i class="fa fa-warning text-danger"
+                           tooltip-html-unsafe="<span style='white-space:nowrap;background-color:#a94442;color:white'>{{summary.summaryLayer.getViewState().errorMsg}}</span>"
+                           tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
+                           tooltip-trigger="mouseenter">
+                        </i>
+                    </div>
+                    <span ng-if="summary.viewState.isOnMap && summary.summaryLayer.getViewState().isDataReady()"
+                            class="btn btn-default toggleButton"
+                            style="cursor:auto;"
+                            ng-style="{'background-color': summary.summaryLayer.getViewState().fillColor}">
+                    </span>
+                </div>
+                <div class="categoryCell">
+                    <st-toggle-visibility ng-if="summary.viewState.isOnMap && summary.summaryLayer.getViewState().isDataReady()"
+                                          visible="summary.summaryLayer.getViewState().toggledOn"
+                                          toggle="toggleSummaryVisibility(summary)"></st-toggle-visibility>
+                </div>
+                <div class="categoryCell" style="width:100%">
+                    {{::summary.Title | characters:35:true}}
+                </div>
+                <div class="categoryCell">
+                        <span class="btn btn-default fa-stack toggleButton"
+                              ng-if="summary.viewState.isRemovable"
+                              ng-click="removeSummaryLayer(summary)">
+                            <i class="fa fa-fw fa-remove fa-stack-1x text-danger"></i>
+                        </span>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
