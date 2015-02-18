@@ -132,7 +132,8 @@ module.exports = function (grunt) {
                 // '<%= html2js.common.dest %>',
                 '<%= html2js.app.dest %>',
                 '<%= stylus.build.dest %>',
-                '<%= buildDir %>/templates-jst.js'
+                '<%= buildDir %>/templates-jst.js',
+                '<%= buildDir %>/plugins.js'
             ]
         }
     });

@@ -5,10 +5,7 @@ angular.module('stealth.app', [
     'ui.utils',
     'templates-app',
     'stealth.core',
-    // Plugins
-    'stealth.static',
-    'stealth.targetpri',
-    'stealth.timelapse'
+    'stealth.plugins'
 ])
 
 .config([

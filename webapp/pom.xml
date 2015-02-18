@@ -567,6 +567,11 @@
             <id>thresher</id>
             <properties>
                 <app.title>Thresher</app.title>
+                <app.plugins>
+                    [
+                        'stealth.timelapse'
+                    ]
+                </app.plugins>
                 <classification.text>Dynamic Page - Highest Possible Classification is TOP SECRET//SI//TK//NOFORN</classification.text>
                 <classification.level>sci</classification.level>
                 <map.initLayers>[]</map.initLayers>

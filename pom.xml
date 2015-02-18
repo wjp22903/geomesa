@@ -58,6 +58,13 @@
                 safari: 6.1
             }
         </app.supported.browsers>
+        <app.plugins>
+            [
+                'stealth.static',
+                'stealth.targetpri',
+                'stealth.timelapse'
+            ]
+        </app.plugins>
 
         <geoserver.url>http://dgeo.ccri.com:8080/geoserver</geoserver.url>
         <geoserver.omitProxy>false</geoserver.omitProxy>
