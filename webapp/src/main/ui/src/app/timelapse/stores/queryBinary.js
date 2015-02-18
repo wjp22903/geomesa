@@ -184,8 +184,8 @@ function ($log, $rootScope, $q, CONFIG, wfs, BinStore) {
     function buildCQLFilter(query) {
         var cql_filter =
             'BBOX(' + query.params.geomField.name + ',' +
-            query.params.minLat + ',' + query.params.minLon + ',' +
-            query.params.maxLat + ',' + query.params.maxLon + ')' +
+            query.params.minLon + ',' + query.params.minLat + ',' +
+            query.params.maxLon + ',' + query.params.maxLat + ')' +
             ' AND ' + query.params.dtgField.name + ' DURING ' +
             query.params.startDtg.format('YYYY-MM-DD[T]HH:mm:ss[Z]') +
             '/' +

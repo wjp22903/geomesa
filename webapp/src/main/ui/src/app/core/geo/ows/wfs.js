@@ -13,7 +13,7 @@ function ($q, $http, $filter) {
         return $http.get(url, {
             params: {
                 service: 'WFS',
-                version: '2.0.0',
+                version: '1.0.0',
                 request: 'DescribeFeatureType',
                 typeName: typeName,
                 outputFormat: 'application/json'
@@ -25,13 +25,11 @@ function ($q, $http, $filter) {
     var _getFeature = function (url, typeName, paramOverrides, responseType) {
         var paramDefaults = {
             service: 'WFS',
-            version: '2.0.0',
+            version: '1.0.0',
             request: 'GetFeature',
             typeName: typeName,
             outputFormat: 'application/json',
-            srsName: 'EPSG:4326',
-            count: 999999999,
-            maxFeatures: 999999999
+            srsName: 'EPSG:4326'
         };
 
         return $http.get(url, {
