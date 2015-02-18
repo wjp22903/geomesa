@@ -9,8 +9,6 @@ import org.eclipse.jetty.http.HttpURI;
 import org.eclipse.jetty.servlets.ProxyServlet;
 import org.eclipse.jetty.util.URIUtil;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -19,7 +17,6 @@ import java.net.MalformedURLException;
 import java.net.URI;
 
 public class CorsProxyServlet extends ProxyServlet {
-    private Logger log = LoggerFactory.getLogger(getClass());
     private final Config conf = ConfigFactory.load().getConfig("stealth");
     private String keyStorePath = null;
     private String keyStorePassword = null;
@@ -41,7 +38,6 @@ public class CorsProxyServlet extends ProxyServlet {
         String dest = (URIUtil.encodePath(request.getRequestURI().replaceFirst(".*\\/cors\\/", "")) +
                 ((query != null && !query.isEmpty()) ? ("?" + query) : "")
         ).substring(1);
-        log.info("Proxy to: " + dest);
         return new HttpURI(URI.create(dest));
     }
 
