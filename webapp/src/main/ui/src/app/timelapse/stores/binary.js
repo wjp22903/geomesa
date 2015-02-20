@@ -84,10 +84,10 @@ function ($log, $q, colors) {
         };
         this.getViewState = function () { return _viewState; };
         // Getters for values of the i-th record.
-        this.getId = function (i) { return _idView[i * _stride]; };
-        this.getTimeInSeconds = function (i) { return _secondsView[i * _stride]; };
-        this.getLat = function (i) { return _latView[i * _stride]; };
-        this.getLon = function (i) { return _lonView[i * _stride]; };
+        this.getId = function (iStride) { return _idView[iStride]; };
+        this.getTimeInSeconds = function (iStride) { return _secondsView[iStride]; };
+        this.getLat = function (iStride) { return _latView[iStride]; };
+        this.getLon = function (iStride) { return _lonView[iStride]; };
         // Getters for constants.
         this.getArrayBuffer = function () { return _arrayBuffer; };
         this.getStride = function () { return _stride; };
@@ -222,7 +222,7 @@ function ($log, $q, colors) {
         while (len > 1) {
             half = len >> 1;
             middle = first + half;
-            middleTimeSecs = this.getTimeInSeconds(middle);
+            middleTimeSecs = this.getTimeInSeconds(middle * this.getStride());
             if (middleTimeSecs < timeSeconds) {
                 first = middle;
                 len = len - half;
@@ -252,7 +252,7 @@ function ($log, $q, colors) {
         while (len > 1) {
             half = len >> 1;
             middle = first - half;
-            middleTimeSecs = this.getTimeInSeconds(middle);
+            middleTimeSecs = this.getTimeInSeconds(middle * this.getStride());
             if (timeSeconds < middleTimeSecs) {
                 first = middle;
                 len = len - half;

@@ -61,14 +61,14 @@ describe('Factory', function () {
 
         it('should have an valid id', function () {
             var i = 2;
-            expect(store16.getId(i)).to.equal(id16 + i);
-            expect(store24.getId(i)).to.equal(id24 + i);
+            expect(store16.getId(i * stride16)).to.equal(id16 + i);
+            expect(store24.getId(i * stride24)).to.equal(id24 + i);
         });
 
         it('should give access to time stamps', function () {
             var i = 10;
-            expect(store16.getTimeInSeconds(i)).to.equal(nowInSecs + i);
-            expect(store24.getTimeInSeconds(i)).to.equal(nowInSecs + i);
+            expect(store16.getTimeInSeconds(i * stride16)).to.equal(nowInSecs + i);
+            expect(store24.getTimeInSeconds(i * stride24)).to.equal(nowInSecs + i);
         });
 
         it('should know min time stamp', function () {
@@ -83,14 +83,14 @@ describe('Factory', function () {
 
         it('should give access to latitudes', function () {
             var i = 123;
-            expect(store16.getLat(i)*10000 | 0).to.equal(lat*10000 | 0);
-            expect(store24.getLat(i)*10000 | 0).to.equal(lat*10000 | 0);
+            expect(store16.getLat(i * stride16)*10000 | 0).to.equal(lat*10000 | 0);
+            expect(store24.getLat(i * stride24)*10000 | 0).to.equal(lat*10000 | 0);
         });
 
         it('should give access to longitudes', function () {
             var i = 1000;
-            expect(store16.getLon(i)*10000 | 0).to.equal(lon*10000 | 0);
-            expect(store24.getLon(i)*10000 | 0).to.equal(lon*10000 | 0);
+            expect(store16.getLon(i * stride16)*10000 | 0).to.equal(lon*10000 | 0);
+            expect(store24.getLon(i * stride24)*10000 | 0).to.equal(lon*10000 | 0);
         });
 
         it('should give access to the stride', function () {

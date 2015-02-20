@@ -16,14 +16,14 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
     var _nDiv = 10 | 0;  // Number of divisions for styling.
     var _radiusRamps = _.map(_.range(1, 101), function (max) {
         var radius = new Uint32Array(_nDiv);
-        radius[0] = 0;
-        radius[_nDiv - 1] = max - 1;
+        radius[0] = 1;
+        radius[_nDiv - 1] = max;
         makeLinearRamp(radius, 0, _nDiv - 1);
         return radius;
     });
     var _r2Plus1Ramps = _.map(_radiusRamps, function (ramp) {
         return _.map(ramp, function (radius) {
-            return radius * radius + 1;
+            return (radius - 1) * (radius - 1) + 1;
         });
     });
 
@@ -68,13 +68,13 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
 
         // Transient drawing parameters.
         var _iDiv = 0;
-        var _x, _y, _z, _center, _rgba;
+        var _x, _y, _idx, _center, _rgba;
         var _curSize = [0,0], _curExtent = [0,0,0,0];
         var _timeMillis = 0, _windowMillis = 0;
         var zn, x, y, y2, pixel, rPlus1, yw, lat, lon;
         var south, north, west, east;
-        var color, timeLower, timeLowerSeconds, iLower, iUpper;
-        var nDivIdx, radiusRamp, r2Plus1Ramp, alphaRamp, colorById, iCol;
+        var color, timeLower, timeLowerSeconds, iLower, iUpper, stride, iUpperStride;
+        var nDivIdx, radiusRamp, r2Plus1Ramp, alphaRamp, colorById, iCol, rMinus1;
 
         // Binary stores holding observations.
         var _stores = [];
@@ -131,12 +131,14 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
         };
 
         function _fillImageBuffer (store) {
+            stride = store.getStride();
             color = store.getFillColorRgbArray();
             iLower = store.getLowerBoundIdx(timeLower);
             iUpper = store.getUpperBoundIdx(_timeMillis);
 
-            radiusRamp = _radiusRamps[store.getPointRadius() - 1];
-            r2Plus1Ramp = _r2Plus1Ramps[store.getPointRadius() - 1];
+            rMinus1 = store.getPointRadius() - 1;
+            radiusRamp = _radiusRamps[rMinus1];
+            r2Plus1Ramp = _r2Plus1Ramps[rMinus1];
             alphaRamp = _alphaRamps[store.getOpacity() - 1];
 
             south = _bounds.south;
@@ -145,18 +147,16 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
             east = _bounds.east;
 
             colorById = store.getViewState().colorById;
-            for (var i = iLower + 1; i < iUpper; i++) {
+            _idx = (iLower + 1) * stride;
+            iUpperStride = iUpper * stride;
+            for (; _idx < iUpperStride; _idx = _idx + stride | 0) {
                 if (colorById) {
-                    iCol = store.getId(i) % _numColors;
+                    iCol = store.getId(_idx) % _numColors;
                     color = _colorRgbArray[iCol];
                 }
-                lat = store.getLat(i);
-                lon = store.getLon(i);
-                if (nDivIdx === 0) {
-                    _iDiv = _nDiv - 1;
-                } else {
-                    _iDiv = (store.getTimeInSeconds(i) - timeLowerSeconds) / nDivIdx | 0;
-                }
+                lat = store.getLat(_idx);
+                lon = store.getLon(_idx);
+                _iDiv = (store.getTimeInSeconds(_idx) - timeLowerSeconds) / nDivIdx | 0;
                 if ( lat > south &&
                      lat < north &&
                      lon > west &&
@@ -185,13 +185,29 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
         }
 
         function _fillCircle (buffer, bufLen, w, center, radius, r2Plus1, value) {
-            rPlus1 = radius + 1 | 0;
-            y = 0 | 0;
-            for (; y < rPlus1; y = (y + 1 | 0)) {
+            buffer[center] = value;
+            y = 1 | 0;
+            for (; y < radius; y = (y + 1 | 0)) {
                 y2 = y * y | 0;
                 yw = y * w | 0;
-                x = 0 | 0;
-                for (; x < rPlus1; x = (x + 1 | 0)) {
+                pixel = center + yw | 0;
+                if (pixel < bufLen) {
+                    buffer[pixel] = value;
+                }
+                pixel = center - yw | 0;
+                if (pixel > -1) {
+                    buffer[pixel] = value;
+                }
+                pixel = center + y | 0;
+                if (pixel < bufLen) {
+                    buffer[pixel] = value;
+                }
+                pixel = center - y | 0;
+                if (pixel > -1) {
+                    buffer[pixel] = value;
+                }
+                x = 1 | 0;
+                for (; x < radius; x = (x + 1 | 0)) {
                     if (x * x + y2 < r2Plus1) {
                         pixel = center + yw + x | 0;
                         if (pixel < bufLen) {
