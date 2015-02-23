@@ -135,9 +135,7 @@ function ($log, $rootScope, $q, CONFIG, wfs, BinStore) {
             }
 
             var overrides = {
-                sortBy: _query.dtg,
-                cql_filter: buildCQLFilter(cqlParams),
-                format_options: 'dtg:' + _query.dtg
+                cql_filter: buildCQLFilter(cqlParams)
             };
 
             wfs.getFeature(CONFIG.geoserver.defaultUrl, typeName, CONFIG.geoserver.omitProxy, overrides)

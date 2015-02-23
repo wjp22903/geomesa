@@ -177,6 +177,16 @@ function ($element, $filter, $scope, $rootScope, mapClickService, ol3Map) {
     mapClickService.search([this.lon, this.lat], ol3Map.getResolution(), function(responses) {
         _.forEach(responses, function (response) {
             if (!response.isError && response.records.length > 0) {
+                //Filter out empty fields
+                var empty = _.reject(_.keys(response.records[0]), function (key) {
+                    return _.any(_.pluck(response.records, key), function (value) {
+                        return !(_.isUndefined(value) || _.isNull(value) || (_.isString(value) && _.isEmpty(value.trim())));
+                    });
+                });
+                response.records = _.map(response.records, function (record) {
+                    return _.omit(record, empty);
+                });
+
                 response.paging = {
                     suggestedPage: 1,
                     currentPage: 1,

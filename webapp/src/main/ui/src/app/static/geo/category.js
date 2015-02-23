@@ -208,8 +208,9 @@ function ($log, $rootScope, $timeout, $http, $filter, $q,
     };
 
     catScope.removeLayer = function (layer, filterLayer) {
-        ol3Map.removeLayerById(filterLayer.mapLayerId);
-        delete filterLayer.mapLayerId;
+        if (filterLayer.viewState.isOnMap) {
+            catScope.toggleLayer(layer, filterLayer);
+        }
         _.pull(layer.filterLayers, filterLayer);
     };
 
