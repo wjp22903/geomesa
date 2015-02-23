@@ -3,6 +3,7 @@ angular.module('stealth.app', [
     'truncate',
     'ui.bootstrap',
     'ui.utils',
+    'toaster',
     'templates-app',
     'stealth.core',
     'stealth.plugins'

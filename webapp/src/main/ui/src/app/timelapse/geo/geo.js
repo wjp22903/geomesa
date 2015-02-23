@@ -268,7 +268,7 @@ function ($log, $timeout, $q, $http, $filter, wms, ol3Map, PollingImageWmsLayer,
                                                 var options = CONFIG.map.liveOptions;
                                                 _.each(options, function (theOptions) {
                                                     if (theOptions.KeywordWorkspace == workspace) {
-                                                        var filterLayer = newLiveFilterLayer(layer.Name, theOptions.Title, theOptions, layer);
+                                                        var filterLayer = newLiveFilterLayer(layer.Name, theOptions.Title, angular.copy(theOptions), layer);
                                                         if (filterLayer.cnt === 1) {
                                                             filterLayer.viewState.isExpanded = true;
                                                         }

@@ -20,6 +20,7 @@ function ($log, tlLayerManager) {
 '$compile',
 '$templateCache',
 '$timeout',
+'toaster',
 'mapClickService',
 'ol3Map',
 'tlControlsManager',
@@ -27,7 +28,7 @@ function ($log, tlLayerManager) {
 'stealth.core.geo.ol3.layers.GeoJsonVectorLayer',
 'elementAppender',
 'CONFIG',
-function ($log, $rootScope, $compile, $templateCache, $timeout,
+function ($log, $rootScope, $compile, $templateCache, $timeout, toaster,
           mapClickService, ol3Map, controlsMgr,
           HistoricalLayer, GeoJsonVectorLayer, elementAppender, CONFIG) {
     $log.debug('stealth.timelapse.tlLayerManager: service started');
@@ -141,24 +142,28 @@ function ($log, $rootScope, $compile, $templateCache, $timeout,
             // There really should be only one summary layer for a given time-lapse layer.
             // Although, one summary layer could belong to more than one summary workspace.
             var layer = _.uniq(summaryLayers)[0];
-            query.layerData.currentLayer.KeywordList = layer.KeywordList;
+            if (layer) {
+                query.layerData.currentLayer.KeywordList = layer.KeywordList;
 
-            var summary = {
-                layerThisBelongsTo: layer,
-                Name: query.layerData.currentLayer.name,
-                Title: query.layerData.currentLayer.title,
-                viewState: {
-                    isOnMap: false,
-                    toggledOn: false,
-                    isLoading: false,
-                    isExpanded: true,
-                    isRemovable: true
-                },
-                query: query
-            };
+                var summary = {
+                    layerThisBelongsTo: layer,
+                    Name: query.layerData.currentLayer.name,
+                    Title: query.layerData.currentLayer.title,
+                    viewState: {
+                        isOnMap: false,
+                        toggledOn: false,
+                        isLoading: false,
+                        isExpanded: true,
+                        isRemovable: true
+                    },
+                    query: query
+                };
 
-            layer.summaries.push(summary);
-            summaryExploreMgr.toggleSummaryLayer(summary);
+                layer.summaries.push(summary);
+                summaryExploreMgr.toggleSummaryLayer(summary);
+            } else {
+                toaster.error('Summary Error', query.layerData.currentLayer.name + ' not found.');
+            }
         }
     };
 

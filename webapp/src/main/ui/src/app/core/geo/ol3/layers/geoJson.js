@@ -67,11 +67,9 @@ function ($log, $q, wfs, colors, MapLayer, CONFIG) {
             } else {
                 _loadFeatures('{"type":"FeatureCollection","totalFeatures":0,"features":[]}');
             }
-
         }
 
         function _getStyleArray(size, fillColor) {
-
             var outerBorder = new ol.style.Style({
                 stroke: new ol.style.Stroke({color: '#FFFFFF', width: size + 2})
             });
@@ -142,12 +140,11 @@ function ($log, $q, wfs, colors, MapLayer, CONFIG) {
 
         _self.getViewState = function () { return _viewState; };
 
-
         _self.searchPoint = function (coord, resolution) {
             var deferred = $q.defer();
 
             // If this layer is not toggled on, ...
-            if (!_viewState.toggledOn) {
+            if (!_viewState.toggledOn || _viewState.isError || _.isUndefined(_queryResponse)) {
                 deferred.resolve({
                     name: _name,
                     isError: false,

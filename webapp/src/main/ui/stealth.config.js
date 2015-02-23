@@ -52,6 +52,7 @@ module.exports = {
             'vendor/bower/filereader.js/filereader.js',
             'vendor/bower/FileSaver/FileSaver.js',
             'vendor/bower/datetimepicker/jquery.datetimepicker.js',
+            'vendor/bower/AngularJS-Toaster/toaster.js',
             'vendor/openlayers/OpenLayers.js'
         ],
         assets_nested: [
