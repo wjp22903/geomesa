@@ -22,9 +22,10 @@ function ($log, MapLayer) {
 '$q',
 'wfs',
 'colors',
+'ol3Styles',
 'stealth.core.geo.ol3.layers.MapLayer',
 'CONFIG',
-function ($log, $q, wfs, colors, MapLayer, CONFIG) {
+function ($log, $q, wfs, colors, ol3Styles, MapLayer, CONFIG) {
     var tag = 'stealth.core.geo.ol3.layers.GeoJsonVectorLayer: ';
     $log.debug(tag + 'factory started');
 
@@ -69,23 +70,9 @@ function ($log, $q, wfs, colors, MapLayer, CONFIG) {
             }
         }
 
-        function _getStyleArray(size, fillColor) {
-            var outerBorder = new ol.style.Style({
-                stroke: new ol.style.Stroke({color: '#FFFFFF', width: size + 2})
-            });
-            var innerBorder = new ol.style.Style({
-                stroke: new ol.style.Stroke({color: '#000000', width: size + 1})
-            });
-            var fillStyle = new ol.style.Style({
-                stroke: new ol.style.Stroke({color: fillColor, width: size})
-            });
-
-            return [outerBorder, innerBorder, fillStyle];
-        }
-
         var _olLayer = new ol.layer.Vector({
             source: _olSource,
-            style: _getStyleArray(_viewState.size, _viewState.fillColor)
+            style: ol3Styles.getLineStyle(_viewState.size, _viewState.fillColor)
         });
 
         $log.debug(tag + 'new GeoJsonVectorLayer(' + arguments[0] + ')');
@@ -96,10 +83,10 @@ function ($log, $q, wfs, colors, MapLayer, CONFIG) {
             if (!angular.isNumber(size)) { // Prevents deleting number in input field.
                 size = 1;
             }
-            layer.getOl3Layer().setStyle(_getStyleArray(size, layer.getViewState().fillColor));
+            layer.getOl3Layer().setStyle(ol3Styles.getLineStyle(size, layer.getViewState().fillColor));
         };
         _self.styleDirectiveScope.fillColorChanged = function (layer, fillColor) {
-            layer.getOl3Layer().setStyle(_getStyleArray(layer.getViewState().size, fillColor));
+            layer.getOl3Layer().setStyle(ol3Styles.getLineStyle(layer.getViewState().size, fillColor));
         };
 
         _self.launchQuery = function (query) {

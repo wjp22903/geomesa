@@ -1,0 +1,137 @@
+<div>
+    <progressbar class="progress-striped active" style="margin:6px;" value="100" type="primary"
+                 ng-if="status.waiting">
+    </progressbar>
+    <div ng-if="status.error" class="bg-danger"
+         style="margin:6px;padding:4px;border-radius:4px;">
+        <i class="fa fa-fw fa-lg fa-exclamation-triangle text-danger"></i>
+        {{status.errorMessage}}
+    </div>
+    <div ng-class="{'ng-hide': status.waiting || status.error}">
+        <div class="tpInfo">
+            <label>Date range:</label>
+            <span>
+                {{::request.startDtg | momentFormat:'YYYY-MM-DD HH:mm'}}Z &#8193; &#8213; &#8193; {{::request.endDtg | momentFormat:'YYYY-MM-DD HH:mm'}}Z
+            </span>
+            <br>
+            <label>Route length:</label>
+            <span>{{::extraRequestInfo.routeMeters | formatMeters}}</span>
+            <label style="margin-left:10px;">Proximity:</label>
+            <span>{{::request.proximityMeters | formatMeters}}</span>
+            <br>
+            <label>Data sources:</label>
+            <span ng-repeat="source in request.dataSources">
+                {{::source.Title || source.Name}}
+                <strong ng-class="{'ng-hide': $last}">&nbsp;|&nbsp;</strong>
+            </span>
+        </div>
+        <div style="background-color:#f0f0f0;margin:2px 4px;border-radius:3px;padding:1px 2px;">
+            <span>Sort by: </span>
+            <select ng-model="sortProp"
+                    ng-change="updateSort()"
+                    ng-options="value as key for (key, value) in sortOpts">
+            </select>
+            <span class="pull-right">
+                <span class="btn btn-default fa-stack toggleButton"
+                      ng-click="collapseAll()"
+                      tooltip-html-unsafe="<span style='white-space:nowrap'>Collapse All</span>"
+                      tooltip-placement="left" tooltip-animation="false" tooltip-popup-delay="500"
+                      tooltip-trigger="mouseenter">
+                    <i class="fa fa-fw fa-stack-1x fa-angle-double-up"></i>
+                </span>
+                <span class="btn btn-default fa-stack toggleButton"
+                      ng-click="expandAll()"
+                      tooltip-html-unsafe="<span style='white-space:nowrap'>Expand All</span>"
+                      tooltip-placement="left" tooltip-animation="false" tooltip-popup-delay="500"
+                      tooltip-trigger="mouseenter">
+                    <i class="fa fa-fw fa-stack-1x fa-angle-double-down"></i>
+                </span>
+            </span>
+        </div>
+        <div ng-repeat="result in response.results | startFrom:(paging.currentPage-1)*paging.pageSize | limitTo:paging.pageSize"
+             class="tpResult hoverBorderGlow">
+            <div style="overflow:hidden;">
+                <div class="toggleButton"
+                     style="height:16px;width:16px;border:1px solid #d3d3d3;border-radius:2px;display:inline-block;margin:0 5px;"
+                     ng-style="{'background-color': result.color || '#BEBE40'}">
+                </div>
+                <div class="pointNum" style="margin:2px;">{{(paging.currentPage-1)*paging.pageSize + $index + 1}}</div>
+                <div style="height:16px;max-width:200px;display:inline-block;overflow:hidden;text-overflow:ellipsis;"
+                     tooltip-html-unsafe="<span style='white-space:nowrap'>{{result.key}}</span>"
+                     tooltip-placement="bottom" tooltip-animation="false" tooltip-popup-delay="500"
+                     tooltip-trigger="mouseenter">
+                    {{result.key}}
+                </div>
+                <span class="pull-right">
+                    <span class="btn btn-default fa-stack toggleButton"
+                          ng-click="result.isExpanded = !result.isExpanded"
+                          tooltip-html-unsafe="<span style='white-space:nowrap'>{{result.isExpanded ? 'Collapse' : 'Expand'}}</span>"
+                          tooltip-placement="left" tooltip-animation="false" tooltip-popup-delay="500"
+                          tooltip-trigger="mouseenter">
+                        <i class="fa fa-fw fa-stack-1x"
+                           ng-class="{'fa-angle-double-down': !result.isExpanded, 'fa-angle-double-up': result.isExpanded}">
+                        </i>
+                    </span>
+                </span>
+                <div class="pull-right" style="height:18px;width:200px;margin-top:2px;margin-right:2px;background-color:#EEE;">
+                    <div class="pull-right btn-success rank-bar" style="height:100%;border:none;width:0px;"
+                         ng-style="{width: (response.maxScore <= 0) ? 0 : (result.combined.score/response.maxScore)*100 + '%'}">
+                        <span class="pull-right outlineTextWhite" style="padding-right:10px;color:black;">
+                            {{::(response.maxScore <= 0) ? 0 : (result.combined.score/response.maxScore)*100 | number:1}}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div collapse="!result.isExpanded">
+                <div style="overflow:auto;">
+                    <div class="tpDataBox">
+                        <div class="pull-right" style="display:inline-block;">
+                            <div class="btn btn-default fa-stack toggleButton">
+                                <i class="fa fa-fw fa-stack-1x fa-database text-primary"></i>
+                            </div>
+                            <br>
+                            <div class="btn btn-default fa-stack toggleButton">
+                                <i class="fa fa-fw fa-stack-1x fa-clock-o text-primary"></i>
+                            </div>
+                        </div>
+                        <label>Source:</label>
+                        <span>{{::result.dataSource.Title || result.dataSource.Name}}</span>
+                        <br>
+                        <label>Identifier field:</label>
+                        <span>{{::result.dataSource.idField}}</span>
+                        <br>
+                        <label>Route coverage:</label>
+                        <span>{{::result.routeCoverage * extraRequestInfo.routeMeters | formatMeters}} ({{::result.routeCoverage * 100 | numberTrim:2}}% of route)</span>
+                        <br>
+                        <label>Count:</label>
+                        <span>{{::result.counts.route}}</span>
+                    </div>
+                    <div class="pull-left tpDataBox secondaryTpDataBox">
+                        <label>Scores</label>
+                        <div ng-repeat="(key, value) in result.combined">
+                            {{::key}}: {{::value | numberTrim:10}}
+                        </div>
+                    </div>
+                    <div class="pull-left tpDataBox secondaryTpDataBox">
+                        <label>Route Deviation</label>
+                        <div ng-repeat="(key, value) in result.routeCellDeviation">
+                            {{::key}}: {{::value | numberTrim:10}}
+                        </div>
+                    </div>
+                    <div class="pull-left tpDataBox secondaryTpDataBox">
+                        <label>Motion</label>
+                        <div ng-repeat="(key, value) in result.motionEvidence">
+                            {{::key}}: {{::value | numberTrim:10}}
+                        </div>
+                    </div>
+                    <div class="pull-left tpDataBox secondaryTpDataBox">
+                        <label>TF-IDF</label>
+                        <div ng-repeat="(key, value) in result.tfIdf">
+                            {{::key}}: {{::value | numberTrim:10}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

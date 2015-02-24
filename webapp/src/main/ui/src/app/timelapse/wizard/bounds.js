@@ -28,17 +28,11 @@ function (WidgetDef, Step, Wizard, Query) {
 '$scope',
 '$filter',
 'ol3Map',
+'ol3Styles',
 'wizardManager',
-function ($scope, $filter, ol3Map, wizManager) {
+function ($scope, $filter, ol3Map, ol3Styles, wizManager) {
     var _draw = new ol.interaction.DragBox({
-        style: new ol.style.Style({
-            stroke: new ol.style.Stroke({
-                color: [204, 0, 153, 1]
-            }),
-            fill: new ol.style.Fill({
-                color: [204, 0, 153, 0.5]
-            })
-        })
+        style: ol3Styles.getPolyStyle(1, '#CC0099')
     });
     _draw.on('boxend', function () {
         $scope.$apply(function () {

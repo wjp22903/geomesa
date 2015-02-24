@@ -26,6 +26,7 @@
 @import 'inputTypeRange'
 @import 'timelapseControls'
 @import 'interaction'
+@import 'targetpri'
 
 @font-face
     font-family 'Glyphicons Halflings'
@@ -99,3 +100,10 @@ input[type=number]::-webkit-outer-spin-button
 
 .ui-spinner
     font-size 12px
+
+.rank-bar
+    transition width 2s linear
+
+.hoverBorderGlow
+    &:hover
+        borderGlow()

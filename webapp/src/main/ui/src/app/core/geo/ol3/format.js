@@ -163,7 +163,7 @@ function () {
 
     this.csvToFeatures = function (csv, geometryType, coordFormat, coordColumns) {
         var parser = new ol.format.GeoJSON(),
-            features = parser.readFeatures(_csvToGeoJsonObj(csv, geometryType, coordFormat, coordColumns));
+            features = parser.readFeatures(_csvToGeoJsonObj(csv.replace(/\r/g, ''), geometryType, coordFormat, coordColumns));
         return features;
     };
 }])

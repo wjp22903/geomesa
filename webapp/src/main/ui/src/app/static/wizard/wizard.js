@@ -6,6 +6,7 @@ angular.module('stealth.static.wizard')
 '$filter',
 'wizardManager',
 'ol3Map',
+'ol3Styles',
 'colors',
 'stealth.core.wizard.Step',
 'stealth.core.wizard.Wizard',
@@ -13,20 +14,13 @@ angular.module('stealth.static.wizard')
 'stealth.core.utils.WidgetDef',
 'CONFIG',
 function ($log, $rootScope, $filter,
-          wizardManager, ol3Map, colors,
+          wizardManager, ol3Map, ol3Styles, colors,
           Step, Wizard, Query, WidgetDef, CONFIG) {
     var tag = 'stealth.static.wizard.staticLayerWizard: ';
     $log.debug(tag + 'service started');
 
     var dragBox = new ol.interaction.DragBox({
-        style: new ol.style.Style({
-            stroke: new ol.style.Stroke({
-                color: [204, 0, 153, 1]
-            }),
-            fill: new ol.style.Fill({
-                color: [204, 0, 153, 0.5]
-            })
-        })
+        style: ol3Styles.getPolyStyle(1, '#CC0099')
     });
 
     function parseBounds (extent) {

@@ -30,6 +30,12 @@ function ($log) {
     };
 })
 
+.filter('momentFormat', function () {
+    return function (value, format) {
+        return value.format(format);
+    };
+})
+
 .filter('cors', function () {
     return function (url, path, omitProxy) {
         var uri = url.replace(/\/+$/, '');
@@ -83,6 +89,18 @@ function () {
             return input.slice(start);
         }
         return 0;
+    };
+}])
+
+//Replacement for regular string.split() that will
+//split only the number of times specified by limit.
+.filter('splitLimit', [
+function () {
+    return function (text, delimiter, limit) {
+        var arr = text.split(delimiter);
+        var result = arr.splice(0, limit);
+        result.push(arr.join(delimiter));
+        return result;
     };
 }])
 ;

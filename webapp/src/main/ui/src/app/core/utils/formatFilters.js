@@ -55,15 +55,6 @@ function () {
     };
 }])
 
-.filter('delimitThousands', function () {
-    return function (num, delimiter) {
-        if (!_.isString(delimiter)) {
-            delimiter = ',';
-        }
-        return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1" + delimiter);
-    };
-})
-
 .filter('formatMeters', [
 '$filter',
 function ($filter) {
@@ -77,7 +68,7 @@ function ($filter) {
                 prefix = ' k';
                 meters /= 1000;
             }
-            return $filter('delimitThousands')(meters.toFixed(numDecimals)) + prefix + 'm';
+            return $filter('numberTrim')(meters, numDecimals) + prefix + 'm';
         } else {
             return '';
         }
@@ -102,4 +93,16 @@ function ($filter) {
 
     };
 })
+
+.filter('numberTrim', [
+'$filter',
+function ($filter) {
+    return function (number, fractionSize) {
+        var n = $filter('number')(number, fractionSize);
+        if (_.isString(n)) {
+            return n.replace(/\.?0+$/, '');
+        }
+        return n;
+    };
+}])
 ;

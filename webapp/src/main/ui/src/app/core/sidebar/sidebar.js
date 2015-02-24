@@ -35,12 +35,13 @@ function ($log, $rootScope) {
      * Adds a button to the sidebar.
      */
     this.addButton = function (title, iconClass, width,
-            contentDef, toolDef, permanent) {
+            contentDef, toolDef, permanent, onClose) {
         var _id = _idSeq++;
         _buttons.push({
             id: _id,
             iconClass: iconClass,
             permanent: permanent,
+            onClose: onClose,
             panel: {
                 title: title,
                 style: {
@@ -57,9 +58,16 @@ function ($log, $rootScope) {
      * Removes a button from sidebar.
      */
     this.removeButton = function (id) {
-        _.remove(_buttons, {id: id});
-        _.pull(_openPanelIds, id);
-        _setLefts();
+        var matches = _.remove(_buttons, {id: id});
+        if (!_.isEmpty(matches)) {
+            _.each(matches, function (b) {
+                if (_.isFunction(b.onClose)) {
+                    b.onClose();
+                }
+            });
+            _.pull(_openPanelIds, id);
+            _setLefts();
+        }
     };
     /**
      * Toggles the open state of a button/panel.
@@ -91,6 +99,7 @@ function ($log, $rootScope) {
                 theButton.panel.open = openValue;
             }
         }
+        return id;
     };
     /**
      * Getters and setters

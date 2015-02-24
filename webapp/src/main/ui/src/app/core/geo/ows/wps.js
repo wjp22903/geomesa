@@ -10,18 +10,19 @@ function ($q, $http, $filter) {
         var deferred = $q.defer();
         $http.post(url, xmlRequest)
             .success(function (data, status, headers, config) {
-                if (_.isString(data)) {
+                if (_.isString(data) && data.indexOf('ExceptionText') != -1) {
                     try {
                         var r = /<ows:ExceptionText>(.*)<\/ows:ExceptionText>/;
-                        var ex = r.exec(data.replace(/(\r\n|\r|\n)/g, ' '))[1];
-                        deferred.reject(ex);
+                        var ex = r.exec(data.replace(/(\r\n|\r|\n)/g, ' '));
+                        if (_.isArray(ex) && ex.length > 1) {
+                            deferred.reject(ex[1]);
+                        }
                     } catch(e) {
                         console.log(data, e);
                         deferred.reject('An error occurred');
                     }
-                } else {
-                    deferred.resolve(data);
                 }
+                deferred.resolve(data);
             })
             .error(function (data, status, headers, config) {
                 deferred.reject('Error: ' + status);

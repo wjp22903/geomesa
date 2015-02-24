@@ -314,7 +314,7 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
         };
 
         $log.debug(tag + 'new TimeLapseLayer(' + name + ')');
-        MapLayer.apply(this, [name, _olLayer]);
+        MapLayer.apply(this, [name, _olLayer, 5]);
         this.styleDirective = 'st-time-lapse-layer-style';
         this.styleDirectiveScope.styleVars.iconClass = 'fa fa-fw fa-lg fa-clock-o';
         this.styleDirectiveScope.layer = _self;

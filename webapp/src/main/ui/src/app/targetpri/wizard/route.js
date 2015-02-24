@@ -1,14 +1,15 @@
 angular.module('stealth.targetpri.wizard.route')
 
 .factory('routeTpWizFactory', [
+'$rootScope', 
 'stealth.core.wizard.Wizard',
 'stealth.core.wizard.Step',
 'stealth.core.utils.WidgetDef',
-'sidebarManager',
 'ol3Map',
+'ol3Styles',
 'elementAppender',
 'routeDrawHelper',
-function (Wizard, Step, WidgetDef, sidebarManager, ol3Map, elementAppender, routeDrawHelper) {
+function ($rootScope, Wizard, Step, WidgetDef, ol3Map, ol3Styles, elementAppender, routeDrawHelper) {
     var self = {
         createSourceWiz: function (wizardScope) {
             return new Wizard(null, null, 'fa-ellipsis-h', [
@@ -37,17 +38,7 @@ function (Wizard, Step, WidgetDef, sidebarManager, ol3Map, elementAppender, rout
         createDrawWiz: function (wizardScope) {
             var featureOverlay = new ol.FeatureOverlay({
                 features: wizardScope.geoFeature ? [wizardScope.geoFeature] : [],
-                style: [
-                    new ol.style.Style({
-                        stroke: new ol.style.Stroke({color: '#FFFFFF', width: 5})
-                    }),
-                    new ol.style.Style({
-                        stroke: new ol.style.Stroke({color: '#000000', width: 4})
-                    }),
-                    new ol.style.Style({
-                        stroke: new ol.style.Stroke({color: '#CC0099', width: 3})
-                    })
-                ]
+                style: ol3Styles.getLineStyle(3, '#CC0099')
             });
             var modify = new ol.interaction.Modify({
                 features: featureOverlay.getFeatures(),
@@ -77,6 +68,9 @@ function (Wizard, Step, WidgetDef, sidebarManager, ol3Map, elementAppender, rout
                 new Step('Define route', new WidgetDef('st-tp-wiz-draw', wizardScope),
                          new WidgetDef('st-tp-route-draw-tools', wizardScope, "feature-overlay='featureOverlay' geo-feature='geoFeature' route-info='routeInfo' source='source'"),
                          false, function () {
+                    if (wizardScope.geoFeature) {
+                        routeDrawHelper.initFeature(wizardScope.geoFeature, wizardScope);
+                    }
                     ol3Map.addOverlay(featureOverlay);
                     ol3Map.addInteraction(modify);
                     ol3Map.addInteraction(draw);
@@ -91,20 +85,32 @@ function (Wizard, Step, WidgetDef, sidebarManager, ol3Map, elementAppender, rout
                     ol3Map.removeInteraction(draw);
                     ol3Map.removeInteraction(modify);
                     ol3Map.removeOverlay(featureOverlay);
+                    if (wizardScope.geoFeature) {
+                        routeDrawHelper.detachFeature(wizardScope.geoFeature);
+                    }
                 })
             ]);
         },
         createEndWiz: function (wizardScope) {
             var now = moment.utc();
+            wizardScope.proximityMeters = 2000;
             wizardScope.startDtg = now.clone().subtract(7, 'days');
             wizardScope.endDtg = now;
             return new Wizard(null, null, 'fa-check text-success', [
                 new Step('Select data', new WidgetDef('st-tp-wiz-data', wizardScope), null, true),
                 new Step('Set options', new WidgetDef('st-tp-route-options-wiz', wizardScope), null, true, null, function (stepNum, success) {
                     if (success) {
-                        sidebarManager.toggleButton(
-                            sidebarManager.addButton(wizardScope.name, 'fa-crosshairs', 300, new WidgetDef('st-placeholder', wizardScope)),
-                            true);
+                        $rootScope.$emit('targetpri:request:route',
+                            //TODO - package these settings into an obj within wizardScope
+                            {
+                                name: wizardScope.name,
+                                startDtg: wizardScope.startDtg,
+                                endDtg: wizardScope.endDtg,
+                                proximityMeters: wizardScope.proximityMeters,
+                                routeFeature: wizardScope.geoFeature,
+                                dataSources: wizardScope.datasources
+                            }
+                        );
                     }
                 })
             ]);
@@ -214,7 +220,29 @@ function ($timeout, ol3Map, csvFormat, routeDrawHelper) {
 '$timeout',
 function ($filter, $timeout) {
     this.initFeature = function (feature, scope, moreInit) {
-        feature.on('change', function (evt2) {
+        var coords = feature.getGeometry().getCoordinates();
+        scope.routeInfo = {
+            coords: coords,
+            meters: $filter('distanceVincenty')(coords)
+        };
+        if (!feature.get('pointData')) {
+            feature.set('pointData', {
+                type: 'FeatureCollection',
+                features: []
+            });
+            _.each(coords, function (coord, index) {
+                feature.get('pointData').features.push({
+                    id: _.now() + '_' + index,
+                    type: 'Feature',
+                    properties: {},
+                    geometry: {
+                        type: 'Point',
+                        coordinates: coord
+                    }
+                });
+            });
+        }
+        feature.changeListenerKey = feature.on('change', function (evt2) {
             var coords = evt2.target.getGeometry().getCoordinates();
             $timeout(function () {
                 scope.routeInfo.coords = coords;
@@ -244,34 +272,19 @@ function ($filter, $timeout) {
             evt2.target.set('pointData', newPointData);
         });
         $timeout(function () {
-            var coords = feature.getGeometry().getCoordinates();
-            scope.routeInfo = {
-                coords: coords,
-                meters: $filter('distanceVincenty')(coords)
-            };
-            if (!feature.get('pointData')) {
-                feature.set('pointData', {
-                    type: 'FeatureCollection',
-                    features: []
-                });
-                _.each(coords, function (coord, index) {
-                    feature.get('pointData').features.push({
-                        id: _.now() + '_' + index,
-                        type: 'Feature',
-                        properties: {},
-                        geometry: {
-                            type: 'Point',
-                            coordinates: coord
-                        }
-                    });
-                });
-            }
             scope.geoFeature = feature;
-
             if (_.isFunction(moreInit)) {
                 moreInit();
             }
         });
+    };
+    this.detachFeature = function (feature) {
+        if (feature.changeListenerKey) {
+            feature.unByKey(feature.changeListenerKey);
+        }
+        delete feature.changeListenerKey;
+        feature.set('pointData', null);
+        delete feature.values_.pointData;
     };
 }])
 ;

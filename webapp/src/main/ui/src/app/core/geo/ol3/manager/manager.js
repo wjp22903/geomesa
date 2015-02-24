@@ -116,13 +116,14 @@ function () {
     };
     this.removeCategory = function (id) {
         _.each(_categories, function (level) {
-            _.remove(level, function (c) {
-                var match = c.id === id;
-                if (match && _.isFunction(c.onClose)) {
-                    c.onClose();
-                }
-                return match;
-            });
+            var matches = _.remove(level, {id: id});
+            if (!_.isEmpty(matches)) {
+                _.each(matches, function (c) {
+                    if (_.isFunction(c.onClose)) {
+                        c.onClose();
+                    }
+                });
+            }
         });
     };
     this.getLevels = function () {

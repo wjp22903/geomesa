@@ -18,15 +18,17 @@ angular.module('stealth.targetpri.wizard', [
 'trackTpWizFactory',
 function ($rootScope, startMenuManager, wizardManager, Wizard, Step,
     WidgetDef, routeWizFac, trackWizFac) {
+    var _idSeq = 1;
     var launchWizard = function () {
         var wizardScope = $rootScope.$new();
         angular.extend(wizardScope, {
+            name: 'Target ID ' + _idSeq++,
             type: 'route',
             source: 'drawing',
             datasources: []
         });
         wizardManager.launchWizard(
-            new Wizard('Target Prioritization', 'fa-crosshairs', 'fa-ellipsis-h', [
+            new Wizard('Target Identification', 'fa-crosshairs', 'fa-ellipsis-h', [
                 new Step('Select input type', new WidgetDef('st-tp-wiz-type', wizardScope), null, true,
                     function (stepNum) {
                         this.setEndIconClass('fa-ellipsis-h');
@@ -51,7 +53,7 @@ function ($rootScope, startMenuManager, wizardManager, Wizard, Step,
             ])
         );
     };
-    startMenuManager.addButton('Target Prioritization', 'fa-crosshairs', launchWizard);
+    startMenuManager.addButton('Target Identification', 'fa-crosshairs', launchWizard);
 }])
 
 .directive('stTpWizType', [

@@ -1,0 +1,24 @@
+<span style="font-weight:normal;" ng-if="paging.numberOfPages() > 1">
+    <span>Page</span>
+    <form class="form-inline" style="display:inline;">
+        <div class="form-group" style="vertical-align:top;">
+            <div class="input-group" style="vertical-align:top;">
+                <div class="btn input-group-addon"
+                     ng-click="paging.suggestedPage = (paging.currentPage = (paging.currentPage < 2) ? (paging.numberOfPages()) : (paging.currentPage-1))">
+                    <i class="fa fa-chevron-left"></i>
+                </div>
+                <input type="number"
+                       ng-change="paging.checkSuggestedPage()"
+                       ng-blur="paging.suggestedPage = paging.currentPage"
+                       ng-model="paging.suggestedPage"
+                       class="form-control input-sm"
+                       style="width:25px;font-size:0.7em;padding:1px;height:18px;">
+                <div class="btn input-group-addon"
+                     ng-click="paging.suggestedPage = (paging.currentPage = (paging.currentPage >= paging.numberOfPages()) ? 1 : (paging.currentPage+1))">
+                    <i class="fa fa-chevron-right"></i>
+                </div>
+            </div>
+        </div>
+    </form>
+    <span>/{{paging.numberOfPages()}}</span>
+</span>

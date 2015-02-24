@@ -137,6 +137,7 @@ function ($log, $filter, MapLayer, GeoJsonLayer, CONFIG) {
         }
         _map.getLayers().insertAt(_layers.length - index, ol3Layer);
         _layers.splice(index, 0, layer);
+        return layer;
     };
     /**
      * Removes a layer from the map.
@@ -183,6 +184,7 @@ function ($log, $filter, MapLayer, GeoJsonLayer, CONFIG) {
      */
     this.addOverlay = function (overlay) {
         _map.addOverlay(overlay);
+        return overlay;
     };
     /**
      * Removes an overlay from the map.
@@ -248,7 +250,7 @@ function ($log, $filter, MapLayer, GeoJsonLayer, CONFIG) {
     var tintLayer = new ol.layer.Vector({
         source: tintSource,
         visible: false,
-        opacity: 0.5,
+        opacity: 0.75,
         style: new ol.style.Style({
             fill: new ol.style.Fill({color: '#000'})
         })

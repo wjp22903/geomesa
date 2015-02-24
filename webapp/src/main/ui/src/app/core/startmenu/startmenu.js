@@ -49,7 +49,7 @@ function (startMenuManager) {
             };
 
             var initialClick = function () {
-                $scope.$apply(function () {
+                $scope.$evalAsync(function () {
                     $scope.show = false;
                     $window.removeEventListener('click', initialClick, false);
                 });

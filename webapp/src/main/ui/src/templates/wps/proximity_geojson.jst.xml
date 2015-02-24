@@ -90,6 +90,12 @@
                 <wps:LiteralData>{{output.name}}</wps:LiteralData>
             </wps:Data>
         </wps:Input>
+        <wps:Input>
+            <ows:Identifier>keywords</ows:Identifier>
+            <wps:Data>
+                <wps:LiteralData>{{output.keywords}}</wps:LiteralData>
+            </wps:Data>
+        </wps:Input>
     </wps:DataInputs>
     <wps:ResponseForm>
         <wps:RawDataOutput>
