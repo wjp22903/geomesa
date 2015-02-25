@@ -1,4 +1,5 @@
 angular.module('stealth.core.interaction', [
-    'stealth.core.interaction.click'
+    'stealth.core.interaction.mappopup',
+    'stealth.core.interaction.resulttable'
 ])
 ;

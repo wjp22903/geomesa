@@ -21,7 +21,7 @@ function ($log, tlLayerManager) {
 '$templateCache',
 '$timeout',
 'toaster',
-'mapClickService',
+'mapClickSearchService',
 'ol3Map',
 'tlControlsManager',
 'stealth.timelapse.geo.ol3.layers.HistoricalLayer',
@@ -29,7 +29,7 @@ function ($log, tlLayerManager) {
 'elementAppender',
 'CONFIG',
 function ($log, $rootScope, $compile, $templateCache, $timeout, toaster,
-          mapClickService, ol3Map, controlsMgr,
+          mapClickSearchService, ol3Map, controlsMgr,
           HistoricalLayer, GeoJsonVectorLayer, elementAppender, CONFIG) {
     $log.debug('stealth.timelapse.tlLayerManager: service started');
     var live, historical;
@@ -56,10 +56,10 @@ function ($log, $rootScope, $compile, $templateCache, $timeout, toaster,
         registerLayers();
         elementAppender.append('.primaryDisplay', 'timelapse/controls/controlsPanel.tpl.html', $rootScope.$new());
         registerControlsListeners();
-        mapClickService.registerSearchable(function (coord, res) {
+        mapClickSearchService.registerSearchable(function (coord, res) {
             return historical.searchActiveStores(coord, res);
         });
-        mapClickService.registerSearchable(function (coord, res) {
+        mapClickSearchService.registerSearchable(function (coord, res) {
             return summaryExploreMgr.searchActiveSummaryLayers(coord, res);
         });
     };

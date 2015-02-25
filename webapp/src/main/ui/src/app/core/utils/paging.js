@@ -26,6 +26,12 @@ function () {
                         num = Math.ceil(scope.records.length/scope.paging.pageSize);
                     }
                     return num;
+                },
+                previousPage: function () {
+                    scope.paging.suggestedPage = (scope.paging.currentPage = (scope.paging.currentPage < 2) ? (scope.paging.numberOfPages()) : (scope.paging.currentPage-1));
+                },
+                nextPage: function () {
+                    scope.paging.suggestedPage = (scope.paging.currentPage = (scope.paging.currentPage >= scope.paging.numberOfPages()) ? 1 : (scope.paging.currentPage+1));
                 }
             }, scope.paging);
         }

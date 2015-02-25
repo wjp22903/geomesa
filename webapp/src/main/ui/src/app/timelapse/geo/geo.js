@@ -43,10 +43,10 @@ function ($rootScope, catMgr, Category, WidgetDef) {
 'stealth.timelapse.stores.BinStore',
 'colors',
 'tlWizard',
-'mapClickService',
+'mapClickSearchService',
 'CONFIG',
 function ($log, $timeout, $q, $http, $filter, wms, ol3Map, PollingImageWmsLayer, tlLayerManager,
-          BinStore, colors, tlWizard, mapClickService, CONFIG) {
+          BinStore, colors, tlWizard, mapClickSearchService, CONFIG) {
     var tag = 'stealth.core.geo.context.stTimelapseGeoCategory: ';
     $log.debug(tag + 'directive defined');
     return {
@@ -335,7 +335,7 @@ function ($log, $timeout, $q, $http, $filter, wms, ol3Map, PollingImageWmsLayer,
                         capabilities['summary']['iconClass'] = 'fa-location-arrow';
                         capabilities['summary']['onClick'] = tlLayerManager.getSummaryExploreManager().summaryQuery;
                     }
-                    layer.searchId = mapClickService.registerSearchable(function (coord, res) {
+                    layer.searchId = mapClickSearchService.registerSearchable(function (coord, res) {
                         if (pollingLayer.getOl3Layer().getVisible()) {
                             var url = pollingLayer.getOl3Layer().getSource().getGetFeatureInfoUrl(
                                 coord, res, CONFIG.map.projection, {
@@ -393,7 +393,7 @@ function ($log, $timeout, $q, $http, $filter, wms, ol3Map, PollingImageWmsLayer,
                     layer.viewState.isOnMap = false;
                     layer.viewState.toggledOn = false;
                     if (_.isNumber(layer.searchId)) {
-                        mapClickService.unregisterSearchableById(layer.searchId);
+                        mapClickSearchService.unregisterSearchableById(layer.searchId);
                         delete layer.searchId;
                     }
                 }

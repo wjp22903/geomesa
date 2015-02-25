@@ -1,32 +1,71 @@
+.mapPopupInvisible
+    visibility hidden
+
 .mapPopupContainer
     background white
     border-radius 3px
     border 2px solid #ddd
     overflow hidden
 
-.mapPopupTableContainer
-    overflow scroll
-    height 100%
+.searchResultTableHeader
+    overflow-x hidden
+    width 100%
+    white-space nowrap
+
+.searchResultTableHeaderResult
+    display inline-block
+    white-space normal
+    border-right 1px solid #ddd
+    border-left 1px solid #ddd
+    border-top 1px solid #ddd
+
+.searchResultTableHeaderCaption
+    width 100%
+    text-align center
+
+.searchResultTableHeaderRow
+    display inline-block
+    border-top 1px solid #ddd
+    white-space nowrap
     width 100%
 
-.mapPopupRecord
-    display table
-    border 1px solid #ddd
+.searchResultTablePager
+    .btn
+        padding 0
+        line-height 1.2
 
-.mapPopupRecordHeader
-    display table-caption
-    border 1px solid #ddd
-    text-align center
-    font-weight bold
+.searchResultTableBody
+    height 100%
+    width 100%
+    overflow scroll
+    white-space nowrap
 
-.mapPopupRecordCell
-    display table-cell
-    text-align left
+.searchResultTableBodyResult
+    display inline-block
+    vertical-align top
+    border-right 1px solid #ddd
+    border-left 1px solid #ddd
+    border-bottom 1px solid #ddd
+    overflow hidden
+
+.searchResultTableRowKey
+    text-align right
+    vertical-align top
     padding 0 5px
+    font-weight bold
+    display inline-block
+    white-space normal
     word-wrap break-word
 
-.mapPopupColumnTitle
-    display table-cell
-    text-align right
+.searchResultTableRowCell
     padding 0 5px
-    font-weight bold
+    display inline-block
+    white-space normal
+    word-wrap break-word
+    vertical-align top
+
+.searchResultTableRowEven
+    background-color #f1f1f1
+
+.searchResultTableBorderRight
+    border-right 1px solid #ddd

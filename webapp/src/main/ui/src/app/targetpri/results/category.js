@@ -9,9 +9,9 @@ angular.module('stealth.targetpri.results')
 'ol3Map',
 'stealth.core.geo.ol3.manager.Category',
 'stealth.core.utils.WidgetDef',
-'mapClickService',
+'mapClickSearchService',
 'CONFIG',
-function ($rootScope, $timeout, $q, $http, $filter, ol3Map, Base, WidgetDef, mapClickService, CONFIG) {
+function ($rootScope, $timeout, $q, $http, $filter, ol3Map, Base, WidgetDef, mapClickSearchService, CONFIG) {
     var Category = function (title, onClose) {
         var scope = $rootScope.$new();
         scope.layers = [];
@@ -36,7 +36,7 @@ function ($rootScope, $timeout, $q, $http, $filter, ol3Map, Base, WidgetDef, map
             });
 
             if (registerSearchable) {
-                layer.searchId = mapClickService.registerSearchable(function (coord, res) {
+                layer.searchId = mapClickSearchService.registerSearchable(function (coord, res) {
                     if (layer.getOl3Layer().getVisible()) {
                         var url = layer.getOl3Layer().getSource().getGetFeatureInfoUrl(
                             coord, res, CONFIG.map.projection, {
@@ -78,7 +78,7 @@ function ($rootScope, $timeout, $q, $http, $filter, ol3Map, Base, WidgetDef, map
             _.each(scope.layers, function (layer) {
                 ol3Map.removeLayer(layer);
                 if (_.isNumber(layer.searchId)) {
-                    mapClickService.unregisterSearchableById(layer.searchId);
+                    mapClickSearchService.unregisterSearchableById(layer.searchId);
                     delete layer.searchId;
                 }
             });

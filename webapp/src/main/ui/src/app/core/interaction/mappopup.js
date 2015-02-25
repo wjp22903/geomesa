@@ -1,12 +1,12 @@
-angular.module('stealth.core.interaction.click', [
+angular.module('stealth.core.interaction.mappopup', [
     'stealth.core.geo.ol3.map'
 ])
 
-.service('mapClickService', [
+.service('mapClickSearchService', [
 '$log',
 '$rootScope',
 function ($log, $rootScope) {
-    var tag = 'stealth.core.interaction.click: ';
+    var tag = 'stealth.core.interaction.mappopup: ';
     var _idSeq = 0;
     var _searchables = {};
     var _searchResults = [];
@@ -23,7 +23,7 @@ function ($log, $rootScope) {
             });
         };
         if (promises.length === 0) {
-            $log.debug(tag + 'No layers were queried.');
+            $log.debug(tag + 'No layers were searched.');
             invokeCallback(_searchResults);
         } else {
             var processResults = function (response) {
@@ -73,14 +73,16 @@ function ($log, $rootScope) {
 '$filter',
 '$scope',
 '$rootScope',
-'mapClickService',
+'mapClickSearchService',
 'ol3Map',
-function ($element, $filter, $scope, $rootScope, mapClickService, ol3Map) {
+function ($element, $filter, $scope, $rootScope, mapClickSearchService, ol3Map) {
+    /**
+     * Private members.
+     */
     var overlay = new ol.Overlay({
         element: $element,
         insertFirst: false
     });
-    ol3Map.addOverlay(overlay);
     var mapSize = ol3Map.getSize();
     var isPinned = false;
     var id = parseInt($element.attr('popup-id'), 10);
@@ -89,57 +91,20 @@ function ($element, $filter, $scope, $rootScope, mapClickService, ol3Map) {
     /**
      * Members available to the view.
      */
-    this.showPopup = false;
+    this.loading = true;
     this.wizardActive = false;
-    this.results = [];
     this.lat = parseFloat($element.attr('lat'));
     this.lon = parseFloat($element.attr('lon'));
-    this.containerStyle = {
-        height: 'auto',
-        width: 'auto',
-        'max-width': mapSize[0] * 0.6 + 'px',
-        'max-height': mapSize[1] * 0.6 + 'px'
-    };
-    overlay.setPosition([_self.lon, _self.lat]);
+    this.maxWidth = Math.ceil(mapSize[0] * 0.6);
+    this.maxHeight = Math.ceil(mapSize[1] * 0.6);
+    this.results = [];
+
+    /**
+     * Methods available to the view.
+     */
     this.focus = function () {
         $element.css('z-index', '92');
         $rootScope.$emit('Popup Focus Change', id);
-    };
-    this.stopDrag = function (event) {
-        event.stopPropagation();
-    };
-    this.removeRecord = function (result, record) {
-        _.pull(result.records, record);
-
-        if (result.records.length === 0) {
-            this.removeResult(result);
-            return;
-        }
-
-        var numPages = result.paging.numberOfPages();
-        if (result.paging.currentPage > numPages) {
-            result.paging.suggestedPage = result.paging.currentPage = numPages;
-        }
-    };
-    this.removeResult = function (result) {
-        _.pull(this.results, result);
-        if (this.results.length === 0) {
-            this.closePopup();
-        }
-    };
-    this.getRowColor = function (isEven) {
-        var style = {};
-        if (isEven) {
-            style['background-color'] = '#f1f1f1';
-        }
-        return style;
-    };
-    this.getBorder = function (isFirst) {
-        var style = {};
-        if (!isFirst) {
-            style['border-left'] = '1px solid #ddd';
-        }
-        return style;
     };
     this.isPinned = function () {
         return isPinned;
@@ -147,75 +112,33 @@ function ($element, $filter, $scope, $rootScope, mapClickService, ol3Map) {
     this.togglePin = function () {
         isPinned = !isPinned;
     };
-    this.removeMaxDimensions = function () {
-        delete _self.containerStyle['max-width'];
-        delete _self.containerStyle['max-height'];
-    };
     this.closePopup = function () {
-        this.showPopup = false;
         ol3Map.removeOverlay(overlay);
         $scope.$destroy();
         $element.remove();
     };
-    this.formatValue = function (key, value, result) {
-        if (result.fieldTypes) {
-            var type = _.find(result.fieldTypes, {'name': key});
-            if (type.localType) {
-                switch (type.localType) {
-                    case 'date-time':
-                        return moment.utc(value).format('YYYY-MM-DD[T]HH:mm:ss[Z]');
-                    case 'number':
-                        return $filter('number')(value);
-                    default:
-                        return value;
+    this.launchSearch = function () {
+        mapClickSearchService.search([this.lon, this.lat], ol3Map.getResolution(), function(responses) {
+            _.forEach(responses, function (response) {
+                if (!response.isError && response.records.length > 0) {
+                    _self.results.push(response);
                 }
-            }
-        }
-        return value;
-    };
-
-    mapClickService.search([this.lon, this.lat], ol3Map.getResolution(), function(responses) {
-        _.forEach(responses, function (response) {
-            if (!response.isError && response.records.length > 0) {
-                //Filter out empty fields
-                var empty = _.reject(_.keys(response.records[0]), function (key) {
-                    return _.any(_.pluck(response.records, key), function (value) {
-                        return !(_.isUndefined(value) || _.isNull(value) || (_.isString(value) && _.isEmpty(value.trim())));
-                    });
-                });
-                response.records = _.map(response.records, function (record) {
-                    return _.omit(record, empty);
-                });
-
-                response.paging = {
-                    suggestedPage: 1,
-                    currentPage: 1,
-                    pageSize: 4,
-                    checkSuggestedPage: function () {
-                        if (response.paging.suggestedPage > 0 &&
-                            response.paging.suggestedPage <= response.paging.numberOfPages()) {
-                            response.paging.currentPage = response.paging.suggestedPage;
-                        }
-                    },
-                    numberOfPages: function () {
-                        var num = 0;
-                        if (_.isArray(response.records)) {
-                            num = Math.ceil(response.records.length/response.paging.pageSize);
-                        }
-                        return num;
-                    }
-                };
-                _self.results.push(response);
+            });
+            if (_self.results.length > 0) {
+                _self.loading = false;
+                $scope.$broadcast('Results Loaded');
+                $rootScope.$emit('Popup Focus Change', id);
+            } else {
+                _self.closePopup();
             }
         });
-        if (_self.results.length > 0) {
-            _self.showPopup = true;
-            $rootScope.$emit('Popup Focus Change', id);
-        } else {
-            _self.closePopup();
-        }
-    });
+    };
 
+    // Add overlay to the map and position it at the click site.
+    ol3Map.addOverlay(overlay);
+    overlay.setPosition([_self.lon, _self.lat]);
+
+    // Register map listeners.
     var closeUnpinned = function (event) {
         if (!isPinned) {
             ol3Map.un('click', closeUnpinned);
@@ -224,24 +147,24 @@ function ($element, $filter, $scope, $rootScope, mapClickService, ol3Map) {
     };
     ol3Map.on('click', closeUnpinned);
 
-    var unbind = $rootScope.$on('Popup Focus Change', function (event, popupId) {
+    // Register scope listeners.
+    var unbindFocus = $rootScope.$on('Popup Focus Change', function (event, popupId) {
         if (popupId !== id) {
             $element.css('z-index', '91');
         }
     });
-
-    $scope.$on('$destroy', function () {
-        unbind();
-    });
-
-    $rootScope.$on('wizard:launchWizard', function () {
+    var unbindWizLaunch = $rootScope.$on('wizard:launchWizard', function () {
         _self.wizardActive = true;
         ol3Map.un('click', closeUnpinned);
     });
-
-    $rootScope.$on('wizard:closeWizard', function () {
+    var unbindWizClose = $rootScope.$on('wizard:closeWizard', function () {
         _self.wizardActive = false;
         ol3Map.on('click', closeUnpinned);
+    });
+    $scope.$on('$destroy', function () {
+        unbindFocus();
+        unbindWizLaunch();
+        unbindWizClose();
     });
 }])
 
@@ -268,27 +191,6 @@ function () {
         }
     };
 }])
-
-.directive('stOl3MapPopupResize',
-function () {
-    return {
-        restrict: 'A',
-        require: '^stOl3MapPopup',
-        link: function (scope, element, attrs, ol3MapPopupController) {
-            element.resizable({
-                start: function (event, ui) {
-                    scope.$apply(function () {
-                        delete ol3MapPopupController.containerStyle['max-width'];
-                        delete ol3MapPopupController.containerStyle['max-height'];
-                    });
-                }
-            });
-            scope.$on('$destroy', function () {
-                element.resizable('destroy');
-            });
-        }
-    };
-})
 
 .directive('stOl3MapPopupBuilder', [
 '$rootScope',

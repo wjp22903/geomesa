@@ -15,10 +15,10 @@ angular.module('stealth.core.geo.context', [
 'wms',
 'ol3Map',
 'stealth.core.geo.ol3.layers.WmsLayer',
-'mapClickService',
+'mapClickSearchService',
 'CONFIG',
 function ($log, $rootScope, $timeout, $http, $filter, $q,
-          catMgr, Category, WidgetDef, wms, ol3Map, WmsLayer, mapClickService, CONFIG) {
+          catMgr, Category, WidgetDef, wms, ol3Map, WmsLayer, mapClickSearchService, CONFIG) {
     var tag = 'stealth.core.geo.context: ';
     var categoryScope = $rootScope.$new();
     categoryScope.workspaces = {};
@@ -40,7 +40,7 @@ function ($log, $rootScope, $timeout, $http, $filter, $q,
             wmsLayer.styleDirectiveScope.styleVars.iconClass = 'fa fa-fw fa-lg fa-compass';
             ol3Map.addLayer(wmsLayer);
             if (layer.queryable) {
-                layer.searchId = mapClickService.registerSearchable(function (coord, res) {
+                layer.searchId = mapClickSearchService.registerSearchable(function (coord, res) {
                     if (wmsLayer.getOl3Layer().getVisible()) {
                         var url = wmsLayer.getOl3Layer().getSource().getGetFeatureInfoUrl(
                             coord, res, CONFIG.map.projection, {
@@ -93,7 +93,7 @@ function ($log, $rootScope, $timeout, $http, $filter, $q,
             layer.viewState.isOnMap = false;
             layer.viewState.toggledOn = false;
             if (_.isNumber(layer.searchId)) {
-                mapClickService.unregisterSearchableById(layer.searchId);
+                mapClickSearchService.unregisterSearchableById(layer.searchId);
                 delete layer.searchId;
             }
         }

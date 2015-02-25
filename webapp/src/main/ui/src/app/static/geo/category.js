@@ -18,11 +18,11 @@ angular.module('stealth.static.geo', [
 'stealth.core.geo.ol3.manager.Category',
 'stealth.core.utils.WidgetDef',
 'stealth.core.geo.ol3.layers.WmsLayer',
-'mapClickService',
+'mapClickSearchService',
 'CONFIG',
 function ($log, $rootScope, $timeout, $http, $filter, $q,
           catMgr, wizard, wms, ol3Map, colors,
-          Category, WidgetDef, WmsLayer, mapClickService, CONFIG) {
+          Category, WidgetDef, WmsLayer, mapClickSearchService, CONFIG) {
     var tag = 'stealth.static.geo: ';
     var catScope = $rootScope.$new();
     catScope.workspaces = {};
@@ -104,7 +104,7 @@ function ($log, $rootScope, $timeout, $http, $filter, $q,
             mapLayer.styleDirectiveScope.markerStyles = markerStyles;
             mapLayer.styleDirectiveScope.markerShapes = markerShapes;
             ol3Map.addLayer(mapLayer);
-            filterLayer.searchId = mapClickService.registerSearchable(function (coord, res) {
+            filterLayer.searchId = mapClickSearchService.registerSearchable(function (coord, res) {
                 if (mapLayer.getOl3Layer().getVisible() &&
                     filterLayer.viewState.markerStyle === 'point') {
                     var url = mapLayer.getOl3Layer().getSource().getGetFeatureInfoUrl(
@@ -195,7 +195,7 @@ function ($log, $rootScope, $timeout, $http, $filter, $q,
                                             filterLayer.viewState.markerShape,
                                             filterLayer.viewState.radiusPixels);
             if (_.isNumber(filterLayer.searchId)) {
-                mapClickService.unregisterSearchableById(filterLayer.searchId);
+                mapClickSearchService.unregisterSearchableById(filterLayer.searchId);
                 delete filterLayer.searchId;
             }
         }
