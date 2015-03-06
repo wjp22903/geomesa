@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.ccri.stealth</groupId>
     <artifactId>stealth</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1-SNAPSHOT</version>
     <packaging>war</packaging>
 
     <!--
@@ -34,7 +34,7 @@
         <connection>scm:git:git@github.com:ccri/stealth.git</connection>
         <developerConnection>scm:git:git@github.com:ccri/stealth.git</developerConnection>
         <url>https://github.com/ccri/stealth</url>
-        <tag>stealth-1.0.0</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <distributionManagement>
