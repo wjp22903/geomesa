@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.ccri.stealth</groupId>
     <artifactId>stealth</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <packaging>war</packaging>
 
     <!--
@@ -36,7 +34,7 @@
         <connection>scm:git:git@github.com:ccri/stealth.git</connection>
         <developerConnection>scm:git:git@github.com:ccri/stealth.git</developerConnection>
         <url>https://github.com/ccri/stealth</url>
-        <tag>HEAD</tag>
+        <tag>stealth-1.0.0</tag>
     </scm>
 
     <distributionManagement>
@@ -105,8 +103,8 @@
 
         <openlayers.imagepath>vendor/openlayers/img/</openlayers.imagepath>
 
-        <map.restricted.extent></map.restricted.extent>
-        <map.max.extent></map.max.extent>
+        <map.restricted.extent />
+        <map.max.extent />
         <map.center.lon>0</map.center.lon>
         <map.center.lat>0</map.center.lat>
         <map.zoom.init>4</map.zoom.init>
@@ -168,8 +166,8 @@
         <dataSources>{}</dataSources>
 
         <!-- proxy config -->
-        <web.proxy></web.proxy>
-        <keystore.path></keystore.path>
+        <web.proxy />
+        <keystore.path />
         <keystore.password>password</keystore.password>
         <truststore.path>${basedir}/src/test/resources/certs/truststore.jks</truststore.path>
         <truststore.password>password</truststore.password>
@@ -330,19 +328,17 @@
                         <configuration>
                             <target>
                                 <echo>**** GRUNT ****</echo>
-                                <exec executable="cmd" dir="${uidir.pathname}" osfamily="windows"
-                                      resultproperty="cmdresult">
-                                    <arg line="/c node.exe ${uidir.pathname}/node_modules/grunt-cli/bin/grunt --force"/>
+                                <exec executable="cmd" dir="${uidir.pathname}" osfamily="windows" resultproperty="cmdresult">
+                                    <arg line="/c node.exe ${uidir.pathname}/node_modules/grunt-cli/bin/grunt --force" />
                                 </exec>
-                                <exec executable="bash" dir="${uidir.pathname}" osfamily="unix"
-                                      resultproperty="cmdresult">
-                                    <arg line="-c '${nodejs.local.dir}/bin/node ${uidir.pathname}/node_modules/grunt-cli/bin/grunt'"/>
+                                <exec executable="bash" dir="${uidir.pathname}" osfamily="unix" resultproperty="cmdresult">
+                                    <arg line="-c '${nodejs.local.dir}/bin/node ${uidir.pathname}/node_modules/grunt-cli/bin/grunt'" />
                                 </exec>
 
                                 <condition property="cmdsuccess">
-                                    <equals arg1="${cmdresult}" arg2="0"/>
+                                    <equals arg1="${cmdresult}" arg2="0" />
                                 </condition>
-                                <fail unless="cmdsuccess"/>
+                                <fail unless="cmdsuccess" />
                             </target>
                         </configuration>
                         <goals>
@@ -614,9 +610,9 @@
                                 <phase>generate-sources</phase>
                                 <configuration>
                                     <target>
-                                        <move file="${uidir.pathname}/node-${nodejs.version}-${nodejs.classifier}" tofile="${nodejs.local.dir}" failonerror="false"/>
+                                        <move file="${uidir.pathname}/node-${nodejs.version}-${nodejs.classifier}" tofile="${nodejs.local.dir}" failonerror="false" />
                                         <chmod dir="${nodejs.local.dir}" includes="**/bin/*" perm="755" />
-                                        <copy file="${nodejs.local.dir}/node.exe" tofile="${uidir.pathname}/node.exe" overwrite="true" failonerror="false"/>
+                                        <copy file="${nodejs.local.dir}/node.exe" tofile="${uidir.pathname}/node.exe" overwrite="true" failonerror="false" />
                                     </target>
                                 </configuration>
                                 <goals>
@@ -678,31 +674,31 @@
                                         <!-- However, it's a huge waste of time to dowload everything for every pack-ui build. -->
                                         <!--echo>**** NPM CACHE CLEAR ****</echo>
                                         <exec executable="cmd" dir="${uidir.pathname}" osfamily="windows" failonerror="true">
-                                            <arg line="/c ${uidir.pathname}/nodejs/npm.cmd cache clear"/>
+                                            <arg line="/c ${uidir.pathname}/nodejs/npm.cmd cache clear" />
                                         </exec>
                                         <exec executable="bash" dir="${uidir.pathname}" osfamily="unix" failonerror="true">
-                                            <arg line="-c '${nodejs.local.dir}/bin/node ${nodejs.local.dir}/lib/node_modules/npm/bin/npm-cli.js cache clear'"/>
+                                            <arg line="-c '${nodejs.local.dir}/bin/node ${nodejs.local.dir}/lib/node_modules/npm/bin/npm-cli.js cache clear'" />
                                         </exec-->
                                         <echo>**** NPM INSTALL ****</echo>
                                         <exec executable="cmd" dir="${uidir.pathname}" osfamily="windows" failonerror="true">
-                                            <arg line="/c ${uidir.pathname}/nodejs/npm.cmd install"/>
+                                            <arg line="/c ${uidir.pathname}/nodejs/npm.cmd install" />
                                         </exec>
                                         <exec executable="bash" dir="${uidir.pathname}" osfamily="unix" failonerror="true">
-                                            <arg line="-c '${nodejs.local.dir}/bin/node ${nodejs.local.dir}/lib/node_modules/npm/bin/npm-cli.js install'"/>
+                                            <arg line="-c '${nodejs.local.dir}/bin/node ${nodejs.local.dir}/lib/node_modules/npm/bin/npm-cli.js install'" />
                                         </exec>
                                         <!--echo>**** BOWER CACHE CLEAN ****</echo>
                                         <exec executable="cmd" dir="${uidir.pathname}" osfamily="windows" failonerror="true">
-                                            <arg line="/c node.exe ${uidir.pathname}/node_modules/bower/bin/bower cache clean"/>
+                                            <arg line="/c node.exe ${uidir.pathname}/node_modules/bower/bin/bower cache clean" />
                                         </exec>
                                         <exec executable="bash" dir="${uidir.pathname}" osfamily="unix" failonerror="true">
-                                            <arg line="-c '${nodejs.local.dir}/bin/node ${uidir.pathname}/node_modules/bower/bin/bower cache clean'"/>
+                                            <arg line="-c '${nodejs.local.dir}/bin/node ${uidir.pathname}/node_modules/bower/bin/bower cache clean'" />
                                         </exec-->
                                         <echo>**** BOWER INSTALL ****</echo>
                                         <exec executable="cmd" dir="${uidir.pathname}" osfamily="windows" failonerror="true">
-                                            <arg line="/c node.exe ${uidir.pathname}/node_modules/bower/bin/bower install"/>
+                                            <arg line="/c node.exe ${uidir.pathname}/node_modules/bower/bin/bower install" />
                                         </exec>
                                         <exec executable="bash" dir="${uidir.pathname}" osfamily="unix" failonerror="true">
-                                            <arg line="-c '${nodejs.local.dir}/bin/node ${uidir.pathname}/node_modules/bower/bin/bower install'"/>
+                                            <arg line="-c '${nodejs.local.dir}/bin/node ${uidir.pathname}/node_modules/bower/bin/bower install'" />
                                         </exec>
                                     </target>
                                 </configuration>
@@ -781,7 +777,7 @@
                                 <phase>process-resources</phase>
                                 <configuration>
                                     <target>
-                                        <move file="${uidir.pathname}/node_modules/karma-phantomjs-launcher/node_modules/phantomjs/lib/phantomjs-${phantomjs.version}-${phantomjs.classifier}" tofile="${phantomjs.local.dir}"/>
+                                        <move file="${uidir.pathname}/node_modules/karma-phantomjs-launcher/node_modules/phantomjs/lib/phantomjs-${phantomjs.version}-${phantomjs.classifier}" tofile="${phantomjs.local.dir}" />
                                         <chmod dir="${uidir.pathname}/node_modules" includes="**/bin/*" perm="755" />
                                     </target>
                                 </configuration>
