@@ -32,8 +32,27 @@
             Customizations for high-side demos.
     -->
 
+    <scm>
+        <connection>scm:git:git@github.com:ccri/stealth.git</connection>
+        <developerConnection>scm:git:git@github.com:ccri/stealth.git</developerConnection>
+        <url>https://github.com/ccri/stealth</url>
+        <tag>HEAD</tag>
+    </scm>
+
+    <distributionManagement>
+        <repository>
+            <id>local-release</id>
+            <url>http://art.ccri.com:8081/artifactory/libs-release-local</url>
+        </repository>
+        <snapshotRepository>
+            <id>local-snapshot</id>
+            <url>http://art.ccri.com:8081/artifactory/libs-snapshot-local</url>
+            <uniqueVersion>true</uniqueVersion>
+        </snapshotRepository>
+    </distributionManagement>
+
     <properties>
-        <whiptail.version>1.0.0-SNAPSHOT</whiptail.version>
+        <whiptail.version>1.0.0</whiptail.version>
         <scalatra.version>2.2.2</scalatra.version>
         <logback-classic.version>1.0.13</logback-classic.version>
         <spray-json.version>1.2.6</spray-json.version>
