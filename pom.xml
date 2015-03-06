@@ -609,7 +609,7 @@
                                 <phase>generate-sources</phase>
                                 <configuration>
                                     <target>
-                                        <move file="${uidir.pathname}/node-${nodejs.version}-${nodejs.classifier}" tofile="${nodejs.local.dir}"/>
+                                        <move file="${uidir.pathname}/node-${nodejs.version}-${nodejs.classifier}" tofile="${nodejs.local.dir}" failonerror="false"/>
                                         <chmod dir="${nodejs.local.dir}" includes="**/bin/*" perm="755" />
                                         <copy file="${nodejs.local.dir}/node.exe" tofile="${uidir.pathname}/node.exe" overwrite="true" failonerror="false"/>
                                     </target>
