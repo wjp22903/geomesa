@@ -1,0 +1,109 @@
+// Main stylus file.
+@import '../../vendor/bower/bootstrap/dist/css/bootstrap.min.css'
+@import '../../vendor/bower/font-awesome/css/font-awesome.min.css'
+@import '../../vendor/bower/angular-bootstrap-colorpicker/css/colorpicker.css'
+@import '../../vendor/bower/AngularJS-Toaster/toaster.css'
+@import '../../vendor/bower/sonic.js/css/sonic-js.css'
+@import '../../vendor/bower/animate.css/animate.min.css'
+@import '../../vendor/bower/bootstrap-switch/dist/css/bootstrap3/bootstrap-switch.min.css'
+@import '../../vendor/bower/ol3/css/ol.css'
+@import '../../vendor/bower/jquery-ui/themes/smoothness/jquery-ui.css'
+@import '../../vendor/bower/datetimepicker/jquery.datetimepicker.css'
+@import '../../vendor/bower/AngularJS-Toaster/toaster.css'
+// http://visionmedia.github.io/nib/
+@import 'nib'
+// applicaton files imports
+@import 'mixins'
+@import 'vars'
+@import 'classification'
+@import 'sidebar'
+@import 'ol3'
+@import 'header'
+@import 'layerexplore'
+@import 'layerstyle'
+@import 'wizard'
+@import 'forms'
+@import 'inputTypeRange'
+@import 'timelapseControls'
+@import 'interaction'
+@import 'targetpri'
+
+@font-face
+    font-family 'Glyphicons Halflings'
+    src url('../fonts/glyphicons-halflings-regular.eot')
+    src url('../fonts/glyphicons-halflings-regular.eot') format('embedded-opentype'), url('../fonts/glyphicons-halflings-regular.woff') format('woff'), url('../fonts/glyphicons-halflings-regular.ttf') format('truetype'), url('../fonts/glyphics-halflings-regular.svg') format('svg');
+    font-weight normal
+    font-style normal
+
+body
+    overflow hidden
+
+.primaryDisplay
+    left sidebarWidth
+    background-color #101010
+
+.glass
+    background-color rgba(200,200,200,0.2)
+    box-shadow: inset 0 -15px 30px rgba(0,0,0,0.4), 0 5px 10px rgba(0,0,0,0.5);
+
+.colorpickerBtn
+    width 30px
+    height 30px
+    display inline-block
+    vertical-align bottom
+    border 2px solid #d3d3d3
+    border-radius 6px
+    margin-left 10px
+    margin-right 10px
+
+.bootstrap-switch.bootstrap-switch-micro .bootstrap-switch-handle-on,
+.bootstrap-switch.bootstrap-switch-micro .bootstrap-switch-handle-off,
+.bootstrap-switch.bootstrap-switch-micro .bootstrap-switch-label
+    padding 0
+    font-size 10px
+    max-height 18px
+
+input[type=checkbox]
+    height 16px
+    width 16px
+
+input[type=number]
+    -moz-appearance textfield
+
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button
+    -webkit-appearance none
+    margin 0
+
+.pointNum
+    display inline-block
+    background #BDDADA
+    text-align center
+    width 1.5em
+    height 1.5em
+    border-radius 50%
+
+.toggleButton
+    line-height 4px
+    width 20px
+    height 18px
+    padding-left 6px
+    padding-right 6px
+    vertical-align text-top
+    margin-bottom 1px
+
+.fontIconSlash:before
+    content "/"
+
+.btn.btn-default.active
+    activeGlow()
+
+.ui-spinner
+    font-size 12px
+
+.rank-bar
+    transition width 2s linear
+
+.hoverBorderGlow
+    &:hover
+        borderGlow()

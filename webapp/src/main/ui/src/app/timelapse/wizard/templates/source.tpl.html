@@ -1,0 +1,52 @@
+<ng-form name="wizardForm">
+    <p>Select data source and identify important fields.</p>
+    <select class="form-control input-sm"
+            ng-model="query.layerData.currentLayer"
+            ng-init="query.layerData.currentLayer"
+            ng-change="query.getFeatureTypeDescription()"
+            ng-options="layer.Title for layer in query.layerData.layers | orderBy: 'Name'"
+            ng-disabled="!query.layerData.layers"
+            required>
+    </select>
+    <br>
+    <table>
+        <tr>
+            <td>
+                <label>ID field</label>
+            </td>
+            <td>
+                <select class="form-control input-sm"
+                        ng-model="query.params.idField"
+                        ng-options="property.name for property in query.featureTypeData.featureTypes[0].properties | orderBy:'name'"
+                        ng-disabled="!query.featureTypeData.featureTypes[0].properties"
+                        required>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding-top:2px;">
+                <label>Time field</label>
+            </td>
+            <td style="padding-top:2px;">
+                <select class="form-control input-sm"
+                        ng-model="query.params.dtgField"
+                        ng-options="property.name for property in query.featureTypeData.featureTypes[0].properties | filter:{'localType':'date-time'}:true | orderBy:'name'"
+                        ng-disabled="!query.featureTypeData.featureTypes[0].properties"
+                        required>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding-top:2px;">
+                <label>Geometry field&nbsp;</label>
+            </td>
+            <td style="padding-top:2px;">
+                <select class="form-control input-sm"
+                        ng-model="query.params.geomField"
+                        ng-options="property.name for property in query.featureTypeData.featureTypes[0].properties | filter:{'localType':'Point'}:true | orderBy:'name'"
+                        ng-disabled="!query.featureTypeData.featureTypes[0].properties"
+                        required>
+                </select>
+            </td>
+        </tr>
+</ng-form>

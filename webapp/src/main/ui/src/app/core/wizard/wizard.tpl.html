@@ -1,0 +1,76 @@
+<div style="text-align:center;" ng-show="manager.getVisible()">
+    <div class="anchorAll wizardMask" ng-if="manager.getMask()"></div>
+    <div class="wizardSteps anchorLeft anchorTop">
+        <span>
+            <div class="btn btn-xs btn-default" style="position:relative;top:-6px;"
+                 ng-click="manager.closeWizard()">
+                <i class="fa fa-fw fa-close text-danger"></i>
+            </div>
+            <i class="fa fa-fw fa-2x" ng-class="manager.getIconClass()"
+               style="position:relative;left:2px;"></i>
+        </span>
+        <span ng-repeat="step in manager.getSteps()"
+              ng-class="{active: $index==manager.getCurrentStepNum(),
+                        pastWizardStep: $index<manager.getCurrentStepNum()}"
+              ng-click="manager.jumpToPastStep($index)"
+              ng-if="manager.getVisible()">
+            {{::step.getTitle()}}
+        </span>
+        <span ng-if="manager.getEndIconClass()">
+            <i class="fa fa-fw fa-2x" ng-class="manager.getEndIconClass()"
+               style="position:relative;left:2px;"></i>
+        </span>
+    </div>
+    <div class="wizardForm">
+        <div class="wizardFormHeader">
+            {{manager.getCurrentStep().getTitle()}}
+            <!-- step's tools added via st-widget-compiler -->
+            <st-widget-compiler widget-def="manager.getCurrentStep().getToolDef()"
+                                class="pull-right"
+                                ng-if="manager.getCurrentStep() && manager.getCurrentStep().getToolDef()">
+            </st-widget-compiler>
+        </div>
+        <div class="wizardFormContent">
+            <!-- step's form content added via st-widget-compiler -->
+            <st-widget-compiler widget-def="manager.getCurrentStep().getFormDef()"
+                                ng-if="manager.getCurrentStep() && manager.getCurrentStep().getFormDef()">
+            </st-widget-compiler>
+        </div>
+        <div class="wizardFormFooter" ng-show="manager.getFooterVisible()">
+            <div class="pull-right" style="margin-left:4px;"
+                 ng-switch on="manager.isLastStep()">
+                <span class="btn btn-xs btn-default"
+                      ng-switch-default
+                      ng-disabled="manager.isCurrentStepInvalid()"
+                      ng-click="manager.nextStep()">
+                    Next
+                    <i class="fa fa-caret-right"></i>
+                </span>
+                <span class="btn btn-xs btn-default"
+                      ng-switch-when="true"
+                      ng-disabled="manager.isCurrentStepInvalid()"
+                      ng-click="manager.closeWizard(true)">
+                    <b>Done</b>
+                    <span ng-if="manager.getEndIconClass()">
+                        <i class="fa" ng-class="manager.getEndIconClass()"></i>
+                    </span>
+                </span>
+            </div>
+            <div class="pull-right"
+                 ng-switch on="manager.getCurrentStepNum() === 0">
+                <span class="btn btn-xs btn-default"
+                      ng-switch-default
+                      ng-click="manager.previousStep()">
+                    <i class="fa fa-caret-left"></i>
+                    Previous
+                </span>
+                <span class="btn btn-xs btn-default"
+                      ng-switch-when="true"
+                      ng-click="manager.closeWizard()">
+                    <i class="fa fa-close text-danger"></i>
+                    Cancel
+                </span>
+            </div>
+        </div>
+    </div>
+</div>

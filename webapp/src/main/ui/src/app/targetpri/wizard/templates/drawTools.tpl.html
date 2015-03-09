@@ -1,0 +1,27 @@
+<div class="btn-group">
+	<a class="btn btn-default" ng-click="erase()" ng-disabled="!geoFeature"
+	     tooltip-html-unsafe="<span style='white-space:nowrap'>Erase all</span>"
+	     tooltip-placement="top" tooltip-animation="false" tooltip-popup-delay="500"
+	     tooltip-trigger="mouseenter">
+		<i class="fa fa-fw fa-eraser"></i>
+	</a>
+</div>
+<div class="btn-group" dropdown is-open="dropdownOpen">
+	<a class="btn btn-default dropdown-toggle" ng-disabled="!geoFeature"
+		    tooltip-html-unsafe="<span style='white-space:nowrap'>Save to file</span>"
+		    tooltip-placement="top" tooltip-animation="false" tooltip-popup-delay="500"
+		    tooltip-trigger="mouseenter" ng-disabled="geoFeature | lodash:'isUndefined'">
+		<i class="fa fa-fw fa-save"></i>
+		<span class="caret"></span>
+	</a>
+	<ul class="dropdown-menu" role="menu">
+		<li ng-click="save('csv')"><a href="">CSV</a></li>
+		<li ng-click="save('json')"><a href="">GeoJSON</a></li>
+	</ul>
+</div>
+<a class="btn btn-default" ng-click="upload()" ng-disabled="geoFeature"
+     tooltip-html-unsafe="<span style='white-space:nowrap'>Load from file</span>"
+     tooltip-placement="top" tooltip-animation="false" tooltip-popup-delay="500"
+     tooltip-trigger="mouseenter">
+	<i class="fa fa-fw fa-folder-open"></i>
+</a>

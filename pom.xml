@@ -3,8 +3,8 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.ccri.stealth</groupId>
     <artifactId>stealth</artifactId>
-    <version>1.0.1-SNAPSHOT</version>
-    <packaging>war</packaging>
+    <version>2.0.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
 
     <!--
         Available profiles:
@@ -21,13 +21,10 @@
 
         secure
             Used for production build.  Blocks anonymous access.  External user whitelist needed.
-        doubletrouble8082
-            Used for low-side development.  Sets various properties to work with geoserver
-            at http://doubletrouble:8082/geoserver.  We try to take advantage of geoserver's
-            pre-installed layers as much as possible.  So, there are layers included in the
-            configured workspaces that make no sense to use.
         ds
             Customizations for high-side demos.
+        production
+            Used for production build.  Uses minimized versions of external javascript libs.
     -->
 
     <scm>
@@ -49,22 +46,15 @@
         </snapshotRepository>
     </distributionManagement>
 
+    <modules>
+        <module>webapp</module>
+    </modules>
+
     <properties>
-        <whiptail.version>1.0.0</whiptail.version>
-        <scalatra.version>2.2.2</scalatra.version>
-        <logback-classic.version>1.0.13</logback-classic.version>
-        <spray-json.version>1.2.6</spray-json.version>
+        <scalatra.version>2.3.0</scalatra.version>
+        <logback-classic.version>1.1.2</logback-classic.version>
+        <spray-json.version>1.3.0</spray-json.version>
         <scala.version>2.10.4</scala.version>
-        <kafka.version>0.8.0</kafka.version>
-        <curator-x-discovery.version>2.4.0</curator-x-discovery.version>
-
-        <kafka.zookeepers>dzoo1,dzoo2,dzoo3</kafka.zookeepers>
-        <kafka.topics>tracks</kafka.topics>
-
-        <airTracker.styles.zookeepers>dzoo1,dzoo2,dzoo3</airTracker.styles.zookeepers>
-        <airTracker.styles.basePath>/trackers</airTracker.styles.basePath>
-        <airTracker.data.layer>whiptail:fr</airTracker.data.layer>
-        <airTracker.data.threadingKey>hexid</airTracker.data.threadingKey>
 
         <uidir.pathname>${project.basedir}/src/main/ui</uidir.pathname>
         <nodejs.local.dir>${uidir.pathname}/nodejs</nodejs.local.dir>
@@ -73,83 +63,118 @@
         <phantomjs.local.dir>${uidir.pathname}/node_modules/karma-phantomjs-launcher/node_modules/phantomjs/lib/phantom</phantomjs.local.dir>
         <phantomjs.version>1.9.7</phantomjs.version>
         <phantomjs.classifier>INVALID</phantomjs.classifier>
-        <jetty.version>8.1.15.v20140411</jetty.version>
+        <jetty.version>8.1.16.v20140903</jetty.version>
 
         <app.title>Stealth</app.title>
         <app.context>stealth</app.context>
         <app.context.path>/${app.context}</app.context.path>
-        <app.hideNavBar>false</app.hideNavBar>
-        <app.tabs>["targetRank", "activityIndicator", "airDomain", "playback"]</app.tabs>
-        <app.default.tab>targetRank</app.default.tab>
         <app.supported.browsers>
             {
                 chrome: 12,
-                firefox: 20,
+                firefox: 17,
                 safari: 6.1
             }
         </app.supported.browsers>
+        <app.plugins>
+            [
+                'stealth.static',
+                'stealth.targetpri',
+                'stealth.timelapse'
+            ]
+        </app.plugins>
 
+        <geoserver.url>http://dgeo.ccri.com:8080/geoserver</geoserver.url>
+        <geoserver.omitProxy>false</geoserver.omitProxy>
 
-        <solr.url>cors/http://localhost:8983/solr</solr.url>
-        <solr.siteDedupField>location</solr.siteDedupField>
+        <grunt.target>--target=dev</grunt.target>
 
-        <geoserver.url>http://dgeo:8080/geoserver</geoserver.url>
-        <geoserver.workspaces.data>["stealth-devdata"]</geoserver.workspaces.data>
-        <geoserver.workspaces.site>["stealth-sites"]</geoserver.workspaces.site>
-        <geoserver.workspaces.track>["stealth-tracks"]</geoserver.workspaces.track>
-        <geoserver.workspaces.route>["stealth-routes"]</geoserver.workspaces.route>
-        <geoserver.output.workspace>stealth-output</geoserver.output.workspace>
-        <geoserver.output.store>stealth-output</geoserver.output.store>
-
-        <openlayers.imagepath>vendor/openlayers/img/</openlayers.imagepath>
-
-        <map.restricted.extent />
-        <map.max.extent />
-        <map.center.lon>0</map.center.lon>
-        <map.center.lat>0</map.center.lat>
-        <map.zoom.init>4</map.zoom.init>
-        <map.zoom.max>9</map.zoom.max>
-        <map.default.url>${geoserver.url}/wms</map.default.url>
-        <map.baseLayers>
+        <map.extent>[-180,-90,180,90]</map.extent>
+        <map.initExtent>[-180,-90,180,90]</map.initExtent>
+        <map.initLayers>
             [
                 {
-                    name: "OSM Toner"
-                    getMapParams: {
-                        layers: "mapproxy:globe.osm.toner"
-                    }
+                    serverUrl: "http://dgeo.ccri.com:8080/geoserver/wms",
+                    Name: "mapproxy:globe.osm.default"
+                }
+            ]
+        </map.initLayers>
+        <map.extraLayers>
+            [
+                {
+                    serverUrl: "http://dgeo.ccri.com:8080/geoserver/wms",
+                    Name: "mapproxy:globe.osm.default",
+                    Title: "Globe OSM Mapnik",
+                    KeywordList: [
+                        "stealth.context.Base"
+                    ],
+                    queryable: false
                 },
                 {
-                    name: "OSM Default"
-                    getMapParams: {
-                        layers: "mapproxy:globe.osm.default"
-                    }
+                    serverUrl: "http://dgeo.ccri.com:8080/geoserver/wms",
+                    Name: "tiger:poi",
+                    Title: "Manhattan Points of Interest",
+                    KeywordList: [
+                        "stealth.context.Manhattan"
+                    ],
+                    queryable: true
                 }
             ]
-        </map.baseLayers>
-        <map.overlays>
+        </map.extraLayers>
+        <map.liveOptions>
             [
                 {
-                    name: "Aerial"
-                    getMapParams: {
-                        layers: "mapproxy:globe.aerial.mapquest"
-                    },
-                    options: {
-                        dontShow: true
-                        noGetInfoControl: true
-                    }
+                    KeywordWorkspace: "TWITTERMINI",
+                    Title: "Tweets by Annie or Kara"
+                    attrs: [
+                        {
+                            name: "user_name",
+                            choices: [
+                                {
+                                    value: 'Annie',
+                                    isSelected: true
+                                },
+                                {
+                                    value: 'Kara',
+                                    isSelected: false
+                                }
+                            ]
+                        },
+                        {
+                          name: "user_id",
+                          choices: [
+                                {
+                                    value: 607417867,
+                                    isSelected: true
+                                },
+                                {
+                                    value: 1452688562,
+                                    isSelected: false
+                                }
+                          ]
+                        }
+                    ]
+                },
+                {
+                    KeywordWorkspace: "TWITTERMINI",
+                },
+                {
+                    KeywordWorkspace: "AISTEST",
+                    Title: "AIS Test"
+                    attrs: [
+                        {
+                            name: "ReceiverID",
+                            choices: [
+                                {
+                                    value: '11NPSU1',
+                                    isSelected: true
+                                }
+                            ]
+                        }
+                    ]
                 }
             ]
-        </map.overlays>
-
-        <imagery.support>true</imagery.support>
-        <imagery.servers>[]</imagery.servers>
-        <imagery.metadata.fields>{}</imagery.metadata.fields>
-
-        <comention.url>http://localhost:9090/comention</comention.url>
-
-        <activity.indicator.geoserver.url>${geoserver.url}</activity.indicator.geoserver.url>
-        <activity.indicator.layer.alerts>geomesa:alerts</activity.indicator.layer.alerts>
-        <activity.indicator.layer.timeseries>geomesa:timeseries</activity.indicator.layer.timeseries>
+        </map.liveOptions>
+        <map.projection>EPSG:4326</map.projection>
 
         <classification.text>Dynamic Page - Highest Possible Classification is UNCLASSIFIED//FOR OFFICIAL USE ONLY</classification.text>
         <!-- supported levels: unclassified, confidential, secret, topSecret, sci -->
@@ -163,7 +188,6 @@
         <security.keystore.keyPassword>password</security.keystore.keyPassword>
         <security.truststore.path>${basedir}/src/test/resources/certs/truststore.jks</security.truststore.path>
         <security.truststore.password>password</security.truststore.password>
-        <dataSources>{}</dataSources>
 
         <!-- proxy config -->
         <web.proxy />
@@ -171,368 +195,34 @@
         <keystore.password>password</keystore.password>
         <truststore.path>${basedir}/src/test/resources/certs/truststore.jks</truststore.path>
         <truststore.password>password</truststore.password>
+
+        <logger.debug>false</logger.debug>
     </properties>
 
     <build>
-        <finalName>${app.context}</finalName>
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>false</filtering>
-            </resource>
-            <resource>
-                <directory>src/main/resources-filter</directory>
-                <filtering>true</filtering>
-            </resource>
-        </resources>
-        <plugins>
-            <plugin>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>2.6</version>
-                <executions>
-                    <execution>
-                        <id>copy-resources</id>
-                        <phase>process-resources</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${project.build.directory}/non-packaged-resources</outputDirectory>
-                            <resources>
-                                <resource>
-                                    <directory>src/main/non-packaged-resources-filter</directory>
-                                    <filtering>true</filtering>
-                                </resource>
-                            </resources>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-war-plugin</artifactId>
-                <version>2.4</version>
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <mainClass>Runner</mainClass>
-                        </manifest>
-                    </archive>
-                    <webResources>
-                        <resource>
-                            <directory>src/main/webResources-filter</directory>
-                            <filtering>true</filtering>
-                        </resource>
-                    </webResources>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>prepare-war</id>
-                        <phase>prepare-package</phase>
-                        <goals>
-                            <goal>exploded</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.mortbay.jetty</groupId>
-                <artifactId>jetty-maven-plugin</artifactId>
-                <version>${jetty.version}</version>
-                <configuration>
-                    <stopKey>foo</stopKey>
-                    <stopPort>9999</stopPort>
-                    <useTestScope>true</useTestScope>
-                    <useTestClasspath>true</useTestClasspath>
-                    <scanIntervalSeconds>10</scanIntervalSeconds>
-                    <webApp>
-                        <contextPath>${app.context.path}</contextPath>
-                        <baseResource implementation="org.eclipse.jetty.util.resource.ResourceCollection">
-                            <resourcesAsCSV>${project.build.directory}/${project.build.finalName}</resourcesAsCSV>
-                        </baseResource>
-                        <maxFormContentSize>500000</maxFormContentSize>
-                    </webApp>
-                    <connectors>
-                        <connector implementation="org.eclipse.jetty.server.nio.SelectChannelConnector">
-                            <port>8080</port>
-                            <maxIdleTime>60000</maxIdleTime>
-                        </connector>
-                        <!-- Look at src/test/resources/certs.sh for how these stores and client certs are created. -->
-                        <connector implementation="org.eclipse.jetty.server.ssl.SslSelectChannelConnector">
-                            <port>8443</port>
-                            <maxIdleTime>60000</maxIdleTime>
-                            <keystore>${security.keystore.path}</keystore>
-                            <keystoreType>${security.keystore.type}</keystoreType>
-                            <password>${security.keystore.password}</password>
-                            <keyPassword>${security.keystore.keyPassword}</keyPassword>
-                            <truststore>${security.truststore.path}</truststore>
-                            <trustPassword>${security.truststore.password}</trustPassword>
-                            <wantClientAuth>false</wantClientAuth>
-                            <needClientAuth>true</needClientAuth>
-                        </connector>
-                    </connectors>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>jetty-classpath</id>
-                        <phase>prepare-package</phase>
-                        <goals>
-                            <goal>unpack-dependencies</goal>
-                        </goals>
-                        <configuration>
-                            <includeGroupIds>org.eclipse.jetty,javax.servlet,com.typesafe</includeGroupIds>
-                            <excludeArtifactIds>jsp-api,jstl,akka-actor_2.10</excludeArtifactIds>
-                            <excludes>META-INF/ECLIPSEF.*</excludes>
-                            <outputDirectory>
-                                ${project.build.directory}/${project.build.finalName}
-                            </outputDirectory>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>net.alchim31.maven</groupId>
-                <artifactId>scala-maven-plugin</artifactId>
-                <version>3.1.6</version>
-                <executions>
-                    <execution>
-                        <id>compile-scala</id>
-                        <goals>
-                            <goal>compile</goal>
-                        </goals>
-                        <phase>compile</phase>
-                    </execution>
-                    <execution>
-                        <id>test-compile-scala</id>
-                        <goals>
-                            <goal>testCompile</goal>
-                        </goals>
-                        <phase>test-compile</phase>
-                    </execution>
-                </executions>
-                <configuration>
-                    <recompileMode>incremental</recompileMode>
-                </configuration>
-            </plugin>
-            <plugin>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <version>1.7</version>
-                <executions>
-                    <execution>
-                        <id>grunt-build</id>
-                        <phase>prepare-package</phase>
-                        <configuration>
-                            <target>
-                                <echo>**** GRUNT ****</echo>
-                                <exec executable="cmd" dir="${uidir.pathname}" osfamily="windows" resultproperty="cmdresult">
-                                    <arg line="/c node.exe ${uidir.pathname}/node_modules/grunt-cli/bin/grunt --force" />
-                                </exec>
-                                <exec executable="bash" dir="${uidir.pathname}" osfamily="unix" resultproperty="cmdresult">
-                                    <arg line="-c '${nodejs.local.dir}/bin/node ${uidir.pathname}/node_modules/grunt-cli/bin/grunt'" />
-                                </exec>
-
-                                <condition property="cmdsuccess">
-                                    <equals arg1="${cmdresult}" arg2="0" />
-                                </condition>
-                                <fail unless="cmdsuccess" />
-                            </target>
-                        </configuration>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>main-class-placement</id>
-                        <phase>prepare-package</phase>
-                        <configuration>
-                            <tasks>
-                                <copy todir="${project.build.directory}/${project.build.finalName}/">
-                                    <fileset dir="${project.build.directory}/classes/">
-                                        <include name="Runner.class" />
-                                        <include name="application.conf" />
-                                    </fileset>
-                                </copy>
-                            </tasks>
-                        </configuration>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-release-plugin</artifactId>
-                <version>2.5</version>
-            </plugin>
-        </plugins>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-release-plugin</artifactId>
+                    <version>2.5</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
     </build>
-
-    <dependencies>
-        <dependency>
-            <groupId>com.google.code.findbugs</groupId>
-            <artifactId>jsr305</artifactId>
-            <version>3.0.0</version>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>2.2.2</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>18.0</version>
-        </dependency>
-        <dependency>
-            <groupId>com.typesafe</groupId>
-            <artifactId>config</artifactId>
-            <version>1.2.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.scala-lang</groupId>
-            <artifactId>scala-library</artifactId>
-            <version>${scala.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.spray</groupId>
-            <artifactId>spray-json_2.10</artifactId>
-            <version>${spray-json.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.scalatra</groupId>
-            <artifactId>scalatra_2.10</artifactId>
-            <version>${scalatra.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.scalatra</groupId>
-            <artifactId>scalatra-atmosphere_2.10</artifactId>
-            <version>${scalatra.version}</version>
-        </dependency>
-        <dependency>
-            <!-- explicitly override version of akka for atmosphere -->
-            <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-actor_2.10</artifactId>
-            <version>2.1.2</version>
-        </dependency>
-        <dependency>
-            <groupId>org.scalatra</groupId>
-            <artifactId>scalatra-json_2.10</artifactId>
-            <version>${scalatra.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.scalatra</groupId>
-            <artifactId>scalatra-scalate_2.10</artifactId>
-            <version>${scalatra.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.scalatra</groupId>
-            <artifactId>scalatra-auth_2.10</artifactId>
-            <version>${scalatra.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.json4s</groupId>
-            <artifactId>json4s-jackson_2.10</artifactId>
-            <version>3.2.6</version>
-        </dependency>
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <version>3.0.1</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-servlets</artifactId>
-            <version>${jetty.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-websocket</artifactId>
-            <version>${jetty.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-server</artifactId>
-            <version>${jetty.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-webapp</artifactId>
-            <version>${jetty.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-jsp</artifactId>
-            <version>${jetty.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka_2.10</artifactId>
-            <version>${kafka.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.scala-lang</groupId>
-                    <artifactId>scala-library</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.scala-lang</groupId>
-                    <artifactId>scala-compiler</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.sun.jdmk</groupId>
-                    <artifactId>jmxtools</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.sun.jmx</groupId>
-                    <artifactId>jmxri</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.apache.zookeeper</groupId>
-                    <artifactId>zookeeper</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>${logback-classic.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.ccri.whiptail</groupId>
-            <artifactId>whiptail-tracker</artifactId>
-            <version>${whiptail.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.curator</groupId>
-            <artifactId>curator-x-discovery</artifactId>
-            <version>${curator-x-discovery.version}</version>
-        </dependency>
-    </dependencies>
 
     <dependencyManagement>
         <dependencies>
             <dependency>
                 <groupId>com.ccri.stealth</groupId>
-                <artifactId>stealth</artifactId>
+                <artifactId>stealth-webapp</artifactId>
                 <version>${project.version}</version>
                 <classifier>npm</classifier>
                 <type>zip</type>
             </dependency>
             <dependency>
                 <groupId>com.ccri.stealth</groupId>
-                <artifactId>stealth</artifactId>
+                <artifactId>stealth-webapp</artifactId>
                 <version>${project.version}</version>
                 <classifier>bower</classifier>
                 <type>zip</type>
@@ -551,442 +241,62 @@
                 <classifier>${phantomjs.classifier}</classifier>
                 <type>zip</type>
             </dependency>
+            <dependency>
+                <groupId>com.typesafe</groupId>
+                <artifactId>config</artifactId>
+                <version>1.2.1</version>
+            </dependency>
+            <dependency>
+                <groupId>org.scala-lang</groupId>
+                <artifactId>scala-library</artifactId>
+                <version>${scala.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.spray</groupId>
+                <artifactId>spray-json_2.10</artifactId>
+                <version>${spray-json.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.scalatra</groupId>
+                <artifactId>scalatra_2.10</artifactId>
+                <version>${scalatra.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.scalatra</groupId>
+                <artifactId>scalatra-scalate_2.10</artifactId>
+                <version>${scalatra.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.scalatra</groupId>
+                <artifactId>scalatra-auth_2.10</artifactId>
+                <version>${scalatra.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.servlet</groupId>
+                <artifactId>javax.servlet-api</artifactId>
+                <version>3.0.1</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-servlets</artifactId>
+                <version>${jetty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-server</artifactId>
+                <version>${jetty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-webapp</artifactId>
+                <version>${jetty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>${logback-classic.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
-
-    <profiles>
-        <profile>
-            <id>install-nodejs</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <artifactId>maven-clean-plugin</artifactId>
-                        <version>2.5</version>
-                        <configuration>
-                            <filesets>
-                                <fileset>
-                                    <directory>${nodejs.local.dir}</directory>
-                                </fileset>
-                                <fileset>
-                                    <directory>${uidir.pathname}</directory>
-                                    <includes>
-                                        <include>node.exe</include>
-                                    </includes>
-                                </fileset>
-                            </filesets>
-                        </configuration>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-dependency-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>extract-nodejs</id>
-                                <phase>initialize</phase>
-                                <goals>
-                                    <goal>unpack</goal>
-                                </goals>
-                                <configuration>
-                                    <artifactItems>
-                                        <artifactItem>
-                                            <outputDirectory>${uidir.pathname}</outputDirectory>
-                                            <groupId>nodejs</groupId>
-                                            <artifactId>node</artifactId>
-                                            <classifier>${nodejs.classifier}</classifier>
-                                            <type>zip</type>
-                                            <includes>node-v*/**</includes>
-                                        </artifactItem>
-                                    </artifactItems>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <artifactId>maven-antrun-plugin</artifactId>
-                        <version>1.7</version>
-                        <executions>
-                            <execution>
-                                <id>nodejs-rename</id>
-                                <phase>generate-sources</phase>
-                                <configuration>
-                                    <target>
-                                        <move file="${uidir.pathname}/node-${nodejs.version}-${nodejs.classifier}" tofile="${nodejs.local.dir}" failonerror="false" />
-                                        <chmod dir="${nodejs.local.dir}" includes="**/bin/*" perm="755" />
-                                        <copy file="${nodejs.local.dir}/node.exe" tofile="${uidir.pathname}/node.exe" overwrite="true" failonerror="false" />
-                                    </target>
-                                </configuration>
-                                <goals>
-                                    <goal>run</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-        <profile>
-            <id>pack-ui</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <artifactId>maven-clean-plugin</artifactId>
-                        <version>2.5</version>
-                        <configuration>
-                            <filesets>
-                                <fileset>
-                                    <directory>src/main/ui/node_modules</directory>
-                                </fileset>
-                                <fileset>
-                                    <directory>src/main/ui/vendor/bower</directory>
-                                </fileset>
-                            </filesets>
-                        </configuration>
-                    </plugin>
-                    <plugin>
-                        <artifactId>maven-assembly-plugin</artifactId>
-                        <version>2.4</version>
-                        <configuration>
-                            <descriptors>
-                                <descriptor>src/main/assembly/npm.xml</descriptor>
-                                <descriptor>src/main/assembly/bower.xml</descriptor>
-                            </descriptors>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <id>make-assembly</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>single</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <artifactId>maven-antrun-plugin</artifactId>
-                        <version>1.7</version>
-                        <executions>
-                            <execution>
-                                <id>npm-bower-install</id>
-                                <phase>generate-resources</phase>
-                                <configuration>
-                                    <target>
-                                        <!-- We needed the cache clearing once when a dep released a corrupt version. -->
-                                        <!-- However, it's a huge waste of time to dowload everything for every pack-ui build. -->
-                                        <!--echo>**** NPM CACHE CLEAR ****</echo>
-                                        <exec executable="cmd" dir="${uidir.pathname}" osfamily="windows" failonerror="true">
-                                            <arg line="/c ${uidir.pathname}/nodejs/npm.cmd cache clear" />
-                                        </exec>
-                                        <exec executable="bash" dir="${uidir.pathname}" osfamily="unix" failonerror="true">
-                                            <arg line="-c '${nodejs.local.dir}/bin/node ${nodejs.local.dir}/lib/node_modules/npm/bin/npm-cli.js cache clear'" />
-                                        </exec-->
-                                        <echo>**** NPM INSTALL ****</echo>
-                                        <exec executable="cmd" dir="${uidir.pathname}" osfamily="windows" failonerror="true">
-                                            <arg line="/c ${uidir.pathname}/nodejs/npm.cmd install" />
-                                        </exec>
-                                        <exec executable="bash" dir="${uidir.pathname}" osfamily="unix" failonerror="true">
-                                            <arg line="-c '${nodejs.local.dir}/bin/node ${nodejs.local.dir}/lib/node_modules/npm/bin/npm-cli.js install'" />
-                                        </exec>
-                                        <!--echo>**** BOWER CACHE CLEAN ****</echo>
-                                        <exec executable="cmd" dir="${uidir.pathname}" osfamily="windows" failonerror="true">
-                                            <arg line="/c node.exe ${uidir.pathname}/node_modules/bower/bin/bower cache clean" />
-                                        </exec>
-                                        <exec executable="bash" dir="${uidir.pathname}" osfamily="unix" failonerror="true">
-                                            <arg line="-c '${nodejs.local.dir}/bin/node ${uidir.pathname}/node_modules/bower/bin/bower cache clean'" />
-                                        </exec-->
-                                        <echo>**** BOWER INSTALL ****</echo>
-                                        <exec executable="cmd" dir="${uidir.pathname}" osfamily="windows" failonerror="true">
-                                            <arg line="/c node.exe ${uidir.pathname}/node_modules/bower/bin/bower install" />
-                                        </exec>
-                                        <exec executable="bash" dir="${uidir.pathname}" osfamily="unix" failonerror="true">
-                                            <arg line="-c '${nodejs.local.dir}/bin/node ${uidir.pathname}/node_modules/bower/bin/bower install'" />
-                                        </exec>
-                                    </target>
-                                </configuration>
-                                <goals>
-                                    <goal>run</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-        <profile>
-            <id>unpack-ui</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <artifactId>maven-clean-plugin</artifactId>
-                        <version>2.5</version>
-                        <configuration>
-                            <filesets>
-                                <fileset>
-                                    <directory>src/main/ui/node_modules</directory>
-                                </fileset>
-                                <fileset>
-                                    <directory>src/main/ui/vendor/bower</directory>
-                                </fileset>
-                            </filesets>
-                        </configuration>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-dependency-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>extract-js-dependencies</id>
-                                <phase>generate-resources</phase>
-                                <goals>
-                                    <goal>unpack</goal>
-                                </goals>
-                                <configuration>
-                                    <artifactItems>
-                                        <artifactItem>
-                                            <outputDirectory>src/main/ui</outputDirectory>
-                                            <groupId>com.ccri.stealth</groupId>
-                                            <artifactId>stealth</artifactId>
-                                            <classifier>npm</classifier>
-                                            <type>zip</type>
-                                        </artifactItem>
-                                        <artifactItem>
-                                            <outputDirectory>src/main/ui/vendor</outputDirectory>
-                                            <groupId>com.ccri.stealth</groupId>
-                                            <artifactId>stealth</artifactId>
-                                            <classifier>bower</classifier>
-                                            <type>zip</type>
-                                        </artifactItem>
-                                        <artifactItem>
-                                            <outputDirectory>${uidir.pathname}/node_modules/karma-phantomjs-launcher/node_modules/phantomjs/lib</outputDirectory>
-                                            <groupId>phantomjs</groupId>
-                                            <artifactId>phantomjs</artifactId>
-                                            <classifier>${phantomjs.classifier}</classifier>
-                                            <type>zip</type>
-                                            <includes>phantomjs-*/**</includes>
-                                        </artifactItem>
-                                    </artifactItems>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <artifactId>maven-antrun-plugin</artifactId>
-                        <version>1.7</version>
-                        <executions>
-                            <execution>
-                                <id>phantomjs-rename</id>
-                                <phase>process-resources</phase>
-                                <configuration>
-                                    <target>
-                                        <move file="${uidir.pathname}/node_modules/karma-phantomjs-launcher/node_modules/phantomjs/lib/phantomjs-${phantomjs.version}-${phantomjs.classifier}" tofile="${phantomjs.local.dir}" />
-                                        <chmod dir="${uidir.pathname}/node_modules" includes="**/bin/*" perm="755" />
-                                    </target>
-                                </configuration>
-                                <goals>
-                                    <goal>run</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-
-        <profile>
-            <id>secure</id>
-            <properties>
-                <security.anonymous.access>false</security.anonymous.access>
-                <security.allowed.userDns>[]</security.allowed.userDns>
-            </properties>
-        </profile>
-
-        <!-- used for low-side dev -->
-        <profile>
-            <id>doubletrouble8082</id>
-            <properties>
-                <geoserver.url>http://doubletrouble:8082/geoserver</geoserver.url>
-                <geoserver.workspaces.data>["stealth_devdata", "sf", "topp", "accumulo"]</geoserver.workspaces.data>
-                <geoserver.workspaces.site>["stealth_sites", "stealth_tracks", "accumulo"]</geoserver.workspaces.site>
-                <geoserver.workspaces.track>["stealth_tracks", "accumulo"]</geoserver.workspaces.track>
-                <geoserver.workspaces.route>["stealth_routes", "stealth_sites", "nyc_roads", "topp"]</geoserver.workspaces.route>
-                <geoserver.output.workspace>stealth_output</geoserver.output.workspace>
-                <geoserver.output.store>stealth_output</geoserver.output.store>
-                <map.default.url>http://dgeo:8080/geoserver/wms</map.default.url>
-                <dataSources>
-                {
-                    sites: {
-                        "stealth_tracks:nj_tp_line_selected120_2": {
-                            "idField": "tweet_id"
-                        }
-                    },
-                    targets: {
-                        "accumulo:accumulo|||nj_tp_line_selected120_2}}{{accumulo|||twitter3}}{{df72707d-f558-44ed-ac0c-684781ab09b3": {
-                            "idField": "user_name"
-                        },
-                        "stealth_devdata:twitter3": {
-                            "idField": "user_name"
-                        }
-                    }
-                }
-                </dataSources>
-            </properties>
-        </profile>
-
-        <!-- for high-side demos -->
-        <profile>
-            <id>ds</id>
-            <properties>
-                <app.title>DragonSpell</app.title>
-            </properties>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-dependency-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>ds-dependencies</id>
-                                <phase>generate-resources</phase>
-                                <goals>
-                                    <goal>copy</goal>
-                                </goals>
-                                <configuration>
-                                    <artifactItems>
-                                        <artifactItem>
-                                            <outputDirectory>${project.build.directory}/assets</outputDirectory>
-                                            <destFileName>logo.png</destFileName>
-                                            <groupId>dragonspell</groupId>
-                                            <artifactId>logo</artifactId>
-                                            <classifier>web</classifier>
-                                            <version>1.0.0</version>
-                                            <type>png</type>
-                                            <overWrite>true</overWrite>
-                                        </artifactItem>
-                                    </artifactItems>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-
-        <!-- The remaining profiles are auto-activated based on OS.  No reason to explicitly activate them. -->
-        <profile>
-            <id>macos-x86</id>
-            <activation>
-                <os>
-                    <family>mac</family>
-                    <arch>x86</arch>
-                </os>
-            </activation>
-            <properties>
-                <nodejs.classifier>darwin-x86</nodejs.classifier>
-                <phantomjs.classifier>macosx</phantomjs.classifier>
-            </properties>
-        </profile>
-        <profile>
-            <id>macos-x64</id>
-            <activation>
-                <os>
-                    <family>mac</family>
-                    <arch>x86_64</arch>
-                </os>
-            </activation>
-            <properties>
-                <nodejs.classifier>darwin-x64</nodejs.classifier>
-                <phantomjs.classifier>macosx</phantomjs.classifier>
-            </properties>
-        </profile>
-        <profile>
-            <id>win-x86</id>
-            <activation>
-                <os>
-                    <family>windows</family>
-                    <arch>x86</arch>
-                </os>
-            </activation>
-            <properties>
-                <nodejs.classifier>win-x86</nodejs.classifier>
-                <phantomjs.classifier>windows</phantomjs.classifier>
-            </properties>
-        </profile>
-        <profile>
-            <id>win-x64</id>
-            <activation>
-                <os>
-                    <family>windows</family>
-                    <arch>amd64</arch>
-                </os>
-            </activation>
-            <properties>
-                <nodejs.classifier>win-x64</nodejs.classifier>
-                <phantomjs.classifier>windows</phantomjs.classifier>
-            </properties>
-        </profile>
-        <profile>
-            <id>linux-x86</id>
-            <activation>
-                <os>
-                    <family>linux</family>
-                    <arch>x86</arch>
-                </os>
-            </activation>
-            <properties>
-                <nodejs.classifier>linux-x86</nodejs.classifier>
-                <phantomjs.classifier>linux-x86_64</phantomjs.classifier>
-            </properties>
-        </profile>
-        <profile>
-            <id>linux-x86-386</id>
-            <activation>
-                <os>
-                    <family>linux</family>
-                    <arch>i386</arch>
-                </os>
-            </activation>
-            <properties>
-                <nodejs.classifier>linux-x86</nodejs.classifier>
-                <phantomjs.classifier>linux-i686</phantomjs.classifier>
-            </properties>
-        </profile>
-        <profile>
-            <id>linux-x86-686</id>
-            <activation>
-                <os>
-                    <family>linux</family>
-                    <arch>i686</arch>
-                </os>
-            </activation>
-            <properties>
-                <nodejs.classifier>linux-x86</nodejs.classifier>
-                <phantomjs.classifier>linux-i686</phantomjs.classifier>
-            </properties>
-        </profile>
-        <profile>
-            <id>linux-x64-x86_64</id>
-            <activation>
-                <os>
-                    <family>linux</family>
-                    <arch>x86_64</arch>
-                </os>
-            </activation>
-            <properties>
-                <nodejs.classifier>linux-x64</nodejs.classifier>
-                <phantomjs.classifier>linux-x86_64</phantomjs.classifier>
-            </properties>
-        </profile>
-        <profile>
-            <id>linux-x64-amd64</id>
-            <activation>
-                <os>
-                    <family>linux</family>
-                    <arch>amd64</arch>
-                </os>
-            </activation>
-            <properties>
-                <nodejs.classifier>linux-x64</nodejs.classifier>
-                <phantomjs.classifier>linux-x86_64</phantomjs.classifier>
-            </properties>
-        </profile>
-    </profiles>
 </project>

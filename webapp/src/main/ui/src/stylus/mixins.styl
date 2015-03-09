@@ -1,0 +1,96 @@
+//Define everything as a mixin and as a class
+//so they're applicable to other classes or directly
+//to elements.
+
+//---- Anchors ----
+anchorTop()
+    position absolute
+    top 0
+.anchorTop
+    anchorTop()
+
+anchorBottom()
+    position absolute
+    bottom 0
+.anchorBottom
+    anchorBottom()
+
+anchorLeft()
+    position absolute
+    left 0
+.anchorLeft
+    anchorLeft()
+
+anchorRight()
+    position absolute
+    right 0
+.anchorRight
+    anchorRight()
+
+anchorLeftRight()
+    anchorLeft()
+    anchorRight()
+.anchorLeftRight
+    anchorLeftRight()
+
+anchorTopBottom()
+    anchorTop()
+    anchorBottom()
+.anchorTopBottom
+    anchorTopBottom()
+
+anchorAll()
+    anchorLeftRight()
+    anchorTopBottom()
+.anchorAll
+    anchorAll()
+
+//---- Shadows ----
+shadow()
+    box-shadow 2px 2px 3px 0px rgba(0, 0, 0, 0.3)
+.shadow
+    shadow()
+
+shadowBottom()
+    box-shadow 0px 2px 3px 0px rgba(0, 0, 0, 0.3)
+.shadowBottom
+    shadowBottom()
+
+shadowTop()
+    box-shadow 0px -2px 3px 0px rgba(0, 0, 0, 0.3)
+.shadowTop
+    shadowTop()
+
+shadowRight()
+    box-shadow 2px 0px 3px 0px rgba(0, 0, 0, 0.3)
+.shadowRight
+    shadowRight()
+
+shadowLeft()
+    box-shadow -2px 0px 3px 0px rgba(0, 0, 0, 0.3)
+.shadowLeft
+    shadowLeft()
+
+
+//---- Text outlines ----
+outlineTextWhite()
+    text-shadow: -1px -1px 0 white, 1px -1px 0 white, -1px 1px 0 white, 1px 1px 0 white
+.outlineTextWhite
+    outlineTextWhite()
+
+outlineTextBlack()
+    text-shadow: -1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black, 1px 1px 0 black
+.outlineTextBlack
+    outlineTextBlack()
+
+
+borderGlow()
+    box-shadow 0 0 8px #00c7ff
+.borderGlow
+    borderGlow()
+activeGlow()
+    color #006481
+    text-shadow 0 0 8px #00c7ff
+    borderGlow()
+.activeGlow
+    activeGlow()

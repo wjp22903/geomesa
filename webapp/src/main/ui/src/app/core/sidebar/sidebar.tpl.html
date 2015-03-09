@@ -1,0 +1,51 @@
+<div class="sidebarContainer shadowRight anchorTopBottom anchorLeft">
+    <div class="sidebar anchorTopBottom anchorLeft">
+        <span class="sidebarText">{{manager.getSidebarText()}}</span>
+    </div>
+    <div ng-repeat-start="button in manager.getButtons()" class="btn btn-default"
+         tooltip-html-unsafe="<span style='white-space:nowrap'>{{::button.panel.title}}</span>"
+         tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500" tooltip-trigger="mouseenter"
+         ng-click="manager.toggleButton(button.id, !button.panel.open)" ng-class="{active: button.panel.open}"
+         ng-if="!manager.getHideAll()">
+        <i class="fa fa-fw fa-lg" ng-class="::button.iconClass"></i>
+    </div>
+    <div ng-repeat-end class="sidebarPanel glass anchorTopBottom"
+         ng-style="button.panel.style" ng-if="button.panel.open && !manager.getHideAll()">
+        <div class="headerOuter">
+            <div class="headerInner">
+                <i class="fa fa-fw fa-lg" ng-class="button.iconClass"></i>
+                {{::button.panel.title}}
+                <div class="pull-right" style="margin-left:10px;">
+                    <div class="btn btn-default btn-xs"
+                         tooltip-html-unsafe="<span style='white-space:nowrap'>pin</span>"
+                         tooltip-placement="bottom" tooltip-animation="false" tooltip-popup-delay="800" tooltip-trigger="mouseenter"
+                         ng-model="button.panel.pinned" btn-checkbox>
+                        <i class="fa fa-fw fa-thumb-tack"></i>
+                    </div>
+                    <div class="btn btn-default btn-xs"
+                         tooltip-html-unsafe="<span style='white-space:nowrap'>collapse</span>"
+                         tooltip-placement="bottom" tooltip-animation="false" tooltip-popup-delay="800" tooltip-trigger="mouseenter"
+                         ng-click="manager.toggleButton(button.id, !button.panel.open)">
+                        <i class="fa fa-fw fa-angle-double-left"></i>
+                    </div>
+                    <div class="btn btn-default btn-xs"
+                         tooltip-html-unsafe="<span style='white-space:nowrap'>close</span>"
+                         tooltip-placement="bottom" tooltip-animation="false" tooltip-popup-delay="800" tooltip-trigger="mouseenter"
+                         ng-click="manager.removeButton(button.id)" ng-if="::!button.permanent">
+                        <i class="fa fa-fw fa-close text-danger"></i>
+                    </div>
+                </div>
+                <!-- non-standard header elements added via st-widget-compiler -->
+                <st-widget-compiler widget-def="::button.panel.toolDef"
+                                    class="pull-right"
+                                    ng-if="::button.panel.toolDef">
+                </st-widget-compiler>
+            </div>
+        </div>
+        <!-- panel content added via st-widget-compiler -->
+        <st-widget-compiler widget-def="::button.panel.contentDef"
+                            class="anchorAll" style="margin-top:26px;overflow:auto;"
+                            ng-if="::button.panel.contentDef">
+        </st-widget-compiler>
+    </div>
+</div>

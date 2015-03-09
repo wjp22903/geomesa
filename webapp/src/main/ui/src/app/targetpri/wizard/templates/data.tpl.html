@@ -1,0 +1,13 @@
+<ng-form name="wizardForm">
+    <div ng-class="{'ng-hide': (layers | lodash:'isUndefined')}">
+        <i ng-show="layers | lodash:'isEmpty'">No datasources found.</i>
+        <i ng-show="loadError">Error.</i>
+        <div ng-repeat="layer in layers">
+            <i class="fa fa-fw" ng-class="layer.isSelected ? 'fa-check-square' : 'fa-square'"
+               ng-click="toggleLayer(layer)">
+            </i>
+            {{layer.Title || layer.Name | characters:60:true}}
+        </div>
+    </div>
+    <i ng-class="{'ng-hide': (layers | lodash:'isArray')}" class="fa fa-spinner fa-spin fa-lg"></i>
+</ng-form>

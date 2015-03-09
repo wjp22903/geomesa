@@ -1,0 +1,109 @@
+<!-- TODO: Add minimize/maximize buttons -->
+<!-- TODO: Add a lock button that locks in user-specified values for dtg.min and dtg.max, -->
+<!-- TODO: instead of letting the data store time ranges define the overall time range. -->
+<div ng-controller="timeLapseControlsController" ng-show="display.toggledOn" class="timeLapseControlsPanel glass anchorRight anchorBottom">
+    <div id="col0" class="cell">
+        <div id="col0Table" class="cellTable">
+            <div class="cellTableRow">
+                <div class="innerField center">
+                    <div ng-click="display.togglePlay()" class="btn btn-default" ng-class="{active: display.isPlaying}">
+                        <i class="fa fa-fw fa-play"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="cellTableRow">
+                <div class="innerField rightJustify">
+                    <span class="displayShadow">Span:</span>
+                </div>
+            </div>
+            <div class="cellTableRow">
+                <div class="innerField rightJustify">
+                    <span class="displayShadow">Window:</span>
+                </div>
+            </div>
+            <div class="cellTableRow">
+                <div class="innerField rightJustify">
+                    <span class="displayShadow">Step:</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="col1" class="cell">
+        <div id="col1Table" class="cellTable">
+            <div class="cellTableRow">
+                <div class="innerField rightJustify">
+                    <span class="displayShadow">Period Displayed:</span>
+                </div>
+            </div>
+            <div class="cellTableRow">
+                <!-- TODO: Make this user editable -->
+                <div class="innerField rightJustify">
+                    <span class="displayShadow">{{displayInUtc(dtg.min * 1000)}}</span>
+                </div>
+            </div>
+            <div class="cellTableRow">
+                <div class="innerField rightJustify">
+                    <span class="displayShadow">{{window.millis | millisToDHMS}}</span>
+                </div>
+            </div>
+            <div class="cellTableRow">
+                <div class="innerField rightJustify">
+                    <span class="displayShadow">{{step.millis | millisToDHMS}}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="col2" class="cell">
+        <div id="col2Table" class="cellTable">
+            <div class="cellTableRow">
+                <div class="innerField center">
+                    <span class="displayShadow">
+                        {{displayInUtc(display.windowBeginMillis())}} &#8193; &#8213; &#8193; {{displayInUtc(dtg.millis)}}
+                    </span>
+                </div>
+            </div>
+            <div class="cellTableRow">
+                <div class="innerField">
+                    <st-time-lapse-slider model="dtg"></st-time-lapse-slider>
+                </div>
+            </div>
+            <div class="cellTableRow">
+                <div class="innerField">
+                    <st-time-lapse-slider model="window"></st-time-lapse-slider>
+                </div>
+            </div>
+            <div class="cellTableRow">
+                <div class="innerField">
+                    <st-time-lapse-slider model="step"></st-time-lapse-slider>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="col3" class="cell">
+        <div id="col3Table" class="cellTable">
+            <div class="cellTableRow">
+                <div class="innerField" style="color:rgba(0,0,0,0);text-shadow:none">M</div>
+            </div>
+            <div class="cellTableRow">
+                <!-- TODO: Make this user editable -->
+                <div class="innerField">
+                    <span class="displayShadow">{{displayInUtc(dtg.max * 1000)}}</span>
+                </div>
+            </div>
+            <div class="cellTableRow">
+                <div class="innerField">
+                    <input type="number" ui-jq="spinner" min="1"
+                           ng-model="window.max" ng-change="window.changed()">
+                    <select ng-model="window.unit" ng-options="u for u in units" ng-change="window.changed()"></select>
+                </div>
+            </div>
+            <div class="cellTableRow">
+                <div class="innerField">
+                    <input type="number" ui-jq="spinner" min="1"
+                           ng-model="step.max" ng-change="step.changed()">
+                    <select ng-model="step.unit" ng-options="u for u in units" ng-change="step.changed()"></select>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

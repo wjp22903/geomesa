@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wps:Execute version="1.0.0" service="WPS" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns="http://www.opengis.net/wps/1.0.0" xmlns:wfs="http://www.opengis.net/wfs"
+             xmlns:wps="http://www.opengis.net/wps/1.0.0" xmlns:ows="http://www.opengis.net/ows/1.1"
+             xmlns:gml="http://www.opengis.net/gml" xmlns:ogc="http://www.opengis.net/ogc"
+             xmlns:wcs="http://www.opengis.net/wcs/1.1.1" xmlns:xlink="http://www.w3.org/1999/xlink"
+             xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd">
+    <ows:Identifier>rank:TrackRank</ows:Identifier>
+    <wps:DataInputs>
+        <wps:Input>
+            <ows:Identifier>tubeFeatures</ows:Identifier>
+            <wps:Data>
+                <wps:ComplexData mimeType="application/json"><![CDATA[{{inputGeoJson}}]]></wps:ComplexData>
+            </wps:Data>
+        </wps:Input>
+        <wps:Input>
+            <ows:Identifier>featureCollection</ows:Identifier>
+            <wps:Reference mimeType="text/xml" xlink:href="http://geoserver/wfs" method="POST">
+                <wps:Body>
+                    <wfs:GetFeature service="WFS" version="1.0.0" outputFormat="GML2">
+                        <wfs:Query typeName="{{dataLayer}}">
+                            <ogc:Filter>
+                                <ogc:PropertyIsBetween>
+                                    <ogc:PropertyName>dtg</ogc:PropertyName>
+                                    <ogc:LowerBoundary>
+                                        <ogc:Literal>{{minDtg}}</ogc:Literal>
+                                    </ogc:LowerBoundary>
+                                    <ogc:UpperBoundary>
+                                        <ogc:Literal>{{maxDtg}}</ogc:Literal>
+                                    </ogc:UpperBoundary>
+                                </ogc:PropertyIsBetween>
+                            </ogc:Filter>
+                        </wfs:Query>
+                    </wfs:GetFeature>
+                </wps:Body>
+            </wps:Reference>
+        </wps:Input>
+        <wps:Input>
+            <ows:Identifier>maxSpeed</ows:Identifier>
+            <wps:Data>
+                <wps:LiteralData>{{maxSpeedMps}}</wps:LiteralData>
+            </wps:Data>
+        </wps:Input>
+        <wps:Input>
+            <ows:Identifier>maxTime</ows:Identifier>
+            <wps:Data>
+                <wps:LiteralData>{{maxTimeSec}}</wps:LiteralData>
+            </wps:Data>
+        </wps:Input>
+        <wps:Input>
+            <ows:Identifier>gapFill</ows:Identifier>
+            <wps:Data>
+                <wps:LiteralData>line</wps:LiteralData>
+            </wps:Data>
+        </wps:Input>
+        <wps:Input>
+            <ows:Identifier>keyField</ows:Identifier>
+            <wps:Data>
+                <wps:LiteralData>{{inputIdField}}</wps:LiteralData>
+            </wps:Data>
+        </wps:Input>
+    </wps:DataInputs>
+    <wps:ResponseForm>
+        <wps:RawDataOutput mimeType="application/json">
+            <ows:Identifier>result</ows:Identifier>
+        </wps:RawDataOutput>
+    </wps:ResponseForm>
+</wps:Execute>

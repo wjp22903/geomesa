@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="test.ui.core.geo.ol3.manager.test" ng-strict-di>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Map Manager Test</title>
+
+    <script type="text/javascript" src="../../../../../../main/ui/vendor/bower/lodash/dist/lodash.js"></script>
+    <script type="text/javascript" src="../../../../../../main/ui/vendor/bower/jquery/dist/jquery.js"></script>
+    <script type="text/javascript" src="../../../../../../main/ui/vendor/bower/jquery-ui/jquery-ui.js"></script>
+    <script type="text/javascript" src="../../../../../../main/ui/vendor/bower/angular/angular.js"></script>
+    <script type="text/javascript" src="../../../../../../main/ui/vendor/bower/angular-animate/angular-animate.js"></script>
+    <script type="text/javascript" src="../../../../../../main/ui/vendor/bower/angular-truncate/src/truncate.js"></script>
+    <script type="text/javascript" src="../../../../../../main/ui/vendor/bower/angular-ui-bootstrap-bower/ui-bootstrap-tpls.js"></script>
+    <script type="text/javascript" src="../../../../../../main/ui/vendor/bower/angular-ui-sortable/sortable.js"></script>
+    <script type="text/javascript" src="../../../../../../main/ui/vendor/bower/angular-ui-utils/ui-utils.js"></script>
+    <script type="text/javascript" src="../../../../../../main/ui/vendor/bower/ol3/build/ol-debug.js"></script>
+
+    <!-- Shared STEALTH.config for tests -->
+    <script type="text/javascript" src="../../../../../testConfig.js"></script>
+
+    <link rel="stylesheet" href="../../../../../../../target/stealth/css/style.css">
+    <script type="text/javascript" src="../../../../../../../target/stealth/templates-app.js"></script>
+    <script type="text/javascript" src="../../../../../../main/ui/src/app/00moduleWrapper.js"></script>
+    <script type="text/javascript" src="../../../../../../main/ui/src/app/core/utils/widget.js"></script>
+    <script type="text/javascript" src="../../../../../../main/ui/src/app/core/utils/utils.js"></script>
+    <script type="text/javascript" src="../../../../../../main/ui/src/app/core/sidebar/sidebar.js"></script>
+    <script type="text/javascript" src="../../../../../../main/ui/src/app/core/geo/ol3/map.js"></script>
+    <script type="text/javascript" src="../../../../../../main/ui/src/app/core/geo/ol3/layers/layers.js"></script>
+    <script type="text/javascript" src="../../../../../../main/ui/src/app/core/geo/ol3/layers/mapLayer.js"></script>
+    <script type="text/javascript" src="../../../../../../main/ui/src/app/core/geo/ol3/layers/geoJson.js"></script>
+    <script type="text/javascript" src="../../../../../../main/ui/src/app/core/geo/ol3/manager/manager.js"></script>
+    <script type="text/javascript" src="../../../../../../main/ui/src/app/core/geo/ows/wfs.js"></script>
+    <script type="text/javascript" src="../../../../../../main/ui/src/app/core/startmenu/startmenu.js"></script>
+    <script type="text/javascript" src="../../../../../../main/ui/src/app/core/startmenu/popover.js"></script>
+</head>
+<body style="background-color:#476BB2;">
+    <st-sidebar></st-sidebar>
+
+    <script type="text/javascript">
+        angular.module('test.ui.core.geo.ol3.manager.test', [
+            'ngAnimate',
+            'truncate',
+            'ui.bootstrap',
+            'templates-app',
+            'stealth.core.sidebar',
+            'stealth.core.utils',
+            'stealth.core.geo.ol3.manager'
+        ])
+        .config([
+        '$provide',
+        function ($provide) {
+            var config = angular.copy(STEALTH.config);
+            $provide.constant('CONFIG', config);
+        }])
+        .run([
+        '$rootScope', 'categoryManager', 'stealth.core.geo.ol3.manager.Category', 'stealth.core.utils.WidgetDef',
+        function ($rootScope, mgr, Category, WidgetDef) {
+            mgr.addCategory(0, new Category(0, 'Permanent', 'fa-exclamation-circle', new WidgetDef('st-placeholder'), null, true));
+            var scope = $rootScope.$new();
+            scope.message = "Enter a closing message";
+            mgr.addCategory(1, new Category(0, 'Closable', 'fa-trash', new WidgetDef('st-test-message-category', scope, 'message="message"'), null, true, true, function () {
+                    alert(scope.message);
+                }
+            ));
+        }])
+        .directive('stTestMessageCategory', [
+        function () {
+            return {
+                scope: {
+                    message: '='
+                },
+                template: '<input type="text" ng-model="message" style="width:100%;" onclick="this.select()"></input>'
+            };
+        }])
+        ;
+    </script>
+</body>
+</html>

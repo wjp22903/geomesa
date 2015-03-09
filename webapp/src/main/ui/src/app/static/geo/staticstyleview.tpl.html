@@ -1,0 +1,55 @@
+<div class="layerStyleWmsLayer layerStyleGrouping">
+    <ui-include src="'core/geo/ol3/layers/layer-fragments.tpl.html'" fragment="'.dragHandle'"></ui-include>
+    <ui-include src="'core/geo/ol3/layers/layer-fragments.tpl.html'" fragment="'.layerStyleRow.visibilityName'"></ui-include>
+    <ui-include src="'core/geo/ol3/layers/layer-fragments.tpl.html'" fragment="'.layerStyleRow.opacitySlider'"></ui-include>
+    <div class="layerStyleRow">
+        <div class="cell">
+            <img ng-src="{{getIconImgSrc(filterLayer)}}"
+                 ng-if="filterLayer.queryable && filterLayer.viewState.markerStyle === 'point'"/>
+            <div ng-if="filterLayer.viewState.markerStyle === 'heatmap'"
+                 class="heatmap"
+                 style="vertical-align:middle;"></div>
+        </div>
+        <div class="cell" style="padding-left:5px">Style:</div>
+        <div class="cell">
+            <select style="outline:none;margin-bottom:5px;margin-top:5px"
+                    ng-model="filterLayer.viewState.markerStyle"
+                    ng-options="style for style in markerStyles"
+                    ng-change="markerStyleChanged(filterLayer)"></select>
+        </div>
+        <div class="cell" ng-if="filterLayer.viewState.markerStyle === 'point'">
+            <select style="outline:none;margin-bottom:5px;margin-top:5px"
+                    ng-model="filterLayer.viewState.markerShape"
+                    ng-options="shape for shape in markerShapes"
+                    ng-change="markerShapeChanged(filterLayer)"></select>
+        </div>
+        <div class="cell" ng-if="filterLayer.viewState.markerStyle === 'point'" style="padding-left:5px;">Size:</div>
+        <div class="cell" ng-if="filterLayer.viewState.markerStyle === 'point'">
+            <input type="number" ui-jq="spinner"
+                   ng-model="filterLayer.viewState.size"
+                   ng-change="sizeChanged(filterLayer, filterLayer.viewState.size)"
+                   min="1" max="100">
+        </div>
+        <div class="cell" ng-if="filterLayer.viewState.markerStyle === 'point'" style="padding-left:5px;">Fill:</div>
+        <div class="cell" ng-if="filterLayer.viewState.markerStyle === 'point'">
+            <span class="btn btn-default toggleButton"
+                  style="margin-top:-1px;"
+                  ng-style="{'background-color': filterLayer.viewState.fillColor}"
+                  colorpicker colorpicker-position="bottom"
+                  ng-model="filterLayer.viewState.fillColor"
+                  ng-change="setFillColor(filterLayer)"
+                  tooltip-html-unsafe="<span style='white-space:nowrap'>Change fill color</span>"
+                  tooltip-placement="left" tooltip-animation="false" tooltip-popup-delay="500"
+                  tooltip-trigger="mouseenter">
+            </span>
+        </div>
+        <div class="cell" ng-if="filterLayer.viewState.markerStyle === 'heatmap'" style="padding-left:5px;">Pixels/radius:</div>
+        <div class="cell" ng-if="filterLayer.viewState.markerStyle === 'heatmap'">
+            <select style="outline:none;margin-bottom:5px;margin-top:5px;"
+                    ng-options="n for n in 10 | lodash:'range':101:10"
+                    ng-model="filterLayer.viewState.radiusPixels"
+                    ng-change="heatmapRadiusChanged(filterLayer, filterLayer.viewState.radiusPixels)">
+            </select>
+        </div>
+    </div>
+</div>

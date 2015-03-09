@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<StyledLayerDescriptor version="1.0.0"
+                       xsi:schemaLocation="http://www.opengis.net/sld StyledLayerDescriptor.xsd"
+                       xmlns="http://www.opengis.net/sld"
+                       xmlns:ogc="http://www.opengis.net/ogc"
+                       xmlns:xlink="http://www.w3.org/1999/xlink"
+                       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <NamedLayer>
+        <Name>Heatmap</Name>
+        <UserStyle>
+            <Title>Heatmap</Title>
+            <Abstract>Heatmap</Abstract>
+            <FeatureTypeStyle>
+                <Transformation>
+                    <ogc:Function name="gs:Heatmap">
+                        <ogc:Function name="parameter">
+                            <ogc:Literal>data</ogc:Literal>
+                        </ogc:Function>
+                        <ogc:Function name="parameter">
+                            <ogc:Literal>radiusPixels</ogc:Literal>
+                            <ogc:Function name="env">
+                                <ogc:Literal>radiusPixels</ogc:Literal>
+                                <ogc:Literal>10</ogc:Literal>
+                            </ogc:Function>
+                        </ogc:Function>
+                        <ogc:Function name="parameter">
+                            <ogc:Literal>pixelsPerCell</ogc:Literal>
+                            <ogc:Literal>1</ogc:Literal>
+                        </ogc:Function>
+                        <ogc:Function name="parameter">
+                            <ogc:Literal>outputBBOX</ogc:Literal>
+                            <ogc:Function name="env">
+                                <ogc:Literal>wms_bbox</ogc:Literal>
+                            </ogc:Function>
+                        </ogc:Function>
+                        <ogc:Function name="parameter">
+                            <ogc:Literal>outputWidth</ogc:Literal>
+                            <ogc:Function name="env">
+                                <ogc:Literal>wms_width</ogc:Literal>
+                            </ogc:Function>
+                        </ogc:Function>
+                        <ogc:Function name="parameter">
+                            <ogc:Literal>outputHeight</ogc:Literal>
+                            <ogc:Function name="env">
+                                <ogc:Literal>wms_height</ogc:Literal>
+                            </ogc:Function>
+                        </ogc:Function>
+                    </ogc:Function>
+                </Transformation>
+                <Rule>
+                    <RasterSymbolizer>
+                        <Geometry>
+                            <ogc:PropertyName>geom</ogc:PropertyName>
+                        </Geometry>
+                        <Opacity>0.75</Opacity>
+                        <ColorMap type="ramp">
+                            <ColorMapEntry color="#FFF5F0" quantity="0" label="No Data" opacity="0"/>
+                            <ColorMapEntry color="#FEE0D2" quantity="0.001" label="1"/>
+                            <ColorMapEntry color="#FCBBA1" quantity="0.01" label="2"/>
+                            <ColorMapEntry color="#FC9272" quantity="0.1" label="3"/>
+                            <ColorMapEntry color="#FB6A4A" quantity="0.25" label="4"/>
+                            <ColorMapEntry color="#EF3B2C" quantity="0.4" label="5"/>
+                            <ColorMapEntry color="#CB181D" quantity="0.5" label="6"/>
+                            <ColorMapEntry color="#A50F15" quantity="0.6" label="7"/>
+                            <ColorMapEntry color="#67000D" quantity="0.7" label="8"/>
+                            <ColorMapEntry color="#550000" quantity="0.8" label="9"/>
+                            <ColorMapEntry color="#1B0505" quantity="0.9" label="10"/>
+                        </ColorMap>
+                    </RasterSymbolizer>
+                </Rule>
+            </FeatureTypeStyle>
+        </UserStyle>
+    </NamedLayer>
+</StyledLayerDescriptor>

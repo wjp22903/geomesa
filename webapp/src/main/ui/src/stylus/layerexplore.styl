@@ -1,0 +1,77 @@
+div.category
+    margin 2px 4px
+    background-color white
+    border 2px solid #ddd
+    border-radius 3px
+
+div.categoryResizable
+    .ui-resizable-s
+        height 10px
+    .ui-resizable-handle
+        &:hover
+            background linear-gradient(rgba(0,0,0,0), rgba(0,199,255,0.5), rgba(0,0,0,0))
+
+div.categoryGrouping
+    padding 1px
+    margin 1px
+    border-radius 3px
+    border 1px dotted #ccc
+    &:hover
+        border-color #444
+    select
+        border 1px dotted #ccc
+        border-radius 3px
+        outline none
+        padding 0
+        background-color white
+        &:hover
+            border-color #444
+
+div.categoryIndent
+    padding-left 20px
+
+div.categoryCell
+    display table-cell
+    padding-right 4px
+    height 100%
+    white-space nowrap
+    vertical-align middle
+    .toggleSlide
+        width 35px
+        &:hover
+            border 1px dotted #444
+    .rainbow
+        background linear-gradient(to right, red, orange 16%, yellow 32%, green 48%, blue 60%, indigo 76%, violet)
+        border 1px solid white
+        &:hover
+            border 1px dotted #444
+    .heatmap
+        display inline-block
+        height 16px
+        width 16px
+        background radial-gradient(black 2%, #FF5F5F 40%, white 80%)
+        border 1px solid white
+
+div.legendIconContainer
+    display inline-block
+    height 20px
+
+div.cropIcon
+    width 16px
+    height 16px
+    overflow hidden
+
+span.catGroupButton
+    padding 0
+    line-height 1
+    &:first-of-type
+        margin-left 8px
+
+.errorIconWrapper
+    width 16px
+    height 16px
+    display inline-block
+    .tooltip.right .tooltip-arrow
+        border-right-color #a94442
+    .tooltip-inner
+        background-color #a94442

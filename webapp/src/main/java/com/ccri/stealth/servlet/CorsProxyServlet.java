@@ -1,0 +1,77 @@
+package com.ccri.stealth.servlet;
+
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
+import org.eclipse.jetty.client.Address;
+import org.eclipse.jetty.client.HttpClient;
+import org.eclipse.jetty.client.HttpExchange;
+import org.eclipse.jetty.http.HttpURI;
+import org.eclipse.jetty.servlets.ProxyServlet;
+import org.eclipse.jetty.util.URIUtil;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
+
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import java.net.MalformedURLException;
+import java.net.URI;
+
+public class CorsProxyServlet extends ProxyServlet {
+    private final Config conf = ConfigFactory.load().getConfig("stealth");
+    private String keyStorePath = null;
+    private String keyStorePassword = null;
+    private String trustStorePath = null;
+    private String trustStorePassword = null;
+
+    @Override
+    public void init(ServletConfig config) throws ServletException {
+        keyStorePath = conf.getString("private.proxy.keystore.path");
+        keyStorePassword = conf.getString("private.proxy.keystore.password");
+        trustStorePath = conf.getString("private.proxy.truststore.path");
+        trustStorePassword = conf.getString("private.proxy.truststore.password");
+        super.init(config);
+    }
+
+    @Override
+    protected HttpURI proxyHttpURI(HttpServletRequest request, String uri) throws MalformedURLException {
+        String query = request.getQueryString();
+        String dest = (URIUtil.encodePath(request.getRequestURI().replaceFirst(".*\\/cors\\/", "")) +
+                ((query != null && !query.isEmpty()) ? ("?" + query) : "")
+        ).substring(1);
+        return new HttpURI(URI.create(dest));
+    }
+
+    @Override
+    protected HttpClient createHttpClientInstance() {
+        if (keyStorePath != null && keyStorePath.trim().length() > 0 && trustStorePath != null && trustStorePath.trim().length() > 0) {
+            SslContextFactory ssl = new SslContextFactory();
+            ssl.setKeyStorePath(keyStorePath);
+            ssl.setKeyStorePassword(keyStorePassword);
+            ssl.setTrustStore(trustStorePath);
+            ssl.setTrustStorePassword(trustStorePassword);
+            return new HttpClient(ssl);
+        }
+        return super.createHttpClientInstance();
+    }
+
+    @Override
+    protected HttpClient createHttpClient(ServletConfig config) throws Exception {
+        HttpClient client = super.createHttpClient(config);
+
+        String t = conf.getString("private.proxy.webProxy");
+        if (t != null && t.trim().length() > 0) {
+            client.setProxy(Address.from(t));
+        }
+        t = config.getInitParameter("connectTimeout");
+        if (t != null) {
+            client.setConnectTimeout(Integer.parseInt(t));
+        }
+        return client;
+    }
+
+    @Override
+    protected void customizeExchange(HttpExchange exchange, HttpServletRequest request) {
+        super.customizeExchange(exchange, request);
+        exchange.setRequestHeader("Host", null);
+    }
+}

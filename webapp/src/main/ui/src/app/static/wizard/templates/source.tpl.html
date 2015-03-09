@@ -1,0 +1,34 @@
+<ng-form name="staticSourceForm">
+    <p>Identify important fields for layer:</p>
+    <div class="form-control input-sm">
+        {{::(layer.Title || layer.Name)}}
+    </div>
+    <table>
+        <tr>
+            <td style="padding-top:2px;">
+                <label>Time field</label>
+            </td>
+            <td style="padding-top:2px;">
+                <select class="form-control input-sm"
+                        ng-model="query.params.dtgField"
+                        ng-options="property.name for property in query.featureTypeData.featureTypes[0].properties | filter:{'localType':'date-time'}:true | orderBy:'name'"
+                        ng-disabled="!query.featureTypeData.featureTypes[0].properties"
+                        required>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding-top:2px;">
+                <label>Geometry field&nbsp;</label>
+            </td>
+            <td style="padding-top:2px;">
+                <select class="form-control input-sm"
+                        ng-model="query.params.geomField"
+                        ng-options="property.name for property in query.featureTypeData.featureTypes[0].properties | orderBy:'name'"
+                        ng-disabled="!query.featureTypeData.featureTypes[0].properties"
+                        required>
+                </select>
+            </td>
+        </tr>
+    </table>
+</ng-form>

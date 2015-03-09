@@ -1,0 +1,52 @@
+<div class="searchResultTableHeader">
+    <div ng-repeat="result in results" class="searchResultTableHeaderResult"
+         ng-class="'result' + result.id + 'Header'">
+        <div class="searchResultTableHeaderCaption">
+            <st-pager class="pull-left searchResultTablePager" records='result.records' paging='result.paging'></st-pager>
+            <i class="fa fa-fw fa-square" ng-style="result.layerFill"></i>
+            <span>{{ ::result.name }}</span>
+            <span class="pull-right" style="font-weight:normal;">
+                <span class="btn btn-default fa-stack toggleButton"
+                      style="vertical-align:top;"
+                      ng-click="resultTableCtrl.removeResult(result)">
+                    <i class="fa fa-fw fa-remove fa-stack-1x text-danger"></i>
+                </span>
+            </span>
+        </div>
+        <div class="searchResultTableHeaderRow">
+            <div class="searchResultTableRowKey" ng-class="'result' + result.id + 'RowKey'"></div>
+            <div ng-repeat="record in result.records | startFrom:(result.paging.currentPage-1)*result.paging.pageSize | limitTo:result.paging.pageSize"
+                 class="searchResultTableRowCell" ng-class="'result' + result.id + 'Col' + $index + ($last ? '' : ' searchResultTableBorderRight')">
+                <span class="btn btn-default fa-stack toggleButton"
+                      style="vertical-align:top;"
+                      ng-click="resultTableCtrl.removeRecord(result, record)">
+                    <i class="fa fa-fw fa-remove fa-stack-1x text-danger"></i>
+                </span>
+                <span ng-repeat="capa in result.capabilities"
+                      class="btn btn-default fa-stack toggleButton"
+                      style="vertical-align:top;"
+                      tooltip-html-unsafe="<span style='white-space:nowrap;'>{{::capa.toolTipText}}</span>"
+                      tooltip-placement="top" tooltip-animation="false" tootip-popup-delay="500"
+                      tooltip-trigger="mouseenter"
+                      ng-if="capa.onClick"
+                      ng-click="capa.onClick(result.name, record, capa)">
+                    <i class="fa fa-fw fa-stack-1x text-primary" ng-class="capa.iconClass"></i>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="searchResultTableResize" st-search-result-table-resizable>
+    <div class="searchResultTableBody" ng-mousedown="$event.stopPropagation();" ng-mouseup="$event.stopPropagation();" st-search-result-table-scroll-link>
+        <div ng-repeat="result in results" class="searchResultTableBodyResult" ng-class="'result' + result.id + 'Body'">
+            <div ng-repeat="(key, val) in result.records[0]" ng-class-even="'searchResultTableRowEven'">
+                <div class="searchResultTableRowKey" ng-class="'result' + result.id + 'RowKey'">{{ key }}</div>
+                <div ng-repeat="record in result.records | startFrom:(result.paging.currentPage-1)*result.paging.pageSize | limitTo:result.paging.pageSize"
+                     class="searchResultTableRowCell" ng-class="'result' + result.id + 'Col' + $index + ($last ? '' : ' searchResultTableBorderRight')">
+                    <a href="" ng-if="result.isFilterable" ng-click="result.filterHandler(key, record[key])">{{ resultTableCtrl.formatValue(key, record[key], result) }}</a>
+                    <span ng-if="!result.isFilterable">{{ resultTableCtrl.formatValue(key, record[key], result) }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

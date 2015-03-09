@@ -1,0 +1,45 @@
+inputTypeRangeTrackHeight = 8px
+inputTypeRangeTrackBorderRadius = 3px
+inputTypeRangeTrackColor = #aeb5cc
+
+inputTypeRangeThumbSize = 14px
+inputTypeRangeThumbBorderRadius = 30%
+inputTypeRangeThumbColor = radial-gradient(#bab4b4, #777 55%, #777 45%, #444)
+
+input[type=range] {
+    /*removes default webkit styles*/
+    -webkit-appearance: none;
+}
+input[type=range]::-webkit-slider-runnable-track {
+    height: inputTypeRangeTrackHeight;
+    background: inputTypeRangeTrackColor;
+    border: none;
+    border-radius: inputTypeRangeTrackBorderRadius;
+    margin: 0px -2px 0px -2px;
+}
+input[type=range]::-moz-range-track {
+    height: inputTypeRangeTrackHeight;
+    background: inputTypeRangeTrackColor;
+    border: none;
+    border-radius: inputTypeRangeTrackBorderRadius;
+    margin: 0px 0px 0px 0px;
+}
+input[type=range]:focus {
+    outline: none;
+}
+input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    border: none;
+    height: inputTypeRangeThumbSize;
+    width: inputTypeRangeThumbSize;
+    border-radius: inputTypeRangeThumbBorderRadius;
+    background: inputTypeRangeThumbColor;
+    margin-top: -3px;
+}
+input[type=range]::-moz-range-thumb {
+    border: none;
+    height: inputTypeRangeThumbSize;
+    width: inputTypeRangeThumbSize;
+    border-radius: inputTypeRangeThumbBorderRadius;
+    background: inputTypeRangeThumbColor;
+}
