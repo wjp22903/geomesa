@@ -3,36 +3,32 @@ angular.module('stealth.static.geo', [
     'stealth.static.wizard'
 ])
 
-.run([
-'$rootScope',
+.service('staticWorkspaceManager', [
 '$timeout',
-'$filter',
-'categoryManager',
-'staticLayerWizard',
 'owsLayers',
-'ol3Map',
 'colors',
-'stealth.core.geo.ol3.manager.Category',
-'stealth.core.utils.WidgetDef',
+'ol3Map',
 'stealth.core.geo.ol3.layers.WmsLayer',
 'CONFIG',
-function ($rootScope, $timeout, $filter, catMgr, wizard, owsLayers, ol3Map,
-          colors, Category, WidgetDef, WmsLayer, CONFIG) {
-    var catScope = $rootScope.$new();
-    catScope.workspaces = {};
-
-    function getRequestEnv (fillColor, size, shape, radiusPixels) {
-        var env = 'color:' + fillColor.slice(1) +
-                  ';size:' + size +
-                  ';shape:' + shape;
-        if (_.isNumber(radiusPixels)) {
-            env += ';radiusPixels:' + radiusPixels;
-        }
-        return env;
-    }
-
+function ($timeout, owsLayers, colors, ol3Map, WmsLayer, CONFIG) {
+    var _self = this;
     var iconImgSrc = '';
-    function updateIconImgSrc (filterLayer) {
+    var markerStyles = ['point', 'heatmap'];
+    var stealthMarkerStyles = {
+        'point': 'stealth_dataPoints',
+        'heatmap': 'stealth_heatmap'
+    };
+    var markerShapes = ['circle', 'square', 'triangle', 'star', 'cross', 'x'];
+    var counter = 0;
+
+    var getShape = function () {
+        var shape = markerShapes[counter++ % 6];
+        if (counter % 6 === 0) {
+            counter = 0;
+        }
+        return shape;
+    };
+    var updateIconImgSrc = function (filterLayer) {
         var url = filterLayer.wmsUrl || CONFIG.geoserver.defaultUrl + '/wms';
         iconImgSrc = url +
                      "?REQUEST=GetLegendGraphic&FORMAT=image/png&WIDTH=16&HEIGHT=16&TRANSPARENT=true&LAYER=" +
@@ -44,21 +40,30 @@ function ($rootScope, $timeout, $filter, catMgr, wizard, owsLayers, ol3Map,
         if (!_.isUndefined(filterLayer.style)) {
             iconImgSrc += "&STYLE=" + filterLayer.style;
         }
-    }
-    var getIconImgSrc = function (filterLayer) {
+    };
+    var getRequestEnv = function (fillColor, size, shape, radiusPixels) {
+        var env = 'color:' + fillColor.slice(1) +
+                  ';size:' + size +
+                  ';shape:' + shape;
+        if (_.isNumber(radiusPixels)) {
+            env += ';radiusPixels:' + radiusPixels;
+        }
+        return env;
+    };
+
+    this.workspaces = {};
+
+    this.getIconImgSrc = function (filterLayer) {
         updateIconImgSrc(filterLayer);
         return iconImgSrc;
     };
-
-    catScope.getIconImgSrc = getIconImgSrc;
-
-    var markerStyles = ['point', 'heatmap'];
-    var stealthMarkerStyles = {
-        'point': 'stealth_dataPoints',
-        'heatmap': 'stealth_heatmap'
+    this.findLayer = function (workspaceName, layerName) {
+        if (_.has(_self.workspaces, workspaceName)) {
+            return _.find(_self.workspaces[workspaceName], {Name: layerName});
+        }
+        return undefined;
     };
-    var markerShapes = ['circle', 'square', 'triangle', 'star', 'cross', 'x'];
-    catScope.toggleLayer = function (layer, filterLayer) {
+    this.toggleLayer = function (layer, filterLayer) {
         if (_.isUndefined(filterLayer.mapLayerId) || _.isNull(filterLayer.mapLayerId)) {
 
             var requestParams = {
@@ -94,7 +99,7 @@ function ($rootScope, $timeout, $filter, catMgr, wizard, owsLayers, ol3Map,
             mapLayer.styleDirectiveScope.styleVars.iconClass = 'fa fa-fw fa-lg fa-database';
             mapLayer.styleDirective = 'st-static-style-view';
             mapLayer.styleDirectiveScope.filterLayer = filterLayer;
-            mapLayer.styleDirectiveScope.getIconImgSrc = getIconImgSrc;
+            mapLayer.styleDirectiveScope.getIconImgSrc = _self.getIconImgSrc;
             mapLayer.styleDirectiveScope.markerStyles = markerStyles;
             mapLayer.styleDirectiveScope.markerShapes = markerShapes;
             ol3Map.addLayer(mapLayer);
@@ -161,32 +166,6 @@ function ($rootScope, $timeout, $filter, catMgr, wizard, owsLayers, ol3Map,
         }
     };
 
-    catScope.toggleVisibility = function (layer) {
-        var mapLayer = ol3Map.getLayerById(layer.mapLayerId);
-        var ol3Layer = mapLayer.getOl3Layer();
-        ol3Layer.setVisible(!ol3Layer.getVisible());
-    };
-
-    catScope.removeLayer = function (layer, filterLayer) {
-        if (filterLayer.viewState.isOnMap) {
-            catScope.toggleLayer(layer, filterLayer);
-        }
-        _.pull(layer.filterLayers, filterLayer);
-    };
-
-    catScope.launchLayerFilterWizard = function (layer) {
-        wizard.launch(layer, catScope.toggleLayer);
-    };
-
-    var counter = 0;
-    function getShape () {
-        var shape = markerShapes[counter++ % 6];
-        if (counter % 6 === 0) {
-            counter = 0;
-        }
-        return shape;
-    }
-
     var keywordPrefix = 'static';
     owsLayers.getLayers(keywordPrefix)
         .then(function (layers) {
@@ -220,14 +199,47 @@ function ($rootScope, $timeout, $filter, catMgr, wizard, owsLayers, ol3Map,
                 layer.filterLayers.push(filterLayer);
 
                 _.each(_.deepGet(layer.KeywordConfig, keywordPrefix), function (conf, workspace) {
-                    if (_.isArray(catScope.workspaces[workspace])) {
-                        catScope.workspaces[workspace].push(layer);
+                    if (_.isArray(_self.workspaces[workspace])) {
+                        _self.workspaces[workspace].push(layer);
                     } else {
-                        catScope.workspaces[workspace] = [layer];
+                        _self.workspaces[workspace] = [layer];
                     }
                 });
             });
         });
+}])
+
+.run([
+'$rootScope',
+'staticWorkspaceManager',
+'categoryManager',
+'staticLayerWizard',
+'ol3Map',
+'stealth.core.geo.ol3.manager.Category',
+'stealth.core.utils.WidgetDef',
+function ($rootScope, staticWorkspaceMgr, catMgr, wizard, ol3Map,
+          Category, WidgetDef) {
+    var catScope = $rootScope.$new();
+    catScope.workspaces = staticWorkspaceMgr.workspaces;
+    catScope.getIconImgSrc = staticWorkspaceMgr.getIconImgSrc;
+    catScope.toggleLayer = staticWorkspaceMgr.toggleLayer;
+
+    catScope.toggleVisibility = function (layer) {
+        var mapLayer = ol3Map.getLayerById(layer.mapLayerId);
+        var ol3Layer = mapLayer.getOl3Layer();
+        ol3Layer.setVisible(!ol3Layer.getVisible());
+    };
+
+    catScope.removeLayer = function (layer, filterLayer) {
+        if (filterLayer.viewState.isOnMap) {
+            catScope.toggleLayer(layer, filterLayer);
+        }
+        _.pull(layer.filterLayers, filterLayer);
+    };
+
+    catScope.launchLayerFilterWizard = function (layer) {
+        wizard.launch(layer, catScope.toggleLayer);
+    };
 
     var widgetDef = new WidgetDef('st-static-geo-category', catScope);
     var category = new Category(1, 'Data', 'fa-database', widgetDef, null, true);

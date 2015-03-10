@@ -67,6 +67,7 @@ function ($log, $timeout, $http, $filter, MapLayer, CONFIG) {
         };
 
         this.searchPoint = function (coord, res, requestOverrides) {
+            var baseResponse = this.getEmptySearchPointResult();
             var url = this.getOl3Layer().getSource().getGetFeatureInfoUrl(
                 coord, res, CONFIG.map.projection, _.merge({
                     INFO_FORMAT: 'application/json',
@@ -75,23 +76,20 @@ function ($log, $timeout, $http, $filter, MapLayer, CONFIG) {
             );
             return $http.get($filter('cors')(url, null, CONFIG.geoserver.omitProxy))
                 .then(function (response) {
-                    return {
-                        name: _self.name,
+                    return _.merge(baseResponse, {
                         records: _.pluck(response.data.features, 'properties'),
                         layerFill: {
                             display: 'none'
                         }
-                    };
+                    });
                 }, function (response) {
-                    return {
-                        name: _self.name,
-                        records: [],
+                    return _.merge(baseResponse, {
                         isError: true,
                         reason: 'Server error'
-                    };
+                    });
                 });
         };
-     };
+    };
     WmsLayer.prototype = Object.create(MapLayer.prototype);
 
     return WmsLayer;

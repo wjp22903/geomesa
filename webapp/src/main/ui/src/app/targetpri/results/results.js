@@ -2,7 +2,8 @@ angular.module('stealth.targetpri.results')
 
 .directive('stTargetPriResults', [
 '$filter',
-function ($filter) {
+'targetPriResultLayerExtender',
+function ($filter, tpExtender) {
     return {
         restrict: 'E',
         templateUrl: 'targetpri/results/results.tpl.html',
@@ -44,6 +45,19 @@ function ($filter) {
                         result.isExpanded = false;
                     });
                 };
+                $scope.buildRecord = function (dataSource, idFieldValue) {
+                    var temp = {};
+                    temp[dataSource.fieldNames.id] = idFieldValue;
+                    return temp;
+                };
+                $scope.capabilities = {};
+                _.forEach($scope.request.dataSources, function (dataSource) {
+                    $scope.capabilities[dataSource.Name] = tpExtender.extendCapabilities({}, this, {
+                        dataSource: dataSource,
+                        request: $scope.request
+                    });
+                });
+
                 $scope.promise.then(function (response) {
                     $scope.status.waiting = false;
                     $scope.originalResults = _.cloneDeep(response.results);

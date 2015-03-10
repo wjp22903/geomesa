@@ -117,7 +117,9 @@
                 'stealth.static',
                 'stealth.targetpri',
                 'stealth.timelapse',
-                'stealth.mediator.histogram-timelapse'
+                'stealth.mediator.histogram-timelapse',
+                'stealth.mediator.static-targetpri',
+                'stealth.mediator.targetpri-timelapse'
             ]
         </app.plugins>
 

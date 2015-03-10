@@ -34,7 +34,7 @@ function (wfs, owsLayers, CONFIG) {
     var now = moment().utc();
     var oneWeekAgo = now.clone().subtract(7, 'days');
 
-    var query = function () {
+    var query = function (overrides) {
         var _self = this;
 
         this.layerData = {};
@@ -51,6 +51,7 @@ function (wfs, owsLayers, CONFIG) {
             endDtg: now,
             cql: null
         };
+        _.merge(this.params, overrides);
 
         var keywordPrefix = ['timelapse', 'historical'];
         owsLayers.getLayers(keywordPrefix)
@@ -66,7 +67,10 @@ function (wfs, owsLayers, CONFIG) {
                     });
                 });
                 if (!_.isEmpty(_self.layerData.layers)) {
-                    _self.layerData.currentLayer = _self.layerData.layers[0];
+                    if (_self.params.currentLayer) {
+                        _self.layerData.currentLayer = _.find(_self.layerData.layers, {'Name': _self.params.currentLayer.Name});
+                    }
+                    _self.layerData.currentLayer = _self.layerData.currentLayer || _self.layerData.layers[0];
                     _self.getFeatureTypeDescription();
                 }
             });

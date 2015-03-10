@@ -62,8 +62,15 @@ function ($log, $rootScope, $q, $timeout, WidgetDef) {
             this.searchPoint = function (coord, res) {
                 return this.searchPointEmpty();
             };
+            this.getEmptySearchPointResult = function () {
+                return {
+                    name: this.name,
+                    isError: false,
+                    capabilities: this.getCapabilities()
+                };
+            };
             this.searchPointEmpty = function () {
-                return $q.when({name: this.name, records:[]}); //empty results
+                return $q.when(this.getEmptySearchPointResult());
             };
             this.isQueryable = function () {
                 return _queryable;
@@ -71,6 +78,9 @@ function ($log, $rootScope, $q, $timeout, WidgetDef) {
             this.setQueryable = function (newQueryable) {
                 _queryable = newQueryable;
                 return this;
+            };
+            this.getCapabilities = function () {
+                return {};
             };
         }
         this.styleDirectiveIsoScopeAttrs = null;

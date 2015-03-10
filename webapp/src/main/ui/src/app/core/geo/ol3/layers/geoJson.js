@@ -112,19 +112,15 @@ function ($log, $q, wfs, colors, ol3Styles, MapLayer, CONFIG) {
 
         _self.searchPoint = function (coord, resolution) {
             var deferred = $q.defer();
-            var baseResponse = {
-                name: _name,
+            var baseResponse = _.merge(this.getEmptySearchPointResult(), {
                 layerFill: {
                     color: _viewState.fillColor
                 }
-            };
+            });
 
             // If this layer is not toggled on, ...
             if (!_viewState.toggledOn || _viewState.isError || _.isUndefined(_queryResponse)) {
-                deferred.resolve(_.merge(baseResponse, {
-                    isError: false,
-                    records: []
-                }));
+                deferred.resolve(baseResponse);
                 return deferred.promise;
             }
 
@@ -148,10 +144,7 @@ function ($log, $q, wfs, colors, ol3Styles, MapLayer, CONFIG) {
 
             // If there are no line strings near the click, ...
             if (_.isEmpty(nearbyFeatures)) {
-                deferred.resolve(_.merge(baseResponse, {
-                    isError: false,
-                    records: []
-                }));
+                deferred.resolve(baseResponse);
                 return deferred.promise;
             }
 
@@ -165,7 +158,6 @@ function ($log, $q, wfs, colors, ol3Styles, MapLayer, CONFIG) {
                 return term;
             }, '');
 
-            var capabilities = _query.layerData.currentLayer.KeywordConfig.capability || {};
             var url = _query.serverData.currentGeoserverUrl + '/' +
                       _query.layerData.currentLayer.prefix;
             var typeName = _query.layerData.currentLayer.name;
@@ -178,9 +170,7 @@ function ($log, $q, wfs, colors, ol3Styles, MapLayer, CONFIG) {
                     return properties;
                 });
                 deferred.resolve(_.merge(baseResponse, {
-                    isError: false,
-                    records: records,
-                    capabilities: capabilities
+                    records: records
                 }));
             })
             .error(function (data, status, headers, config, statusText) {
@@ -190,6 +180,11 @@ function ($log, $q, wfs, colors, ol3Styles, MapLayer, CONFIG) {
                 }));
             });
             return deferred.promise;
+        };
+
+        var getCapabilities = this.getCapabilities;
+        _self.getCapabilties = function () {
+            return _.merge(getCapabilities(), _query.layerData.currentLayer.KeywordConfig.capability);
         };
     };
     GeoJsonVectorLayer.prototype = Object.create(MapLayer.prototype);

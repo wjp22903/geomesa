@@ -46,13 +46,15 @@ function ($log, $rootScope, $filter,
         return shape;
     }
 
-    this.launch = function (layer, toggleLayer) {
+    this.launch = function (layer, toggleLayer, overrides) {
         var wizScope = $rootScope.$new();
         var steps = [];
 
         wizScope.layer = layer;
         wizScope.query = new Query();
         wizScope.query.getFeatureTypeDescription(wizScope.layer);
+
+        _.merge(wizScope.query.params, overrides);
 
         var useMask = true;
         steps.push(new Step('Identify important fields',

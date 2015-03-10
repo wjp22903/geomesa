@@ -335,7 +335,7 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
         };
 
         this.styleDirective = 'st-time-lapse-layer-style';
-        this.styleDirectiveScope.styleVars.iconClass = 'fa fa-fw fa-lg fa-history';
+        this.styleDirectiveScope.styleVars.iconClass = 'fa fa-fw fa-lg fa-clock-o';
         this.styleDirectiveScope.layer = _self;
         this.styleDirectiveScopeAttrs += " layer='layer'";
         this.styleDirectiveScope.stores = _stores;

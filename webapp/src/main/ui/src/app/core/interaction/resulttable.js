@@ -111,7 +111,7 @@ function ($element, $scope, $filter, $timeout) {
     this.formatValue = function (key, value, result) {
         if (result.fieldTypes) {
             var type = _.find(result.fieldTypes, {'name': key});
-            if (type.localType) {
+            if (type && type.localType) {
                 switch (type.localType) {
                     case 'date-time':
                         return moment.utc(value).format('YYYY-MM-DD[T]HH:mm:ss[Z]');

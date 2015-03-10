@@ -15,7 +15,7 @@ function ($rootScope, $timeout, ol3Map, Base, WidgetDef) {
             ol3Layer.setVisible(!ol3Layer.getVisible());
         };
 
-        this.addLayer = function (layer, registerSearchable) {
+        this.addLayer = function (layer) {
             layer.viewState = {
                 toggledOn: true
             };

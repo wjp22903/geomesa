@@ -86,12 +86,15 @@
                 <div style="overflow:auto;">
                     <div class="tpDataBox">
                         <div class="pull-right" style="display:inline-block;">
-                            <div class="btn btn-default fa-stack toggleButton">
-                                <i class="fa fa-fw fa-stack-1x fa-database text-primary"></i>
-                            </div>
-                            <br>
-                            <div class="btn btn-default fa-stack toggleButton">
-                                <i class="fa fa-fw fa-stack-1x fa-clock-o text-primary"></i>
+                            <div ng-repeat="capa in capabilities[result.dataSource.Name]"
+                                 class="btn btn-default fa-stack toggleButton"
+                                 style="display:block;"
+                                 tooltip-html-unsafe="<span style='white-space:nowrap;'>{{::capa.toolTipText}}</span>"
+                                 tooltip-placement="left" tooltip-animation="false" tooltip-popup-delay="500"
+                                 tooltip-trigger="mouseenter"
+                                 ng-if="capa.onClick"
+                                 ng-click="capa.onClick(result.key, buildRecord(result.dataSource, result.key), capa)">
+                                <i class="fa fa-fw fa-stack-1x text-primary" ng-class="capa.iconClass"></i>
                             </div>
                         </div>
                         <label>Source:</label>

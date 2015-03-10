@@ -234,6 +234,7 @@ function ($log, $filter, $q, mapClickSearchService, MapLayer, CONFIG) {
     //Built-in layers
     var countrySource = new ol.source.ServerVector({
         format: new ol.format.GeoJSON(),
+        strategy: ol.loadingstrategy.all,
         loader: function(extent, resolution, projection) {
             $.ajax({
                 url: CONFIG.assets.path + 'countries.geo.json',

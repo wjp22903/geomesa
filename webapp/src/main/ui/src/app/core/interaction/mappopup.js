@@ -120,7 +120,7 @@ function ($element, $filter, $scope, $rootScope, mapClickSearchService, ol3Map) 
     this.launchSearch = function () {
         mapClickSearchService.search([this.lon, this.lat], ol3Map.getResolution(), function(responses) {
             _.forEach(responses, function (response) {
-                if (!response.isError && response.records.length > 0) {
+                if (!response.isError && response.records && response.records.length > 0) {
                     _self.results.push(response);
                 }
             });

@@ -110,17 +110,19 @@ function ($log, $rootScope, $q, $filter, $window, toaster, CONFIG, wfs, queryBin
                     fieldTypes: _featureTypeProperties,
                     isFilterable: true,
                     filterHandler: function (key, val) {
-                        var newQuery = _.cloneDeep(_query);
-                        newQuery.params.startDtg = moment(_query.params.startDtg);
-                        newQuery.params.endDtg = moment(_query.params.endDtg);
                         var filter = key + '=' + (angular.isString(val) ? "'" + val + "'" : val);
-                        if (!newQuery.params.cql || _.trim(newQuery.params.cql) === '') {
-                            newQuery.params.cql = filter;
+                        var overrides = {
+                            startDtg: moment(_query.params.startDtg),
+                            endDtg: moment(_query.params.endDtg),
+                            storeName: _query.params.storeName + ' (' + filter + ')',
+                            currentLayer: _query.layerData.currentLayer
+                        };
+                        if (!_query.params.cql || _.trim(_query.params.cql) === '') {
+                            overrides.cql = filter;
                         } else {
-                            newQuery.params.cql = _.trim(newQuery.params.cql) + ' AND ' + filter;
+                            overrides.cql = _.trim(_query.params.cql) + ' AND ' + filter;
                         }
-                        newQuery.params.storeName = newQuery.params.storeName + ' (' + filter + ')';
-                        $rootScope.$emit('Launch Timelapse Wizard', newQuery);
+                        $rootScope.$emit('Launch Timelapse Wizard', overrides);
                     }
                 });
             })
@@ -136,6 +138,8 @@ function ($log, $rootScope, $q, $filter, $window, toaster, CONFIG, wfs, queryBin
 
         this.searchPointAndTime = function (coord, res, timeMillis, windowMillis) {
             var deferred = $q.defer();
+            var startMillis = calcStartMillis(timeMillis, windowMillis);
+            var endMillis = calcEndMillis(timeMillis);
 
             var capabilities = _query.layerData.currentLayer.KeywordConfig.capability || {};
             capabilities = queryBinStoreExtender.extendCapabilities(capabilities, this, {
@@ -163,8 +167,6 @@ function ($log, $rootScope, $q, $filter, $window, toaster, CONFIG, wfs, queryBin
                     return $q.when({name: this.getName(), records: []}); //empty results
                 }
             } else {
-                var startMillis = calcStartMillis(timeMillis, windowMillis);
-                var endMillis = calcEndMillis(timeMillis);
                 var typeName = _query.layerData.currentLayer.Name;
                 var modifier = res * Math.max(this.getPointRadius(), 4);
                 var cqlParams = {

@@ -12,7 +12,7 @@ angular.module('stealth.histogram.geo', [
 'wfs',
 'owsLayers',
 'categoryManager',
-'tlControlsManager',
+'tlControlsManager',  //TODO: remove coupling to timelapse plugin
 'histogramQueryService',
 'histogramWizard',
 'histogramBuilder',
@@ -45,7 +45,7 @@ function ($log, $rootScope, $timeout,
         }
     }
 
-     scope.toggleLayer = function (gsLayer, derivedLayer) {
+    scope.toggleLayer = function (gsLayer, derivedLayer) {
         if (_.isUndefined(derivedLayer.mapLayerId) || _.isNull(derivedLayer.mapLayerId)) {
             var ol3Source = new ol.source.GeoJSON({
                 object: {

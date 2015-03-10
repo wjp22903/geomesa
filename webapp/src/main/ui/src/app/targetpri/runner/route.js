@@ -20,14 +20,14 @@ function ($rootScope, routeRankRunner) {
 'rankService',
 'ol3Map',
 'ol3Styles',
-'stealth.core.geo.ol3.layers.WmsLayer',
 'stealth.core.geo.ol3.layers.MapLayer',
+'stealth.targetpri.geo.ol3.layers.TargetPriResultLayer',
 'stealth.targetpri.results.Category',
 'categoryManager',
 'colors',
 'cqlHelper',
 function ($rootScope, $q, sidebarManager, WidgetDef, proximityService,
-          rankService, ol3Map, ol3Styles, WmsLayer, MapLayer, Category, catMgr, colors, cqlHelper) {
+          rankService, ol3Map, ol3Styles, MapLayer, TargetPriResultLayer, Category, catMgr, colors, cqlHelper) {
     var geoJsonFormat = new ol.format.GeoJSON();
     this.run = function (req) {
         var category = catMgr.addCategory(2, new Category(req.name, function () {
@@ -52,11 +52,11 @@ function ($rootScope, $q, sidebarManager, WidgetDef, proximityService,
                 dataLayerFilter: filter,
                 bufferMeters: req.proximityMeters
             }).then(function (layerName) {
-                dataSource.proximityLayer = category.addLayer(new WmsLayer(dataSource.Title + ' for [' + req.name + ']', {
+                dataSource.proximityLayer = category.addLayer(new TargetPriResultLayer(dataSource.Title + ' for [' + req.name + ']', {
                     LAYERS: layerName,
                     STYLES: 'stealth_dataPoints',
                     ENV: 'color:BEBE40;opacity:0.6;size:10'
-                }, true), true);
+                }, true, null, null, null, req, dataSource));
                 return layerName;
             });
             return {
