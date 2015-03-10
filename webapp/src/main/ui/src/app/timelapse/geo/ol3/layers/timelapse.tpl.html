@@ -8,6 +8,7 @@
             <li ng-repeat="store in stores">
                 <div class="layerStyleGrouping"
                      ng-if="store.getViewState().isDataReady()">
+                    <ui-include src="'core/geo/ol3/layers/layer-fragments.tpl.html'" fragment="'.dragHandle'"></ui-include>
                     <div class="layerStyleRow">
                         <div class="cell">
                             <i class="fa fa-fw fa-clock-o"
@@ -25,9 +26,6 @@
                                   ng-click="layer.removeStore(store)">
                                 <i class="fa fa-fw fa-remove fa-stack-1x text-danger"></i>
                             </span>
-                        </div>
-                        <div class="cell" style="width:100%;text-align:right">
-                            <ui-include src="'core/geo/ol3/layers/layer-fragments.tpl.html'" fragment="'.dragHandle'"></ui-include>
                         </div>
                     </div>
                     <div class="layerStyleRow">

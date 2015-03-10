@@ -9,6 +9,7 @@ inputTypeRangeThumbColor = radial-gradient(#bab4b4, #777 55%, #777 45%, #444)
 input[type=range] {
     /*removes default webkit styles*/
     -webkit-appearance: none;
+    padding: 0;
 }
 input[type=range]::-webkit-slider-runnable-track {
     height: inputTypeRangeTrackHeight;
@@ -27,6 +28,7 @@ input[type=range]::-moz-range-track {
 input[type=range]:focus {
     outline: none;
 }
+
 input[type=range]::-webkit-slider-thumb {
     -webkit-appearance: none;
     border: none;
@@ -37,6 +39,32 @@ input[type=range]::-webkit-slider-thumb {
     margin-top: -3px;
 }
 input[type=range]::-moz-range-thumb {
+    border: none;
+    height: inputTypeRangeThumbSize;
+    width: inputTypeRangeThumbSize;
+    border-radius: inputTypeRangeThumbBorderRadius;
+    background: inputTypeRangeThumbColor;
+}
+input[type=range]::-ms-track {
+    /*remove bg colour from the track, we'll use ms-fill-lower and ms-fill-upper instead */
+    background: transparent;
+
+    /*leave room for the larger thumb to overflow with a transparent border */
+    border-color: transparent;
+    border-width: 3px 0;
+
+    /*remove default tick marks*/
+    color: transparent;
+}
+input[type=range]::-ms-fill-lower {
+    background: inputTypeRangeTrackColor;
+    border-radius: inputTypeRangeTrackBorderRadius;
+}
+input[type=range]::-ms-fill-upper {
+    background: inputTypeRangeTrackColor;
+    border-radius: inputTypeRangeTrackBorderRadius;
+}
+input[type=range]::-ms-thumb {
     border: none;
     height: inputTypeRangeThumbSize;
     width: inputTypeRangeThumbSize;

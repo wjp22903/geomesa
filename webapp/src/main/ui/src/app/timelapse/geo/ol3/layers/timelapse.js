@@ -41,6 +41,25 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
         return colors.hexStringToRgbArray(hex);
     });
 
+    var BSafeUint8ClampedArray = function (arg) {
+        if (typeof Uint8ClampedArray !== "undefined") {
+            return new Uint8ClampedArray(arg);
+        } else {
+            return new Uint8Array(arg);
+        }
+    };
+
+    // from http://stackoverflow.com/questions/22062313/imagedata-set-in-internetexplorer
+    // we want to call _imageData.data.set below, this patches the function that's missing in IE10
+    if (window.CanvasPixelArray) {
+        CanvasPixelArray.prototype.set = function (arr) {
+            var l = this.length, i = 0;
+            for(; i < l; i++) {
+                this[i] = arr[i];
+            }
+        };
+    }
+
     var TimeLapseLayer = function (name) {
         // ***** Private members *****
         // Drawing bounds.
@@ -62,7 +81,7 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
         // Image buffer.
         var _imageLen = 32;
         var _imageBuf = new ArrayBuffer(_imageLen);
-        var _imageBuf8 = new Uint8ClampedArray(_imageBuf);
+        var _imageBuf8 = new BSafeUint8ClampedArray(_imageBuf);
         var _imageView = new Uint32Array(_imageBuf);
         var _imageData = null; // The data for the image that will be drawn.
 
@@ -100,7 +119,7 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
                 // Change image buffer size
                 _imageLen = _w * _h * 4 | 0; // 4-bytes per pixel (RGBA)
                 _imageBuf = new ArrayBuffer(_imageLen);
-                _imageBuf8 = new Uint8ClampedArray(_imageBuf);
+                _imageBuf8 = new BSafeUint8ClampedArray(_imageBuf);
                 _imageView = new Uint32Array(_imageBuf);
                 _imageData = _context.createImageData(_w, _h);
 

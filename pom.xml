@@ -64,6 +64,7 @@
         <phantomjs.version>1.9.7</phantomjs.version>
         <phantomjs.classifier>INVALID</phantomjs.classifier>
         <jetty.version>8.1.16.v20140903</jetty.version>
+        <jetty.port>8080</jetty.port>
 
         <app.title>Stealth</app.title>
         <app.context>stealth</app.context>
@@ -82,6 +83,16 @@
                 safari: {
                     name: "Safari",
                     minVersion: 6.1,
+                    preferred: ["Firefox", "Chrome"]
+                },
+                msie: {
+                    name: "Internet Explorer",
+                    minVersion: 10,
+                    preferred: ["Firefox", "Chrome"]
+                },
+                "Internet Explorer": {
+                    name: "Internet Explorer",
+                    minVersion: 11,
                     preferred: ["Firefox", "Chrome"]
                 }
             }

@@ -92,7 +92,7 @@
                     </webApp>
                     <connectors>
                         <connector implementation="org.eclipse.jetty.server.nio.SelectChannelConnector">
-                            <port>8080</port>
+                            <port>${jetty.port}</port>
                             <maxIdleTime>60000</maxIdleTime>
                         </connector>
                         <!-- Look at src/test/resources/certs.sh for how these stores and client certs are created. -->
