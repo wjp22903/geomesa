@@ -265,11 +265,10 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
         var _self = this;
         this.addStore = function (store, index) {
             store.setLayerBelongsTo(_self);
-            if (angular.isNumber(index)) {
-                _stores.splice(index, 0, store);
-            } else {
-                _stores.push(store);
+            if (!_.isNumber(index)) {
+                index = 0;
             }
+            _stores.splice(index, 0, store);
             this.setDtgBounds();
         };
 
