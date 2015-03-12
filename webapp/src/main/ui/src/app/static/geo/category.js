@@ -12,7 +12,7 @@ angular.module('stealth.static.geo', [
 '$q',
 'categoryManager',
 'staticLayerWizard',
-'wms',
+'owsLayers',
 'ol3Map',
 'colors',
 'stealth.core.geo.ol3.manager.Category',
@@ -21,7 +21,7 @@ angular.module('stealth.static.geo', [
 'mapClickSearchService',
 'CONFIG',
 function ($log, $rootScope, $timeout, $http, $filter, $q,
-          catMgr, wizard, wms, ol3Map, colors,
+          catMgr, wizard, owsLayers, ol3Map, colors,
           Category, WidgetDef, WmsLayer, mapClickSearchService, CONFIG) {
     var tag = 'stealth.static.geo: ';
     var catScope = $rootScope.$new();
@@ -227,54 +227,47 @@ function ($log, $rootScope, $timeout, $http, $filter, $q,
         return shape;
     }
 
-    wms.getCapabilities(CONFIG.geoserver.defaultUrl, CONFIG.geoserver.omitProxy)
-    .then(function (wmsCap) {
-        _.each(wmsCap.Capability.Layer.Layer, function (l) {
-            _.each(l.KeywordList, function (keyword) {
-                var keywordParts = keyword.split('.');
-                if (keywordParts.length > 2 &&
-                    keywordParts[0] === CONFIG.app.context &&
-                    keywordParts[1] === 'static') {
+    var keywordPrefix = 'static';
+    owsLayers.getLayers(keywordPrefix)
+        .then(function (layers) {
+            _.each(layers, function (l) {
+                var layer = _.cloneDeep(l);
+                layer.filterLayers = [];
+                var filterLayer = {
+                    title: 'All',
+                    layerName: layer.Name,
+                    layerTitle: layer.Title,
+                    wmsUrl: layer.wmsUrl,
+                    queryable: layer.queryable,
+                    viewState: {
+                        isOnMap: false,
+                        toggledOn: false,
+                        isLoading: false,
+                        isRemovable: false,
+                        markerStyle: 'point',
+                        markerShape: getShape(),
+                        size: 9,
+                        fillColor: colors.getColor(),
+                        radiusPixels: 10
+                    }
+                };
+                filterLayer.env = getRequestEnv(filterLayer.viewState.fillColor,
+                                                filterLayer.viewState.size,
+                                                filterLayer.viewState.markerShape,
+                                                filterLayer.viewState.radiusPixels);
+                filterLayer.style = stealthMarkerStyles[filterLayer.viewState.markerStyle];
+                updateIconImgSrc(filterLayer);
+                layer.filterLayers.push(filterLayer);
 
-                    var layer = _.cloneDeep(l);
-                    layer.filterLayers = [];
-                    var filterLayer = {
-                        title: 'All',
-                        layerName: layer.Name,
-                        layerTitle: layer.Title,
-                        wmsUrl: layer.wmsUrl,
-                        queryable: layer.queryable,
-                        viewState: {
-                            isOnMap: false,
-                            toggledOn: false,
-                            isLoading: false,
-                            isRemovable: false,
-                            markerStyle: 'point',
-                            markerShape: getShape(),
-                            size: 9,
-                            fillColor: colors.getColor(),
-                            radiusPixels: 10
-                        }
-                    };
-                    filterLayer.env = getRequestEnv(filterLayer.viewState.fillColor,
-                                                    filterLayer.viewState.size,
-                                                    filterLayer.viewState.markerShape,
-                                                    filterLayer.viewState.radiusPixels);
-                    filterLayer.style = stealthMarkerStyles[filterLayer.viewState.markerStyle];
-                    updateIconImgSrc(filterLayer);
-                    layer.filterLayers.push(filterLayer);
-
-                    var workspace = keywordParts[2];
+                _.each(_.deepGet(layer.KeywordConfig, keywordPrefix), function (conf, workspace) {
                     if (_.isArray(catScope.workspaces[workspace])) {
                         catScope.workspaces[workspace].push(layer);
                     } else {
                         catScope.workspaces[workspace] = [layer];
                     }
-                    return false;
-                }
+                });
             });
         });
-    });
 
     var widgetDef = new WidgetDef('st-static-geo-category', catScope);
     var category = new Category(1, 'Data', 'fa-database', widgetDef, null, true);

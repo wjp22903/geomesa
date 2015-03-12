@@ -143,7 +143,7 @@ function ($log, $rootScope, $compile, $templateCache, $timeout, toaster,
             // Although, one summary layer could belong to more than one summary workspace.
             var layer = _.uniq(summaryLayers)[0];
             if (layer) {
-                query.layerData.currentLayer.KeywordList = layer.KeywordList;
+                query.layerData.currentLayer.KeywordConfig = layer.KeywordConfig;
 
                 var summary = {
                     layerThisBelongsTo: layer,

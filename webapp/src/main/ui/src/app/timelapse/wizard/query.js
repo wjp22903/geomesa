@@ -22,14 +22,13 @@ function ($rootScope, tlLayerManager, QueryBinStore) {
     $rootScope.$on('timelapse:querySuccessful', function () {
         hLayer.setDtgBounds();
     });
-
 }])
 
 .factory('stealth.timelapse.wizard.Query', [
 'wfs',
-'wms',
+'owsLayers',
 'CONFIG',
-function (wfs, wms, CONFIG) {
+function (wfs, owsLayers, CONFIG) {
     var idSeq = 1;
     var now = moment().utc();
     var oneWeekAgo = now.clone().subtract(7, 'days');
@@ -52,36 +51,24 @@ function (wfs, wms, CONFIG) {
             cql: null
         };
 
-        wms.getCapabilities(CONFIG.geoserver.defaultUrl, CONFIG.geoserver.omitProxy)
-            .then(
-                function (data) {
-                    var keywordPrefix = [CONFIG.app.context, 'timelapse', 'historical'].join('.');
-                    var fieldKeywordPrefix = [CONFIG.app.context, 'field'].join('.');
-                    _self.layerData.layers = _.sortBy(_.filter(data.Capability.Layer.Layer, function (layer) {
-                        return _.any(layer.KeywordList, function (keyword) {
-                            return keyword.indexOf(keywordPrefix) === 0;
-                        });
-                    }), 'Title');
-                    _.each(_self.layerData.layers, function (layer) {
-                        layer.fieldNames = {
+        var keywordPrefix = ['timelapse', 'historical'];
+        owsLayers.getLayers(keywordPrefix)
+            .then(function (layers) {
+                _self.layerData.layers = _.sortBy(layers, 'Title');
+                _.each(_self.layerData.layers, function (layer) {
+                    _.each(_.deepGet(layer.KeywordConfig, keywordPrefix), function (conf, workspace) {
+                        layer.fieldNames = _.merge({
                             trkId: 'trkId',
                             geom: 'geom',
                             dtg: 'dtg'
-                        };
-                        _.each(layer.KeywordList, function (keyword) {
-                            _.each(layer.fieldNames, function (value, key) {
-                                if (keyword.indexOf(fieldKeywordPrefix + '.' + key + '=') === 0) {
-                                    layer.fieldNames[key] = keyword.substr(keyword.indexOf('=') + 1); 
-                                }
-                            });
-                        });
+                        }, _.deepGet(layer.KeywordConfig, keywordPrefix.concat([workspace, 'field'])));
                     });
-                    if (!_.isEmpty(_self.layerData.layers)) {
-                        _self.layerData.currentLayer = _self.layerData.layers[0];
-                        _self.getFeatureTypeDescription();
-                    }
+                });
+                if (!_.isEmpty(_self.layerData.layers)) {
+                    _self.layerData.currentLayer = _self.layerData.layers[0];
+                    _self.getFeatureTypeDescription();
                 }
-            );
+            });
 
         // Invoked when the current selected layer changes on query form.
         this.getFeatureTypeDescription = function () {

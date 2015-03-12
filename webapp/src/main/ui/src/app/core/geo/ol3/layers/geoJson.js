@@ -178,25 +178,7 @@ function ($log, $q, wfs, colors, ol3Styles, MapLayer, CONFIG) {
                 return term;
             }, '');
 
-            var keywords = _query.layerData.currentLayer.KeywordList;
-            var capabilities = {};
-            _.each(keywords, function (k) {
-                var keywordParts = k.split('.');
-                if (keywordParts[0] === CONFIG.app.context && keywordParts[1] === 'capability') {
-                    var type = keywordParts[2];
-                    var attr = keywordParts[3].split('=')[0];
-                    var value = keywordParts[3].split('=')[1];
-
-                    if (_.isUndefined(capabilities[type])) {
-                        capabilities[type] = {};
-                    }
-
-                    if (_.isUndefined(capabilities[type][attr])) {
-                        capabilities[type][attr] = value;
-                    }
-                }
-            });
-
+            var capabilities = _query.layerData.currentLayer.KeywordConfig.capability || {};
             if (!_.isUndefined(capabilities['summary'])) {
                 if (_.isUndefined(_summaryQueryCallback)) {
                     delete capabilities['summary'];

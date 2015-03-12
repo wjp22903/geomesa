@@ -12,13 +12,13 @@ angular.module('stealth.core.geo.context', [
 'categoryManager',
 'stealth.core.geo.ol3.manager.Category',
 'stealth.core.utils.WidgetDef',
-'wms',
+'owsLayers',
 'ol3Map',
 'stealth.core.geo.ol3.layers.WmsLayer',
 'mapClickSearchService',
 'CONFIG',
 function ($log, $rootScope, $timeout, $http, $filter, $q,
-          catMgr, Category, WidgetDef, wms, ol3Map, WmsLayer, mapClickSearchService, CONFIG) {
+          catMgr, Category, WidgetDef, owsLayers, ol3Map, WmsLayer, mapClickSearchService, CONFIG) {
     var tag = 'stealth.core.geo.context: ';
     var categoryScope = $rootScope.$new();
     categoryScope.workspaces = {};
@@ -114,33 +114,23 @@ function ($log, $rootScope, $timeout, $http, $filter, $q,
         }
     };
 
-    wms.getCapabilities(CONFIG.geoserver.defaultUrl, CONFIG.geoserver.omitProxy)
-    .then(function (wmsCap) {
-        $log.debug(tag + 'GetCapabilities request has returned');
-
-        var layers = wmsCap.Capability.Layer.Layer;
-        _.each(CONFIG.map.extraLayers, function (layer) {
-            layers.push(layer);
-        });
-
-        _.each(layers, function (l) {
-            _.each(l.KeywordList, function (keyword) {
-                var keywordParts = keyword.split('.');
-                if (keywordParts.length > 2 && keywordParts[0] === CONFIG.app.context &&
-                        keywordParts[1] === 'context') {
-                    var layer = _.cloneDeep(l);
-                    layer.viewState = {
-                        isOnMap: false,
-                        toggledOn: false,
-                        isLoading: false
-                    };
-                    layer.getTooltip = function () {
-                        if (layer.viewState.isOnMap) {
-                            return 'Remove from map';
-                        }
-                        return 'Add to map';
-                    };
-                    var workspace = keywordParts[2];
+    var keywordPrefix = 'context';
+    owsLayers.getLayers(keywordPrefix)
+        .then(function (layers) {
+            _.each(layers, function (l) {
+                var layer = _.cloneDeep(l);
+                layer.viewState = {
+                    isOnMap: false,
+                    toggledOn: false,
+                    isLoading: false
+                };
+                layer.getTooltip = function () {
+                    if (layer.viewState.isOnMap) {
+                        return 'Remove from map';
+                    }
+                    return 'Add to map';
+                };
+                _.each(_.deepGet(layer.KeywordConfig, keywordPrefix), function (conf, workspace) {
                     if (_.isArray(categoryScope.workspaces[workspace])) {
                         categoryScope.workspaces[workspace].push(layer);
                     } else {
@@ -152,11 +142,9 @@ function ($log, $rootScope, $timeout, $http, $filter, $q,
                         layer.viewState.toggledOn = true;
                         categoryScope.toggleLayer(layer, workspace);
                     }
-                    return false;
-                }
+                });
             });
         });
-    });
 
     catMgr.addCategory(0, new Category(0, 'Context', 'fa-compass',
         new WidgetDef('st-context-geo-category', categoryScope), null, true));

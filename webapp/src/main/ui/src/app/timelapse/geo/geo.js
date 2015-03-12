@@ -36,7 +36,7 @@ function ($rootScope, catMgr, Category, WidgetDef) {
 '$q',
 '$http',
 '$filter',
-'wms',
+'owsLayers',
 'ol3Map',
 'stealth.timelapse.geo.ol3.layers.PollingImageWmsLayer',
 'tlLayerManager',
@@ -45,7 +45,7 @@ function ($rootScope, catMgr, Category, WidgetDef) {
 'tlWizard',
 'mapClickSearchService',
 'CONFIG',
-function ($log, $timeout, $q, $http, $filter, wms, ol3Map, PollingImageWmsLayer, tlLayerManager,
+function ($log, $timeout, $q, $http, $filter, owsLayers, ol3Map, PollingImageWmsLayer, tlLayerManager,
           BinStore, colors, tlWizard, mapClickSearchService, CONFIG) {
     var tag = 'stealth.core.geo.context.stTimelapseGeoCategory: ';
     $log.debug(tag + 'directive defined');
@@ -237,56 +237,49 @@ function ($log, $timeout, $q, $http, $filter, wms, ol3Map, PollingImageWmsLayer,
                     historical: {},
                     summary: tlLayerManager.getSummaryExploreManager().workspaces
                 };
-                wms.getCapabilities(CONFIG.geoserver.defaultUrl, CONFIG.geoserver.omitProxy)
-                    .then(function (wmsCap) {
-                        _.each(wmsCap.Capability.Layer.Layer, function (l) {
-                            _.each(l.KeywordList, function (keyword) {
-                                var keywordParts = keyword.split('.');
-                                if (keywordParts.length > 3 && keywordParts[0] === CONFIG.app.context &&
-                                        keywordParts[1] === 'timelapse') {
-
-                                    var layer = _.cloneDeep(l);
-                                    layer.hasViewables = function (list) {return !_.isEmpty(list);};
-                                    if (_.contains('live', keywordParts[2])) {
-                                        layer.filterLayers = [];
+                owsLayers.getLayers('timelapse')
+                    .then(function (layers) {
+                        _.each(layers, function (l) {
+                            var layer = _.cloneDeep(l);
+                            layer.hasViewables = function (list) {return !_.isEmpty(list);};
+                            if (layer.KeywordConfig.timelapse.live) {
+                                layer.filterLayers = [];
+                            }
+                            if (layer.KeywordConfig.timelapse.summary) {
+                                layer.summaries = [];
+                            }
+                            _.each(['live', 'historical', 'summary'], function (role) {
+                                _.forOwn(layer.KeywordConfig.timelapse[role], function (value, workspace, obj) {
+                                    if (_.isArray($scope.workspaces[role][workspace])) {
+                                        $scope.workspaces[role][workspace].push(layer);
+                                    } else {
+                                        $scope.workspaces[role][workspace] = [layer];
                                     }
-                                    if (_.contains('summary', keywordParts[2])) {
-                                        layer.summaries = [];
-                                    }
-
-                                    var workspace = keywordParts[3];
-                                    if (_.contains(['live', 'historical', 'summary'], keywordParts[2])) {
-                                        if (_.isArray($scope.workspaces[keywordParts[2]][workspace])) {
-                                            $scope.workspaces[keywordParts[2]][workspace].push(layer);
-                                        } else {
-                                            $scope.workspaces[keywordParts[2]][workspace] = [layer];
-                                        }
-                                        // Configured live filter layers
-                                        if (_.contains('live', keywordParts[2])) {
-                                            var found = _.find(CONFIG.map.liveOptions, {KeywordWorkspace: workspace});
-                                            if (found) {
-                                                var options = CONFIG.map.liveOptions;
-                                                _.each(options, function (theOptions) {
-                                                    if (theOptions.KeywordWorkspace == workspace) {
-                                                        var filterLayer = newLiveFilterLayer(layer.Name, theOptions.Title, angular.copy(theOptions), layer);
-                                                        if (filterLayer.cnt === 1) {
-                                                            filterLayer.viewState.isExpanded = true;
-                                                        }
-                                                        $scope.updateLiveFilterCql(filterLayer);
-                                                        layer.filterLayers.push(filterLayer);
+                                    // Configured live filter layers
+                                    if (role == 'live') {
+                                        var found = _.find(CONFIG.map.liveOptions, {KeywordWorkspace: workspace});
+                                        if (found) {
+                                            var options = CONFIG.map.liveOptions;
+                                            _.each(options, function (theOptions) {
+                                                if (theOptions.KeywordWorkspace == workspace) {
+                                                    var filterLayer = newLiveFilterLayer(layer.Name, theOptions.Title, angular.copy(theOptions), layer);
+                                                    if (filterLayer.cnt === 1) {
+                                                        filterLayer.viewState.isExpanded = true;
                                                     }
-                                                });
-                                            } else {
-                                                var filterLayer = newLiveFilterLayer(layer.Name, null, {}, layer);
-                                                if (filterLayer.cnt === 1) {
-                                                    filterLayer.viewState.isExpanded = true;
+                                                    $scope.updateLiveFilterCql(filterLayer);
+                                                    layer.filterLayers.push(filterLayer);
                                                 }
-                                                $scope.updateLiveFilterCql(filterLayer);
-                                                layer.filterLayers.push(filterLayer);
+                                            });
+                                        } else {
+                                            var filterLayer = newLiveFilterLayer(layer.Name, null, {}, layer);
+                                            if (filterLayer.cnt === 1) {
+                                                filterLayer.viewState.isExpanded = true;
                                             }
+                                            $scope.updateLiveFilterCql(filterLayer);
+                                            layer.filterLayers.push(filterLayer);
                                         }
                                     }
-                                }
+                                });
                             });
                         });
                     });
@@ -312,24 +305,7 @@ function ($log, $timeout, $q, $http, $filter, wms, ol3Map, PollingImageWmsLayer,
                     pollingLayer.setRefreshOnMapChange(ol3Map);
                     ol3Map.addLayer(pollingLayer);
 
-                    var keywords = layer.layerThisBelongsTo.KeywordList;
-                    var capabilities = {};
-                    _.each(keywords, function (k) {
-                        var keywordParts = k.split('.');
-                        if (keywordParts[0] === CONFIG.app.context && keywordParts[1] === 'capability') {
-                            var type = keywordParts[2];
-                            var attr = keywordParts[3].split('=')[0];
-                            var value = keywordParts[3].split('=')[1];
-
-                            if (_.isUndefined(capabilities[type])) {
-                                capabilities[type] = {};
-                            }
-
-                            if (_.isUndefined(capabilities[type][attr])) {
-                                capabilities[type][attr] = value;
-                            }
-                        }
-                    });
+                    var capabilities = layer.layerThisBelongsTo.KeywordConfig.capability || {};
                     if (!_.isUndefined(capabilities['summary'])) {
                         capabilities['summary']['toolTipText'] = 'Get summary';
                         capabilities['summary']['iconClass'] = 'fa-location-arrow';

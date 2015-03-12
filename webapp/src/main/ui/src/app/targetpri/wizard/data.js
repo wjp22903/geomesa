@@ -3,34 +3,32 @@ angular.module('stealth.targetpri.wizard')
 .directive('stTpWizData', [
 '$log',
 '$filter',
-'wms',
-'CONFIG',
-function ($log, $filter, wms, CONFIG) {
+'owsLayers',
+function ($log, $filter, owsLayers) {
     return {
         restrict: 'E',
         replace: true,
         templateUrl: 'targetpri/wizard/templates/data.tpl.html',
         controller: ['$scope', function ($scope) {
             $scope.loadError = false;
-            var keywordPrefix = CONFIG.app.context + '.targetpri.data';
             if (_.isUndefined($scope.layers)) {
-                wms.getCapabilities(CONFIG.geoserver.defaultUrl, CONFIG.geoserver.omitProxy)
-                    .then(function (wmsCap) {
+                var keywordPrefix = ['targetpri', 'data'];
+                owsLayers.getLayers(keywordPrefix)
+                    .then(function (layers) {
                         $scope.layers = [];
-                        _.each(wmsCap.Capability.Layer.Layer, function (l) {
-                            _.each(l.KeywordList, function (keyword) {
-                                if (keyword.indexOf(keywordPrefix) === 0) {
-                                    var layer = _.cloneDeep(l);
-                                    layer.isSelected = false;
-                                    _.merge(layer, {idField: 'id', dtgField: 'dtg'},
-                                        angular.fromJson($filter('splitLimit')(keyword, '=', 1)[1]));
-                                    $scope.layers.push(layer);
-                                    return false;
-                                }
+                        _.each(layers, function (l) {
+                            var layer = _.cloneDeep(l);
+                            layer.isSelected = false;
+                            _.each(_.deepGet(layer.KeywordConfig, keywordPrefix), function (conf, workspace) {
+                                layer.fieldNames = _.merge({
+                                    id: 'id',
+                                    dtg: 'dtg'
+                                }, _.deepGet(layer.KeywordConfig, keywordPrefix.concat([workspace, 'field'])));
                             });
+                            _.merge(layer, {idField: 'id', dtgField: 'dtg'},
+                                _.deepGet(layer.KeywordConfig, keywordPrefix));
+                            $scope.layers.push(layer);
                         });
-                    }, function () {
-                        $scope.loadError = true;
                     });
             }
             $scope.toggleLayer = function (layer) {
