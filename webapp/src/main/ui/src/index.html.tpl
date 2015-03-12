@@ -22,7 +22,7 @@
             <st-ol3-map-popup-builder></st-ol3-map-popup-builder>
             <st-header></st-header>
             <st-wizard></st-wizard>
-            <toaster-container></toaster-container>
+            <toaster-container toaster-options="{'position-class':'toast-bottom-right'}"></toaster-container>
         </div>
     </div>
     <div class="anchorBottom shadowTop classBanner {{::app.classification.level}}"
@@ -37,8 +37,9 @@
         STEALTH.config = ${ unescape(config) };
         STEALTH.userCn = '${ userCn }';
 
-        if (bowser && !(_.any(STEALTH.config.app.browsers, function (minVer, name) {
-            return bowser[name] && bowser.version >= minVer;
+        if (bowser && !(_.any(STEALTH.config.app.browsers, function (browserInfo, name) {
+            var underMaxVersion = browserInfo.maxVersion ? browserInfo.maxVersion >= bowser.version : true;
+            return bowser[name] && bowser.version >= browserInfo.minVersion && underMaxVersion;
         }))) {
             window.location = 'browser.html';
         }

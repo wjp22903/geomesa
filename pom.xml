@@ -70,9 +70,20 @@
         <app.context.path>/${app.context}</app.context.path>
         <app.supported.browsers>
             {
-                chrome: 12,
-                firefox: 17,
-                safari: 6.1
+                chrome: {
+                    name: "Chrome",
+                    minVersion: 12
+                },
+                firefox: {
+                    name: "Firefox",
+                    minVersion: 17,
+                    preferred: ["Chrome"]
+                },
+                safari: {
+                    name: "Safari",
+                    minVersion: 6.1,
+                    preferred: ["Firefox", "Chrome"]
+                }
             }
         </app.supported.browsers>
         <app.plugins>

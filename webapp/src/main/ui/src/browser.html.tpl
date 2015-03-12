@@ -46,7 +46,12 @@
             function listBrowsers() {
                 var list = '';
                 for (var key in STEALTH.config.app.browsers) {
-                    list += '<li>' + key.toUpperCase() + ' ' + STEALTH.config.app.browsers[key] + ' or higher</li>'
+                    var browser = STEALTH.config.app.browsers[key];
+                    if (browser.maxVersion) {
+                        list += '<li>' + browser.name + ' between versions ' + browser.minVersion + ' and ' + browser.maxVersion + '</li>';
+                    } else {
+                        list += '<li>' + browser.name + ' ' + browser.minVersion + ' or higher</li>';
+                    }
                 }
                 document.getElementById('browsers').innerHTML = list;
             }

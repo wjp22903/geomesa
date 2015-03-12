@@ -10,7 +10,7 @@ After a npm/bower dependency change (with internet): `mvn clean install -Ppack-u
 
 Regular development: `mvn clean prepare-package`
 
-To run webapp in jetty: `mvn -pl webapp jetty:run
+To run webapp in jetty: `mvn -pl webapp jetty:run`
 
 Notes:
 * To 'grunt watch' you must run './node grunt watch' from src/main/ui dir.
