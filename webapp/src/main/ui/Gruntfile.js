@@ -15,8 +15,8 @@ module.exports = function (grunt) {
     if (target === 'prod') {
         stealthConfig.vendorFiles.js = stealthConfig.vendorFiles.js.map( function ( file ) {
             var minFile;
-            if (file.indexOf('-debug') !== -1) {
-                minFile = file.replace( /\-debug/, '' );
+            if (file.search(/[\.\-]debug/) !== -1) {
+                minFile = file.replace( /[\.\-]debug/, '' );
             } else {
                 minFile = file.replace( /\.js$/, '.min.js' );
             }

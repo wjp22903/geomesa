@@ -32,7 +32,7 @@ module.exports = {
     vendorFiles: {
         js: [
             'vendor/bower/d3/d3.js',
-            'vendor/bower/lodash/dist/lodash.js',
+            'vendor/bower/lodash/lodash.js',
             'vendor/bower/lodash-deep/lodash-deep.js',
             'vendor/bower/jquery/dist/jquery.js',
             'vendor/bower/jquery-ui/jquery-ui.js',
@@ -54,7 +54,7 @@ module.exports = {
             'vendor/bower/FileSaver/FileSaver.js',
             'vendor/bower/datetimepicker/jquery.datetimepicker.js',
             'vendor/bower/AngularJS-Toaster/toaster.js',
-            'vendor/openlayers/OpenLayers.js'
+            'vendor/bower/openlayers/OpenLayers.debug.js'
         ],
         assets_nested: [
             'vendor/openlayers/img/*',
