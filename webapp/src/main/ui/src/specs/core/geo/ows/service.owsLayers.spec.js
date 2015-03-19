@@ -75,7 +75,6 @@ describe('Service', function () {
                 result = layers;
             });
             $rootScope.$digest();
-            console.log(result[0].KeywordConfig.bad);
             expect(result).to.be.an('array');
             expect(result.length).to.equal(1);
         });

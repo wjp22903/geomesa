@@ -1,15 +1,13 @@
-angular.module('stealth.timelapse.geo.ol3.layers', [
-    'stealth.core.geo.ol3.layers'
-])
+angular.module('stealth.core.geo.ol3.layers')
 
-.factory('stealth.timelapse.geo.ol3.layers.PollingImageWmsLayer', [
+.factory('stealth.core.geo.ol3.layers.PollingImageWmsLayer', [
 '$log',
 '$interval',
 '$timeout',
 'stealth.core.geo.ol3.layers.MapLayer',
 'CONFIG',
 function ($log, $interval, $timeout, MapLayer, CONFIG) {
-    var tag = 'stealth.timelapse.geo.ol3.layers.PollingImageWmsLayer: ';
+    var tag = 'stealth.core.geo.ol3.layers.PollingImageWmsLayer: ';
     $log.debug(tag + 'factory started');
     var PollingImageWmsLayer = function (name, requestParams, zIndexHint) {
         var _self = this;

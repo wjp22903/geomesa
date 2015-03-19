@@ -38,15 +38,16 @@ function ($rootScope, catMgr, Category, WidgetDef) {
 '$filter',
 'owsLayers',
 'ol3Map',
-'stealth.timelapse.geo.ol3.layers.PollingImageWmsLayer',
+'stealth.core.geo.ol3.layers.PollingImageWmsLayer',
 'tlLayerManager',
+'summaryExploreMgr',
 'stealth.timelapse.stores.BinStore',
 'colors',
 'tlWizard',
 'mapClickSearchService',
 'CONFIG',
 function ($log, $timeout, $q, $http, $filter, owsLayers, ol3Map, PollingImageWmsLayer, tlLayerManager,
-          BinStore, colors, tlWizard, mapClickSearchService, CONFIG) {
+          summaryExploreMgr, BinStore, colors, tlWizard, mapClickSearchService, CONFIG) {
     var tag = 'stealth.core.geo.context.stTimelapseGeoCategory: ';
     $log.debug(tag + 'directive defined');
     return {
@@ -235,7 +236,7 @@ function ($log, $timeout, $q, $http, $filter, owsLayers, ol3Map, PollingImageWms
                 $scope.workspaces = {
                     live: {},
                     historical: {},
-                    summary: tlLayerManager.getSummaryExploreManager().workspaces
+                    summary: summaryExploreMgr.workspaces
                 };
                 owsLayers.getLayers('timelapse')
                     .then(function (layers) {
@@ -309,7 +310,7 @@ function ($log, $timeout, $q, $http, $filter, owsLayers, ol3Map, PollingImageWms
                     if (!_.isUndefined(capabilities['summary'])) {
                         capabilities['summary']['toolTipText'] = 'Get summary';
                         capabilities['summary']['iconClass'] = 'fa-location-arrow';
-                        capabilities['summary']['onClick'] = tlLayerManager.getSummaryExploreManager().summaryQuery;
+                        capabilities['summary']['onClick'] = summaryExploreMgr.summaryQuery;
                     }
                     layer.searchId = mapClickSearchService.registerSearchable(function (coord, res) {
                         if (pollingLayer.getOl3Layer().getVisible()) {
@@ -496,8 +497,8 @@ function ($log, $timeout, $q, $http, $filter, owsLayers, ol3Map, PollingImageWms
                 $scope.timelapse.isSummaryOn = !isOn;
             };
 
-            $scope.toggleSummaryLayer = tlLayerManager.getSummaryExploreManager().toggleSummaryLayer;
-            $scope.removeSummaryLayer = tlLayerManager.getSummaryExploreManager().removeSummaryLayer;
+            $scope.toggleSummaryLayer = summaryExploreMgr.toggleSummaryLayer;
+            $scope.removeSummaryLayer = summaryExploreMgr.removeSummaryLayer;
         }]
     };
 }])
