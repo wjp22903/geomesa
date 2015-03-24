@@ -97,6 +97,40 @@ function ($log, $interval, $timeout, $rootScope) {
         frameIntervalMillis: 16
     };
 
+    function checkDtgLimits (t, min, max, step) {
+        var v = t;
+
+        if (t < min) {
+            v = min;
+        } else if (max < t && t < max + step) {
+            v = max;
+        } else if (max < t) {
+            v = min;
+        } else {
+            v = t;
+        }
+
+        return v;
+    }
+
+    display.stepForward = function () {
+        var valInSecs = Math.ceil(dtg.value);
+        var stepInSecs = Math.ceil(toMillis(step.value, step.unit) / 1000);
+        var t = valInSecs + stepInSecs;
+        dtg.value = checkDtgLimits(t, dtg.min, dtg.max, stepInSecs);
+        dtg.millis = toMillis(dtg.value, dtg.unit);
+        dtg.notifyListeners(dtg.millis);
+    };
+
+    display.stepBack = function () {
+        var valInSecs = Math.ceil(dtg.value);
+        var stepInSecs = Math.ceil(toMillis(step.value, step.unit) / 1000);
+        var t = valInSecs - stepInSecs;
+        dtg.value = checkDtgLimits(t, dtg.min, dtg.max, stepInSecs);
+        dtg.millis = toMillis(dtg.value, dtg.unit);
+        dtg.notifyListeners(dtg.millis);
+    };
+
     var playing = null;
     display.togglePlay = function () {
         display.isPlaying = !display.isPlaying;
@@ -104,18 +138,7 @@ function ($log, $interval, $timeout, $rootScope) {
 
         if (display.isPlaying) {
             playing = $interval(function () {
-                var valInSecs = Math.ceil(dtg.value);
-                var stepInSecs = Math.ceil(toMillis(step.value, step.unit) / 1000);
-                var t = valInSecs + stepInSecs;
-                if (t < dtg.min) {
-                    dtg.value = dtg.min;
-                } else if (t > dtg.max) {
-                    dtg.value = dtg.min;
-                } else {
-                    dtg.value = t;
-                }
-                dtg.millis = toMillis(dtg.value, dtg.unit);
-                dtg.notifyListeners(dtg.millis);
+                display.stepForward();
             }, display.frameIntervalMillis);
         } else {
             if (playing) {
@@ -216,6 +239,7 @@ function ($log, $interval, $timeout, $rootScope) {
 
     this.registerDtgListener = function (listener) {
         registerListener(dtgListeners, listener);
+        return listener;
     };
     this.unregisterDtgListener = function (listener) {
         unregisterListener(dtgListeners, listener);
@@ -223,6 +247,7 @@ function ($log, $interval, $timeout, $rootScope) {
 
     this.registerWindowListener = function (listener) {
         registerListener(windowListeners, listener);
+        return listener;
     };
     this.unregisterWindowListener = function (listener) {
         unregisterListener(windowListeners, listener);
@@ -230,6 +255,7 @@ function ($log, $interval, $timeout, $rootScope) {
 
     this.registerStepListener = function (listener) {
         registerListener(stepListeners, listener);
+        return listener;
     };
     this.unregisterStepListener = function (listener) {
         unregisterListener(stepListeners, listener);

@@ -1,0 +1,19 @@
+<div class="layerStyleHistogram layerStyleGrouping">
+    <ui-include src="'core/geo/ol3/layers/layer-fragments.tpl.html'" fragment="'.dragHandle'"></ui-include>
+    <ui-include src="'core/geo/ol3/layers/layer-fragments.tpl.html'" fragment="'.layerStyleRow.visibilityName'"></ui-include>
+    <ui-include src="'core/geo/ol3/layers/layer-fragments.tpl.html'" fragment="'.layerStyleRow.opacitySlider'"></ui-include>
+    <div class="layerStyleRow">
+        <div class="cell">Fill:</div>
+        <div class="cell">
+            <span class="btn btn-default toggleButton"
+                  ng-style="{'background-color': derivedLayer.viewState.fillColor}"
+                  colorpicker colorpicker-position="bottom"
+                  ng-model="derivedLayer.viewState.fillColor"
+                  ng-change="setFillColor(derivedLayer.viewState.fillColor)"
+                  tooltip-html-unsafe="<span style='white-space:nowrap'>Change fill color</span>"
+                  tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
+                  tooltip-trigger="mouseenter">
+            </span>
+        </div>
+    </div>
+</div>

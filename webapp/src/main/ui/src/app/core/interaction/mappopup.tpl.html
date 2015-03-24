@@ -1,9 +1,9 @@
-<div ng-click="mapPopCtrl.focus()">
+<div ng-mousedown="mapPopCtrl.focus()">
     <div class="fa fa-fw fa-spinner fa-spin fa-lg outlineTextWhite"
          style="position:relative;top:-13px;left:-13px;"
          ng-class="{'ng-hide': !mapPopCtrl.loading}">
     </div>
-    <div class="mapPopupContainer" style="visibility: hidden" ng-class="{'mapPopupInvisible': mapPopCtrl.wizardActive}">
+    <div class="mapPopupContainer" style="visibility: hidden" ng-class="{'ng-hide': mapPopCtrl.wizardActive}">
         <div style="background-color: #ddd; width: 100%">
             <i class="fa fa-fw fa-search"></i>
             <span> Lat: {{ ::mapPopCtrl.lat | number }}, Lon: {{ ::mapPopCtrl.lon | number }}</span>

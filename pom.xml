@@ -113,9 +113,11 @@
         </app.supported.browsers>
         <app.plugins>
             [
+                'stealth.histogram',
                 'stealth.static',
                 'stealth.targetpri',
-                'stealth.timelapse'
+                'stealth.timelapse',
+                'stealth.mediator.histogram-timelapse'
             ]
         </app.plugins>
 

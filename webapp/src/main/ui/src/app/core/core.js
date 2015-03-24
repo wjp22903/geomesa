@@ -8,6 +8,7 @@ angular.module('stealth.core', [
     'stealth.core.geo.query',
     'stealth.core.header',
     'stealth.core.interaction',
+    'stealth.core.manager',
     'stealth.core.sidebar',
     'stealth.core.startmenu',
     'stealth.core.utils'

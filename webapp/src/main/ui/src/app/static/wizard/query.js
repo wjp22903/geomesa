@@ -4,10 +4,9 @@ angular.module('stealth.static.wizard', [
 
 .factory('stealth.static.wizard.Query', [
 '$log',
-'wms',
 'wfs',
 'CONFIG',
-function ($log, wms, wfs, CONFIG) {
+function ($log, wfs, CONFIG) {
     var tag = 'stealth.static.wizard.Query: ';
 
     var idSeq = 1;

@@ -27,4 +27,8 @@
     return module;
   };
 
+  angular.moduleRegistered = function(name) {
+      return _.has(alreadyRegistered, name);
+  };
+
 })(angular);

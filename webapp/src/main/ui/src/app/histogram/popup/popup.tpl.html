@@ -1,0 +1,100 @@
+<div class="histogramPopupContainer"
+     style="cursor:default;"
+     ng-mouseover="highlightLayer(histogram.layerId)"
+     ng-mouseleave="unhighlightLayer(histogram.layerId)"
+     ng-mousedown="focus()">
+    <div class="histogramPopupHeader">
+        <i class="fa fa-fw fa-bar-chart"></i>
+        <span><b>{{histogram.title | characters:60:true}}</b></span>
+        <span class="btn btn-default fa-stack toggleButton pull-right"
+              ng-click="histogram.closePopup(histogram)"
+              ng-style="{'background-color': histogram.fillColor}"
+              tooltip-html-unsafe="<span style='white-space:nowrap'>Hide histogram</span>"
+              tooltip-placement="left" tooltip-animation="false" tooltip-popup-delay="500"
+              tooltip-trigger="mouseenter">
+            <i class="fa fa-fw fa-chevron-down fa-stack-1x" style="color:white;"></i>
+        </span>
+        <span class="btn btn-default fa-stack toggleButton pull-right"
+              style="padding-right:5px"
+              ng-click="histogram.updateHistogram(histogram.layerId)"
+              tooltip-html-unsafe="<span style='white-space:nowrap'>Refresh data</span>"
+              tooltip-placement="left" tooltip-animation="false" tooltip-popup-delay="500"
+              tooltip-trigger="mouseenter">
+            <i class="fa fa-fw fa-refresh fa-stack-1x text-primary"
+               ng-class="(histogram.viewState.isLoading) ? 'fa-spin' : ''"></i>
+        </span>
+    </div>
+    <div class="histogramPopupInfoBar">
+        <span>Lat:</span>
+        <span class="cell">{{histogram.query.params.minLat | number:5}}</span>
+        <span>--</span>
+        <span class="cell">{{histogram.query.params.maxLat | number:5}}</span>
+        <span style="margin-left:10px">Lon:</span>
+        <span class="cell">{{histogram.query.params.minLon | number:5}}</span>
+        <span>--</span>
+        <span class="cell">{{histogram.query.params.maxLon | number:5}}</span>
+    </div>
+    <div class="histogramPopupInfoBar">
+        <span>Date-time Window:</span>
+        <span class="cell">{{histogram.query.params.startDtg}}</span>
+        <span>--</span>
+        <span class="cell">{{histogram.query.params.endDtg}}</span>
+    </div>
+    <form ng-submit="histogram.updateHistogram(histogram.layerId)">
+        <div class="histogramPopupToolbar" style="text-align:center">
+            <span>CQL:</span>
+            <span class="cell" style="width:100%;">
+                <input type="text"
+                       ng-model="histogram.query.params.cql"
+                       style="margin-right:2px;width:88%">
+            </span>
+        </div>
+    </form>
+    <div class="histogramPopupToolbar">
+        <span>
+            <span>Min:</span>
+            <input type="number"
+                   ui-jq="spinner"
+                   style="width:27px"
+                   ng-model="histogram.minBin"
+                   ng-change="histogram.rebin(histogram)">
+        </span>
+        <span>
+            <span>Max:</span>
+            <input type="number"
+                   ui-jq="spinner"
+                   style="width:27px"
+                   ng-model="histogram.maxBin"
+                   ng-change="histogram.rebin(histogram)">
+        </span>
+        <span ng-if="histogram.type === 'number' || histogram.type === 'date-time'" class="cell">
+            <span>Bins:</span>
+            <select style="cursor:pointer"
+                    ng-model="histogram.nBinsChoice"
+                    ng-options="b for b in histogram.nBinsChoices"
+                    ng-change="histogram.rebin(histogram)"></select>
+        </span>
+        <span class="btn btn-default fa-stack toggleButton"
+              ng-click="histogram.stepLeft(histogram)">
+            <i class="fa fa-fw fa-arrow-left fa-stack-1x"></i>
+        </span>
+        <span class="btn btn-default fa-stack toggleButton"
+              ng-click="histogram.stepRight(histogram)">
+            <i class="fa fa-fw fa-arrow-right fa-stack-1x"></i>
+        </span>
+        <span class="btn btn-default fa-stack toggleButton"
+              ng-click="histogram.reset(histogram)">
+            <i class="fa fa-fw fa-arrows-h fa-stack-1x"></i>
+        </span>
+        <span class="cell">
+            <span>y-scale:</span>
+            <select style="cursor:pointer"
+                    ng-model="histogram.yScale"
+                    ng-options="s for s in histogram.yScaleChoices"
+                    ng-change="histogram.rebin(histogram)"></select>
+        </span>
+    </div>
+    <div id="{{histId}}"
+         class="histogramViz"
+         ng-mousedown="$event.stopPropagation()"></div>
+</div>

@@ -45,8 +45,8 @@ function ($log, $rootScope, ol3Map, controlsMgr, TimeLapseLayer, elementAppender
 
     this.start = function () {
         registerLayers();
-        elementAppender.append('.primaryDisplay', 'timelapse/controls/controlsPanel.tpl.html', $rootScope.$new());
         registerControlsListeners();
+        elementAppender.append('.primaryDisplay', 'timelapse/controls/controlsPanel.tpl.html', $rootScope.$new());
     };
 
     this.getHistoricalLayer = function () {

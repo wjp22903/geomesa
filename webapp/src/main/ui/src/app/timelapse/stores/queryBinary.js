@@ -11,8 +11,9 @@ angular.module('stealth.timelapse.stores', [
 'toaster',
 'CONFIG',
 'wfs',
+'queryBinStoreExtender',
 'stealth.timelapse.stores.BinStore',
-function ($log, $rootScope, $q, $filter, $window, toaster, CONFIG, wfs, BinStore) {
+function ($log, $rootScope, $q, $filter, $window, toaster, CONFIG, wfs, queryBinStoreExtender, BinStore) {
     var tag = 'stealth.timelapse.stores.QueryBinStore: ';
     $log.debug(tag + 'factory started.');
 
@@ -27,6 +28,9 @@ function ($log, $rootScope, $q, $filter, $window, toaster, CONFIG, wfs, BinStore
         var _featureTypeProperties;
         var _summaryQueryCallback;
         this.setSummaryQueryCallback = function (callback) {_summaryQueryCallback = callback;};
+
+        this.getQuery = function () { return _query; };
+
         this.launchQuery = function (query) {
             _query = query;
             _featureTypeProperties = query.featureTypeData.featureTypes[0].properties;
@@ -75,13 +79,19 @@ function ($log, $rootScope, $q, $filter, $window, toaster, CONFIG, wfs, BinStore
             });
         };
 
+        function calcStartMillis (t, w) {
+            return Math.max(_thisStore.getMinTimeInMillis(), (t - w)) - 1000;
+        }
+
+        function calcEndMillis (t) {
+            return Math.min(_thisStore.getMaxTimeInMillis(), t) + 1000;
+        }
+
         this.searchPointAndTime = function (coord, res, timeMillis, windowMillis) {
             var deferred = $q.defer();
 
-            var startMillis = Math.max(_thisStore.getMinTimeInMillis(), (timeMillis - windowMillis));
-            startMillis -= 1000;
-            var endMillis = Math.min(_thisStore.getMaxTimeInMillis(), timeMillis);
-            endMillis += 1000;
+            var startMillis = calcStartMillis(timeMillis, windowMillis);
+            var endMillis = calcEndMillis(timeMillis);
             var typeName = _query.layerData.currentLayer.Name;
             var modifier = res * Math.max(this.getPointRadius(), 4);
             var cqlParams = {
@@ -112,6 +122,11 @@ function ($log, $rootScope, $q, $filter, $window, toaster, CONFIG, wfs, BinStore
             }
 
             var capabilities = _query.layerData.currentLayer.KeywordConfig.capability || {};
+            capabilities = queryBinStoreExtender.extendCapabilities(capabilities, this, {
+                startMillis: startMillis,
+                endMillis: endMillis
+            });
+
             if (!_.isUndefined(capabilities['summary'])) {
                 if (_.isUndefined(_summaryQueryCallback)) {
                     delete capabilities['summary'];
@@ -202,6 +217,22 @@ function ($log, $rootScope, $q, $filter, $window, toaster, CONFIG, wfs, BinStore
     }
 
     return QueryBinStore;
+}])
+
+.service('queryBinStoreExtender', [
+function () {
+    var _capabilitiesExtenders = [];
+    this.extendCapabilities = function (capabilities, thisArg, opts) {
+        _.each(_capabilitiesExtenders, function (extender) {
+            if (_.isFunction(extender)) {
+                capabilities = extender.call(thisArg, capabilities, opts);
+            }
+        });
+        return capabilities;
+    };
+    this.addCapabilitiesExtender = function (extender) {
+        _capabilitiesExtenders.push(extender);
+    };
 }])
 ;
 

@@ -57,9 +57,15 @@
         <div id="col2Table" class="cellTable">
             <div class="cellTableRow">
                 <div class="innerField center">
+                    <div ng-click="display.stepBack()" class="btn btn-default">
+                        <i class="fa fa-fw fa-step-backward"></i>
+                    </div>
                     <span class="displayShadow">
                         {{displayInUtc(display.windowBeginMillis())}} &#8193; &#8213; &#8193; {{displayInUtc(dtg.millis)}}
                     </span>
+                    <div ng-click="display.stepForward()" class="btn btn-default" style="margin-left:3px;">
+                        <i class="fa fa-fw fa-step-forward"></i>
+                    </div>
                 </div>
             </div>
             <div class="cellTableRow">

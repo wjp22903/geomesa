@@ -1,0 +1,71 @@
+<ng-form name="histogramSourceForm">
+    <table>
+        <tr>
+            <td colspan="2">Layer to query:</td>
+        </tr>
+        <tr>
+            <td style="padding-top:2px;">
+                <label>Name&nbsp;</label>
+            </td>
+            <td style="padding-top:2px;">
+                <div class="form-control input-sm">
+                    {{::query.layerData.currentLayer.Name}}
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding-top:2px">
+                <label>Title&nbsp;</label>
+            </td>
+            <td style="padding-top:2px">
+                <div class="form-control input-sm">
+                    {{::query.layerData.currentLayer.Title}}
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" style="padding-top:25px">Choose an attribute to histogram:</td>
+        </tr>
+        <tr>
+            <td style="padding-top:2px;">
+                <label>Attribute&nbsp;</label>
+            </td>
+            <td style="padding-top:2px;text-align">
+                <select class="form-control input-sm"
+                        ng-model="query.params.attribute"
+                        ng-options="property.name for property in query.featureTypeData.featureTypes[0].properties | orderBy:'name'"
+                        ng-disabled="!query.featureTypeData.featureTypes[0].properties"
+                        required>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" style="padding-top:25px">Identify required fields for layer:</tr>
+        <tr>
+            <td style="padding-top:2px;">
+                <label>Time field&nbsp;</label>
+            </td>
+            <td style="padding-top:2px;">
+                <select class="form-control input-sm"
+                        ng-model="query.params.dtgField"
+                        ng-options="property.name for property in query.featureTypeData.featureTypes[0].properties | filter:{'localType':'date-time'}:true | orderBy:'name'"
+                        ng-disabled="!query.featureTypeData.featureTypes[0].properties"
+                        required>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding-top:2px;">
+                <label>Geometry field&nbsp;</label>
+            </td>
+            <td style="padding-top:2px;">
+                <select class="form-control input-sm"
+                        ng-model="query.params.geomField"
+                        ng-options="property.name for property in query.featureTypeData.featureTypes[0].properties | orderBy:'name'"
+                        ng-disabled="!query.featureTypeData.featureTypes[0].properties"
+                        required>
+                </select>
+            </td>
+        </tr>
+    </table>
+</ng-form>

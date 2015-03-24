@@ -149,8 +149,8 @@ function ($element, $filter, $scope, $rootScope, mapClickSearchService, ol3Map) 
 
     // Register scope listeners.
     var unbindFocus = $rootScope.$on('Popup Focus Change', function (event, popupId) {
-        if (popupId !== id) {
-            $element.css('z-index', '91');
+        if (popupId !== id && $element.zIndex() > 85) {
+            $element.css('z-index', $element.zIndex() - 1);
         }
     });
     var unbindWizLaunch = $rootScope.$on('wizard:launchWizard', function () {
