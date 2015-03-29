@@ -215,6 +215,14 @@
         </div>
         <div id="col3" class="categoryCell" style="width:100%;text-align:right">
             <span class="btn btn-default fa-stack toggleButton"
+                  ng-if="store.getViewState().isDataReady() && store.exportBin"
+                  ng-click="store.exportBin()"
+                  tooltip-html-unsafe="<span style='white-space:nowrap'>Save to file</span><br>Note: File will contain only id, lat,<br>lon, and time. No other info will be<br>available when viewing saved file."
+                  tooltip-placement="left" tooltip-animation="false" tooltip-popup-delay="500"
+                  tooltip-trigger="mouseenter">
+                <i class="fa fa-fw fa-save fa-stack-1x text-primary"></i>
+            </span>
+            <span class="btn btn-default fa-stack toggleButton"
                   ng-if="store.getViewState().isDataReady() || store.getViewState().isError"
                   ng-click="removeHistorical(store)">
                 <i class="fa fa-fw fa-remove fa-stack-1x text-danger"></i>

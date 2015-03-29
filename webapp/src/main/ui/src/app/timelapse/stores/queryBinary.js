@@ -157,6 +157,11 @@ function ($log, $rootScope, $q, CONFIG, wfs, BinStore) {
             });
             return deferred.promise;
         };
+
+        this.exportBin = function () {
+            var blob = new Blob([this.getArrayBuffer()], {type: 'application/octet-binary'});
+            saveAs(blob, this.getName().trim().replace(/\W/g, '_') + '.bin');
+        };
     };
 
     QueryBinStore.prototype = Object.create(BinStore.prototype);
