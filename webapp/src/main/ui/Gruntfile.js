@@ -16,7 +16,8 @@ module.exports = function (grunt) {
         stealthConfig.vendorFiles.js = stealthConfig.vendorFiles.js.map( function ( file ) {
             var minFile;
             if (file.search(/[\.\-]debug/) !== -1) {
-                minFile = file.replace( /[\.\-]debug/, '' );
+                //Don't use min OL3 until we remove goog.events listener (STEALTH-207)
+                //minFile = file.replace( /[\.\-]debug/, '' );
             } else {
                 minFile = file.replace( /\.js$/, '.min.js' );
             }
@@ -30,10 +31,20 @@ module.exports = function (grunt) {
     grunt.config('buildDir', require('../../../target/non-packaged-resources/stealth.config.filtered.js').buildDir);
 
     // CLEAN
-    grunt.config('clean', [
-        // '<%= buildDir %>',
-        // '<%= compileDir %>'
-    ]);
+    grunt.config('clean', {
+        nonprod_app_js: {
+            options: {
+                force: true
+            },
+            files: {
+                src: [
+                    '<%= html2js.app.dest %>',
+                    '<%= buildDir %>/templates-jst.js',
+                    '<%= buildDir %>/plugins.js'
+                ]
+            }
+        }
+    });
 
     // COPY
     grunt.config('copy', {
@@ -123,17 +134,23 @@ module.exports = function (grunt) {
     });
 
     // INDEX
+    if (target === 'prod') {
+        grunt.config('appJs', '<%= buildDir %>/app.min.js');
+    } else {
+        grunt.config('appJs', [
+            '<%= appFiles.js %>',
+            '<%= html2js.app.dest %>',
+            '<%= buildDir %>/templates-jst.js',
+            '<%= buildDir %>/plugins.js'
+        ]);
+    }
     grunt.config('index', {
         build: {
             dir: '<%= buildDir %>',
             src: [
                 '<%= vendorFiles.js %>',
-                '<%= appFiles.js %>',
-                // '<%= html2js.common.dest %>',
-                '<%= html2js.app.dest %>',
-                '<%= stylus.build.dest %>',
-                '<%= buildDir %>/templates-jst.js',
-                '<%= buildDir %>/plugins.js'
+                '<%= appJs %>',
+                '<%= stylus.build.dest %>'
             ]
         }
     });
@@ -314,6 +331,23 @@ module.exports = function (grunt) {
         }
     });
 
+    grunt.config('uglify', {
+        options: {
+            screwIE8: true,
+            banner: '/*\n* COPYRIGHT AND ITAR: This work, authored and owned by Commonwealth Computer\n* Research, Inc. (CCRi), was funded in whole or in part by a U.S. Government\n* contract and is subject to a license granting the Government rights to the\n* work. All other rights are reserved by CCRi as the copyright owner, copyright\n* 2014-2015.  Information included herein is controlled under the International\n* Traffic in Arms Regulations (ITAR).  ITAR protections, laws, and regulations\n* must be observed by any users of this work.\n*/\n'
+        },
+        build_appjs: {
+            files: {
+                '<%= buildDir %>/app.min.js': [
+                    '<%= appFiles.js %>',
+                    '<%= html2js.app.dest %>',
+                    '<%= buildDir %>/templates-jst.js',
+                    '<%= buildDir %>/plugins.js'
+                ]
+            }
+        }
+    });
+
     function filterForJS ( files ) {
         return files.filter( function ( file ) {
             return file.match( /\.js$/ );
@@ -384,11 +418,20 @@ module.exports = function (grunt) {
 
     grunt.renameTask('watch', 'delta');
 
+    //Copy or uglify?
+    if (target === 'prod') {
+        grunt.registerTask('build_appjs', [
+            'uglify:build_appjs',
+            'clean:nonprod_app_js'
+        ]);
+    } else {
+        grunt.registerTask('build_appjs', 'copy:build_appjs');
+    }
+
     // Register tasks.
     grunt.registerTask('watch', ['build', 'karma:spec', 'delta']);
     grunt.registerTask('default', 'build');
     grunt.registerTask('build', [
-        // 'clean',
         'html2js',
         'jst:compile',
         'jshint',
@@ -397,7 +440,7 @@ module.exports = function (grunt) {
         'stylus:build',
         'copy:build_app_assets',
         'copy:build_vendor_assets',
-        'copy:build_appjs',
+        'build_appjs',
         'copy:build_vendorjs',
         'copy:build_vendor_maps',
         'index:build'

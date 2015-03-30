@@ -24,7 +24,7 @@
         ds
             Customizations for high-side demos.
         production
-            Used for production build.  Uses minimized versions of external javascript libs.
+            Used for production build.  Uses minimized javascript.
     -->
 
     <scm>
