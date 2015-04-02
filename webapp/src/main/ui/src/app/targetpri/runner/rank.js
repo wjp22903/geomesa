@@ -19,7 +19,7 @@ function ($q, wps, CONFIG) {
                     var req = templateFn(_.merge({
                         dataLayer: dataSource.dataSource.Name,
                         dataLayerFilter: dataSource.filter,
-                        inputIdField: dataSource.dataSource.idField,
+                        inputIdField: dataSource.dataSource.fieldNames.id,
                         proximityLayer: layerName
                     }, arg));
                     dataSource.dataSource.proximityLayerName = layerName;

@@ -45,7 +45,7 @@ function ($rootScope, $q, sidebarManager, WidgetDef, proximityService,
 
         var geoJson = geoJsonFormat.writeFeatures([req.routeFeature]);
         var promise = rankService.doGeoJsonRouteRank(_.map(req.dataSources, function (dataSource) {
-            var filter = cqlHelper.buildDtgFilter(dataSource.dtgField, req.startDtg, req.endDtg);
+            var filter = cqlHelper.buildDtgFilter(dataSource.fieldNames.dtg, req.startDtg, req.endDtg);
             var promise = proximityService.doGeoJsonProximity({
                 inputGeoJson: geoJson,
                 dataLayer: dataSource.Name,
@@ -85,7 +85,7 @@ function ($rootScope, $q, sidebarManager, WidgetDef, proximityService,
                     ENV: null,
                     SLD_BODY: templateFn({
                         layerName: dataSource.proximityLayerName,
-                        attribute: dataSource.idField,
+                        attribute: dataSource.fieldNames.id,
                         valueMap: _.map(top[dataSource.Name], function (rank) {
                             return '<ogc:Literal>' + rank.key + '</ogc:Literal>' +
                                 '<ogc:Literal>' + rank.color + '</ogc:Literal>';

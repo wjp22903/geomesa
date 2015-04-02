@@ -25,8 +25,6 @@ function ($log, $filter, owsLayers) {
                                     dtg: 'dtg'
                                 }, _.deepGet(layer.KeywordConfig, keywordPrefix.concat([workspace, 'field'])));
                             });
-                            _.merge(layer, {idField: 'id', dtgField: 'dtg'},
-                                _.deepGet(layer.KeywordConfig, keywordPrefix));
                             $scope.layers.push(layer);
                         });
                     });
