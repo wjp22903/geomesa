@@ -5,6 +5,7 @@ describe('Factory', function () {
                 $provide.constant('CONFIG', STEALTH.config); // Provides CONFIG from testConfig.js.
             }
         ));
+        beforeEach(module('toaster'));
         beforeEach(module('stealth.core.utils'));
         beforeEach(module('stealth.timelapse.stores'));
 
@@ -55,7 +56,6 @@ describe('Factory', function () {
                 }
                 store24 = new BinStore('Store for 24-byte records');
                 store24.setArrayBuffer(buf24);
-
             }
         ]));
 

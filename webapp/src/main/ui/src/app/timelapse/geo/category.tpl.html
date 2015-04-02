@@ -173,7 +173,10 @@
         </span>
     </div>
     <div class="categoryCell">
-        <st-upload-file id="binFileUpload1" process-file="readHistoricalBinFile(file)"></st-upload-file>
+        <st-upload-file id="binFileUpload1"
+                        process-file="readHistoricalBinFile(file)"
+                        tooltip-text="<span style='white-space:nowrap'>Load Binary file</span>">
+        </st-upload-file>
     </div>
     <div ng-repeat="store in historicalLayer.getStores()"
          class="categoryGrouping categoryIndent"
@@ -214,14 +217,32 @@
             {{store.getName()}}
         </div>
         <div id="col3" class="categoryCell" style="width:100%;text-align:right">
-            <span class="btn btn-default fa-stack toggleButton"
-                  ng-if="store.getViewState().isDataReady() && store.exportBin"
-                  ng-click="store.exportBin()"
-                  tooltip-html-unsafe="<span style='white-space:nowrap'>Save to file</span><br>Note: File will contain only id, lat,<br>lon, and time. No other info will be<br>available when viewing saved file."
-                  tooltip-placement="left" tooltip-animation="false" tooltip-popup-delay="500"
-                  tooltip-trigger="mouseenter">
-                <i class="fa fa-fw fa-save fa-stack-1x text-primary"></i>
-            </span>
+            <ul ui-jq="menu" style="display:none;position:absolute;font-size:inherit;font-family:inherit;border-radius:4px;z-index:91;">
+                <li ng-click="store.exportBin('bin')">Binary</li>
+                <li ng-click="store.exportBin('csv')">CSV</li>
+                <li ng-click="store.exportBin('GML2')">GML2</li>
+                <li ng-click="store.exportBin('text/xml; subtype=gml/3.1.1')">GML3.1</li>
+                <li ng-click="store.exportBin('application/gml+xml; version=3.2')">GML3.2</li>
+                <li ng-click="store.exportBin('application/json')">GeoJSON</li>
+                <li ng-click="store.exportBin('application/vnd.google-earth.kml+xml')">KML</li>
+                <li ng-click="store.exportBin('SHAPE-ZIP')">Shapefile</li>
+            </ul>
+            <div class="btn-group"
+                 ng-if="store.getViewState().isDataReady() && store.exportBin"
+                 tooltip-html-unsafe="<span style='white-space:nowrap'>Save to file</span><br>Note:<br>Binary file will contain only id, lat,<br>lon, and time. No other info will be<br>available when viewing saved file."
+                 tooltip-placement="left" tooltip-animation="false" tooltip-popup-delay="500"
+                 tooltip-trigger="mouseenter">
+                <span class="btn btn-default fa-stack toggleButton"
+                      style="width:22px;"
+                      ng-click="store.exportBin()">
+                    <i class="fa fa-fw fa-save fa-stack-1x text-primary"></i>
+                </span>
+                <span class="btn btn-default fa-stack toggleButton"
+                      style="width:16px;"
+                      ng-click="exportClick($event)">
+                    <i class="fa fa-fw fa-caret-down fa-stack-1x text-primary"></i>
+                </span>
+            </div>
             <span class="btn btn-default fa-stack toggleButton"
                   ng-if="store.getViewState().isDataReady() || store.getViewState().isError"
                   ng-click="removeHistorical(store)">

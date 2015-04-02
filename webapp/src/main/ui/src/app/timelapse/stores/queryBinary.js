@@ -6,10 +6,13 @@ angular.module('stealth.timelapse.stores', [
 '$log',
 '$rootScope',
 '$q',
+'$filter',
+'$window',
+'toaster',
 'CONFIG',
 'wfs',
 'stealth.timelapse.stores.BinStore',
-function ($log, $rootScope, $q, CONFIG, wfs, BinStore) {
+function ($log, $rootScope, $q, $filter, $window, toaster, CONFIG, wfs, BinStore) {
     var tag = 'stealth.timelapse.stores.QueryBinStore: ';
     $log.debug(tag + 'factory started.');
 
@@ -49,12 +52,14 @@ function ($log, $rootScope, $q, CONFIG, wfs, BinStore) {
                     $log.error(data);
                     _viewState.isError = true;
                     _viewState.errorMsg = 'ows:ExceptionReport returned';
+                    toaster.error('Error: ' + _thisStore.getName(), _viewState.errorMsg);
                 } else {
                     // 'data' expected to be of type ArrayBuffer.
                     if (data.byteLength === 0) {
                         $log.error(tag + '(' + _thisStore.getName() + ') No results');
                         _viewState.isError = true;
                         _viewState.errorMsg = 'No results';
+                        toaster.error('Error: ' + _thisStore.getName(), _viewState.errorMsg);
                     } else {
                         _thisStore.setArrayBuffer(data);
                         $rootScope.$emit('timelapse:querySuccessful');
@@ -66,6 +71,7 @@ function ($log, $rootScope, $q, CONFIG, wfs, BinStore) {
                 $log.error(tag + '(' + _thisStore.getName() + ') ' + msg);
                 _viewState.isError = true;
                 _viewState.errorMsg = msg;
+                toaster.error('Error: ' + _thisStore.getName(), _viewState.errorMsg);
             });
         };
 
@@ -158,9 +164,23 @@ function ($log, $rootScope, $q, CONFIG, wfs, BinStore) {
             return deferred.promise;
         };
 
-        this.exportBin = function () {
-            var blob = new Blob([this.getArrayBuffer()], {type: 'application/octet-binary'});
-            saveAs(blob, this.getName().trim().replace(/\W/g, '_') + '.bin');
+        this.exportBin = function (outputFormat) {
+            //Default is bin format.  Don't requery for bin format.
+            if (!_.isString(outputFormat) || outputFormat === 'bin') {
+                var blob = new Blob([this.getArrayBuffer()], {type: 'application/octet-binary'});
+                saveAs(blob, this.getName().trim().replace(/\W/g, '_') + '.bin');
+            } else {
+                var url = $filter('cors')(CONFIG.geoserver.defaultUrl, 'wfs', CONFIG.geoserver.omitProxy);
+                $window.open(url + '?' + [
+                    'service=WFS',
+                    'version=1.0.0',
+                    'request=GetFeature',
+                    'typeName=' + _query.layerData.currentLayer.Name,
+                    'srsName=EPSG:4326',
+                    'outputFormat=' + outputFormat,
+                    'cql_filter=' + buildCQLFilter(_query)
+                ].join('&'));
+            }
         };
     };
 

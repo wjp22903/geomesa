@@ -1,6 +1,6 @@
 <span class="btn btn-default fa-stack toggleButton"
       ng-click="::upload()"
-      tooltip-html-unsafe="<span style='white-space:nowrap'>Load file</span>"
+      tooltip-html-unsafe="{{::tooltip || defaultTooltip}}"
       tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
       tooltip-trigger="mouseenter">
     <i class="fa fa-fw fa-folder-open fa-stack-1x text-primary" style="padding-left:2px;"></i>

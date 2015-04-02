@@ -15,7 +15,8 @@ function ($log) {
         restrict: 'E',
         templateUrl: 'core/utils/upload.tpl.html',
         scope: {
-            process: '&processFile'
+            process: '&processFile',
+            tooltip: '@?tooltipText'
         },
         link: function (scope, el, attrs) {
             var uploadId = _.uniqueId();
@@ -39,6 +40,7 @@ function ($log) {
                 scope.process({file: file});
             };
 
+            scope.defaultTooltip = "<span style='white-space:nowrap'>Load file</span>";
         }
     };
 }])

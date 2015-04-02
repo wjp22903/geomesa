@@ -3,8 +3,9 @@ angular.module('stealth.timelapse.stores')
 .factory('stealth.timelapse.stores.BinStore', [
 '$log',
 '$q',
+'toaster',
 'colors',
-function ($log, $q, colors) {
+function ($log, $q, toaster, colors) {
     var tag = 'stealth.timelapse.stores.BinStore: ';
     $log.debug(tag + 'factory started');
 
@@ -109,16 +110,26 @@ function ($log, $q, colors) {
         // Setter for ArrayBuffer and dependent vars.
         this.setArrayBuffer = function (buf) {
             _arrayBuffer = buf;
-            _idView = new Uint32Array(_arrayBuffer, 0);
-            _secondsView = new Uint32Array(_arrayBuffer, 4);
-            _latView = new Float32Array(_arrayBuffer, 8);
-            _lonView = new Float32Array(_arrayBuffer, 12);
-            _recordSizeBytes = _determineRecordSize(_latView, _lonView);
-            _stride = _recordSizeBytes / 4;
-            _lastRecordIndex = _secondsView.length - (_stride - 1);
-            _minTimeMillis = _secondsView[0] * 1000;
-            _maxTimeMillis = _secondsView[_lastRecordIndex] * 1000;
-            _numRecords = _arrayBuffer.byteLength / _recordSizeBytes;
+            if (buf.byteLength % 4 === 0) {
+                _idView = new Uint32Array(_arrayBuffer, 0);
+                _secondsView = new Uint32Array(_arrayBuffer, 4);
+                _latView = new Float32Array(_arrayBuffer, 8);
+                _lonView = new Float32Array(_arrayBuffer, 12);
+                _recordSizeBytes = _determineRecordSize(_latView, _lonView);
+                if (_recordSizeBytes) {
+                    _stride = _recordSizeBytes / 4;
+                    _lastRecordIndex = _secondsView.length - (_stride - 1);
+                    _minTimeMillis = _secondsView[0] * 1000;
+                    _maxTimeMillis = _secondsView[_lastRecordIndex] * 1000;
+                    _numRecords = _arrayBuffer.byteLength / _recordSizeBytes;
+                    return;
+                }
+            }
+            this.destroy();
+            $log.error('Invalid binary data format');
+            _viewState.isError = true;
+            _viewState.errorMsg = 'Invalid data format';
+            toaster.error('Error: ' + this.getName(), _viewState.errorMsg);
         };
 
         if (!_.isUndefined(arrayBuffer)) {
@@ -182,21 +193,30 @@ function ($log, $q, colors) {
 
     function _determineRecordSize(latView, lonView) {
         var MAX_POINTS = 100;
-        var STRIDE = 4;
         var NERRORS_THRESHOLD = 1;
-        var errorCount = 0;
 
         var bytesPerRecord = 16;
 
-        for (var i=0; i<MAX_POINTS; i++) {
-            var z = i * STRIDE;
-            if (latView[z] > 90) {errorCount++;}
-            if (latView[z] < -90) {errorCount++;}
-            if (lonView[z] > 360) {errorCount++;}
-            if (lonView[z] < -360) {errorCount++;}
-            if (errorCount >= NERRORS_THRESHOLD) {
-                bytesPerRecord = 24 | 0;
-                break;
+        var tooManyErrors = function (testBytesPerRecord) {
+            var errorCount = 0;
+            for (var i=0; i<MAX_POINTS; i++) {
+                var z = i * (testBytesPerRecord / 4);
+                if (latView[z] > 90) {errorCount++;}
+                if (latView[z] < -90) {errorCount++;}
+                if (lonView[z] > 360) {errorCount++;}
+                if (lonView[z] < -360) {errorCount++;}
+                if (errorCount >= NERRORS_THRESHOLD) {
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        if (tooManyErrors(bytesPerRecord)) {
+            bytesPerRecord = 24;
+            if (tooManyErrors(bytesPerRecord)) {
+                $log.error('Unable to determine bin file record size');
+                return null;
             }
         }
         $log.debug(tag + 'Format is ' + bytesPerRecord + ' bytes/record');

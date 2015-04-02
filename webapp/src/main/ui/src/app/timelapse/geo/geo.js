@@ -59,7 +59,9 @@ function ($log, $timeout, $q, $http, $filter, owsLayers, ol3Map, PollingImageWms
                     var arrayBuffer = fileReader.result;
                     if (arrayBuffer.byteLength > 0) {
                         currentStore.setArrayBuffer(arrayBuffer);
-                        $scope.historicalLayer.setDtgBounds();
+                        if (!currentStore.getViewState().isError) {
+                            $scope.historicalLayer.setDtgBounds();
+                        }
                     }
                 });
             };
@@ -498,6 +500,23 @@ function ($log, $timeout, $q, $http, $filter, owsLayers, ol3Map, PollingImageWms
 
             $scope.toggleSummaryLayer = summaryExploreMgr.toggleSummaryLayer;
             $scope.removeSummaryLayer = summaryExploreMgr.removeSummaryLayer;
+
+            $scope.exportClick = function ($event) {
+                var menu = $($event.delegateTarget).parent().prev();
+                var visible = menu.is(':visible');
+                if (!visible) {
+                    $(document).one('click', function() {
+                        $(document).one('click', function() {
+                            menu.hide();
+                        });
+                        menu.show().position({
+                            my: 'right bottom',
+                            at: 'right top',
+                            of: $event.delegateTarget
+                        });
+                    });
+                }
+            };
         }]
     };
 }])
