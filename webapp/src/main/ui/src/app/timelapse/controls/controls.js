@@ -91,6 +91,7 @@ function ($log, $interval, $timeout, $rootScope) {
 
     var display = {
         toggledOn: false,
+        activeWizard: false,
         isPlaying: false,
         isPaused: true,
         frameIntervalMillis: 16
@@ -131,13 +132,11 @@ function ($log, $interval, $timeout, $rootScope) {
     };
 
     // Responses to events emitted by BinStores.
-    display.wasDisplayed = false;
     $rootScope.$on('timelapse:setDtgBounds', function (event, data) {
         $log.debug(tag + 'received "timelapse:setDtgBounds" message');
 
         if (!display.toggledOn) {
             display.toggledOn = true;
-            display.wasDisplayed = true;
         }
 
         dtg.min = data.minInSecs;
@@ -179,7 +178,6 @@ function ($log, $interval, $timeout, $rootScope) {
 
     $rootScope.$on('timelapse:resetDtgBounds', function () {
         display.toggledOn = false;
-        display.wasDisplayed = false;
 
         dtg.value = epochInSecs;
         dtg.min = epochInSecs;
@@ -192,18 +190,14 @@ function ($log, $interval, $timeout, $rootScope) {
     });
 
     $rootScope.$on('wizard:launchWizard', function () {
-        if (display.wasDisplayed) {
-            display.toggledOn = false;
-        }
+        display.activeWizard = true;
         if (display.isPlaying) {
             display.togglePlay();
         }
     });
 
     $rootScope.$on('wizard:closeWizard', function () {
-        if (display.wasDisplayed) {
-            display.toggledOn = true;
-        }
+        display.activeWizard = false;
     });
 
     // ***** API *****
