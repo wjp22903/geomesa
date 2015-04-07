@@ -1,6 +1,5 @@
 angular.module('stealth.timelapse.geo', [
     'colorpicker.module',
-    'frapontillo.bootstrap-switch',
     'stealth.core.utils',
     'stealth.timelapse.geo.ol3.layers',
     'stealth.timelapse.stores',
