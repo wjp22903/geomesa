@@ -19,12 +19,26 @@
             Run when you modify package.json or bower.json deps.
             Also, run by CI to deploy zips to artifactory.
 
-        secure
-            Used for production build.  Blocks anonymous access.  External user whitelist needed.
-        ds
-            Customizations for high-side demos.
+        standalone
+            Creates an executable war file, bundled with its own jetty server.
         production
             Used for production build.  Uses minimized javascript.
+        secure
+            Used for production build.  Blocks anonymous access.  External user whitelist needed.
+
+        ds
+            Customizations for DRAGONSPELL.
+        thresher
+            Customizations for THRESHER.
+        skyquest
+            Customizations for SKYQUEST.
+
+        jenkins-jboss-ci
+            Deploys to demo server.  Usually run only by CI.
+        demo1
+            Customizations for 1st demo instance.
+        demo2
+            Customizations for 2nd demo instance.
     -->
 
     <scm>

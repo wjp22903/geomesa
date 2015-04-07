@@ -520,7 +520,7 @@
             </build>
         </profile>
 
-        <!-- for high-side demos -->
+        <!-- Deployment-specific profiles for production systems -->
         <profile>
             <id>ds</id>
             <properties>
@@ -579,7 +579,26 @@
                 <map.liveOptions>[]</map.liveOptions>
             </properties>
         </profile>
+        <profile>
+            <id>skyquest</id>
+            <properties>
+                <app.title>SkyQuest</app.title>
+                <app.plugins>
+                    [
+                        'stealth.timelapse'
+                    ]
+                </app.plugins>
+                <classification.text>Dynamic Page - Highest Possible Classification is TOP SECRET//SI//TK//REL TO USA, FVEY</classification.text>
+                <classification.level>sci</classification.level>
+                <map.initLayers>[]</map.initLayers>
+                <map.extraLayers>[]</map.extraLayers>
+                <map.liveOptions>[]</map.liveOptions>
+                <geoserver.url>/geoserver</geoserver.url>
+                <geoserver.omitProxy>true</geoserver.omitProxy>
+            </properties>
+        </profile>
 
+        <!-- Profiles for always-up demos deployed by CI -->
         <profile>
             <id>jenkins-jboss-ci</id>
             <build>
@@ -605,6 +624,24 @@
                     </plugin>
                 </plugins>
             </build>
+        </profile>
+        <profile>
+            <id>demo1</id>
+            <properties>
+                <app.context>stealth1</app.context>
+                <map.initLayers>[]</map.initLayers>
+                <map.extraLayers>[]</map.extraLayers>
+                <map.liveOptions>[]</map.liveOptions>
+            </properties>
+        </profile>
+        <profile>
+            <id>demo2</id>
+            <properties>
+                <app.context>stealth2</app.context>
+                <map.initLayers>[]</map.initLayers>
+                <map.extraLayers>[]</map.extraLayers>
+                <map.liveOptions>[]</map.liveOptions>
+            </properties>
         </profile>
 
         <!-- The remaining profiles are auto-activated based on OS.  No reason to explicitly activate them. -->
