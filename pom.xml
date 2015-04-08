@@ -159,50 +159,28 @@
         <map.liveOptions>
             [
                 {
-                    KeywordWorkspace: "TWITTERMINI",
-                    Title: "Tweets by Annie or Kara"
+                    KeywordWorkspace: "Live",
+                    Title: "Live Display",
                     attrs: [
                         {
-                            name: "user_name",
+                            name: "affiliation",
                             choices: [
                                 {
-                                    value: 'Annie',
-                                    isSelected: true
-                                },
-                                {
-                                    value: 'Kara',
+                                    value: 'UNKNOWN',
                                     isSelected: false
                                 }
                             ]
                         },
                         {
-                          name: "user_id",
-                          choices: [
-                                {
-                                    value: 607417867,
-                                    isSelected: true
-                                },
-                                {
-                                    value: 1452688562,
-                                    isSelected: false
-                                }
-                          ]
-                        }
-                    ]
-                },
-                {
-                    KeywordWorkspace: "TWITTERMINI",
-                },
-                {
-                    KeywordWorkspace: "AISTEST",
-                    Title: "AIS Test"
-                    attrs: [
-                        {
-                            name: "ReceiverID",
+                            name: "isOld",
                             choices: [
                                 {
-                                    value: '11NPSU1',
-                                    isSelected: true
+                                    value: true,
+                                    isSelected: false
+                                },
+                                {
+                                    value: false,
+                                    isSelected: false
                                 }
                             ]
                         }
