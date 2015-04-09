@@ -11,7 +11,6 @@ function ($timeout, toaster, ol3Map, GeoJsonVectorLayer, CONFIG) {
     this.toggleSummaryLayer = function (layer) {
         if (_.isUndefined(layer.mapLayerId) || _.isNull(layer.mapLayerId)) {
             var summaryLayer = new GeoJsonVectorLayer(layer.Title);
-            summaryLayer.setSummaryQueryCallback(self.summaryQuery);
             layer.summaryLayer = summaryLayer;
             layer.mapLayerId = summaryLayer.id;
             layer.viewState.isOnMap = true;

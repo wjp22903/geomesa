@@ -36,8 +36,6 @@ function ($log, $q, wfs, colors, ol3Styles, MapLayer, CONFIG) {
 
         var _query;
         var _queryResponse;
-        var _summaryQueryCallback;
-        this.setSummaryQueryCallback = function (callback) {_summaryQueryCallback = callback;};
 
         var _viewState = {
             toggledOn: true,
@@ -179,16 +177,6 @@ function ($log, $q, wfs, colors, ol3Styles, MapLayer, CONFIG) {
             }, '');
 
             var capabilities = _query.layerData.currentLayer.KeywordConfig.capability || {};
-            if (!_.isUndefined(capabilities['summary'])) {
-                if (_.isUndefined(_summaryQueryCallback)) {
-                    delete capabilities['summary'];
-                } else {
-                    capabilities['summary']['toolTipText'] = 'Get summary';
-                    capabilities['summary']['iconClass'] = 'fa-location-arrow';
-                    capabilities['summary']['onClick'] = _summaryQueryCallback;
-                }
-            }
-
             var url = _query.serverData.currentGeoserverUrl + '/' +
                       _query.layerData.currentLayer.prefix;
             var typeName = _query.layerData.currentLayer.name;
@@ -209,7 +197,7 @@ function ($log, $q, wfs, colors, ol3Styles, MapLayer, CONFIG) {
             })
             .error(function (data, status, headers, config, statusText) {
                 deferred.reject({
-                    name: _thisStore.getName(),
+                    name: _name,
                     isError: true,
                     reason: statusText
                 });
