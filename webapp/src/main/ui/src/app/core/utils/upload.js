@@ -8,7 +8,8 @@ angular.module('stealth.core.utils')
 //  <st-upload-file id="upload1" process-file="callback(file)"></st-upload-file>
 .directive('stUploadFile',[
 '$log',
-function ($log) {
+'$rootScope',
+function ($log, $rootScope) {
     var tag = 'stealth.core.utils.stUploadFile: ';
     $log.debug(tag + 'directive defined');
     return {
@@ -32,6 +33,7 @@ function ($log) {
                 scope.$evalAsync(function () {
                     e.click();
                 });
+                $rootScope.$emit('FileUploadLaunched');
             };
 
             scope.fileSelected = function (element) {

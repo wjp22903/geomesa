@@ -200,6 +200,12 @@ function ($log, $interval, $timeout, $rootScope) {
         display.activeWizard = false;
     });
 
+    $rootScope.$on('FileUploadLaunched', function () {
+        if (display.isPlaying) {
+            display.togglePlay();
+        }
+    });
+
     // ***** API *****
 
     this.units = units;
