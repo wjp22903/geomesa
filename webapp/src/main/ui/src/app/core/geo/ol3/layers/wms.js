@@ -18,22 +18,21 @@ function ($log, $timeout, MapLayer, CONFIG) {
 
         var _olSource = new ol.source.ImageWMS({
             url: wmsUrl || (CONFIG.geoserver.defaultUrl + '/wms'),
-            params: requestParams,
-            imageLoadFunction: function (image, src) {
-                $timeout(function () {
-                    _isLoading = true;
-                    _self.styleDirectiveScope.$emit(_self.id + ':isLoading');
+            params: requestParams
+        });
 
-                    image.listenOnce(goog.events.EventType.CHANGE, function (evt) {
-                        _self.styleDirectiveScope.$evalAsync(function () {
-                            _isLoading = false;
-                            _self.styleDirectiveScope.$emit(_self.id + ':finishedLoading');
-                        });
-                    });
+        _olSource.on('imageloadstart', function () {
+            _self.styleDirectiveScope.$evalAsync(function () {
+                _isLoading = true;
+                _self.styleDirectiveScope.$emit(_self.id + ':isLoading');
+            });
+        });
 
-                    ol.source.Image.defaultImageLoadFunction.call(this, image, src);
-                });
-            }
+        _olSource.on(['imageloadend', 'imageloaderror'], function () {
+            _self.styleDirectiveScope.$evalAsync(function () {
+                _isLoading = false;
+                _self.styleDirectiveScope.$emit(_self.id + ':finishedLoading');
+            });
         });
 
         var _olLayer = new ol.layer.Image({

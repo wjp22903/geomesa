@@ -16,8 +16,7 @@ module.exports = function (grunt) {
         stealthConfig.vendorFiles.js = stealthConfig.vendorFiles.js.map( function ( file ) {
             var minFile;
             if (file.search(/[\.\-]debug/) !== -1) {
-                //Don't use min OL3 until we remove goog.events listener (STEALTH-207)
-                //minFile = file.replace( /[\.\-]debug/, '' );
+                minFile = file.replace( /[\.\-]debug/, '' );
             } else {
                 minFile = file.replace( /\.js$/, '.min.js' );
             }
