@@ -32,21 +32,16 @@ function ($rootScope, catMgr, Category, WidgetDef) {
 .directive('stTimelapseGeoCategory', [
 '$log',
 '$timeout',
-'$q',
-'$http',
-'$filter',
 'owsLayers',
 'ol3Map',
-'stealth.core.geo.ol3.layers.PollingImageWmsLayer',
+'stealth.timelapse.geo.ol3.layers.LiveWmsLayer',
 'tlLayerManager',
 'summaryExploreMgr',
 'stealth.timelapse.stores.BinStore',
-'colors',
 'tlWizard',
-'mapClickSearchService',
 'CONFIG',
-function ($log, $timeout, $q, $http, $filter, owsLayers, ol3Map, PollingImageWmsLayer, tlLayerManager,
-          summaryExploreMgr, BinStore, colors, tlWizard, mapClickSearchService, CONFIG) {
+function ($log, $timeout, owsLayers, ol3Map, LiveWmsLayer, tlLayerManager,
+          summaryExploreMgr, BinStore, tlWizard, CONFIG) {
     var tag = 'stealth.core.geo.context.stTimelapseGeoCategory: ';
     $log.debug(tag + 'directive defined');
     return {
@@ -297,53 +292,15 @@ function ($log, $timeout, $q, $http, $filter, owsLayers, ol3Map, PollingImageWms
                         LAYERS: layer.Name,
                         CQL_FILTER: 'INCLUDE'
                     };
-                    var pollingLayer = new PollingImageWmsLayer(layer.Title, requestParams);
+                    var pollingLayer = new LiveWmsLayer(layer.Title, requestParams, layer.layerThisBelongsTo, true);
                     pollingLayer.setPollingInterval($scope.liveRefresh.value * 1000);
                     var ol3Layer = pollingLayer.getOl3Layer();
                     layer.mapLayerId = pollingLayer.id;
                     layer.viewState.isOnMap = true;
                     layer.viewState.toggledOn = ol3Layer.getVisible();
-                    pollingLayer.styleDirectiveScope.styleVars.iconClass = 'fa fa-fw fa-lg fa-clock-o';
                     pollingLayer.setRefreshOnMapChange(ol3Map);
                     ol3Map.addLayer(pollingLayer);
 
-                    var capabilities = layer.layerThisBelongsTo.KeywordConfig.capability || {};
-                    if (!_.isUndefined(capabilities['summary'])) {
-                        capabilities['summary']['toolTipText'] = 'Get summary';
-                        capabilities['summary']['iconClass'] = 'fa-location-arrow';
-                        capabilities['summary']['onClick'] = summaryExploreMgr.summaryQuery;
-                    }
-                    layer.searchId = mapClickSearchService.registerSearchable(function (coord, res) {
-                        if (pollingLayer.getOl3Layer().getVisible()) {
-                            var url = pollingLayer.getOl3Layer().getSource().getGetFeatureInfoUrl(
-                                coord, res, CONFIG.map.projection, {
-                                    INFO_FORMAT: 'application/json',
-                                    FEATURE_COUNT: 999999,
-                                    BUFFER: 5 //more generous search radius because live layer moves
-                                }
-                            );
-                            return $http.get($filter('cors')(url, null, CONFIG.geoserver.omitProxy))
-                                .then(function (response) {
-                                    return {
-                                        name: layer.Title,
-                                        records: _.pluck(response.data.features, 'properties'),
-                                        layerFill: {
-                                            display: 'none'
-                                        },
-                                        capabilities: capabilities
-                                    };
-                                }, function (response) {
-                                    return {
-                                        name: layer.Title,
-                                        records: [],
-                                        isError: true,
-                                        reason: 'Server error'
-                                    };
-                                });
-                        } else {
-                            return $q.when({name: layer.Title, records:[]}); //empty results
-                        }
-                    });
                     $scope.updateLiveFilterCql(layer);
 
                     pollingLayer.styleDirectiveScope.$on(pollingLayer.id + ':isLoading', function (e) {
@@ -361,7 +318,6 @@ function ($log, $timeout, $q, $http, $filter, owsLayers, ol3Map, PollingImageWms
                             layer.viewState.toggledOn = ol3Layer.getVisible();
                         });
                     });
-
                 } else {
                     var l = ol3Map.getLayerById(layer.mapLayerId);
                     l.cancelPolling();
@@ -370,10 +326,6 @@ function ($log, $timeout, $q, $http, $filter, owsLayers, ol3Map, PollingImageWms
                     delete layer.mapLayerId;
                     layer.viewState.isOnMap = false;
                     layer.viewState.toggledOn = false;
-                    if (_.isNumber(layer.searchId)) {
-                        mapClickSearchService.unregisterSearchableById(layer.searchId);
-                        delete layer.searchId;
-                    }
                 }
             };
 

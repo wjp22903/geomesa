@@ -96,24 +96,5 @@ function ($timeout, toaster, ol3Map, GeoJsonVectorLayer, CONFIG) {
             toaster.error('Summary Error', query.layerData.currentLayer.name + ' not found.');
         }
     };
-
-    this.searchActiveSummaryLayers = function (coord, res) {
-        var gsLayers = _.uniq(_.flatten(_.map(self.workspaces, function (layers) {
-            return layers;
-        })));
-        var active = _.map(gsLayers, function (gsLayer) {
-            var activeSummaryObjects = _.filter(gsLayer.summaries, function (summary) {
-                return summary.viewState.isOnMap && summary.viewState.toggledOn;
-            });
-            var activeSummaryLayers = _.map(activeSummaryObjects, function (obj) {
-                return obj.summaryLayer;
-            });
-            return activeSummaryLayers;
-        });
-        var activeGeoJsonVectorLayers = _.flatten(active);
-        return _.map(activeGeoJsonVectorLayers, function (l) {
-            return l.searchPoint(coord, res);
-        });
-    };
 }])
 ;

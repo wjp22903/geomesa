@@ -31,10 +31,11 @@ function ($log, $interval, ol3Map, CONFIG) {
 .service('ol3Map', [
 '$log',
 '$filter',
+'$q',
+'mapClickSearchService',
 'stealth.core.geo.ol3.layers.MapLayer',
-'stealth.core.geo.ol3.layers.GeoJsonLayer',
 'CONFIG',
-function ($log, $filter, MapLayer, GeoJsonLayer, CONFIG) {
+function ($log, $filter, $q, mapClickSearchService, MapLayer, CONFIG) {
     $log.debug('stealth.core.geo.ol3.map.ol3Map: service started');
     var _projection = CONFIG.map.projection;
     var _wmsOpts = {
@@ -137,12 +138,24 @@ function ($log, $filter, MapLayer, GeoJsonLayer, CONFIG) {
         }
         _map.getLayers().insertAt(_layers.length - index, ol3Layer);
         _layers.splice(index, 0, layer);
+
+        layer.searchId = mapClickSearchService.registerSearchable(function (coord, res) {
+            if (layer.isQueryable() && ol3Layer.getVisible()) {
+                return layer.searchPoint(coord, res);
+            } else {
+                return layer.searchPointEmpty();
+            }
+        });
         return layer;
     };
     /**
      * Removes a layer from the map.
      */
     this.removeLayer = function (layer) {
+        if (_.isNumber(layer.searchId)) {
+            mapClickSearchService.unregisterSearchableById(layer.searchId);
+            delete layer.searchId;
+        }
         _map.removeLayer(layer.getOl3Layer());
         _.pull(_layers, layer);
     };
@@ -237,7 +250,7 @@ function ($log, $filter, MapLayer, GeoJsonLayer, CONFIG) {
             fill: new ol.style.Fill({color: '#202020'})
         })
     });
-    this.addLayer(new GeoJsonLayer('Countries', countryLayer, -20));
+    this.addLayer(new MapLayer('Countries', countryLayer, false, -20));
     var tintSource = new ol.source.GeoJSON({
         object: {
             "type": "Feature",
@@ -255,7 +268,7 @@ function ($log, $filter, MapLayer, GeoJsonLayer, CONFIG) {
             fill: new ol.style.Fill({color: '#000'})
         })
     });
-    this.addLayer(new GeoJsonLayer('Tint', tintLayer));
+    this.addLayer(new MapLayer('Tint', tintLayer, false));
 }])
 
 ;

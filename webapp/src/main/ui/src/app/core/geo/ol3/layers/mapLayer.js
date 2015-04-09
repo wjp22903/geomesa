@@ -3,9 +3,10 @@ angular.module('stealth.core.geo.ol3.layers')
 .factory('stealth.core.geo.ol3.layers.MapLayer', [
 '$log',
 '$rootScope',
+'$q',
 '$timeout',
 'stealth.core.utils.WidgetDef',
-function ($log, $rootScope, $timeout, WidgetDef) {
+function ($log, $rootScope, $q, $timeout, WidgetDef) {
     var tag = 'stealth.core.geo.ol3.layers.MapLayer: ';
     $log.debug(tag + 'factory started');
     var _idSeq = 0;
@@ -23,7 +24,8 @@ function ($log, $rootScope, $timeout, WidgetDef) {
      *     reorder as desired.  Also, once stack is reordered, the application
      *     of hints breaks down and layers may be inserted in unexpected order.
      */
-    var MapLayer = function (name, ol3Layer, zIndexHint) {
+    var MapLayer = function (name, ol3Layer, queryable, zIndexHint) {
+        var _queryable = queryable;
         this.id = _idSeq++;
         this.name = name;
         this.ol3Layer = ol3Layer;
@@ -56,6 +58,20 @@ function ($log, $rootScope, $timeout, WidgetDef) {
                     scope.layerState.visible = ol3Layer.getVisible();
                 });
             });
+
+            this.searchPoint = function (coord, res) {
+                return this.searchPointEmpty();
+            };
+            this.searchPointEmpty = function () {
+                return $q.when({name: this.name, records:[]}); //empty results
+            };
+            this.isQueryable = function () {
+                return _queryable;
+            };
+            this.setQueryable = function (newQueryable) {
+                _queryable = newQueryable;
+                return this;
+            };
         }
         this.styleDirectiveIsoScopeAttrs = null;
         $log.debug(tag + 'new MapLayer(' + name + ')');

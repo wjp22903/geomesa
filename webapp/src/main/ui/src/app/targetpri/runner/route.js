@@ -21,13 +21,13 @@ function ($rootScope, routeRankRunner) {
 'ol3Map',
 'ol3Styles',
 'stealth.core.geo.ol3.layers.WmsLayer',
-'stealth.core.geo.ol3.layers.GeoJsonLayer',
+'stealth.core.geo.ol3.layers.MapLayer',
 'stealth.targetpri.results.Category',
 'categoryManager',
 'colors',
 'cqlHelper',
 function ($rootScope, $q, sidebarManager, WidgetDef, proximityService,
-          rankService, ol3Map, ol3Styles, WmsLayer, GeoJsonLayer, Category, catMgr, colors, cqlHelper) {
+          rankService, ol3Map, ol3Styles, WmsLayer, MapLayer, Category, catMgr, colors, cqlHelper) {
     var geoJsonFormat = new ol.format.GeoJSON();
     this.run = function (req) {
         var category = catMgr.addCategory(2, new Category(req.name, function () {
@@ -36,12 +36,12 @@ function ($rootScope, $q, sidebarManager, WidgetDef, proximityService,
         }));
 
         var routeName = 'Route for [' + req.name + ']';
-        category.addLayer(new GeoJsonLayer(routeName, new ol.layer.Vector({
+        category.addLayer(new MapLayer(routeName, new ol.layer.Vector({
             source: new ol.source.Vector({
                 features: [req.routeFeature]
             }),
             style: ol3Styles.getLineStyle(3, '#CC0099')
-        })));
+        }), false));
 
         var geoJson = geoJsonFormat.writeFeatures([req.routeFeature]);
         var promise = rankService.doGeoJsonRouteRank(_.map(req.dataSources, function (dataSource) {
@@ -56,7 +56,7 @@ function ($rootScope, $q, sidebarManager, WidgetDef, proximityService,
                     LAYERS: layerName,
                     STYLES: 'stealth_dataPoints',
                     ENV: 'color:BEBE40;opacity:0.6;size:10'
-                }), true);
+                }, true), true);
                 return layerName;
             });
             return {

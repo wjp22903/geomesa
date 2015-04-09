@@ -39,7 +39,7 @@
 <div class="searchResultTableResize" st-search-result-table-resizable>
     <div class="searchResultTableBody" ng-mousedown="$event.stopPropagation();" ng-mouseup="$event.stopPropagation();" st-search-result-table-scroll-link>
         <div ng-repeat="result in results" class="searchResultTableBodyResult" ng-class="'result' + result.id + 'Body'">
-            <div ng-repeat="(key, val) in result.records[0]" ng-class-even="'searchResultTableRowEven'">
+            <div ng-repeat="(key, val) in result.records[0]" ng-class-odd="'searchResultTableRowAlt'">
                 <div class="searchResultTableRowKey" ng-class="'result' + result.id + 'RowKey'">{{ key }}</div>
                 <div ng-repeat="record in result.records | startFrom:(result.paging.currentPage-1)*result.paging.pageSize | limitTo:result.paging.pageSize"
                      class="searchResultTableRowCell" ng-class="'result' + result.id + 'Col' + $index + ($last ? '' : ' searchResultTableBorderRight')">

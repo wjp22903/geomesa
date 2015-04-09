@@ -3,58 +3,31 @@ angular.module('stealth.core.geo.ol3.layers')
 .factory('stealth.core.geo.ol3.layers.PollingImageWmsLayer', [
 '$log',
 '$interval',
-'$timeout',
-'stealth.core.geo.ol3.layers.MapLayer',
-'CONFIG',
-function ($log, $interval, $timeout, MapLayer, CONFIG) {
+'stealth.core.geo.ol3.layers.WmsLayer',
+function ($log, $interval, WmsLayer) {
     var tag = 'stealth.core.geo.ol3.layers.PollingImageWmsLayer: ';
     $log.debug(tag + 'factory started');
-    var PollingImageWmsLayer = function (name, requestParams, zIndexHint) {
+    var PollingImageWmsLayer = function (name, requestParams, queryable, zIndexHint, wmsUrl) {
         var _self = this;
         var _pollingInterval = 3600000;
         var _params = requestParams;
-        var _isLoading = false;
         var _refreshAfterLoad = false;
 
-        var _olSource = new ol.source.ImageWMS({
-            url: CONFIG.geoserver.defaultUrl + '/wms',
-            params: requestParams,
-            imageLoadFunction: function (image, src) {
-                $timeout(function () {
-                    _isLoading = true;
-                    _self.styleDirectiveScope.$emit(_self.id + ':isLoading');
-
-                    image.listenOnce(goog.events.EventType.CHANGE, function (evt) {
-                        _self.styleDirectiveScope.$evalAsync(function () {
-                            _isLoading = false;
-                            _self.styleDirectiveScope.$emit(_self.id + ':finishedLoading');
-                            if (_refreshAfterLoad) {
-                                _refreshAfterLoad = false;
-                                _self.refresh();
-                            }
-                        });
-                    });
-
-                    ol.source.Image.defaultImageLoadFunction.call(this, image, src);
-                });
-            }
-        });
-
-        var _olLayer = new ol.layer.Image({
-            source: _olSource
-        });
-
         $log.debug(tag + 'new PollingImageWmsLayer(' + arguments[0] + ')');
-        MapLayer.apply(_self, [name, _olLayer, zIndexHint]);
+        WmsLayer.apply(_self, [name, requestParams, queryable, zIndexHint, wmsUrl, function () {
+            if (_refreshAfterLoad) {
+                _refreshAfterLoad = false;
+                _self.refresh();
+            }
+        }]);
 
         _self.refresh = function (requestParams) {
             _params = requestParams || _params;
-            _params.unique = _.now();
-            if (_isLoading) {
+            if (_self.isLoading()) {
                 _refreshAfterLoad = true;
             } else if (_self.getOl3Layer().getVisible()) {
                 $log.debug(tag + name + ': refresh layer');
-                _olSource.updateParams(_params);
+                _self.updateRequestParams(_params);
             }
         };
 
@@ -96,8 +69,15 @@ function ($log, $interval, $timeout, MapLayer, CONFIG) {
         };
 
         var polling = startPolling(_pollingInterval, _self.refresh);
+
+        var searchPoint = this.searchPoint;
+        this.searchPoint = function (coord, res) {
+            return searchPoint.call(this, coord, res, {
+                BUFFER: 5 //more generous search radius because live layer moves
+            });
+        };
     };
-    PollingImageWmsLayer.prototype = Object.create(MapLayer.prototype);
+    PollingImageWmsLayer.prototype = Object.create(WmsLayer.prototype);
 
     function startPolling (pollingInterval, callback) {
         var promise = $interval(function () {

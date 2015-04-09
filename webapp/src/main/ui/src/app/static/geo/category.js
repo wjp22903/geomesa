@@ -4,12 +4,9 @@ angular.module('stealth.static.geo', [
 ])
 
 .run([
-'$log',
 '$rootScope',
 '$timeout',
-'$http',
 '$filter',
-'$q',
 'categoryManager',
 'staticLayerWizard',
 'owsLayers',
@@ -18,12 +15,9 @@ angular.module('stealth.static.geo', [
 'stealth.core.geo.ol3.manager.Category',
 'stealth.core.utils.WidgetDef',
 'stealth.core.geo.ol3.layers.WmsLayer',
-'mapClickSearchService',
 'CONFIG',
-function ($log, $rootScope, $timeout, $http, $filter, $q,
-          catMgr, wizard, owsLayers, ol3Map, colors,
-          Category, WidgetDef, WmsLayer, mapClickSearchService, CONFIG) {
-    var tag = 'stealth.static.geo: ';
+function ($rootScope, $timeout, $filter, catMgr, wizard, owsLayers, ol3Map,
+          colors, Category, WidgetDef, WmsLayer, CONFIG) {
     var catScope = $rootScope.$new();
     catScope.workspaces = {};
 
@@ -78,7 +72,7 @@ function ($log, $rootScope, $timeout, $http, $filter, $q,
 
             var mapLayer = new WmsLayer(filterLayer.title + ' - ' +
                                         (filterLayer.layerTitle || filterLayer.layerName),
-                                        requestParams);
+                                        requestParams, true);
 
             var updateRequestParams = function (filterLayer) {
                 var markerStyle = filterLayer.viewState.markerStyle;
@@ -104,36 +98,6 @@ function ($log, $rootScope, $timeout, $http, $filter, $q,
             mapLayer.styleDirectiveScope.markerStyles = markerStyles;
             mapLayer.styleDirectiveScope.markerShapes = markerShapes;
             ol3Map.addLayer(mapLayer);
-            filterLayer.searchId = mapClickSearchService.registerSearchable(function (coord, res) {
-                if (mapLayer.getOl3Layer().getVisible() &&
-                    filterLayer.viewState.markerStyle === 'point') {
-                    var url = mapLayer.getOl3Layer().getSource().getGetFeatureInfoUrl(
-                        coord, res, CONFIG.map.projection, {
-                            INFO_FORMAT: 'application/json',
-                            FEATURE_COUNT: 999999
-                        }
-                    );
-                    return $http.get($filter('cors')(url, null, CONFIG.geoserver.omitProxy))
-                        .then(function (response) {
-                            return {
-                                name: mapLayer.name,
-                                records: _.pluck(response.data.features, 'properties'),
-                                layerFill: {
-                                    display: 'none'
-                                }
-                            };
-                        }, function (response) {
-                            return {
-                                name: mapLayer.name,
-                                records: [],
-                                isError: true,
-                                reason: 'Server error'
-                            };
-                        });
-                } else {
-                    return $q.when({name: mapLayer.name, records:[]}); //empty results
-                }
-            });
 
             mapLayer.styleDirectiveScope.setFillColor = function (filterLayer) {
                 updateIconImgSrc(filterLayer);
@@ -194,10 +158,6 @@ function ($log, $rootScope, $timeout, $http, $filter, $q,
                                             filterLayer.viewState.size,
                                             filterLayer.viewState.markerShape,
                                             filterLayer.viewState.radiusPixels);
-            if (_.isNumber(filterLayer.searchId)) {
-                mapClickSearchService.unregisterSearchableById(filterLayer.searchId);
-                delete filterLayer.searchId;
-            }
         }
     };
 

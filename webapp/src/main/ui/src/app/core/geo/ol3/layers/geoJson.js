@@ -2,21 +2,6 @@ angular.module('stealth.core.geo.ol3.layers', [
     'stealth.core.geo.ows'
 ])
 
-.factory('stealth.core.geo.ol3.layers.GeoJsonLayer', [
-'$log',
-'stealth.core.geo.ol3.layers.MapLayer',
-function ($log, MapLayer) {
-    var tag = 'stealth.core.geo.ol3.layers.GeoJsonLayer: ';
-    $log.debug(tag + 'factory started');
-    var GeoJsonLayer = function (name, ol3Layer) {
-        $log.debug(tag + 'new GeoJsonLayer(' + arguments[0] + ')');
-        MapLayer.apply(this, arguments);
-        this.styleDirective = 'st-geo-json-layer-style';
-    };
-    GeoJsonLayer.prototype = Object.create(MapLayer.prototype);
-    return GeoJsonLayer;
-}])
-
 .factory('stealth.core.geo.ol3.layers.GeoJsonVectorLayer', [
 '$log',
 '$q',
@@ -74,7 +59,7 @@ function ($log, $q, wfs, colors, ol3Styles, MapLayer, CONFIG) {
         });
 
         $log.debug(tag + 'new GeoJsonVectorLayer(' + arguments[0] + ')');
-        MapLayer.apply(_self, [_name, _olLayer, zIndexHint]);
+        MapLayer.apply(_self, [_name, _olLayer, true, zIndexHint]);
         _self.styleDirective = 'st-geo-json-vector-layer-style';
         _self.styleDirectiveScope.layer = _self;
         _self.styleDirectiveScope.sizeChanged = function (layer, size) {
@@ -127,14 +112,19 @@ function ($log, $q, wfs, colors, ol3Styles, MapLayer, CONFIG) {
 
         _self.searchPoint = function (coord, resolution) {
             var deferred = $q.defer();
+            var baseResponse = {
+                name: _name,
+                layerFill: {
+                    color: _viewState.fillColor
+                }
+            };
 
             // If this layer is not toggled on, ...
             if (!_viewState.toggledOn || _viewState.isError || _.isUndefined(_queryResponse)) {
-                deferred.resolve({
-                    name: _name,
+                deferred.resolve(_.merge(baseResponse, {
                     isError: false,
                     records: []
-                });
+                }));
                 return deferred.promise;
             }
 
@@ -158,11 +148,10 @@ function ($log, $q, wfs, colors, ol3Styles, MapLayer, CONFIG) {
 
             // If there are no line strings near the click, ...
             if (_.isEmpty(nearbyFeatures)) {
-                deferred.resolve({
-                    name: _name,
+                deferred.resolve(_.merge(baseResponse, {
                     isError: false,
                     records: []
-                });
+                }));
                 return deferred.promise;
             }
 
@@ -188,19 +177,17 @@ function ($log, $q, wfs, colors, ol3Styles, MapLayer, CONFIG) {
                 var records = _.map(_.pluck(data.features, 'properties'), function (properties) {
                     return properties;
                 });
-                deferred.resolve({
-                    name: _name,
+                deferred.resolve(_.merge(baseResponse, {
                     isError: false,
                     records: records,
                     capabilities: capabilities
-                });
+                }));
             })
             .error(function (data, status, headers, config, statusText) {
-                deferred.reject({
-                    name: _name,
+                deferred.reject(_.merge(baseResponse, {
                     isError: true,
                     reason: statusText
-                });
+                }));
             });
             return deferred.promise;
         };
@@ -219,15 +206,6 @@ function ($log, $q, wfs, colors, ol3Styles, MapLayer, CONFIG) {
     }
 
     return GeoJsonVectorLayer;
-}])
-
-.directive('stGeoJsonLayerStyle', [
-'$log',
-function ($log) {
-    $log.debug('stealth.core.geo.ol3.layers.stGeoJsonLayerStyle: directive defined');
-    return {
-        template: '<ui-include src="fragmentUrl" fragment="\'.layerStyleGeoJsonLayer\'"></ui-include>'
-    };
 }])
 
 .directive('stGeoJsonVectorLayerStyle', [

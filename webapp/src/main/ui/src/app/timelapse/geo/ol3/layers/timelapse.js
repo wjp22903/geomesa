@@ -259,6 +259,9 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
             source: _olSource
         });
 
+        $log.debug(tag + 'new TimeLapseLayer(' + name + ')');
+        MapLayer.apply(this, [name, _olLayer, true, 5]);
+
         // ***** Public methods *****
         this.getStores = function () {
             return _stores;
@@ -321,7 +324,7 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
             _olSource.changed();
         };
 
-        this.searchActiveStores = function (coord, res) {
+        this.searchPoint = function (coord, res) {
             var activeStores = _.filter(_stores, function (store) {
                 var viewState = store.getViewState();
                 return viewState.toggledOn && !viewState.isError;
@@ -331,10 +334,8 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
             });
         };
 
-        $log.debug(tag + 'new TimeLapseLayer(' + name + ')');
-        MapLayer.apply(this, [name, _olLayer, 5]);
         this.styleDirective = 'st-time-lapse-layer-style';
-        this.styleDirectiveScope.styleVars.iconClass = 'fa fa-fw fa-lg fa-clock-o';
+        this.styleDirectiveScope.styleVars.iconClass = 'fa fa-fw fa-lg fa-history';
         this.styleDirectiveScope.layer = _self;
         this.styleDirectiveScopeAttrs += " layer='layer'";
         this.styleDirectiveScope.stores = _stores;
