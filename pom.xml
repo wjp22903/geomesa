@@ -132,7 +132,8 @@
             [
                 {
                     serverUrl: "http://dgeo.ccri.com:8080/geoserver/wms",
-                    Name: "mapproxy:globe.osm.default"
+                    Name: "mapproxy:globe.osm.default",
+                    opacity: 0.5
                 }
             ]
         </map.initLayers>

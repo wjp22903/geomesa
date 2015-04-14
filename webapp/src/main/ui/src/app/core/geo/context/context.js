@@ -25,6 +25,7 @@ function ($rootScope, $timeout, catMgr, Category, WidgetDef, owsLayers, ol3Map,
             var wmsLayer = new WmsLayer(layer.Title,
                                         requestParams,
                                         layer.queryable,
+                                        layer.viewState.lastOpacity,
                                         (workspace.toLowerCase().indexOf('base') === 0 ? -20 : -10),
                                         layer.serverUrl);
             wmsLayer.applyCql(layer.cqlFilter);
@@ -52,6 +53,7 @@ function ($rootScope, $timeout, catMgr, Category, WidgetDef, owsLayers, ol3Map,
                 e.stopPropagation();
             });
         } else {
+            layer.viewState.lastOpacity = ol3Map.getLayerById(layer.mapLayerId).getOl3Layer().getOpacity();
             ol3Map.removeLayerById(layer.mapLayerId);
             delete layer.mapLayerId;
             layer.viewState.isOnMap = false;
@@ -82,7 +84,8 @@ function ($rootScope, $timeout, catMgr, Category, WidgetDef, owsLayers, ol3Map,
                 layer.viewState = {
                     isOnMap: false,
                     toggledOn: false,
-                    isLoading: false
+                    isLoading: false,
+                    lastOpacity: 1
                 };
                 layer.getTooltip = function () {
                     if (layer.viewState.isOnMap) {
@@ -97,9 +100,11 @@ function ($rootScope, $timeout, catMgr, Category, WidgetDef, owsLayers, ol3Map,
                         categoryScope.workspaces[workspace] = [layer];
                     }
                     //Turn on configured layers
-                    if (_.find(CONFIG.map.initLayers, {Name: layer.Name, serverUrl: layer.serverUrl})) {
+                    var initLayer = _.find(CONFIG.map.initLayers, {Name: layer.Name, serverUrl: layer.serverUrl});
+                    if (initLayer) {
                         layer.viewState.isOnMap = true;
                         layer.viewState.toggledOn = true;
+                        layer.viewState.lastOpacity = initLayer.opacity || layer.viewState.lastOpacity;
                         categoryScope.toggleLayer(layer, workspace);
                     }
                 });

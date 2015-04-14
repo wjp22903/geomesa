@@ -10,7 +10,7 @@ angular.module('stealth.core.geo.ol3.layers')
 function ($log, $timeout, $http, $filter, MapLayer, CONFIG) {
     var tag = 'stealth.core.geo.ol3.layers.WmsLayer: ';
     $log.debug(tag + 'factory started');
-    var WmsLayer = function (name, requestParams, queryable, zIndexHint, wmsUrl, onLoad) {
+    var WmsLayer = function (name, requestParams, queryable, opacity, zIndexHint, wmsUrl, onLoad) {
         var _self = this;
         var _isLoading = false;
 
@@ -43,6 +43,10 @@ function ($log, $timeout, $http, $filter, MapLayer, CONFIG) {
         var _olLayer = new ol.layer.Image({
             source: _olSource
         });
+
+        if (_.isNumber(opacity)) {
+            _olLayer.setOpacity(Math.min(Math.max(opacity, 0), 1));
+        }
 
         $log.debug(tag + 'new WmsLayer(' + arguments[0] + ')');
         MapLayer.apply(this, [name, _olLayer, queryable, zIndexHint]);

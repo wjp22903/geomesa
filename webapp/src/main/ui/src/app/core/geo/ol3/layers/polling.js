@@ -14,7 +14,7 @@ function ($log, $interval, WmsLayer) {
         var _refreshAfterLoad = false;
 
         $log.debug(tag + 'new PollingImageWmsLayer(' + arguments[0] + ')');
-        WmsLayer.apply(_self, [name, requestParams, queryable, zIndexHint, wmsUrl, function () {
+        WmsLayer.apply(_self, [name, requestParams, queryable, 1, zIndexHint, wmsUrl, function () {
             if (_refreshAfterLoad) {
                 _refreshAfterLoad = false;
                 _self.refresh();
