@@ -40,11 +40,12 @@ function ($log, $rootScope, $q, $filter, $window, toaster, CONFIG, wfs, queryBin
             var geom = query.params.geomField.name;
             var dtg = query.params.dtgField.name;
             var id = query.params.idField.name;
+            var label = query.layerData.currentLayer.fieldNames.label;
             var overrides = {
                 sortBy: dtg,
-                propertyName: dtg + ',' + geom + ',' + id,
+                propertyName: _.compact([dtg, geom, id, label]).join(),
                 outputFormat: 'application/vnd.binary-viewer',
-                format_options: 'dtg:' + dtg + ';trackId:' + id,
+                format_options: 'dtg:' + dtg + ';trackId:' + id + (label ? ';label:' + label : ''),
                 cql_filter: buildCQLFilter(query)
             };
 
@@ -87,60 +88,14 @@ function ($log, $rootScope, $q, $filter, $window, toaster, CONFIG, wfs, queryBin
             return Math.min(_thisStore.getMaxTimeInMillis(), t) + 1000;
         }
 
-        this.searchPointAndTime = function (coord, res, timeMillis, windowMillis) {
+        var searchPointAndTimeWithCql = function (cql, capabilities) {
             var deferred = $q.defer();
 
-            var startMillis = calcStartMillis(timeMillis, windowMillis);
-            var endMillis = calcEndMillis(timeMillis);
-            var typeName = _query.layerData.currentLayer.Name;
-            var modifier = res * Math.max(this.getPointRadius(), 4);
-            var cqlParams = {
-                params: {
-                    geomField: _query.params.geomField,
-                    dtgField: _query.params.dtgField,
-                    minLat: Math.max((coord[1] - modifier), _query.params.minLat),
-                    maxLat: Math.min((coord[1] + modifier), _query.params.maxLat),
-                    minLon: Math.max((coord[0] - modifier), _query.params.minLon),
-                    maxLon: Math.min((coord[0] + modifier), _query.params.maxLon),
-                    startDtg: moment.utc(startMillis),
-                    endDtg: moment.utc(endMillis),
-                    cql: _query.params.cql
-                }
-            };
-
-            if (_thisStore.getMinTimeInMillis() > timeMillis ||
-                _thisStore.getMaxTimeInMillis() < (timeMillis - windowMillis) ||
-                cqlParams.params.minLat > cqlParams.params.maxLat ||
-                cqlParams.params.minLon > cqlParams.params.maxLon)
-            {
-                deferred.resolve({
-                    name: _thisStore.getName(),
-                    isError: false,
-                    records: []
-                });
-                return deferred.promise;
-            }
-
-            var capabilities = _query.layerData.currentLayer.KeywordConfig.capability || {};
-            capabilities = queryBinStoreExtender.extendCapabilities(capabilities, this, {
-                startMillis: startMillis,
-                endMillis: endMillis
-            });
-
-            if (!_.isUndefined(capabilities['summary'])) {
-                if (_.isUndefined(_summaryQueryCallback)) {
-                    delete capabilities['summary'];
-                } else {
-                    capabilities['summary']['toolTipText'] = 'Get summary';
-                    capabilities['summary']['iconClass'] = 'fa-location-arrow';
-                    capabilities['summary']['onClick'] = _summaryQueryCallback;
-                }
-            }
-
             var overrides = {
-                cql_filter: buildCQLFilter(cqlParams)
+                cql_filter: cql
             };
 
+            var typeName = _query.layerData.currentLayer.Name;
             wfs.getFeature(CONFIG.geoserver.defaultUrl, typeName, CONFIG.geoserver.omitProxy, overrides)
             .success(function (data, status, headers, config, statusText) {
                 var records = _.pluck(data.features, 'properties');
@@ -177,6 +132,70 @@ function ($log, $rootScope, $q, $filter, $window, toaster, CONFIG, wfs, queryBin
                 });
             });
             return deferred.promise;
+        };
+
+        this.searchPointAndTime = function (coord, res, timeMillis, windowMillis) {
+            var deferred = $q.defer();
+
+            var capabilities = _query.layerData.currentLayer.KeywordConfig.capability || {};
+            capabilities = queryBinStoreExtender.extendCapabilities(capabilities, this, {
+                startMillis: startMillis,
+                endMillis: endMillis
+            });
+
+            if (!_.isUndefined(capabilities['summary'])) {
+                if (_.isUndefined(_summaryQueryCallback)) {
+                    delete capabilities['summary'];
+                } else {
+                    capabilities['summary']['toolTipText'] = 'Get summary';
+                    capabilities['summary']['iconClass'] = 'fa-location-arrow';
+                    capabilities['summary']['onClick'] = _summaryQueryCallback;
+                }
+            }
+
+            if (this.hasLabel()) {
+                var label = _query.layerData.currentLayer.fieldNames.label || 'label';
+                var labels = _.pluck(this.searchPointAndTimeForRecords(coord, res, timeMillis, windowMillis), 'label');
+                if (labels.length > 0) {
+                    var cql = label + ' IN (' + labels.join() + ')';
+                    return searchPointAndTimeWithCql(cql, capabilities);
+                } else {
+                    return $q.when({name: this.getName(), records: []}); //empty results
+                }
+            } else {
+                var startMillis = calcStartMillis(timeMillis, windowMillis);
+                var endMillis = calcEndMillis(timeMillis);
+                var typeName = _query.layerData.currentLayer.Name;
+                var modifier = res * Math.max(this.getPointRadius(), 4);
+                var cqlParams = {
+                    params: {
+                        geomField: _query.params.geomField,
+                        dtgField: _query.params.dtgField,
+                        minLat: Math.max((coord[1] - modifier), _query.params.minLat),
+                        maxLat: Math.min((coord[1] + modifier), _query.params.maxLat),
+                        minLon: Math.max((coord[0] - modifier), _query.params.minLon),
+                        maxLon: Math.min((coord[0] + modifier), _query.params.maxLon),
+                        startDtg: moment.utc(startMillis),
+                        endDtg: moment.utc(endMillis),
+                        cql: _query.params.cql
+                    }
+                };
+
+                if (_thisStore.getMinTimeInMillis() > timeMillis ||
+                    _thisStore.getMaxTimeInMillis() < (timeMillis - windowMillis) ||
+                    cqlParams.params.minLat > cqlParams.params.maxLat ||
+                    cqlParams.params.minLon > cqlParams.params.maxLon)
+                {
+                    deferred.resolve({
+                        name: _thisStore.getName(),
+                        isError: false,
+                        records: []
+                    });
+                    return deferred.promise;
+                }
+
+                return searchPointAndTimeWithCql(buildCQLFilter(cqlParams), capabilities);
+            }
         };
 
         this.exportBin = function (outputFormat) {

@@ -54,7 +54,8 @@ module.exports = {
             'vendor/bower/AngularJS-Toaster/toaster.js',
             'vendor/bower/sonic.js/dist/sonic.js',
             'vendor/bower/mathjs/dist/math.js',
-            'vendor/bower/openlayers/OpenLayers.debug.js'
+            'vendor/bower/openlayers/OpenLayers.debug.js',
+            'vendor/bower/long/dist/Long.js'
         ],
         assets_nested: [
             'vendor/openlayers/img/*',

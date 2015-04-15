@@ -43,6 +43,8 @@ function ($log, $q, toaster, colors) {
         var _secondsView;
         var _latView;
         var _lonView;
+        var _label1View;
+        var _label2View;
         var _recordSizeBytes;
         var _stride;
         var _lastRecordIndex;
@@ -89,6 +91,19 @@ function ($log, $q, toaster, colors) {
         this.getTimeInSeconds = function (iStride) { return _secondsView[iStride]; };
         this.getLat = function (iStride) { return _latView[iStride]; };
         this.getLon = function (iStride) { return _lonView[iStride]; };
+        this.getLabel = function (iStride) {
+            if (this.hasLabel()) {
+                return new dcodeIO.Long(_label1View[iStride], _label2View[iStride]);
+            }
+            return null;
+        };
+        this.getLabelString = function (iStride) {
+            var label = this.getLabel(iStride);
+            return label ? label.toString() : null;
+        };
+        this.hasLabel = function () {
+            return this.getStride() === 6;
+        };
         // Getters for constants.
         this.getArrayBuffer = function () { return _arrayBuffer; };
         this.getStride = function () { return _stride; };
@@ -115,6 +130,8 @@ function ($log, $q, toaster, colors) {
                 _secondsView = new Uint32Array(_arrayBuffer, 4);
                 _latView = new Float32Array(_arrayBuffer, 8);
                 _lonView = new Float32Array(_arrayBuffer, 12);
+                _label1View = new Uint32Array(_arrayBuffer, 16);
+                _label2View = new Uint32Array(_arrayBuffer, 20);
                 _recordSizeBytes = _determineRecordSize(_latView, _lonView);
                 if (_recordSizeBytes) {
                     _stride = _recordSizeBytes / 4;
@@ -142,6 +159,8 @@ function ($log, $q, toaster, colors) {
             _secondsView = undefined;
             _latView = undefined;
             _lonView = undefined;
+            _label1View = undefined;
+            _label2View = undefined;
             _recordSizeBytes = undefined;
             _stride = undefined;
             _lastRecordIndex = undefined;
@@ -150,21 +169,8 @@ function ($log, $q, toaster, colors) {
             _numRecords = undefined;
         };
 
-        this.searchPointAndTime = function (coord, res, timeMillis, windowMillis) {
-            var result = {
-                name: _name,
-                isError: false,
-                layerFill: {
-                    color: _fillColorHexString
-                },
-                records: [],
-                fieldTypes: [
-                    { name: 'lat', localType: 'number' },
-                    { name: 'lon', localType: 'number' },
-                    { name: 'dtg', localType: 'date-time' },
-                    { name: 'id', localType: 'string' }
-                ]
-            };
+        this.searchPointAndTimeForRecords = function (coord, res, timeMillis, windowMillis) {
+            var records = [];
             var modifier = res * Math.max(_pointRadius, 4);
             var minLat = Math.max((coord[1] - modifier), -90);
             var maxLat = Math.min((coord[1] + modifier), 90);
@@ -179,15 +185,33 @@ function ($log, $q, toaster, colors) {
                     lon >= minLon && lon <= maxLon &&
                     millis <= timeMillis && millis >= (timeMillis - windowMillis))
                 {
-                    result.records.push({
+                    records.push({
                         lat: lat,
                         lon: lon,
                         dtg: millis,
-                        id: _idView[i * _stride]
+                        id: _idView[i * _stride],
+                        label: this.getLabelString(i * _stride)
                     });
                 }
             }
-            return $q.when(result);
+            return records;
+        };
+        this.searchPointAndTime = function (coord, res, timeMillis, windowMillis) {
+            return $q.when({
+                name: _name,
+                isError: false,
+                layerFill: {
+                    color: _fillColorHexString
+                },
+                records: this.searchPointAndTimeForRecords(coord, res, timeMillis, windowMillis),
+                fieldTypes: [
+                    { name: 'lat', localType: 'number' },
+                    { name: 'lon', localType: 'number' },
+                    { name: 'dtg', localType: 'date-time' },
+                    { name: 'id', localType: 'string' },
+                    { name: 'label', localType: 'string'}
+                ]
+            });
         };
     };
 
