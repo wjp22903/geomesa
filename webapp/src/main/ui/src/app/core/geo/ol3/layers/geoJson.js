@@ -111,7 +111,6 @@ function ($log, $q, wfs, colors, ol3Styles, MapLayer, CONFIG) {
         _self.getViewState = function () { return _viewState; };
 
         _self.searchPoint = function (coord, resolution) {
-            var deferred = $q.defer();
             var baseResponse = _.merge(this.getEmptySearchPointResult(), {
                 layerFill: {
                     color: _viewState.fillColor
@@ -120,71 +119,35 @@ function ($log, $q, wfs, colors, ol3Styles, MapLayer, CONFIG) {
 
             // If this layer is not toggled on, ...
             if (!_viewState.toggledOn || _viewState.isError || _.isUndefined(_queryResponse)) {
-                deferred.resolve(baseResponse);
-                return deferred.promise;
+                return $q.when(baseResponse);
             }
 
             var factor = 10;
             var lon = coord[0];
             var lat = coord[1];
-            var minLat = lat - factor * resolution;
-            var maxLat = lat + factor * resolution;
-            var minLon = lon - factor * resolution;
-            var maxLon = lon + factor * resolution;
-            var features = _queryResponse.features;
+            var extent = [
+                lon - factor * resolution,
+                lat - factor * resolution,
+                lon + factor * resolution,
+                lat + factor * resolution
+            ];
+            var nearbyFeatures = [];
 
-            var nearbyFeatures = _.filter(features, function (feature) {
-                var nearbyPoint = _.find(feature.geometry.coordinates, function (c) {
-                    var cLon = c[0];
-                    var cLat = c[1];
-                    return (minLon < cLon && cLon < maxLon) && (minLat < cLat && cLat < maxLat);
-                });
-                return nearbyPoint;
-            });
-
-            // If there are no line strings near the click, ...
-            if (_.isEmpty(nearbyFeatures)) {
-                deferred.resolve(baseResponse);
-                return deferred.promise;
-            }
-
-            var numNearby = _.size(nearbyFeatures);
-            var idCql = _.reduce(nearbyFeatures, function (cql, f, i) {
-                var id = _query.layerData.currentLayer.trkIdField;
-                var term = '(' + id + '=\'' + f.properties[id] + '\')';
-                if (0 < i && i < numNearby - 1) {
-                    term += ' OR ';
+            var ol2Parser = new OpenLayers.Format.GeoJSON();
+            var ol3Parser = new ol.format.GeoJSON();
+            var bounds = new OpenLayers.Bounds(extent).toGeometry();
+            _olSource.forEachFeature(function (feature) {
+                var geometry = ol2Parser.read(ol3Parser.writeGeometry(feature.getGeometry()), 'Geometry');
+                if (bounds.intersects(geometry)) {
+                    nearbyFeatures.push(feature);
                 }
-                return term;
-            }, '');
-
-            var url = _query.serverData.currentGeoserverUrl + '/' +
-                      _query.layerData.currentLayer.prefix;
-            var typeName = _query.layerData.currentLayer.name;
-            var overrides = {
-                cql_filter: idCql
-            };
-            wfs.getFeature(url, typeName, CONFIG.geoserver.omitProxy, overrides)
-            .success(function (data, status, headers, config, statusText) {
-                var records = _.map(_.pluck(data.features, 'properties'), function (properties) {
-                    return properties;
-                });
-                deferred.resolve(_.merge(baseResponse, {
-                    records: records
-                }));
-            })
-            .error(function (data, status, headers, config, statusText) {
-                deferred.reject(_.merge(baseResponse, {
-                    isError: true,
-                    reason: statusText
-                }));
             });
-            return deferred.promise;
-        };
 
-        var getCapabilities = this.getCapabilities;
-        _self.getCapabilties = function () {
-            return _.merge(getCapabilities(), _query.layerData.currentLayer.KeywordConfig.capability);
+            return $q.when(_.merge(baseResponse, {
+                isError: false,
+                records: _.map(nearbyFeatures, function (feat, i) { return _.omit(feat.getProperties(), 'geometry'); }),
+                capabilities: _query.layerData.currentLayer.KeywordConfig.capability || {}
+            }));
         };
     };
     GeoJsonVectorLayer.prototype = Object.create(MapLayer.prototype);
