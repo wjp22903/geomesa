@@ -3,7 +3,7 @@ angular.module('stealth.app', [
     'truncate',
     'ui.bootstrap',
     'ui.utils',
-    'toaster',
+    'toastr',
     'templates-app',
     'stealth.core',
     'stealth.plugins'
@@ -13,7 +13,8 @@ angular.module('stealth.app', [
 '$provide',
 '$httpProvider',
 '$logProvider',
-function ($provide, $httpProvider, $logProvider) {
+'toastrConfig',
+function ($provide, $httpProvider, $logProvider, toastrConfig) {
     // Config variables are specified in the pom and written to STEALTH.config
     // via scalate. Copy that object as an injectable angular constant here.
     var config = angular.copy(window.STEALTH.config);
@@ -28,6 +29,10 @@ function ($provide, $httpProvider, $logProvider) {
             $logProvider.debugEnabled(config.logger.debug);
         }
     }
+
+    angular.extend(toastrConfig, {
+        positionClass: 'toast-bottom-right'
+    });
 }])
 
 .run([

@@ -8,12 +8,12 @@ angular.module('stealth.timelapse.stores', [
 '$q',
 '$filter',
 '$window',
-'toaster',
+'toastr',
 'CONFIG',
 'wfs',
 'queryBinStoreExtender',
 'stealth.timelapse.stores.BinStore',
-function ($log, $rootScope, $q, $filter, $window, toaster, CONFIG, wfs, queryBinStoreExtender, BinStore) {
+function ($log, $rootScope, $q, $filter, $window, toastr, CONFIG, wfs, queryBinStoreExtender, BinStore) {
     var tag = 'stealth.timelapse.stores.QueryBinStore: ';
     $log.debug(tag + 'factory started.');
 
@@ -57,14 +57,14 @@ function ($log, $rootScope, $q, $filter, $window, toaster, CONFIG, wfs, queryBin
                     $log.error(data);
                     _viewState.isError = true;
                     _viewState.errorMsg = 'ows:ExceptionReport returned';
-                    toaster.error('Error: ' + _thisStore.getName(), _viewState.errorMsg);
+                    toastr.error('Error: ' + _thisStore.getName(), _viewState.errorMsg);
                 } else {
                     // 'data' expected to be of type ArrayBuffer.
                     if (data.byteLength === 0) {
                         $log.error(tag + '(' + _thisStore.getName() + ') No results');
                         _viewState.isError = true;
                         _viewState.errorMsg = 'No results';
-                        toaster.error('Error: ' + _thisStore.getName(), _viewState.errorMsg);
+                        toastr.error('Error: ' + _thisStore.getName(), _viewState.errorMsg);
                     } else {
                         _thisStore.setArrayBuffer(data);
                         $rootScope.$emit('timelapse:querySuccessful');
@@ -76,7 +76,7 @@ function ($log, $rootScope, $q, $filter, $window, toaster, CONFIG, wfs, queryBin
                 $log.error(tag + '(' + _thisStore.getName() + ') ' + msg);
                 _viewState.isError = true;
                 _viewState.errorMsg = msg;
-                toaster.error('Error: ' + _thisStore.getName(), _viewState.errorMsg);
+                toastr.error('Error: ' + _thisStore.getName(), _viewState.errorMsg);
             });
         };
 

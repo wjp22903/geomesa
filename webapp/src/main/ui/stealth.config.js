@@ -51,7 +51,7 @@ module.exports = {
             'vendor/bower/filereader.js/filereader.js',
             'vendor/bower/FileSaver/FileSaver.js',
             'vendor/bower/datetimepicker/jquery.datetimepicker.js',
-            'vendor/bower/AngularJS-Toaster/toaster.js',
+            'vendor/bower/angular-toastr/dist/angular-toastr.tpls.js',
             'vendor/bower/sonic.js/dist/sonic.js',
             'vendor/bower/mathjs/dist/math.js',
             'vendor/bower/openlayers/OpenLayers.debug.js',

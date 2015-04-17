@@ -22,7 +22,6 @@
             <st-ol3-map-popup-builder></st-ol3-map-popup-builder>
             <st-header></st-header>
             <st-wizard></st-wizard>
-            <toaster-container toaster-options="{'position-class':'toast-bottom-right'}"></toaster-container>
         </div>
     </div>
     <div class="anchorBottom shadowTop classBanner {{::app.classification.level}}"

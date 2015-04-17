@@ -3,9 +3,9 @@ angular.module('stealth.timelapse.stores')
 .factory('stealth.timelapse.stores.BinStore', [
 '$log',
 '$q',
-'toaster',
+'toastr',
 'colors',
-function ($log, $q, toaster, colors) {
+function ($log, $q, toastr, colors) {
     var tag = 'stealth.timelapse.stores.BinStore: ';
     $log.debug(tag + 'factory started');
 
@@ -146,7 +146,7 @@ function ($log, $q, toaster, colors) {
             $log.error('Invalid binary data format');
             _viewState.isError = true;
             _viewState.errorMsg = 'Invalid data format';
-            toaster.error('Error: ' + this.getName(), _viewState.errorMsg);
+            toastr.error('Error: ' + this.getName(), _viewState.errorMsg);
         };
 
         if (!_.isUndefined(arrayBuffer)) {

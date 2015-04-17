@@ -1,0 +1,22 @@
+#toast-container > .waitingToast
+    background-image none !important
+
+#toast-container > .waitingToast:before
+    position fixed
+    font-family FontAwesome
+    font-size 24px
+    line-height 18px
+    float left
+    margin-left -1em
+    color #FFF
+    padding-right 0.5em
+    margin auto 0.5em auto -1.5em
+
+.waitingToast
+    background-color #2f96b4
+
+#toast-container > .waitingToastIcon:before
+    content "\f110"
+    -webkit-animation fa-spin 2s infinite linear
+    animation fa-spin 2s infinite linear
+    width 1em

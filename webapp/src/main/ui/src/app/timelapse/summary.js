@@ -2,11 +2,11 @@ angular.module('stealth.timelapse')
 
 .service('summaryExploreMgr', [
 '$timeout',
-'toaster',
+'toastr',
 'ol3Map',
 'stealth.core.geo.ol3.layers.GeoJsonVectorLayer',
 'CONFIG',
-function ($timeout, toaster, ol3Map, GeoJsonVectorLayer, CONFIG) {
+function ($timeout, toastr, ol3Map, GeoJsonVectorLayer, CONFIG) {
     var self = this;
     this.toggleSummaryLayer = function (layer) {
         if (_.isUndefined(layer.mapLayerId) || _.isNull(layer.mapLayerId)) {
@@ -93,7 +93,7 @@ function ($timeout, toaster, ol3Map, GeoJsonVectorLayer, CONFIG) {
             layer.summaries.push(summary);
             self.toggleSummaryLayer(summary);
         } else {
-            toaster.error('Summary Error', query.layerData.currentLayer.name + ' not found.');
+            toastr.error(query.layerData.currentLayer.name + ' not found.', 'Summary Error');
         }
     };
 }])

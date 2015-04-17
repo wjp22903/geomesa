@@ -10,10 +10,10 @@ function () {
 }])
 
 .directive('stHeader', [
-'toaster',
+'toastr',
 'headerManager',
 'CONFIG',
-function (toaster, manager, CONFIG) {
+function (toastr, manager, CONFIG) {
     return {
         restrict: 'E',
         scope: {},
@@ -23,25 +23,26 @@ function (toaster, manager, CONFIG) {
             $scope.logoUrl = 'assets/logo.png?' + CONFIG.app.loadTime;
             $scope.title = CONFIG.app.title;
             $scope.manager = manager;
+            var noTimeout = { timeOut: 0 };
             var currentBrowser = _.find(CONFIG.app.browsers, function (browserInfo, browserType) {
                 return bowser[browserType];
             });
             if (currentBrowser) {
                 if (bowser.version < currentBrowser.minVersion) {
-                    toaster.error('Unsupported Version', $scope.title + ' requires ' + currentBrowser.name +
+                    toastr.error($scope.title + ' requires ' + currentBrowser.name +
                                   ' version ' + currentBrowser.minVersion + ' or higher. ' +
-                                  $scope.title + ' may not function properly, please upgrade your browser.', 0);
+                                  $scope.title + ' may not function properly, please upgrade your browser.', 'Unsupported Version', noTimeout);
                 } else if (currentBrowser.maxVersion && bowser.version > currentBrowser.maxVersion) {
-                    toaster.error('Unsupported Version', $scope.title + ' requires ' + currentBrowser.name +
+                    toastr.error($scope.title + ' requires ' + currentBrowser.name +
                                   ' version between ' + currentBrowser.minVersion + ' and ' + currentBrowser.maxVersion + '. ' +
-                                  $scope.title + ' may not function properly, please downgrade your browser.', 0);
+                                  $scope.title + ' may not function properly, please downgrade your browser.', 'Unsupported Version', noTimeout);
                 }
                 if (_.isArray(currentBrowser.preferred) && !_.isEmpty(currentBrowser.preferred)) {
-                    toaster.warning('Browser Warning', $scope.title + ' is best viewed with ' + currentBrowser.preferred.join(' or ') + '.', 15000);
+                    toastr.warning($scope.title + ' is best viewed with ' + currentBrowser.preferred.join(' or ') + '.', 'Browser Warning', { timeOut: 15000 });
                 }
             } else {
-                toaster.error('Unsupported Browser', $scope.title + ' does not support ' + bowser.name.toUpperCase() +
-                              '. Please use one of the following supported browsers: ' + _.pluck(CONFIG.app.browsers, 'name').join() + '.', 0);
+                toastr.error($scope.title + ' does not support ' + bowser.name.toUpperCase() +
+                              '. Please use one of the following supported browsers: ' + _.pluck(CONFIG.app.browsers, 'name').join() + '.', 'Unsupported Browser', noTimeout);
             }
         }]
     };

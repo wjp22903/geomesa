@@ -5,7 +5,7 @@ describe('Factory', function () {
                 $provide.constant('CONFIG', STEALTH.config); // Provides CONFIG from testConfig.js.
             }
         ));
-        beforeEach(module('toaster'));
+        beforeEach(module('toastr'));
         beforeEach(module('stealth.core.utils'));
         beforeEach(module('stealth.timelapse.stores'));
 
