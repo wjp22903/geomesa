@@ -59,7 +59,9 @@ function ($log, $filter, $q, mapClickSearchService, MapLayer, CONFIG) {
         renderer: 'canvas',
         view: new ol.View({
             extent: (CONFIG.map && CONFIG.map.extent) ? CONFIG.map.extent : [-180, -90, 180, 90],
-            projection: _projection
+            projection: _projection,
+            minZoom: 2,
+            maxZoom: 17
         }),
         controls: [
             new ol.control.MousePosition({
