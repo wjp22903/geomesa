@@ -1,0 +1,11 @@
+<div class="layerStyleMapLayer layerStyleGrouping">
+    <ui-include src="'core/geo/ol3/layers/layer-fragments.tpl.html'" fragment="'.dragHandle'"></ui-include>
+    <ui-include src="'core/geo/ol3/layers/layer-fragments.tpl.html'" fragment="'.layerStyleRow.visibilityName'"></ui-include>
+    <div class="layerStyleRow">
+        <div class="cell">Light</div>
+        <div class="cell layerStyleSlider" style="width:100%">
+            <input type="range" ng-model="layerState.darkness" min="-1.0" max="1.0" step="0.01" st-float-slider>
+        </div>
+        <div class="cell">Dark</div>
+    </div>
+</div>

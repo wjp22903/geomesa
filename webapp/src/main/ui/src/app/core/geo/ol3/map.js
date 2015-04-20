@@ -34,8 +34,9 @@ function ($log, $interval, ol3Map, CONFIG) {
 '$q',
 'mapClickSearchService',
 'stealth.core.geo.ol3.layers.MapLayer',
+'stealth.core.geo.ol3.layers.TintLayer',
 'CONFIG',
-function ($log, $filter, $q, mapClickSearchService, MapLayer, CONFIG) {
+function ($log, $filter, $q, mapClickSearchService, MapLayer, TintLayer, CONFIG) {
     $log.debug('stealth.core.geo.ol3.map.ol3Map: service started');
     var _projection = CONFIG.map.projection;
     var _wmsOpts = {
@@ -254,24 +255,7 @@ function ($log, $filter, $q, mapClickSearchService, MapLayer, CONFIG) {
         })
     });
     this.addLayer(new MapLayer('Countries', countryLayer, false, -20));
-    var tintSource = new ol.source.GeoJSON({
-        object: {
-            "type": "Feature",
-            "geometry": {
-                "type": "Polygon",
-                "coordinates": [[[-180,90],[180,90],[180,-90],[-180,-90],[-180,90]]]
-            }
-        }
-    });
-    var tintLayer = new ol.layer.Vector({
-        source: tintSource,
-        visible: false,
-        opacity: 0.75,
-        style: new ol.style.Style({
-            fill: new ol.style.Fill({color: '#000'})
-        })
-    });
-    this.addLayer(new MapLayer('Tint', tintLayer, false));
+    this.addLayer(new TintLayer(CONFIG.map.initTint || 0));
 }])
 
 ;

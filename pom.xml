@@ -134,8 +134,7 @@
             [
                 {
                     serverUrl: "http://dgeo.ccri.com:8080/geoserver/wms",
-                    Name: "mapproxy:globe.osm.default",
-                    opacity: 0.5
+                    Name: "mapproxy:globe.osm.default"
                 }
             ]
         </map.initLayers>
@@ -194,6 +193,7 @@
             ]
         </map.liveOptions>
         <map.projection>EPSG:4326</map.projection>
+        <map.initTint>0.75</map.initTint>
 
         <classification.text>Dynamic Page - Highest Possible Classification is UNCLASSIFIED//FOR OFFICIAL USE ONLY</classification.text>
         <!-- supported levels: unclassified, confidential, secret, topSecret, sci -->
