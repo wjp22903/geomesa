@@ -1,22 +1,31 @@
 <ng-form name="wizardForm">
     <p>
-        Enter time bounds.
+        Select search time range.
     </p>
-    <table style="border-collapse:separate;border-spacing:2px;">
+    <div style="margin-bottom: 10px;width: 100%; text-align: center;">
+        <div class="btn btn-default btn-xs" ng-model="query.timeData.range" btn-radio="1" ng-click="query.updateTimeRange(1)">1 H</div>
+        <div class="btn btn-default btn-xs" ng-model="query.timeData.range" btn-radio="3" ng-click="query.updateTimeRange(3)">3 H</div>
+        <div class="btn btn-default btn-xs" ng-model="query.timeData.range" btn-radio="6" ng-click="query.updateTimeRange(6)">6 H</div>
+        <div class="btn btn-default btn-xs" ng-model="query.timeData.range" btn-radio="12" ng-click="query.updateTimeRange(12)">12 H</div>
+        <div class="btn btn-default btn-xs" ng-model="query.timeData.range" btn-radio="'Custom'" ng-click="query.updateTimeRange()">Custom</div>
+    </div>
+    <table style="border-collapse:separate;border-spacing:2px;font-size:16px;" >
         <tr>
             <td><label>Start: </label></td>
             <td>
                 <input type="text" ng-model="query.params.startDtg" ui-jq="datetimepicker"
+                       ng-readonly="!query.timeData.isCustom" ng-focus="query.updateTimeRange()"
                        ui-options="{todayButton: false, yearStart: 1990, yearEnd: 2030, step: 15, format: 'Y-m-d H:i'}"
-                       st-utc-moment-format="YYYY-MM-DD HH:mm" style="width:120px;" required> Z
+                       st-utc-moment-format="YYYY-MM-DD HH:mm" style="font-size:16px;" required> Z
             </td>
         </tr>
         <tr>
             <td><label>End: </label></td>
             <td>
                 <input type="text" ng-model="query.params.endDtg" ui-jq="datetimepicker"
+                       ng-readonly="!query.timeData.isCustom" ng-focus="query.updateTimeRange()"
                        ui-options="{todayButton: false, yearStart: 1990, yearEnd: 2030, step: 15, format: 'Y-m-d H:i'}"
-                       st-utc-moment-format="YYYY-MM-DD HH:mm" style="width:120px;" required> Z
+                       st-utc-moment-format="YYYY-MM-DD HH:mm" style="font-size:16px;" required> Z
             </td>
         </tr>
     </table>

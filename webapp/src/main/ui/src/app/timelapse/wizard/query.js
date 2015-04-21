@@ -32,12 +32,16 @@ function ($rootScope, tlLayerManager, summaryExploreMgr, QueryBinStore) {
 function (wfs, owsLayers, CONFIG) {
     var idSeq = 1;
     var now = moment().utc();
-    var oneWeekAgo = now.clone().subtract(7, 'days');
+    var defaultTimeWindow = now.clone().subtract(3, 'hours');
 
     var query = function (overrides) {
         var _self = this;
 
         this.layerData = {};
+        this.timeData = {
+            range: 3,
+            isCustom: false
+        };
         this.params = {
             idField: null,
             geomField: null,
@@ -47,7 +51,7 @@ function (wfs, owsLayers, CONFIG) {
             minLat: -90,
             maxLon: 180,
             minLon: -180,
-            startDtg: oneWeekAgo,
+            startDtg: defaultTimeWindow,
             endDtg: now,
             cql: null
         };
@@ -74,6 +78,18 @@ function (wfs, owsLayers, CONFIG) {
                     _self.getFeatureTypeDescription();
                 }
             });
+
+        this.updateTimeRange = function (range) {
+            if (_.isNumber(range)) {
+                this.params.endDtg = now;
+                this.params.startDtg = now.clone().subtract(range, 'hours');
+                this.timeData.isCustom = false;
+                this.timeData.range = range;
+            } else {
+                this.timeData.isCustom = true;
+                this.timeData.range = 'Custom';
+            }
+        };
 
         // Invoked when the current selected layer changes on query form.
         this.getFeatureTypeDescription = function () {
