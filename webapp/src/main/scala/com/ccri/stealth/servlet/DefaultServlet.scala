@@ -7,11 +7,12 @@ import org.scalatra.scalate.ScalateSupport
 import org.slf4j.LoggerFactory
 import spray.json._
 
-class DefaultServlet extends ScalatraServlet
+class DefaultServlet(appContext: String) extends ScalatraServlet
   with ScalateSupport
   with PkiAuthenticationSupport {
   val logger = LoggerFactory.getLogger(getClass)
-  val conf = ConfigFactory.load().getConfig("stealth")
+  val rootConf = ConfigFactory.load()
+  val conf = rootConf.getConfig(appContext).withFallback(rootConf.getConfig("stealth"))
 
   get("/?") {
       redirect("/!")

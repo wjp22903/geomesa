@@ -569,6 +569,7 @@
             <id>thresher</id>
             <properties>
                 <stealth.classifier>thresher</stealth.classifier>
+                <app.context>thresher</app.context>
                 <app.title>Thresher</app.title>
                 <app.plugins>
                     [
@@ -580,6 +581,8 @@
                 <map.initLayers>[]</map.initLayers>
                 <map.extraLayers>[]</map.extraLayers>
                 <map.liveOptions>[]</map.liveOptions>
+                <geoserver.url>/geoserver</geoserver.url>
+                <geoserver.omitProxy>true</geoserver.omitProxy>
             </properties>
         </profile>
         <profile>

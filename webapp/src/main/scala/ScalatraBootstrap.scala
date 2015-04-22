@@ -4,6 +4,6 @@ import org.scalatra.LifeCycle
 
 class ScalatraBootstrap extends LifeCycle {
   override def init(context: ServletContext) {
-    context.mount(new DefaultServlet, "/", "stealth")
+    context.mount(new DefaultServlet(context.contextPath.substring(1)), "/", "stealth")
   }
 }
