@@ -14,10 +14,10 @@ angular.module('stealth.core.geo.ol3.manager', [
 function ($log, $rootScope, sidebarManager, startMenuManager, WidgetDef) {
     var panelScope = $rootScope.$new();
     panelScope.view = 'explore'; //default view
-    var sidebarId = sidebarManager.addButton('Map Manager', 'fa-globe', 400,
+    var sidebarId = sidebarManager.toggleButton(sidebarManager.addButton('Map Manager', 'fa-globe', 400,
         new WidgetDef('st-ol3-manager', panelScope, "view='view'"),
         new WidgetDef('st-ol3-manager-view-switcher', panelScope, "view='view'"),
-        true);
+        true), true);
     startMenuManager.addButton('Map Manager', 'fa-globe', function () {
         sidebarManager.toggleButton(sidebarId, true);
     });

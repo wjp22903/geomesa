@@ -100,12 +100,18 @@ function ($rootScope, $timeout, catMgr, Category, WidgetDef, owsLayers, ol3Map,
                         categoryScope.workspaces[workspace] = [layer];
                     }
                     //Turn on configured layers
-                    var initLayer = _.find(CONFIG.map.initLayers, {Name: layer.Name, serverUrl: layer.serverUrl});
-                    if (initLayer) {
-                        layer.viewState.isOnMap = true;
-                        layer.viewState.toggledOn = true;
-                        layer.viewState.lastOpacity = initLayer.opacity || layer.viewState.lastOpacity;
-                        categoryScope.toggleLayer(layer, workspace);
+                    if (layer.Name) {
+                        var search = {Name: layer.Name};
+                        if (layer.serverUrl) {
+                            search.serverUrl = layer.serverUrl;
+                        }
+                        var initLayer = _.find(CONFIG.map.initLayers, search);
+                        if (initLayer) {
+                            layer.viewState.isOnMap = true;
+                            layer.viewState.toggledOn = true;
+                            layer.viewState.lastOpacity = initLayer.opacity || layer.viewState.lastOpacity;
+                            categoryScope.toggleLayer(layer, workspace);
+                        }
                     }
                 });
             });

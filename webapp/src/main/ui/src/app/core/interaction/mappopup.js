@@ -2,6 +2,31 @@ angular.module('stealth.core.interaction.mappopup', [
     'stealth.core.geo.ol3.map'
 ])
 
+.run([
+'$rootScope',
+'$compile',
+'ol3Map',
+function ($rootScope, $compile, ol3Map) {
+    var _idSeq = 0;
+    var buildFn = function (event) {
+        $rootScope.$evalAsync(function () {
+            var html = '<div st-ol3-map-popup lat="' + event.coordinate[1] + '" lon="' +
+                event.coordinate[0] + '" popup-id="' + (_idSeq++) + '" ' +
+                'style="z-index: 92"></div>';
+            var el = angular.element(html);
+            angular.element('.primaryDisplay').append(el);
+            $compile(el)($rootScope);
+        });
+    };
+    ol3Map.on('click', buildFn);
+    $rootScope.$on('wizard:launchWizard', function () {
+        ol3Map.un('click', buildFn);
+    });
+    $rootScope.$on('wizard:closeWizard', function () {
+        ol3Map.on('click', buildFn);
+    });
+}])
+
 .service('mapClickSearchService', [
 '$log',
 '$rootScope',
@@ -95,8 +120,8 @@ function ($element, $filter, $scope, $rootScope, mapClickSearchService, ol3Map) 
     this.wizardActive = false;
     this.lat = parseFloat($element.attr('lat'));
     this.lon = parseFloat($element.attr('lon'));
-    this.maxWidth = Math.ceil(mapSize[0] * 0.6);
-    this.maxHeight = Math.ceil(mapSize[1] * 0.6);
+    this.maxWidth = Math.ceil(mapSize[0] * 0.5);
+    this.maxHeight = Math.ceil(mapSize[1] * 0.5);
     this.results = [];
 
     /**
@@ -128,6 +153,7 @@ function ($element, $filter, $scope, $rootScope, mapClickSearchService, ol3Map) 
                 _self.loading = false;
                 $scope.$broadcast('Results Loaded');
                 $rootScope.$emit('Popup Focus Change', id);
+                overlay.setPositioning(getPositioning(_self.lat, _self.lon));
             } else {
                 _self.closePopup();
             }
@@ -135,8 +161,25 @@ function ($element, $filter, $scope, $rootScope, mapClickSearchService, ol3Map) 
     };
 
     // Add overlay to the map and position it at the click site.
-    ol3Map.addOverlay(overlay);
+    var getPositioning = function (lat, lon) {
+        var extent = ol3Map.getExtent();
+        var center = ol3Map.getCenter();
+        if (lon < (center[0] + 0.15 * (extent[2] - extent[0]))) {
+            if (lat < center[1]) {
+                return 'bottom-left';
+            } else {
+                return 'top-left';
+            }
+        } else {
+            if (lat < center[1]) {
+                return 'bottom-right';
+            } else {
+                return 'top-right';
+            }
+        }
+    };
     overlay.setPosition([_self.lon, _self.lat]);
+    ol3Map.addOverlay(overlay);
 
     // Register map listeners.
     var closeUnpinned = function (event) {
@@ -177,46 +220,16 @@ function () {
         controllerAs: 'mapPopCtrl',
         templateUrl: 'core/interaction/mappopup.tpl.html',
         link: function (scope, element, attrs) {
-            element.parent().css('height', 0);
             element.draggable({
                 stop: function (event, ui) {
                     scope.$apply(function () {
                         element.css('width', '');
+                        element.parent().css('height', 0);
                     });
                 }
             });
             scope.$on('$destroy', function () {
                 element.draggable('destroy');
-            });
-        }
-    };
-}])
-
-.directive('stOl3MapPopupBuilder', [
-'$rootScope',
-'$compile',
-'ol3Map',
-function ($rootScope, $compile, ol3Map) {
-    return {
-        restrict: 'E',
-        link: function (scope, element, attrs) {
-            var _idSeq = 0;
-            var buildFn = function (event) {
-                scope.$evalAsync(function () {
-                    var html = '<div st-ol3-map-popup lat="' + event.coordinate[1] + '" lon="' +
-                        event.coordinate[0] + '" popup-id="' + (_idSeq++) + '" ' +
-                        'style="z-index: 92"></div>';
-                    var el = angular.element(html);
-                    element.append(el);
-                    $compile(el)(scope);
-                });
-            };
-            ol3Map.on('click', buildFn);
-            $rootScope.$on('wizard:launchWizard', function () {
-                ol3Map.un('click', buildFn);
-            });
-            $rootScope.$on('wizard:closeWizard', function () {
-                ol3Map.on('click', buildFn);
             });
         }
     };

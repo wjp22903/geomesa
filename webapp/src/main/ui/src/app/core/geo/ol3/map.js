@@ -232,6 +232,12 @@ function ($log, $filter, $q, mapClickSearchService, MapLayer, TintLayer, CONFIG)
     this.getResolution = function () {
         return _map.getView().getResolution();
     };
+    /**
+     * Returns the current center of the map view.
+     */
+    this.getCenter = function () {
+        return _map.getView().getCenter();
+    };
 
     // ***** Initialization *****
     //Built-in layers
