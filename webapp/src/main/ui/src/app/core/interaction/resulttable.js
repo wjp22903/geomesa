@@ -116,10 +116,12 @@ function ($element, $scope, $filter, $timeout) {
                     case 'date-time':
                         return moment.utc(value).format('YYYY-MM-DD[T]HH:mm:ss[Z]');
                     case 'number':
-                        return $filter('numberTrim')(value, 5);
-                    default:
-                        return value;
+                        return $filter('numberTrim')(value, 4);
                 }
+            }
+        } else {
+            if (_.isNumber(value)) {
+                return $filter('numberTrim')(value, 4);
             }
         }
         return value;

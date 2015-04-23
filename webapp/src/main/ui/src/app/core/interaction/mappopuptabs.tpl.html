@@ -1,0 +1,16 @@
+<div>
+    <div class="pull-left" style="display:inline-block;">
+        <div ng-repeat="tab in tabs" ng-click="setActiveTabIdx($index)" class="btn-default"
+             tooltip-html-unsafe="{{::tab.tooltipText}}"
+             tooltip-placement="left" tooltip-animation="false" tootip-popup-delay="500"
+             tooltip-trigger="mouseenter">
+            <i class="fa fa-fw" ng-class="::tab.iconClass"></i>
+        </div>
+    </div>
+    <div class="pull-left" style="display:inline-block;">
+        <st-widget-compiler ng-repeat="tab in tabs"
+                            widget-def="::tab.widgetDef"
+                            ng-class="{'ng-hide': activeTabIdx!==$index}">
+        </st-widget-compiler>
+    </div>
+</div>
