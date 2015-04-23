@@ -35,14 +35,16 @@ function () {
 })
 
 .directive('stStartMenu', [
+'$window',
 'startMenuManager',
-function (startMenuManager) {
+'CONFIG',
+function ($window, startMenuManager, CONFIG) {
     return {
         restrict: 'E',
         templateUrl: 'core/startmenu/startmenu.tpl.html',
         scope: {},
-        controller: ['$scope', '$window', function ($scope, $window) {
-            $scope.show = true;
+        controller: ['$scope', function ($scope) {
+            $scope.show = CONFIG.app.showStartPop;
             $scope.manager = startMenuManager;
             $scope.status = {
                 isOpen: false

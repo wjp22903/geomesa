@@ -83,6 +83,7 @@
         <app.title>Stealth</app.title>
         <app.context>stealth</app.context>
         <app.context.path>/${app.context}</app.context.path>
+        <app.showStartPop>false</app.showStartPop>
         <app.supported.browsers>
             {
                 chrome: {
