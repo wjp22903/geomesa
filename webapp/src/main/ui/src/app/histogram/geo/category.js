@@ -229,17 +229,9 @@ function ($log, $rootScope, $timeout,
     }
 
     scope.updateHistogram = function (id) {
-        var gsLayers = _.reduce(scope.workspaces, function (result, workspaceLayers, key) {
-            return workspaceLayers;
-        }, []);
-
-        var derivedLayers = _.reduce(gsLayers, function (result, gsLayer, key) {
-            return gsLayer.derivedLayers;
-        }, []);
-
-        var derivedLayer = _.find(derivedLayers, function (lyr) {
-            return lyr.mapLayerId == id;
-        });
+        var gsLayers = _.flatten(_.map(scope.workspaces, _.identity));
+        var derivedLayers = _.flatten(_.pluck(gsLayers, 'derivedLayers'));
+        var derivedLayer = _.find(derivedLayers, {'mapLayerId': id});
 
         if (_.isUndefined(derivedLayer) || derivedLayer.histogram.viewState.isLoading) {
             return;
@@ -428,8 +420,10 @@ function ($log, $rootScope, $timeout,
         var now = moment().utc();
         var oneWeekAgo = now.clone().subtract(7, 'days');
 
-        var dtgF = _.find(gsLayer.featureTypeDescription.featureTypes[0].properties, {'name': gsLayer.KeywordConfig.capability.histogram.field.dtg});
-        var geomF = _.find(gsLayer.featureTypeDescription.featureTypes[0].properties, {'name': gsLayer.KeywordConfig.capability.histogram.field.geom});
+        var dtgF = _.find(gsLayer.featureTypeDescription.featureTypes[0].properties,
+            {'name': _.deepGet(gsLayer.KeywordConfig, 'capability.histogram.field.dtg') || 'dtg'});
+        var geomF = _.find(gsLayer.featureTypeDescription.featureTypes[0].properties,
+            {'name': _.deepGet(gsLayer.KeywordConfig, 'capability.histogram.field.geom') || 'geom'});
 
         var query = {
             featureTypeData: gsLayer.featureTypeDescription,
@@ -440,8 +434,8 @@ function ($log, $rootScope, $timeout,
                 }
             },
             params: {
-                dtgField: _.isUndefined(dtgF) ? 'dtg' : dtgF,
-                geomField: _.isUndefined(geomF) ? 'geom' : geomF,
+                dtgField: dtgF,
+                geomField: geomF,
                 minLon: -180,
                 minLat: -90,
                 maxLon: 180,
