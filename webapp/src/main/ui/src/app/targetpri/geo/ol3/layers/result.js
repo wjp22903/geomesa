@@ -4,8 +4,8 @@ angular.module('stealth.targetpri.geo.ol3.layers')
 'stealth.core.geo.ol3.layers.WmsLayer',
 'targetPriResultLayerExtender',
 function (WmsLayer, targetPriResultLayerExtender) {
-    var TargetPriResultLayer = function (name, requestParams, queryable, zIndexHint, wmsUrl, onLoad, request, dataSource) {
-        WmsLayer.apply(this, arguments);
+    var TargetPriResultLayer = function (wmsOptions, request, dataSource) {
+        WmsLayer.call(this, wmsOptions);
         var getCapabilities = this.getCapabilities;
         this.getCapabilities = function () {
             var capabilities = getCapabilities();

@@ -52,11 +52,17 @@ function ($rootScope, $q, sidebarManager, WidgetDef, proximityService,
                 dataLayerFilter: filter,
                 bufferMeters: req.proximityMeters
             }).then(function (layerName) {
-                dataSource.proximityLayer = category.addLayer(new TargetPriResultLayer(dataSource.Title + ' for [' + req.name + ']', {
-                    LAYERS: layerName,
-                    STYLES: 'stealth_dataPoints',
-                    ENV: 'color:BEBE40;opacity:0.6;size:10'
-                }, true, null, null, null, req, dataSource));
+                dataSource.proximityLayer = category.addLayer(
+                    new TargetPriResultLayer({
+                        name: dataSource.Title + ' for [' + req.name + ']',
+                        requestParams: {
+                            LAYERS: layerName,
+                            STYLES: 'stealth_dataPoints',
+                            ENV: 'color:BEBE40;opacity:0.6;size:10'
+                        },
+                        queryable: true
+                    }, req, dataSource)
+                );
                 return layerName;
             });
             return {

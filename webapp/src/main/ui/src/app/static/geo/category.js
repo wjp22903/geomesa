@@ -75,9 +75,11 @@ function ($timeout, owsLayers, colors, ol3Map, WmsLayer, CONFIG) {
             };
             updateIconImgSrc(filterLayer);
 
-            var mapLayer = new WmsLayer(filterLayer.title + ' - ' +
-                                        (filterLayer.layerTitle || filterLayer.layerName),
-                                        requestParams, true);
+            var mapLayer = new WmsLayer({
+                name: filterLayer.title + ' - ' + (filterLayer.layerTitle || filterLayer.layerName),
+                requestParams: requestParams,
+                queryable: true
+            });
 
             var updateRequestParams = function (filterLayer) {
                 var markerStyle = filterLayer.viewState.markerStyle;

@@ -22,12 +22,15 @@ function ($rootScope, $timeout, catMgr, Category, WidgetDef, owsLayers, ol3Map,
             var requestParams = {
                 LAYERS: layer.Name
             };
-            var wmsLayer = new WmsLayer(layer.Title,
-                                        requestParams,
-                                        layer.queryable,
-                                        layer.viewState.lastOpacity,
-                                        (workspace.toLowerCase().indexOf('base') === 0 ? -20 : -10),
-                                        layer.serverUrl);
+            var wmsLayer = new WmsLayer({
+                name: layer.Title,
+                requestParams: requestParams,
+                queryable: layer.queryable,
+                opacity: layer.viewState.lastOpacity,
+                zIndexHint: (workspace.toLowerCase().indexOf('base') === 0 ? -20 : -10),
+                wmsUrl: layer.serverUrl,
+                isTiled: _.deepHas(layer.KeywordConfig, 'capability.tiled')
+            });
             wmsLayer.applyCql(layer.cqlFilter);
             var ol3Layer = wmsLayer.getOl3Layer();
             layer.mapLayerId = wmsLayer.id;

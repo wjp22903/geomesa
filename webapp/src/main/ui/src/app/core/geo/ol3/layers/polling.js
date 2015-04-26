@@ -14,12 +14,19 @@ function ($log, $interval, WmsLayer) {
         var _refreshAfterLoad = false;
 
         $log.debug(tag + 'new PollingImageWmsLayer(' + arguments[0] + ')');
-        WmsLayer.apply(_self, [name, requestParams, queryable, 1, zIndexHint, wmsUrl, function () {
-            if (_refreshAfterLoad) {
-                _refreshAfterLoad = false;
-                _self.refresh();
+        WmsLayer.call(_self, {
+            name: name,
+            requestParams: requestParams,
+            queryable: queryable,
+            zIndexHint: zIndexHint,
+            wmsUrl: wmsUrl,
+            onLoad: function () {
+                if (_refreshAfterLoad) {
+                    _refreshAfterLoad = false;
+                    _self.refresh();
+                }
             }
-        }]);
+        });
 
         _self.refresh = function (requestParams) {
             _params = requestParams || _params;
