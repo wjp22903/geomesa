@@ -51,6 +51,7 @@
                 <artifactId>maven-war-plugin</artifactId>
                 <version>2.4</version>
                 <configuration>
+                    <classifier>${stealth.classifier}</classifier>
                     <archive>
                         <manifest>
                             <mainClass>Runner</mainClass>
@@ -524,6 +525,7 @@
         <profile>
             <id>ds</id>
             <properties>
+                <stealth.classifier>dragonspell</stealth.classifier>
                 <app.title>DragonSpell</app.title>
                 <classification.text>Dynamic Page - Highest Possible Classification is TOP SECRET//SI//TK//NOFORN</classification.text>
                 <classification.level>sci</classification.level>
@@ -566,6 +568,7 @@
         <profile>
             <id>thresher</id>
             <properties>
+                <stealth.classifier>thresher</stealth.classifier>
                 <app.title>Thresher</app.title>
                 <app.plugins>
                     [
@@ -582,6 +585,7 @@
         <profile>
             <id>skyquest</id>
             <properties>
+                <stealth.classifier>skyquest</stealth.classifier>
                 <app.title>SkyQuest</app.title>
                 <app.plugins>
                     [
