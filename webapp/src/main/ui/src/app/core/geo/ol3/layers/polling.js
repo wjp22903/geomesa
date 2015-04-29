@@ -76,13 +76,6 @@ function ($log, $interval, WmsLayer) {
         };
 
         var polling = startPolling(_pollingInterval, _self.refresh);
-
-        var searchPoint = this.searchPoint;
-        this.searchPoint = function (coord, res) {
-            return searchPoint.call(this, coord, res, {
-                BUFFER: 5 //more generous search radius because live layer moves
-            });
-        };
     };
     PollingImageWmsLayer.prototype = Object.create(WmsLayer.prototype);
 

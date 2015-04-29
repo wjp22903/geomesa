@@ -122,6 +122,12 @@ function ($log, $filter, $q, mapClickSearchService, MapLayer, TintLayer, CONFIG)
         return _layers;
     };
     /**
+     * Get the map's ol.View.
+     */
+    this.getView = function () {
+        return _map.getView();
+    };
+    /**
      * Adds a layer to the map.
      */
     this.addLayer = function (layer, index) {

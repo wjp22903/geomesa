@@ -158,7 +158,8 @@
                     KeywordList: [
                         "stealth.context.Manhattan"
                     ],
-                    queryable: true
+                    queryable: true,
+                    useProxyForWfs: true
                 }
             ]
         </map.extraLayers>

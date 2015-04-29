@@ -29,7 +29,9 @@ function ($rootScope, $timeout, catMgr, Category, WidgetDef, owsLayers, ol3Map,
                 opacity: layer.viewState.lastOpacity,
                 zIndexHint: (workspace.toLowerCase().indexOf('base') === 0 ? -20 : -10),
                 wmsUrl: layer.serverUrl,
-                isTiled: _.deepHas(layer.KeywordConfig, 'capability.tiled')
+                isTiled: _.deepHas(layer.KeywordConfig, 'capability.tiled'),
+                wfsUrl: layer.wfsUrl,
+                useProxyForWfs: layer.useProxyForWfs
             });
             wmsLayer.applyCql(layer.cqlFilter);
             var ol3Layer = wmsLayer.getOl3Layer();

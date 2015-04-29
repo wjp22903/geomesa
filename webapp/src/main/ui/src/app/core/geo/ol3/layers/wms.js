@@ -3,11 +3,10 @@ angular.module('stealth.core.geo.ol3.layers')
 .factory('stealth.core.geo.ol3.layers.WmsLayer', [
 '$log',
 '$timeout',
-'$http',
-'$filter',
+'wfs',
 'stealth.core.geo.ol3.layers.MapLayer',
 'CONFIG',
-function ($log, $timeout, $http, $filter, MapLayer, CONFIG) {
+function ($log, $timeout, wfs, MapLayer, CONFIG) {
     var tag = 'stealth.core.geo.ol3.layers.WmsLayer: ';
     $log.debug(tag + 'factory started');
     /**
@@ -25,19 +24,23 @@ function ($log, $timeout, $http, $filter, MapLayer, CONFIG) {
      * @param {string} [options.wmsUrl] - The url to use when loading the WMS layer.
      * @param {boolean} [options.isTiled=false] - If true, load the layer in tiles using GeoWebCache. Otherwise loads as a single image.
      * @param {onLoad} [options.onLoad] - Called on each WMS image load start.
+     * @param {string} [options.wfsUrl] - (Optional) URL to use for WFS queries.
+     * @param {boolean} [options.useProxyForWfs=false] - If true, use CORS proxy for WFS.
      */
     var WmsLayer = function (options) {
+        var _options = options || {};
         var _self = this;
         var _isLoading = false;
-        var _requestParams = options.requestParams || {};
+        var _requestParams = _options.requestParams || {};
+        var _isTiled = !_.isUndefined(_options.isTiled) && _options.isTiled;
         var _olSource;
         var _olLayer;
         var _loadStart = function () {
             _self.styleDirectiveScope.$evalAsync(function () {
                 _isLoading = true;
                 _self.styleDirectiveScope.$emit(_self.id + ':isLoading');
-                if (_.isFunction(options.onLoad)) {
-                    options.onLoad.call(this);
+                if (_.isFunction(_options.onLoad)) {
+                    _options.onLoad.call(this);
                 }
             });
         };
@@ -52,10 +55,10 @@ function ($log, $timeout, $http, $filter, MapLayer, CONFIG) {
             _requestParams.VERSION = '1.1.1';
         }
 
-        if (options.isTiled) {
+        if (_isTiled) {
             var loadingTileCount = 0;
             _olSource = new ol.source.TileWMS({
-                url: options.wmsUrl || (CONFIG.geoserver.defaultUrl + '/gwc/service/wms'),
+                url: _options.wmsUrl || (CONFIG.geoserver.defaultUrl + '/gwc/service/wms'),
                 params: _requestParams
             });
 
@@ -77,7 +80,7 @@ function ($log, $timeout, $http, $filter, MapLayer, CONFIG) {
             });
         } else {
             _olSource = new ol.source.ImageWMS({
-                url: options.wmsUrl || (CONFIG.geoserver.defaultUrl + '/wms'),
+                url: _options.wmsUrl || (CONFIG.geoserver.defaultUrl + '/wms'),
                 params: _requestParams
             });
 
@@ -94,12 +97,12 @@ function ($log, $timeout, $http, $filter, MapLayer, CONFIG) {
             });
         }
 
-        if (_.isNumber(options.opacity)) {
-            _olLayer.setOpacity(Math.min(Math.max(options.opacity, 0), 1));
+        if (_.isNumber(_options.opacity)) {
+            _olLayer.setOpacity(Math.min(Math.max(_options.opacity, 0), 1));
         }
 
         $log.debug(tag + 'new WmsLayer(' + arguments[0] + ')');
-        MapLayer.apply(this, [options.name, _olLayer, options.queryable, options.zIndexHint]);
+        MapLayer.apply(this, [_options.name, _olLayer, _options.queryable, _options.zIndexHint]);
 
         this.updateRequestParams = function (params) {
             params.unique = _.now();
@@ -118,14 +121,38 @@ function ($log, $timeout, $http, $filter, MapLayer, CONFIG) {
 
         this.searchPoint = function (coord, res, requestOverrides) {
             var baseResponse = this.getEmptySearchPointResult();
-            var url = this.getOl3Layer().getSource().getGetFeatureInfoUrl(
-                coord, res, CONFIG.map.projection, _.merge({
-                    INFO_FORMAT: 'application/json',
-                    FEATURE_COUNT: 999999
-                }, requestOverrides)
-            );
-            return $http.get($filter('cors')(url, null, CONFIG.geoserver.omitProxy))
-                .then(function (response) {
+            var radius = 5; // Default to 5px search radius;
+            var url;
+            var extent;
+            var modifier;
+            var params;
+            var queryPromise;
+
+            requestOverrides = requestOverrides || {};
+            if (_.isNumber(requestOverrides.BUFFER)) {
+                radius = requestOverrides.BUFFER;
+            }
+            modifier = res * radius;
+            extent = [
+                coord[0] - modifier,
+                coord[1] - modifier,
+                coord[0] + modifier,
+                coord[1] + modifier
+            ];
+            params = {
+                'BBOX': extent.join(','),
+                'srsName': ol.proj.get(CONFIG.map.projection).getCode()
+            };
+            _.merge(params, requestOverrides);
+
+            if (_.isString(_options.wfsUrl)) {
+                queryPromise = wfs.getFeature(_options.wfsUrl, _olSource.getParams()['LAYERS'], !(_options.useProxyForWfs), params, 'text', true);
+            } else if (_.isString(_options.wmsUrl)) {
+                queryPromise = wfs.getFeature(_options.wmsUrl.replace(/(gwc\/service\/)?wms/g, ''), _olSource.getParams()['LAYERS'], !(_options.useProxyForWfs), params);
+            } else {
+                queryPromise = wfs.getFeature(CONFIG.geoserver.defaultUrl, _olSource.getParams()['LAYERS'], CONFIG.geoserver.omitProxy, params);
+            }
+            return queryPromise.then(function (response) {
                     return _.merge(baseResponse, {
                         records: _.pluck(response.data.features, 'properties'),
                         layerFill: {
@@ -137,7 +164,8 @@ function ($log, $timeout, $http, $filter, MapLayer, CONFIG) {
                         isError: true,
                         reason: 'Server error'
                     });
-                });
+                }
+            );
         };
     };
     WmsLayer.prototype = Object.create(MapLayer.prototype);
