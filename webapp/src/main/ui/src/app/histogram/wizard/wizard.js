@@ -7,12 +7,13 @@ angular.module('stealth.histogram.wizard')
 'ol3Map',
 'wizardManager',
 'colors',
+'cqlHelper',
 'stealth.core.geo.ol3.layers.MapLayer',
 'stealth.core.wizard.Step',
 'stealth.core.wizard.Wizard',
 'stealth.core.utils.WidgetDef',
 function ($log, $rootScope, $filter,
-          ol3Map, wizardManager, colors,
+          ol3Map, wizardManager, colors, cqlHelper,
           MapLayer, Step, Wizard, WidgetDef) {
     var tag = 'stealth.histogram.wizard.histogramWizard: ';
     $log.debug(tag + 'service started');
@@ -55,21 +56,6 @@ function ($log, $rootScope, $filter,
                 }
             }
         });
-    }
-
-    function buildCQLFilter(query) {
-        var cql_filter =
-            'BBOX(' + query.params.geomField.name + ',' +
-            query.params.minLon + ',' + query.params.minLat + ',' +
-            query.params.maxLon + ',' + query.params.maxLat + ')' +
-            ' AND ' + query.params.dtgField.name + ' DURING ' +
-            query.params.startDtg.format('YYYY-MM-DD[T]HH:mm:ss[Z]') +
-            '/' +
-            query.params.endDtg.format('YYYY-MM-DD[T]HH:mm:ss[Z]');
-        if (query.params.cql) {
-            cql_filter += ' AND ' + query.params.cql;
-        }
-        return cql_filter;
     }
 
     var ol3Layer = new ol.layer.Vector({
@@ -204,7 +190,7 @@ function ($log, $rootScope, $filter,
                 ol3Map.removeLayer(boxLayer);
 
                 if (success) {
-                    wizScope.query.params.cqlFilter = buildCQLFilter(wizScope.query);
+                    wizScope.query.params.cqlFilter = cqlHelper.buildSpaceTimeFilter(wizScope.query.params);
                     var derivedLayer = {
                         title: wizScope.query.params.title,
                         query: wizScope.query,

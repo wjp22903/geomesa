@@ -24,7 +24,7 @@ function ($log, $timeout, wfs, MapLayer, CONFIG) {
      * @param {string} [options.wmsUrl] - The url to use when loading the WMS layer.
      * @param {boolean} [options.isTiled=false] - If true, load the layer in tiles using GeoWebCache. Otherwise loads as a single image.
      * @param {onLoad} [options.onLoad] - Called on each WMS image load start.
-     * @param {string} [options.wfsUrl] - (Optional) URL to use for WFS queries.
+     * @param {string} [options.wfsUrl] - URL to use for WFS queries.
      * @param {boolean} [options.useProxyForWfs=false] - If true, use CORS proxy for WFS.
      */
     var WmsLayer = function (options) {

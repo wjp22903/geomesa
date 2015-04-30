@@ -11,6 +11,7 @@ angular.module('stealth.histogram.geo', [
 'wms',
 'wfs',
 'owsLayers',
+'cqlHelper',
 'categoryManager',
 'tlControlsManager',  //TODO: remove coupling to timelapse plugin
 'histogramQueryService',
@@ -21,7 +22,7 @@ angular.module('stealth.histogram.geo', [
 'stealth.core.geo.ol3.layers.MapLayer',
 'CONFIG',
 function ($log, $rootScope, $timeout,
-          ol3Map, wms, wfs, owsLayers, catMgr, controlsMgr,
+          ol3Map, wms, wfs, owsLayers, cqlHelper, catMgr, controlsMgr,
           histQueryService, histWizard, histBuilder,
           Category, WidgetDef, MapLayer,
           CONFIG) {
@@ -213,21 +214,6 @@ function ($log, $rootScope, $timeout,
         }
     };
 
-    function buildCQLFilter(query) {
-        var cql_filter =
-            'BBOX(' + query.params.geomField.name + ',' +
-            query.params.minLon + ',' + query.params.minLat + ',' +
-            query.params.maxLon + ',' + query.params.maxLat + ')' +
-            ' AND ' + query.params.dtgField.name + ' DURING ' +
-            query.params.startDtg.format('YYYY-MM-DD[T]HH:mm:ss[Z]') +
-            '/' +
-            query.params.endDtg.format('YYYY-MM-DD[T]HH:mm:ss[Z]');
-        if (query.params.cql) {
-            cql_filter += ' AND ' + query.params.cql;
-        }
-        return cql_filter;
-    }
-
     scope.updateHistogram = function (id) {
         var gsLayers = _.flatten(_.map(scope.workspaces, _.identity));
         var derivedLayers = _.flatten(_.pluck(gsLayers, 'derivedLayers'));
@@ -250,7 +236,7 @@ function ($log, $rootScope, $timeout,
         derivedLayer.histogram.viewState.isLoading = true;
         var promise = histQueryService.doHistogramQuery({
             layer: derivedLayer.query.layerData.currentLayer.Name,
-            filter: buildCQLFilter(derivedLayer.query),
+            filter: cqlHelper.buildSpaceTimeFilter(derivedLayer.query.params),
             attribute: derivedLayer.query.params.attribute.name
         }).then(function (featureCollection) {
             if (_.isUndefined(derivedLayer.histogram)) {

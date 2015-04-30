@@ -9,11 +9,12 @@ angular.module('stealth.timelapse.stores', [
 '$filter',
 '$window',
 'toastr',
+'cqlHelper',
 'CONFIG',
 'wfs',
 'queryBinStoreExtender',
 'stealth.timelapse.stores.BinStore',
-function ($log, $rootScope, $q, $filter, $window, toastr, CONFIG, wfs, queryBinStoreExtender, BinStore) {
+function ($log, $rootScope, $q, $filter, $window, toastr, cqlHelper, CONFIG, wfs, queryBinStoreExtender, BinStore) {
     var tag = 'stealth.timelapse.stores.QueryBinStore: ';
     $log.debug(tag + 'factory started.');
 
@@ -44,7 +45,7 @@ function ($log, $rootScope, $q, $filter, $window, toastr, CONFIG, wfs, queryBinS
                 propertyName: _.compact([dtg, geom, id, label]).join(),
                 outputFormat: 'application/vnd.binary-viewer',
                 format_options: 'dtg:' + dtg + ';trackId:' + id + (label ? ';label:' + label : ''),
-                cql_filter: buildCQLFilter(query)
+                cql_filter: cqlHelper.buildSpaceTimeFilter(query.params)
             };
 
             wfs.getFeature(CONFIG.geoserver.defaultUrl, typeName, CONFIG.geoserver.omitProxy, overrides, responseType)
@@ -184,7 +185,7 @@ function ($log, $rootScope, $q, $filter, $window, toastr, CONFIG, wfs, queryBinS
                     return deferred.promise;
                 }
 
-                return searchPointAndTimeWithCql(buildCQLFilter(cqlParams), capabilities);
+                return searchPointAndTimeWithCql(cqlHelper.buildSpaceTimeFilter(cqlParams.params), capabilities);
             }
         };
 
@@ -202,28 +203,13 @@ function ($log, $rootScope, $q, $filter, $window, toastr, CONFIG, wfs, queryBinS
                     'typeName=' + _query.layerData.currentLayer.Name,
                     'srsName=EPSG:4326',
                     'outputFormat=' + outputFormat,
-                    'cql_filter=' + buildCQLFilter(_query)
+                    'cql_filter=' + cqlHelper.buildSpaceTimeFilter(_query.params)
                 ].join('&'));
             }
         };
     };
 
     QueryBinStore.prototype = Object.create(BinStore.prototype);
-
-    function buildCQLFilter(query) {
-        var cql_filter =
-            'BBOX(' + query.params.geomField.name + ',' +
-            query.params.minLon + ',' + query.params.minLat + ',' +
-            query.params.maxLon + ',' + query.params.maxLat + ')' +
-            ' AND ' + query.params.dtgField.name + ' DURING ' +
-            query.params.startDtg.format('YYYY-MM-DD[T]HH:mm:ss[Z]') +
-            '/' +
-            query.params.endDtg.format('YYYY-MM-DD[T]HH:mm:ss[Z]');
-        if (query.params.cql) {
-            cql_filter += ' AND ' + query.params.cql;
-        }
-        return cql_filter;
-    }
 
     return QueryBinStore;
 }])

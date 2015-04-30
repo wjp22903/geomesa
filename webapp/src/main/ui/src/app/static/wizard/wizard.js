@@ -8,13 +8,14 @@ angular.module('stealth.static.wizard')
 'ol3Map',
 'ol3Styles',
 'colors',
+'cqlHelper',
 'stealth.core.wizard.Step',
 'stealth.core.wizard.Wizard',
 'stealth.static.wizard.Query',
 'stealth.core.utils.WidgetDef',
 'CONFIG',
 function ($log, $rootScope, $filter,
-          wizardManager, ol3Map, ol3Styles, colors,
+          wizardManager, ol3Map, ol3Styles, colors, cqlHelper,
           Step, Wizard, Query, WidgetDef, CONFIG) {
     var tag = 'stealth.static.wizard.staticLayerWizard: ';
     $log.debug(tag + 'service started');
@@ -155,16 +156,7 @@ function ($log, $rootScope, $filter,
             // Teardown function submits query.
             function (stepNum, success) {
                 if (success) {
-                    var cql =
-                        'BBOX(' + wizScope.query.params.geomField.name + ',' +
-                        wizScope.query.params.minLon + ',' + wizScope.query.params.minLat + ',' +
-                        wizScope.query.params.maxLon + ',' + wizScope.query.params.maxLat + ')' +
-                        ' AND ' + wizScope.query.params.dtgField.name + ' DURING ' +
-                        wizScope.query.params.startDtg.format('YYYY-MM-DD[T]HH:mm:ss[Z]') +
-                        '/' +
-                        wizScope.query.params.endDtg.format('YYYY-MM-DD[T]HH:mm:ss[Z]');
-                    cql = _.compact([wizScope.query.params.cql, cql]).join(' AND ');
-
+                    var cql = cqlHelper.buildSpaceTimeFilter(wizScope.query.params);
                     var filterLayer = {
                         title: wizScope.query.params.title,
                         layerName: layer.Name,
