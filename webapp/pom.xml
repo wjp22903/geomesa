@@ -610,18 +610,23 @@
                     <plugin>
                         <groupId>org.jboss.as.plugins</groupId>
                         <artifactId>jboss-as-maven-plugin</artifactId>
-                        <version>7.1.1.Final</version>
+                        <version>7.7.Final</version>
                         <executions>
                             <execution>
                                 <phase>install</phase>
                                 <goals>
-                                    <goal>deploy</goal>
+                                    <goal>deploy-only</goal>
                                 </goals>
                                 <configuration>
                                     <hostname>stealth.ccri.com</hostname>
                                     <port>9999</port>
                                     <username>root</username>
                                     <password>toor</password>
+                                    <afterDeployment>
+                                        <commands>
+                                            <command>:shutdown(restart=true)</command>
+                                        </commands>
+                                    </afterDeployment>
                                 </configuration>
                             </execution>
                         </executions>
