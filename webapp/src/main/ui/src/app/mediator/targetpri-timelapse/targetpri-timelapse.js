@@ -6,8 +6,8 @@ angular.module('stealth.mediator.targetpri-timelapse', [
 'targetPriResultLayerExtender',
 'tlWizard',
 function (tpExtender, tlWizard) {
-    tpExtender.addCapabilitiesExtender(function (capabilties, opts) {
-        capabilties['timelapse'] = {
+    tpExtender.addCapabilitiesExtender(function (capabilities, opts) {
+        capabilities['timelapse'] = {
             toolTipText: 'Launch time-enabled query wizard',
             iconClass: 'fa-clock-o',
             onClick: function (name, record, capability) {
@@ -21,7 +21,7 @@ function (tpExtender, tlWizard) {
                 });
             }
         };
-        return capabilties;
+        return capabilities;
     });
 }])
 ;

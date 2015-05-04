@@ -20,22 +20,13 @@ function (PollingImageWmsLayer, summaryExploreMgr, ol3Map) {
             }
             return searchPoint.call(this, coord, res, {
                 BUFFER: buffer
-            }).then(function (response) {
-                response.capabilities = self.getCapabilities();
-                return response;
             });
         };
 
-        var getCapabilities = this.getCapabilities;
-        this.getCapabilities = function () {
-            var capabilities = _.merge(getCapabilities(), _layerThisBelongsTo.KeywordConfig.capability);
-            if (!_.isUndefined(capabilities['summary'])) {
-                capabilities['summary']['toolTipText'] = 'Get summary';
-                capabilities['summary']['iconClass'] = 'fa-location-arrow';
-                capabilities['summary']['onClick'] = summaryExploreMgr.summaryQuery;
-            }
-            return capabilities;
+        this.getBaseCapabilities = function () {
+            return _.cloneDeep(_layerThisBelongsTo.KeywordConfig.capability);
         };
+
         this.styleDirectiveScope.styleVars.iconClass = 'fa fa-fw fa-lg fa-clock-o';
     };
     LiveWmsLayer.prototype = Object.create(PollingImageWmsLayer.prototype);

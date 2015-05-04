@@ -26,8 +26,6 @@ function ($log, $rootScope, $q, $filter, $window, toastr, CONFIG, wfs, queryBinS
         var _viewState = this.getViewState();
         var _query;
         var _featureTypeProperties;
-        var _summaryQueryCallback;
-        this.setSummaryQueryCallback = function (callback) {_summaryQueryCallback = callback;};
 
         this.getQuery = function () { return _query; };
 
@@ -147,16 +145,6 @@ function ($log, $rootScope, $q, $filter, $window, toastr, CONFIG, wfs, queryBinS
                 endMillis: endMillis
             });
 
-            if (!_.isUndefined(capabilities['summary'])) {
-                if (_.isUndefined(_summaryQueryCallback)) {
-                    delete capabilities['summary'];
-                } else {
-                    capabilities['summary']['toolTipText'] = 'Get summary';
-                    capabilities['summary']['iconClass'] = 'fa-location-arrow';
-                    capabilities['summary']['onClick'] = _summaryQueryCallback;
-                }
-            }
-
             if (this.hasLabel()) {
                 var label = _query.layerData.currentLayer.fieldNames.label || 'label';
                 var labels = _.pluck(this.searchPointAndTimeForRecords(coord, res, timeMillis, windowMillis), 'label');
@@ -241,19 +229,15 @@ function ($log, $rootScope, $q, $filter, $window, toastr, CONFIG, wfs, queryBinS
 }])
 
 .service('queryBinStoreExtender', [
-function () {
-    var _capabilitiesExtenders = [];
+'coreCapabilitiesExtender',
+'stealth.core.interaction.capabilities.Extender',
+function (coreCapabilitiesExtender, Extender) {
+    Extender.apply(this);
+
+    var extendCapabilities = this.extendCapabilities;
     this.extendCapabilities = function (capabilities, thisArg, opts) {
-        _.each(_capabilitiesExtenders, function (extender) {
-            if (_.isFunction(extender)) {
-                capabilities = extender.call(thisArg, capabilities, opts);
-            }
-        });
-        return capabilities;
-    };
-    this.addCapabilitiesExtender = function (extender) {
-        _capabilitiesExtenders.push(extender);
+        return extendCapabilities(coreCapabilitiesExtender.extendCapabilities(capabilities, thisArg, opts),
+            thisArg, opts);
     };
 }])
 ;
-

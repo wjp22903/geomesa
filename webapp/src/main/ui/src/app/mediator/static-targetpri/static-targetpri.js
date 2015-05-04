@@ -9,8 +9,8 @@ angular.module('stealth.mediator.static-targetpri', [
 'staticLayerWizard',
 'targetPriResultLayerExtender',
 function (staticWorkspaceMgr, staticLayerWiz, tpExtender) {
-    tpExtender.addCapabilitiesExtender(function (capabilties, opts) {
-        capabilties['static'] = {
+    tpExtender.addCapabilitiesExtender(function (capabilities, opts) {
+        capabilities['static'] = {
             toolTipText: 'Launch static data query wizard',
             iconClass: 'fa-database',
             onClick: function (name, record, capability) {
@@ -28,7 +28,7 @@ function (staticWorkspaceMgr, staticLayerWiz, tpExtender) {
                 });
             }
         };
-        return capabilties;
+        return capabilities;
     });
 }])
 ;

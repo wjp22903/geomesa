@@ -1,6 +1,8 @@
 describe('Factory', function () {
     describe('"stealth.core.geo.ol3.layers.MapLayer"', function () {
+        beforeEach(module('ui.bootstrap'));
         beforeEach(module('stealth.core.utils'));
+        beforeEach(module('stealth.core.interaction.capabilities'));
         beforeEach(module('stealth.core.geo.ol3.layers'));
 
         var WidgetDef;

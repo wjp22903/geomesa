@@ -5,8 +5,9 @@ angular.module('stealth.core.geo.ol3.layers')
 '$rootScope',
 '$q',
 '$timeout',
+'coreCapabilitiesExtender',
 'stealth.core.utils.WidgetDef',
-function ($log, $rootScope, $q, $timeout, WidgetDef) {
+function ($log, $rootScope, $q, $timeout, coreCapabilitiesExtender, WidgetDef) {
     var tag = 'stealth.core.geo.ol3.layers.MapLayer: ';
     $log.debug(tag + 'factory started');
     var _idSeq = 0;
@@ -79,8 +80,20 @@ function ($log, $rootScope, $q, $timeout, WidgetDef) {
                 _queryable = newQueryable;
                 return this;
             };
-            this.getCapabilities = function () {
+
+            this.getBaseCapabilities = function () {
                 return {};
+            };
+            this.getCapabilitiesExtender = function () {
+                return coreCapabilitiesExtender;
+            };
+            this.getCapabilitiesOpts = function () {
+                return {};
+            };
+            this.getCapabilities = function () {
+                return this.getCapabilitiesExtender().extendCapabilities(
+                    this.getBaseCapabilities(), this,
+                    this.getCapabilitiesOpts());
             };
         }
         this.styleDirectiveIsoScopeAttrs = null;

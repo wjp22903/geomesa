@@ -5,8 +5,9 @@ angular.module('stealth.timelapse')
 'toastr',
 'ol3Map',
 'stealth.core.geo.ol3.layers.GeoJsonVectorLayer',
+'coreCapabilitiesExtender',
 'CONFIG',
-function ($timeout, toastr, ol3Map, GeoJsonVectorLayer, CONFIG) {
+function ($timeout, toastr, ol3Map, GeoJsonVectorLayer, coreCapabilitiesExtender, CONFIG) {
     var self = this;
     this.toggleSummaryLayer = function (layer) {
         if (_.isUndefined(layer.mapLayerId) || _.isNull(layer.mapLayerId)) {
@@ -96,5 +97,14 @@ function ($timeout, toastr, ol3Map, GeoJsonVectorLayer, CONFIG) {
             toastr.error(query.layerData.currentLayer.name + ' not found.', 'Summary Error');
         }
     };
+
+    coreCapabilitiesExtender.addCapabilitiesExtender(function (capabilities, opts) {
+        if (!_.isUndefined(capabilities['summary'])) {
+            capabilities['summary']['toolTipText'] = 'Get summary';
+            capabilities['summary']['iconClass'] = 'fa-location-arrow';
+            capabilities['summary']['onClick'] = self.summaryQuery;
+        }
+        return capabilities;
+    });
 }])
 ;

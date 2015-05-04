@@ -110,6 +110,10 @@ function ($log, $q, wfs, colors, ol3Styles, MapLayer, CONFIG) {
 
         _self.getViewState = function () { return _viewState; };
 
+        _self.getBaseCapabilities = function () {
+            return _query.layerData.currentLayer.KeywordConfig.capability || {};
+        };
+
         _self.searchPoint = function (coord, resolution) {
             var baseResponse = _.merge(this.getEmptySearchPointResult(), {
                 layerFill: {
@@ -145,8 +149,7 @@ function ($log, $q, wfs, colors, ol3Styles, MapLayer, CONFIG) {
 
             return $q.when(_.merge(baseResponse, {
                 isError: false,
-                records: _.map(nearbyFeatures, function (feat, i) { return _.omit(feat.getProperties(), 'geometry'); }),
-                capabilities: _query.layerData.currentLayer.KeywordConfig.capability || {}
+                records: _.map(nearbyFeatures, function (feat, i) { return _.omit(feat.getProperties(), 'geometry'); })
             }));
         };
     };

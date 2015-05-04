@@ -6,13 +6,14 @@ angular.module('stealth.targetpri.geo.ol3.layers')
 function (WmsLayer, targetPriResultLayerExtender) {
     var TargetPriResultLayer = function (wmsOptions, request, dataSource) {
         WmsLayer.call(this, wmsOptions);
-        var getCapabilities = this.getCapabilities;
-        this.getCapabilities = function () {
-            var capabilities = getCapabilities();
-            return targetPriResultLayerExtender.extendCapabilities(capabilities, this, {
+        this.getCapabilitiesExtender = function () {
+            return targetPriResultLayerExtender;
+        };
+        this.getCapabilitiesOpts = function () {
+            return {
                 dataSource: dataSource,
                 request: request
-            });
+            };
         };
     };
     TargetPriResultLayer.prototype = Object.create(WmsLayer.prototype);
@@ -21,18 +22,15 @@ function (WmsLayer, targetPriResultLayerExtender) {
 }])
 
 .service('targetPriResultLayerExtender', [
-function () {
-    var _capabilitiesExtenders = [];
+'coreCapabilitiesExtender',
+'stealth.core.interaction.capabilities.Extender',
+function (coreCapabilitiesExtender, Extender) {
+    Extender.apply(this);
+
+    var extendCapabilities = this.extendCapabilities;
     this.extendCapabilities = function (capabilities, thisArg, opts) {
-        _.each(_capabilitiesExtenders, function (extender) {
-            if (_.isFunction(extender)) {
-                capabilities = extender.call(thisArg, capabilities, opts);
-            }
-        });
-        return capabilities;
-    };
-    this.addCapabilitiesExtender = function (extender) {
-        _capabilitiesExtenders.push(extender);
+        return extendCapabilities(coreCapabilitiesExtender.extendCapabilities(capabilities, thisArg, opts),
+            thisArg, opts);
     };
 }])
 ;

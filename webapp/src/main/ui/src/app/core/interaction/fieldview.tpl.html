@@ -1,0 +1,13 @@
+<div style="color:#ddd;background-color:#2c2c2c;border:1px solid #999;border-radius:4px;">
+    <div class="modal-header" style="padding:5px 10px;background:linear-gradient(#2c2c2c, #000);">
+        <strong class="modal-title">{{::title}}</strong>
+        <span class="btn btn-default fa-stack toggleButton pull-right"
+              style="vertical-align:top;"
+              ng-click="close()">
+            <i class="fa fa-fw fa-remove fa-stack-1x text-danger"></i>
+        </span>
+    </div>
+    <div class="modal-body" style="padding:5px 10px;">
+        <textarea autocomplete="off" spellcheck="false" rows="10" style="color:black;font-family:monospace;font-size:18;width:100%;resize:vertical;" ng-focus="selectAllText($event, 5)">{{::value}}</textarea>
+    </div>
+</div>
