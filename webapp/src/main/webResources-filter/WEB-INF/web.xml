@@ -31,4 +31,23 @@
         <servlet-name>CorsProxy</servlet-name>
         <url-pattern>/cors/*</url-pattern>
     </servlet-mapping>
+
+    <!--<security-constraint>
+        <web-resource-collection>
+            <web-resource-name>thresher</web-resource-name>
+            <url-pattern>/*</url-pattern>
+        </web-resource-collection>
+        <auth-constraint>
+            <role-name>thresher-users</role-name>
+        </auth-constraint>
+    </security-constraint>
+
+    <login-config>
+        <auth-method>CLIENT-CERT</auth-method>
+        <realm-name>ApplicationRealm</realm-name>
+    </login-config>
+
+    <security-role>
+        <role-name>thresher-users</role-name>
+    </security-role>-->
 </web-app>
