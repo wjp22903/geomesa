@@ -4,9 +4,10 @@ angular.module('stealth.timelapse.geo.ol3.layers', [
 
 .factory('stealth.timelapse.geo.ol3.layers.LiveWmsLayer', [
 'stealth.core.geo.ol3.layers.PollingImageWmsLayer',
+'tlWizard',
 'summaryExploreMgr',
 'ol3Map',
-function (PollingImageWmsLayer, summaryExploreMgr, ol3Map) {
+function (PollingImageWmsLayer, tlWizard, summaryExploreMgr, ol3Map) {
     var LiveWmsLayer = function (name, requestParams, layerThisBelongsTo, queryable, wmsUrl) {
         PollingImageWmsLayer.apply(this, [name, requestParams, queryable, 5, wmsUrl]);
         var self = this;
@@ -24,7 +25,26 @@ function (PollingImageWmsLayer, summaryExploreMgr, ol3Map) {
         };
 
         this.getBaseCapabilities = function () {
-            return _.cloneDeep(_layerThisBelongsTo.KeywordConfig.capability);
+            var capabilities = _.cloneDeep(_layerThisBelongsTo.KeywordConfig.capability);
+            if (!_.isUndefined(capabilities['timelapse'])) {
+                capabilities['timelapse']['toolTipText'] = 'Launch time-enabled query wizard';
+                capabilities['timelapse']['iconClass'] = 'fa-clock-o';
+                capabilities['timelapse']['onClick'] = function (name, record, capability) {
+                    var idField = capability['trkIdField'] || 'id';
+                    var filter = idField + "='" + record[idField] + "'";
+                    var overrides = {
+                        cql: filter,
+                        storeName: 'History for ' + name + ' (' + filter + ')'
+                    };
+                    if (!_.isUndefined(capability['layerName'])) {
+                        overrides['currentLayer'] = {
+                            Name: capability['layerName']
+                        };
+                    }
+                    tlWizard.launchWizard(overrides);
+                };
+            }
+            return capabilities;
         };
 
         this.styleDirectiveScope.styleVars.iconClass = 'fa fa-fw fa-lg fa-clock-o';

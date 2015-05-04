@@ -29,11 +29,11 @@ function ($rootScope, tlLayerManager, QueryBinStore) {
 'CONFIG',
 function (wfs, owsLayers, CONFIG) {
     var idSeq = 1;
-    var now = moment().utc();
-    var defaultTimeWindow = now.clone().subtract(3, 'hours');
 
     var query = function (overrides) {
         var _self = this;
+        var now = moment().utc();
+        var defaultTimeWindow = now.clone().subtract(3, 'hours');
 
         this.layerData = {};
         this.timeData = {
@@ -54,6 +54,19 @@ function (wfs, owsLayers, CONFIG) {
             cql: null
         };
         _.merge(this.params, overrides);
+        if (overrides && !(_.isUndefined(overrides.startDtg) && _.isUndefined(overrides.endDtg))) {
+            var hourDiff = moment.duration(this.params.endDtg.diff(this.params.startDtg)).asHours();
+            switch (hourDiff) {
+                case 3:
+                case 6:
+                case 12:
+                    this.timeData.range = hourDiff;
+                    break;
+                default:
+                    this.timeData.range = 'Custom';
+                    this.timeData.isCustom = true;
+            }
+        }
 
         var keywordPrefix = ['timelapse', 'historical'];
         owsLayers.getLayers(keywordPrefix)
