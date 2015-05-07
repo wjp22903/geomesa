@@ -38,7 +38,7 @@
             <div class="cellTableRow">
                 <!-- TODO: Make this user editable -->
                 <div class="innerField rightJustify">
-                    <span class="displayShadow">{{displayInUtc(dtg.min * 1000)}}</span>
+                    <span class="displayShadow">{{displaySecsInUtc(dtg.min)}}</span>
                 </div>
             </div>
             <div class="cellTableRow">
@@ -61,7 +61,7 @@
                         <i class="fa fa-fw fa-step-backward"></i>
                     </div>
                     <span class="displayShadow">
-                        {{displayInUtc(display.windowBeginMillis())}} &#8193; &#8213; &#8193; {{displayInUtc(dtg.millis)}}
+                        {{displaySecsInUtc(display.windowBeginSecs())}} &#8193; &#8213; &#8193; {{displayMillisInUtc(dtg.millis)}}
                     </span>
                     <div ng-click="display.stepForward()" class="btn btn-default" style="margin-left:3px;">
                         <i class="fa fa-fw fa-step-forward"></i>
@@ -93,7 +93,7 @@
             <div class="cellTableRow">
                 <!-- TODO: Make this user editable -->
                 <div class="innerField">
-                    <span class="displayShadow">{{displayInUtc(dtg.max * 1000)}}</span>
+                    <span class="displayShadow">{{displaySecsInUtc(dtg.max)}}</span>
                 </div>
             </div>
             <div class="cellTableRow">

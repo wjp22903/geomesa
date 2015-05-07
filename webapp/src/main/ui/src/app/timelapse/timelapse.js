@@ -29,23 +29,15 @@ function ($log, $rootScope, ol3Map, controlsMgr, TimeLapseLayer, elementAppender
         ol3Map.addLayer(historical);
     }
 
-    var timeMillis = null;
-    var windowMillis = null;
-    function registerControlsListeners() {
-        controlsMgr.registerDtgListener(function (millis) {
-            timeMillis = millis;
-            historical.redraw(timeMillis, windowMillis);
-        });
-
-        controlsMgr.registerWindowListener(function (millis) {
-            windowMillis = millis;
-            historical.redraw(timeMillis, windowMillis);
+    function registerControlsListener() {
+        controlsMgr.registerListener(function (startMillis, endMillis) {
+            historical.redraw(startMillis, endMillis);
         });
     }
 
     this.start = function () {
         registerLayers();
-        registerControlsListeners();
+        registerControlsListener();
         elementAppender.append('.primaryDisplay', 'timelapse/controls/controlsPanel.tpl.html', $rootScope.$new());
     };
 

@@ -169,7 +169,7 @@ function ($log, $q, toastr, colors) {
             _numRecords = undefined;
         };
 
-        this.searchPointAndTimeForRecords = function (coord, res, timeMillis, windowMillis) {
+        this.searchPointAndTimeForRecords = function (coord, res, startMillis, endMillis) {
             var records = [];
             var modifier = res * Math.max(_pointRadius, 4);
             var minLat = Math.max((coord[1] - modifier), -90);
@@ -183,7 +183,7 @@ function ($log, $q, toastr, colors) {
                 var millis = _secondsView[i * _stride] * 1000;
                 if (lat >= minLat && lat <= maxLat &&
                     lon >= minLon && lon <= maxLon &&
-                    millis <= timeMillis && millis >= (timeMillis - windowMillis))
+                    millis <= endMillis && millis >= startMillis)
                 {
                     records.push({
                         lat: lat,
@@ -196,14 +196,14 @@ function ($log, $q, toastr, colors) {
             }
             return records;
         };
-        this.searchPointAndTime = function (coord, res, timeMillis, windowMillis) {
+        this.searchPointAndTime = function (coord, res, startMillis, endMillis) {
             return $q.when({
                 name: _name,
                 isError: false,
                 layerFill: {
                     color: _fillColorHexString
                 },
-                records: this.searchPointAndTimeForRecords(coord, res, timeMillis, windowMillis),
+                records: this.searchPointAndTimeForRecords(coord, res, startMillis, endMillis),
                 fieldTypes: [
                     { name: 'lat', localType: 'number' },
                     { name: 'lon', localType: 'number' },

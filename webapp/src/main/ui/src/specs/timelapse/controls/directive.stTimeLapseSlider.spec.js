@@ -61,9 +61,9 @@ describe('Directive', function () {
             expect(isoScope.model.millis).to.equal(600000);
         });
 
-        it('should be an range input with float parser', function () {
+        it('should be an range input with int parser', function () {
             expect(inputEl.attr('type')).to.equal('range');
-            expect(inputEl.attr('st-float-slider')).to.equal('');
+            expect(inputEl.attr('st-int-slider')).to.equal('');
         });
 
         describe('when slider value is changed', function () {
@@ -79,13 +79,13 @@ describe('Directive', function () {
 
         describe('when slider max value is changed', function () {
             beforeEach(function () {
-                isoScope.model.max = 240;
+                isoScope.model.max = 10;
                 isoScope.model.changed();
             });
 
-            it('should recalculate slider value', function () {
-                expect(isoScope.model.value).to.equal(40);
-                expect(isoScope.model.millis).to.equal(40 * 60000);
+            it('should recalculate slider value in milliseconds', function () {
+                expect(isoScope.model.value).to.equal(10);
+                expect(isoScope.model.millis).to.equal(10 * 60000);
             });
         });
 
@@ -95,9 +95,9 @@ describe('Directive', function () {
                 isoScope.model.changed();
             });
 
-            it('should recalculate slider value', function () {
-                expect(isoScope.model.value).to.equal(40);
-                expect(isoScope.model.millis).to.equal(40 * 1000);
+            it('should recalculate slider value in milliseconds', function () {
+                expect(isoScope.model.value).to.equal(10);
+                expect(isoScope.model.millis).to.equal(10 * 1000);
             });
         });
     });

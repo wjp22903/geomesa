@@ -89,10 +89,10 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
         var _iDiv = 0;
         var _x, _y, _idx, _center, _rgba;
         var _curSize = [0,0], _curExtent = [0,0,0,0];
-        var _timeMillis = 0, _windowMillis = 0;
+        var _startMillis = 0, _startSeconds = 0, _endMillis = 0, _windowMillis = 0;
         var zn, x, y, y2, pixel, rPlus1, yw, lat, lon;
         var south, north, west, east;
-        var color, timeLower, timeLowerSeconds, iLower, iUpper, stride, iUpperStride;
+        var color, iLower, iUpper, stride, iUpperStride;
         var nDivIdx, radiusRamp, r2Plus1Ramp, alphaRamp, colorById, iCol, rMinus1;
 
         // Binary stores holding observations.
@@ -152,8 +152,8 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
         function _fillImageBuffer (store) {
             stride = store.getStride();
             color = store.getFillColorRgbArray();
-            iLower = store.getLowerBoundIdx(timeLower);
-            iUpper = store.getUpperBoundIdx(_timeMillis);
+            iLower = store.getLowerBoundIdx(_startMillis);
+            iUpper = store.getUpperBoundIdx(_endMillis);
 
             rMinus1 = store.getPointRadius() - 1;
             radiusRamp = _radiusRamps[rMinus1];
@@ -175,7 +175,7 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
                 }
                 lat = store.getLat(_idx);
                 lon = store.getLon(_idx);
-                _iDiv = (store.getTimeInSeconds(_idx) - timeLowerSeconds) / nDivIdx | 0;
+                _iDiv = (store.getTimeInSeconds(_idx) - _startSeconds) / nDivIdx | 0;
                 if ( lat > south &&
                      lat < north &&
                      lon > west &&
@@ -300,15 +300,15 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
         };
 
         this.redrawCurrent = function () {
-            this.redraw(_timeMillis, _windowMillis);
+            this.redraw(_startMillis, _endMillis);
         };
 
-        this.redraw = function (timeMillis, windowMillis) {
-            _timeMillis = timeMillis;
-            _windowMillis = windowMillis;
-            timeLower = _timeMillis - _windowMillis;
+        this.redraw = function (startMillis, endMillis) {
+            _startMillis = startMillis;
+            _endMillis = endMillis;
+            _windowMillis = _endMillis - _startMillis;
             nDivIdx = (_windowMillis / _nDiv / 1000) + 1.5 | 0;
-            timeLowerSeconds = ((timeLower - 500) / 1000) | 0;
+            _startSeconds = ((_startMillis - 500) / 1000) | 0;
 
             // Clear image buffer.
             _clear(_imageView);
@@ -330,7 +330,7 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
                 return viewState.toggledOn && !viewState.isError;
             });
             return _.map(activeStores, function (store) {
-                return store.searchPointAndTime(coord, res, _timeMillis, _windowMillis);
+                return store.searchPointAndTime(coord, res, _startMillis, _endMillis);
             });
         };
 

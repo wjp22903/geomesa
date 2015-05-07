@@ -79,11 +79,11 @@ function ($log, $rootScope, $q, $filter, $window, toastr, cqlHelper, CONFIG, wfs
             });
         };
 
-        function calcStartMillis (t, w) {
-            return Math.max(_thisStore.getMinTimeInMillis(), (t - w)) - 1000;
+        function boundStartMillis (t) {
+            return Math.max(_thisStore.getMinTimeInMillis(), t) - 1000;
         }
 
-        function calcEndMillis (t) {
+        function boundEndMillis (t) {
             return Math.min(_thisStore.getMaxTimeInMillis(), t) + 1000;
         }
 
@@ -135,20 +135,20 @@ function ($log, $rootScope, $q, $filter, $window, toastr, cqlHelper, CONFIG, wfs
             return deferred.promise;
         };
 
-        this.searchPointAndTime = function (coord, res, timeMillis, windowMillis) {
+        this.searchPointAndTime = function (coord, res, startMillis, endMillis) {
             var deferred = $q.defer();
-            var startMillis = calcStartMillis(timeMillis, windowMillis);
-            var endMillis = calcEndMillis(timeMillis);
+            var boundedStartMillis = boundStartMillis(startMillis);
+            var boundedEndMillis = boundEndMillis(endMillis);
 
             var capabilities = _query.layerData.currentLayer.KeywordConfig.capability || {};
             capabilities = queryBinStoreExtender.extendCapabilities(capabilities, this, {
-                startMillis: startMillis,
-                endMillis: endMillis
+                startMillis: boundedStartMillis,
+                endMillis: boundedEndMillis
             });
 
             if (this.hasLabel()) {
                 var label = _query.layerData.currentLayer.fieldNames.label || 'label';
-                var labels = _.pluck(this.searchPointAndTimeForRecords(coord, res, timeMillis, windowMillis), 'label');
+                var labels = _.pluck(this.searchPointAndTimeForRecords(coord, res, startMillis, endMillis), 'label');
                 if (labels.length > 0) {
                     var cql = label + ' IN (' + labels.join() + ')';
                     return searchPointAndTimeWithCql(cql, capabilities);
@@ -166,14 +166,14 @@ function ($log, $rootScope, $q, $filter, $window, toastr, cqlHelper, CONFIG, wfs
                         maxLat: Math.min((coord[1] + modifier), _query.params.maxLat),
                         minLon: Math.max((coord[0] - modifier), _query.params.minLon),
                         maxLon: Math.min((coord[0] + modifier), _query.params.maxLon),
-                        startDtg: moment.utc(startMillis),
-                        endDtg: moment.utc(endMillis),
+                        startDtg: moment.utc(boundedStartMillis),
+                        endDtg: moment.utc(boundedEndMillis),
                         cql: _query.params.cql
                     }
                 };
 
-                if (_thisStore.getMinTimeInMillis() > timeMillis ||
-                    _thisStore.getMaxTimeInMillis() < (timeMillis - windowMillis) ||
+                if (_thisStore.getMinTimeInMillis() > endMillis ||
+                    _thisStore.getMaxTimeInMillis() < startMillis ||
                     cqlParams.params.minLat > cqlParams.params.maxLat ||
                     cqlParams.params.minLon > cqlParams.params.maxLon)
                 {

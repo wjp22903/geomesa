@@ -29,8 +29,7 @@ function ($log, $rootScope, $timeout,
     var tag = 'stealth.histogram.geo: ';
     $log.debug(tag + 'run called');
 
-    var dtgListener;
-    var windowListener;
+    var controlsListener;
 
     var scope = $rootScope.$new();
     scope.workspaces = {};
@@ -43,6 +42,9 @@ function ($log, $rootScope, $timeout,
                 derivedLayer.query.params.startDtg = moment.utc(derivedLayer.query.params.minDtgMillis);
             }
             derivedLayer.query.params.endDtg = moment.utc(endMillis);
+            if (derivedLayer.query.params.endDtg.valueOf() > derivedLayer.query.params.maxDtgMillis) {
+                derivedLayer.query.params.endDtg = moment.utc(derivedLayer.query.params.maxDtgMillis);
+            }
         }
     }
 
@@ -100,16 +102,8 @@ function ($log, $rootScope, $timeout,
                 scope.unhighlightPopup(ol3Layer.mapLayerId);
             };
 
-            var timeMillis = derivedLayer.query.params.endDtg.valueOf();
-            var windowMillis = timeMillis - derivedLayer.query.params.startDtg.valueOf();
-            dtgListener = controlsMgr.registerDtgListener(function (millis) {
-                timeMillis = millis;
-                updateQueryDtg(derivedLayer, timeMillis - windowMillis, timeMillis);
-            });
-
-            windowListener = controlsMgr.registerWindowListener(function (millis) {
-                windowMillis = millis;
-                updateQueryDtg(derivedLayer, timeMillis - windowMillis, timeMillis);
+            controlsListener = controlsMgr.registerListener(function (startMillis, endMillis) {
+                updateQueryDtg(derivedLayer, startMillis, endMillis);
             });
 
             var mapLayer = new MapLayer(derivedLayer.title, ol3Layer, false, 20);
@@ -172,8 +166,7 @@ function ($log, $rootScope, $timeout,
         if (derivedLayer.viewState.isOnMap) {
             scope.toggleLayer(gsLayer, derivedLayer);
         }
-        controlsMgr.unregisterDtgListener(dtgListener);
-        controlsMgr.unregisterWindowListener(windowListener);
+        controlsMgr.unregisterListener(controlsListener);
         _.pull(gsLayer.derivedLayers, derivedLayer);
     };
 

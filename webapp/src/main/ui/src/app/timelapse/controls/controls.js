@@ -10,6 +10,8 @@ function ($log, $interval, $timeout, $rootScope) {
     var tag = 'stealth.timelapse.controls.tlControlsManager: ';
     $log.debug(tag + 'service started');
 
+    var units = ['s', 'm', 'h', 'd'];
+
     function toMillis (val, unit) {
         switch (unit) {
             case 's':
@@ -25,69 +27,56 @@ function ($log, $interval, $timeout, $rootScope) {
         }
     }
 
-    var units = ['s', 'm', 'h', 'd'];
+    var controlsListeners = [];
 
-    var dtgListeners = [];
-    var windowListeners = [];
-    var stepListeners = [];
-
-    function notifyListeners (listeners, millis) {
-        _.each(listeners, function (listener) {
-            listener(millis);
+    function notifyListeners () {
+        var endMillis = toMillis(dtg.value, dtg.unit);
+        var startMillis = Math.max(endMillis - window.millis, toMillis(dtg.min, dtg.unit));
+        _.each(controlsListeners, function (listener) {
+            listener(startMillis, dtg.millis);
         });
     }
 
-    function registerListener (listeners, listener) {
-        listeners.push(listener);
+    function registerListener (listener) {
+        controlsListeners.push(listener);
     }
 
-    function unregisterListener (listeners, listener) {
-        _.pull(listeners, listener);
+    function unregisterListener (listener) {
+        _.pull(controlsListeners, listener);
     }
 
-    var epoch = moment(0);
-    var aMonthAfterEpoch = angular.copy(epoch);
-    aMonthAfterEpoch.add(1, 'months');
-    var epochInSecs = epoch.format('x') / 1000 | 0;
-    var afterInSecs = aMonthAfterEpoch.format('x') / 1000 | 0;
     var dtg = {
-        value: epochInSecs,
-        min: epochInSecs,
-        max: afterInSecs,
+        value: 0,
+        min: 0,
+        max: 86400,
+        step: 1,
         unit: units[0], // seconds
-        toMillis: toMillis
+        toMillis: toMillis,
+        notifyListeners: notifyListeners
     };
-    dtg.step = 1;
-    dtg.millis = dtg.value * 1000; // convert from seconds
-    dtg.notifyListeners = function (millis) {
-        notifyListeners(dtgListeners, millis);
-    };
+    dtg.millis = toMillis(dtg.value, dtg.unit);
 
     var window = {
         value: 10,
         min: 0,
         max: 120,
+        step: 1,
         unit: units[1], // minutes
-        toMillis: toMillis
+        toMillis: toMillis,
+        notifyListeners: notifyListeners
     };
-    window.step = 1;
-    window.millis = window.value * 60000; // convert from minutes
-    window.notifyListeners = function (millis) {
-        notifyListeners(windowListeners, millis);
-    };
+    window.millis = toMillis(window.value, window.unit);
 
     var step = {
         value: 30,
         min: 0,
         max: 300,
+        step: 1,
         unit: units[0], // seconds
-        toMillis: toMillis
+        toMillis: toMillis,
+        notifyListeners: notifyListeners
     };
-    step.step = 1;
-    step.millis = step.value * 1000; // convert from seconds
-    step.notifyListeners = function (millis) {
-        notifyListeners(stepListeners, millis);
-    };
+    step.millis = toMillis(step.value, step.unit);
 
     var display = {
         toggledOn: false,
@@ -97,38 +86,32 @@ function ($log, $interval, $timeout, $rootScope) {
         frameIntervalMillis: 16
     };
 
-    function checkDtgLimits (t, min, max, step) {
-        var v = t;
-
-        if (t < min) {
-            v = min;
-        } else if (max < t && t < max + step) {
-            v = max;
-        } else if (max < t) {
-            v = min;
+    function checkDtgLimits (t, min, max, step, window) {
+        if (t < min || t >= (max + window + step)) {
+            return min;
+        } else if ((max + window) < t && t < (max + window + step)) {
+            return max + window;
         } else {
-            v = t;
+            return t;
         }
-
-        return v;
     }
 
     display.stepForward = function () {
-        var valInSecs = Math.ceil(dtg.value);
-        var stepInSecs = Math.ceil(toMillis(step.value, step.unit) / 1000);
-        var t = valInSecs + stepInSecs;
-        dtg.value = checkDtgLimits(t, dtg.min, dtg.max, stepInSecs);
-        dtg.millis = toMillis(dtg.value, dtg.unit);
-        dtg.notifyListeners(dtg.millis);
+        var stepInSecs = step.millis / 1000;
+        var windowInSecs = window.millis / 1000;
+        var t = dtg.value + stepInSecs;
+        dtg.value = checkDtgLimits(t, dtg.min, dtg.max, stepInSecs, windowInSecs);
+        dtg.millis = toMillis(Math.min(dtg.value, dtg.max), dtg.unit);
+        notifyListeners();
     };
 
     display.stepBack = function () {
-        var valInSecs = Math.ceil(dtg.value);
-        var stepInSecs = Math.ceil(toMillis(step.value, step.unit) / 1000);
-        var t = valInSecs - stepInSecs;
-        dtg.value = checkDtgLimits(t, dtg.min, dtg.max, stepInSecs);
+        var stepInSecs = step.millis / 1000;
+        var windowInSecs = window.millis / 1000;
+        var t = dtg.value - stepInSecs;
+        dtg.value = checkDtgLimits(t, dtg.min, dtg.max, stepInSecs, windowInSecs);
         dtg.millis = toMillis(dtg.value, dtg.unit);
-        dtg.notifyListeners(dtg.millis);
+        notifyListeners();
     };
 
     var playing = null;
@@ -148,10 +131,10 @@ function ($log, $interval, $timeout, $rootScope) {
         }
     };
 
-    display.windowBeginMillis = function () {
-        var dtgMinMillis = toMillis(dtg.min, dtg.unit);
-        return (dtg.millis - dtgMinMillis < window.millis) ?
-               dtgMinMillis : dtg.millis - window.millis;
+    display.windowBeginSecs = function () {
+        var windowInSecs = window.millis / 1000;
+        return (dtg.value - dtg.min < windowInSecs) ?
+               dtg.min : dtg.value - windowInSecs;
     };
 
     // Responses to events emitted by BinStores.
@@ -162,8 +145,8 @@ function ($log, $interval, $timeout, $rootScope) {
             display.toggledOn = true;
         }
 
-        dtg.min = data.minInSecs;
-        dtg.max = data.maxInSecs;
+        dtg.min = Math.floor(data.minInSecs);
+        dtg.max = Math.ceil(data.maxInSecs);
 
         if (dtg.value < dtg.min) {
             dtg.value = dtg.min;
@@ -173,40 +156,21 @@ function ($log, $interval, $timeout, $rootScope) {
             dtg.value = dtg.max;
         }
 
-        // This block needed to sync the stTimeLapseSlider's
-        // internal copy of the dtg model which was instantiated
-        // during bootstrap.
-        // The goal is to move the dtg slider knob to the appropriate
-        // location on the slider when the slider bounds change.
-        var value = angular.copy(dtg.value); // Save value needed.
-        dtg.changed();  // Update internal copy (This scales dtg.value).
-        dtg.value = value; // Set value back to what it needs to be.
-        dtg.millis = toMillis(dtg.value, dtg.unit); // Calc millis.
-        // Work-around to get slider knob to move to correct location when paused:
-        // step back one step, then play forward one step.
-        var valInSecs = Math.ceil(dtg.value);
-        var stepInSecs = Math.ceil(toMillis(step.value, step.unit) / 1000);
-        dtg.value = valInSecs - stepInSecs; // Step back.
-        if (display.isPaused) { // Play forward one step.
-            display.togglePlay();
-            $timeout(function () {
-                display.togglePlay();
-            }, display.frameIntervalMillis);
-        }
+        dtg.changed();  // Update internal copy.
 
         // Notify listeners that dtg value changed.
         // (If redraw listeners are registered, this should trigger a redraw as well.)
-        dtg.notifyListeners(dtg.millis);
+        notifyListeners();
     });
 
     $rootScope.$on('timelapse:resetDtgBounds', function () {
         display.toggledOn = false;
 
-        dtg.value = epochInSecs;
-        dtg.min = epochInSecs;
-        dtg.max = afterInSecs;
+        dtg.value = 0;
+        dtg.min = 0;
+        dtg.max = 86400;
         dtg.millis = toMillis(dtg.value, dtg.unit);
-        dtg.notifyListeners(dtg.millis);
+        notifyListeners();
         if (display.isPlaying) {
             display.togglePlay();
         }
@@ -237,28 +201,12 @@ function ($log, $interval, $timeout, $rootScope) {
     this.step = step;
     this.display = display;
 
-    this.registerDtgListener = function (listener) {
-        registerListener(dtgListeners, listener);
+    this.registerListener = function (listener) {
+        registerListener(listener);
         return listener;
     };
-    this.unregisterDtgListener = function (listener) {
-        unregisterListener(dtgListeners, listener);
-    };
-
-    this.registerWindowListener = function (listener) {
-        registerListener(windowListeners, listener);
-        return listener;
-    };
-    this.unregisterWindowListener = function (listener) {
-        unregisterListener(windowListeners, listener);
-    };
-
-    this.registerStepListener = function (listener) {
-        registerListener(stepListeners, listener);
-        return listener;
-    };
-    this.unregisterStepListener = function (listener) {
-        unregisterListener(stepListeners, listener);
+    this.unregisterListener = function (listener) {
+        unregisterListener(listener);
     };
 }])
 
@@ -276,8 +224,11 @@ function ($log, $scope, controlsMgr) {
     $scope.step = controlsMgr.step;
     $scope.display = controlsMgr.display;
 
-    $scope.displayInUtc = function (utcMillis) {
-            return moment.utc(utcMillis).format('YYYY-MM-DD HH:mm:ss[Z]');
+    $scope.displayMillisInUtc = function (utcMillis) {
+        return moment.utc(utcMillis).format('YYYY-MM-DD HH:mm:ss[Z]');
+    };
+    $scope.displaySecsInUtc = function (utcSecs) {
+        return moment.utc(utcSecs * 1000).format('YYYY-MM-DD HH:mm:ss[Z]');
     };
 }])
 
@@ -311,12 +262,12 @@ function ($log, $timeout) {
                 !angular.isNumber(scope.model.max))
             {
                 scope.model.max = 1;
-            } else if (scope.model.max < 2) {
+            } else if (scope.model.max < 1) {
                 scope.model.max = 1;
             }
 
-            if (model.max < scope.model.max || model.max > scope.model.max) {
-                scope.model.value = model.value * (scope.model.max - scope.model.min) / (model.max - model.min);
+            if (model.max !== scope.model.max && scope.model.value > scope.model.max) {
+                scope.model.value = scope.model.max;
             }
 
             scope.model.millis = scope.model.toMillis(scope.model.value, scope.model.unit);
@@ -325,7 +276,7 @@ function ($log, $timeout) {
             if (isReady) {
                 isReady = false;
                 $timeout(function () {
-                    scope.model.notifyListeners(scope.model.millis);
+                    scope.model.notifyListeners();
                     isReady = true;
                 }, 100);
             }
@@ -336,7 +287,7 @@ function ($log, $timeout) {
     };
 
     function getTemplate () {
-      var tpl = '<input type="range" st-float-slider';
+      var tpl = '<input type="range" st-int-slider';
       if (bowser.chrome) {
           tpl += ' style="display:inline-block;"';
       }

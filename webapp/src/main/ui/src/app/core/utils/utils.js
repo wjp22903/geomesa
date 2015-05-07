@@ -14,6 +14,20 @@ function ($log) {
     };
 }])
 
+.directive('stIntSlider', [
+'$log',
+function ($log) {
+    $log.debug('stealth.core.utils.stIntSlider: directive defined');
+    return {
+        require: 'ngModel',
+        link: function(scope, element, attrs, controller) {
+            controller.$parsers.unshift(function (sliderValue) {
+                return parseInt(sliderValue, 10);
+            });
+        }
+    };
+}])
+
 //Especially useful when setting up a skeleton with stWidgetCompiler
 .directive('stPlaceholder', [
 '$log',
