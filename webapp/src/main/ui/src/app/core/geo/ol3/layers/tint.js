@@ -9,14 +9,12 @@ function ($log, MapLayer) {
     var TintLayer = function (darkness) {
         $log.debug(tag + 'new TintLayer(' + arguments[0] + ')');
 
-        var _olSource = new ol.source.GeoJSON({
-            object: {
-                "type": "Feature",
-                "geometry": {
-                    "type": "Polygon",
-                    "coordinates": [[[-180,90],[180,90],[180,-90],[-180,-90],[-180,90]]]
-                }
-            }
+        var polygon = new ol.geom.Polygon([[[-180,90],[180,90],[180,-90],[-180,-90],[-180,90]]]);
+        var _olSource = new ol.source.Vector({
+            features: [new ol.Feature({
+                geometry: polygon
+            })],
+            wrapX: false
         });
         var _olLayer = new ol.layer.Vector({
             source: _olSource,

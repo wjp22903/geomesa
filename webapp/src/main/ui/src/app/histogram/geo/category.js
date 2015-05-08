@@ -48,18 +48,16 @@ function ($log, $rootScope, $timeout,
 
     scope.toggleLayer = function (gsLayer, derivedLayer) {
         if (_.isUndefined(derivedLayer.mapLayerId) || _.isNull(derivedLayer.mapLayerId)) {
-            var ol3Source = new ol.source.GeoJSON({
-                object: {
-                    "type": "Feature",
-                    "geometry": {
-                        "type": "Polygon",
-                        "coordinates": [[[derivedLayer.query.params.minLon, derivedLayer.query.params.minLat],
-                                         [derivedLayer.query.params.maxLon, derivedLayer.query.params.minLat],
-                                         [derivedLayer.query.params.maxLon, derivedLayer.query.params.maxLat],
-                                         [derivedLayer.query.params.minLon, derivedLayer.query.params.maxLat],
-                                         [derivedLayer.query.params.minLon, derivedLayer.query.params.minLat]]]
-                    }
-                }
+            var ol3Source = new ol.source.Vector({
+                features: [new ol.Feature({
+                    geometry: new ol.geom.Polygon(
+                        [[[derivedLayer.query.params.minLon, derivedLayer.query.params.minLat],
+                          [derivedLayer.query.params.maxLon, derivedLayer.query.params.minLat],
+                          [derivedLayer.query.params.maxLon, derivedLayer.query.params.maxLat],
+                          [derivedLayer.query.params.minLon, derivedLayer.query.params.maxLat],
+                          [derivedLayer.query.params.minLon, derivedLayer.query.params.minLat]]]
+                    )
+                })]
             });
 
             var ol3Layer = new ol.layer.Vector({
@@ -330,14 +328,10 @@ function ($log, $rootScope, $timeout,
         var geom = features[0].getGeometry();
         var coords = geom.getCoordinates();
 
-        var hiLiteSrc = new ol.source.GeoJSON({
-            object: {
-                "type": "Feature",
-                "geometry": {
-                    "type": "Polygon",
-                    "coordinates": coords
-                 }
-            }
+        var hiLiteSrc = new ol.source.Vector({
+            features: [new ol.Feature({
+                geometry: new ol.geom.Polygon(coords)
+            })]
         });
 
         var hiLiteLyr = new ol.layer.Vector({

@@ -43,18 +43,16 @@ function ($log, $rootScope, $filter,
     }
 
     function getBoxSource (params) {
-        return new ol.source.GeoJSON({
-            object: {
-                "type": "Feature",
-                "geometry": {
-                    "type": "Polygon",
-                    "coordinates": [[[params.minLon, params.minLat],
-                                     [params.maxLon, params.minLat],
-                                     [params.maxLon, params.maxLat],
-                                     [params.minLon, params.maxLat],
-                                     [params.minLon, params.minLat]]]
-                }
-            }
+        return new ol.source.Vector({
+            features: [new ol.Feature({
+                geometry: new ol.geom.Polygon(
+                    [[[params.minLon, params.minLat],
+                      [params.maxLon, params.minLat],
+                      [params.maxLon, params.maxLat],
+                      [params.minLon, params.maxLat],
+                      [params.minLon, params.minLat]]]
+                )
+            })]
         });
     }
 

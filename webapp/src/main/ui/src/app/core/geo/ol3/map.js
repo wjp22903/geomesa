@@ -247,17 +247,10 @@ function ($log, $filter, $q, mapClickSearchService, MapLayer, TintLayer, CONFIG)
 
     // ***** Initialization *****
     //Built-in layers
-    var countrySource = new ol.source.ServerVector({
+    var countrySource = new ol.source.Vector({
         format: new ol.format.GeoJSON(),
-        strategy: ol.loadingstrategy.all,
-        loader: function(extent, resolution, projection) {
-            $.ajax({
-                url: CONFIG.assets.path + 'countries.geo.json',
-                dataType: 'json'
-            }).done(function(response){
-                countrySource.addFeatures(countrySource.readFeatures(response));
-            });
-        }
+        url: CONFIG.assets.path + 'countries.geo.json',
+        wrapX: false
     });
     var countryLayer = new ol.layer.Vector({
         source: countrySource,

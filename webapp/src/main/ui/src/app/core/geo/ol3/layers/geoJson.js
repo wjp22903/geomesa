@@ -36,18 +36,23 @@ function ($log, $q, wfs, colors, ol3Styles, MapLayer, CONFIG) {
             return !_viewState.isError && !_.isUndefined(_queryResponse);
         };
 
-        var _olSource = new ol.source.ServerVector({
-            format: new ol.format.GeoJSON(),
+        var _olSource = new ol.source.Vector({
             loader: _loaderFunction
         });
 
-        function _loadFeatures (features) {
-            _olSource.addFeatures(_olSource.readFeatures(features));
+        function _loadFeatures (features, proj) {
+            var format = new ol.format.GeoJSON();
+            var readOptions = {};
+            if (!_.isUndefined(proj)) {
+                readOptions['featureProjection'] = proj;
+            }
+            var parsedFeatures = format.readFeatures(features, readOptions);
+            _olSource.addFeatures(parsedFeatures);
         }
 
         function _loaderFunction (extent, resolution, projection) {
             if (!_.isUndefined(_queryResponse)) {
-                _loadFeatures(_queryResponse);
+                _loadFeatures(_queryResponse, projection);
             } else {
                 _loadFeatures('{"type":"FeatureCollection","totalFeatures":0,"features":[]}');
             }
@@ -137,14 +142,8 @@ function ($log, $q, wfs, colors, ol3Styles, MapLayer, CONFIG) {
             ];
             var nearbyFeatures = [];
 
-            var ol2Parser = new OpenLayers.Format.GeoJSON();
-            var ol3Parser = new ol.format.GeoJSON();
-            var bounds = new OpenLayers.Bounds(extent).toGeometry();
-            _olSource.forEachFeature(function (feature) {
-                var geometry = ol2Parser.read(ol3Parser.writeGeometry(feature.getGeometry()), 'Geometry');
-                if (bounds.intersects(geometry)) {
-                    nearbyFeatures.push(feature);
-                }
+            _olSource.forEachFeatureIntersectingExtent(extent, function (feature) {
+                nearbyFeatures.push(feature);
             });
 
             return $q.when(_.merge(baseResponse, {

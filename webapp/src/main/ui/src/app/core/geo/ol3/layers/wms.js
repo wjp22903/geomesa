@@ -80,6 +80,7 @@ function ($log, $timeout, wfs, MapLayer, CONFIG) {
             });
         } else {
             _olSource = new ol.source.ImageWMS({
+                ratio: 1,
                 url: _options.wmsUrl || (CONFIG.geoserver.defaultUrl + '/wms'),
                 params: _requestParams
             });

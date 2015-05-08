@@ -11,7 +11,8 @@ function ($log, ol3Map) {
             // Events are of type ol.MapBrowserEvent
             handleDownEvent: DragInteraction.prototype.getFeatureOnClick,
             handleDragEvent: DragInteraction.prototype.drag,
-            handleMoveEvent: DragInteraction.prototype.updateCursorType,
+            //05/11/2015 - Concerned about constant cursor checks hurting performance.
+            //handleMoveEvent: DragInteraction.prototype.updateCursorType,
             handleUpEvent: DragInteraction.prototype.endDrag
         });
 
