@@ -146,9 +146,12 @@ function ($log, $q, wfs, colors, ol3Styles, MapLayer, CONFIG) {
                 nearbyFeatures.push(feature);
             });
 
+            var omitLayerProperties = _.keys(_.deepGet(_query.layerData.currentLayer.KeywordConfig, 'field.hide'));
             return $q.when(_.merge(baseResponse, {
                 isError: false,
-                records: _.map(nearbyFeatures, function (feat, i) { return _.omit(feat.getProperties(), 'geometry'); })
+                records: _.map(nearbyFeatures, function (feat, i) {
+                    return _.omit(feat.getProperties(), omitLayerProperties.concat([feat.getGeometryName()]));
+                })
             }));
         };
     };

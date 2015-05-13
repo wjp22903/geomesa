@@ -97,7 +97,10 @@ function ($log, $rootScope, $q, $filter, $window, toastr, cqlHelper, CONFIG, wfs
             var typeName = _query.layerData.currentLayer.Name;
             wfs.getFeature(CONFIG.geoserver.defaultUrl, typeName, CONFIG.geoserver.omitProxy, overrides)
             .success(function (data, status, headers, config, statusText) {
-                var records = _.pluck(data.features, 'properties');
+                var omitKeys = _.keys(_.deepGet(_query.layerData.currentLayer.KeywordConfig, 'field.hide'));
+                var records = _.map(_.pluck(data.features, 'properties'), function (record) {
+                    return _.omit(record, omitKeys);
+                });
                 deferred.resolve({
                     name: _thisStore.getName(),
                     isError: false,

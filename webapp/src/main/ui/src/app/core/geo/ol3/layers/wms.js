@@ -17,6 +17,7 @@ function ($log, $timeout, wfs, MapLayer, CONFIG) {
      *
      * @param {Object} options - Properties for configuring the new WMS layer.
      * @param {string} options.name - A title for the new layer.
+     * @param {Object} options.layerThisBelongsTo - GetCapabilities obj representing server layer
      * @param {Object} [options.requestParams] - An object of parameters to append to the WMS request.
      * @param {boolean} [options.queryable=false] - Whether or not the layer should allow click queries.
      * @param {number} [options.opacity=1] - The initial opacity to set the layer to. Should be between 0 and 1.
@@ -26,7 +27,6 @@ function ($log, $timeout, wfs, MapLayer, CONFIG) {
      * @param {onLoad} [options.onLoad] - Called on each WMS image load start.
      * @param {string} [options.wfsUrl] - URL to use for WFS queries.
      * @param {boolean} [options.useProxyForWfs=false] - If true, use CORS proxy for WFS.
-     * @param {Object} layerThisBelongsTo - GetCapabilities obj representing server layer
      */
     var WmsLayer = function (options) {
         var _options = options || {};
@@ -38,6 +38,7 @@ function ($log, $timeout, wfs, MapLayer, CONFIG) {
         var _olSource;
         var _olLayer;
         var _layerThisBelongsTo = _options.layerThisBelongsTo;
+        var _omitSearchProps = _.keys(_.deepGet(_layerThisBelongsTo.KeywordConfig, 'field.hide'));
         var _loadStart = function () {
             _self.styleDirectiveScope.$evalAsync(function () {
                 _isLoading = true;
@@ -111,7 +112,7 @@ function ($log, $timeout, wfs, MapLayer, CONFIG) {
 
         var getBaseCapabilities = this.getBaseCapabilities;
         this.getBaseCapabilities = function () {
-            return _.merge(_.cloneDeep(getBaseCapabilities()), 
+            return _.merge(_.cloneDeep(getBaseCapabilities()),
                 _.deepGet(_layerThisBelongsTo, 'KeywordConfig.capability')
             );
         };
@@ -166,7 +167,9 @@ function ($log, $timeout, wfs, MapLayer, CONFIG) {
             }
             return queryPromise.then(function (response) {
                     return _.merge(baseResponse, {
-                        records: _.pluck(response.data.features, 'properties'),
+                        records: _.map(_.pluck(response.data.features, 'properties'), function (record) {
+                            return _.omit(record, _omitSearchProps);
+                        }),
                         layerFill: {
                             display: 'none'
                         }

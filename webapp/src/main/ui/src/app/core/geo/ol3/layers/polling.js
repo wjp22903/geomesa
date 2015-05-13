@@ -7,27 +7,21 @@ angular.module('stealth.core.geo.ol3.layers')
 function ($log, $interval, WmsLayer) {
     var tag = 'stealth.core.geo.ol3.layers.PollingImageWmsLayer: ';
     $log.debug(tag + 'factory started');
-    var PollingImageWmsLayer = function (name, requestParams, layerThisBelongsTo, queryable, zIndexHint, wmsUrl) {
+    var PollingImageWmsLayer = function (options) {
         var _self = this;
         var _pollingInterval = 3600000;
-        var _params = requestParams;
+        var _params = options.requestParams;
         var _refreshAfterLoad = false;
 
         $log.debug(tag + 'new PollingImageWmsLayer(' + arguments[0] + ')');
-        WmsLayer.call(_self, {
-            name: name,
-            requestParams: requestParams,
-            queryable: queryable,
-            zIndexHint: zIndexHint,
-            wmsUrl: wmsUrl,
+        WmsLayer.call(_self, _.merge({
             onLoad: function () {
                 if (_refreshAfterLoad) {
                     _refreshAfterLoad = false;
                     _self.refresh();
                 }
-            },
-            layerThisBelongsTo: layerThisBelongsTo
-        });
+            }
+        }, options));
 
         _self.refresh = function (requestParams) {
             _params = requestParams || _params;

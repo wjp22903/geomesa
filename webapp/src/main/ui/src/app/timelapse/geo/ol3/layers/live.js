@@ -9,7 +9,14 @@ angular.module('stealth.timelapse.geo.ol3.layers', [
 'ol3Map',
 function (PollingImageWmsLayer, tlWizard, summaryExploreMgr, ol3Map) {
     var LiveWmsLayer = function (name, requestParams, layerThisBelongsTo, queryable, wmsUrl) {
-        PollingImageWmsLayer.apply(this, [name, requestParams, layerThisBelongsTo, queryable, 5, wmsUrl]);
+        PollingImageWmsLayer.call(this, {
+            name: name,
+            requestParams: requestParams,
+            queryable: queryable,
+            zIndexHint: 5,
+            wmsUrl: wmsUrl,
+            layerThisBelongsTo: layerThisBelongsTo
+        });
         var self = this;
 
         var searchPoint = this.searchPoint;
