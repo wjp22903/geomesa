@@ -7,10 +7,8 @@ angular.module('stealth.core.interaction.resulttable', [
 '$scope',
 '$filter',
 '$timeout',
-function ($element, $scope, $filter, $timeout) {
-
-    var initMaxWidth = parseInt($scope.initMaxWidth, 10);
-    var initMaxHeight = parseInt($scope.initMaxHeight, 10);
+'$interval',
+function ($element, $scope, $filter, $timeout, $interval) {
     var maxColWidth = parseInt($scope.maxColWidth, 10);
     var resizable = ($scope.resizable === 'true');
 
@@ -18,6 +16,11 @@ function ($element, $scope, $filter, $timeout) {
     var firstLayout = true;
     var tableBody = $element.children('.searchResultTableResize').children('.searchResultTableBody');
     var tableHeader = $element.children('.searchResultTableHeader');
+
+    /**
+     * Layout the result table.
+     * @param {object} result
+     */
     var doResultLayout = function (result) {
         var body = tableBody.children('.result' + result.id + 'Body');
         var header = tableHeader.children('.result' + result.id + 'Header');
@@ -48,6 +51,10 @@ function ($element, $scope, $filter, $timeout) {
         header.children('.searchResultTableHeaderRow').css('visibility', '');
         body.css('visibility', '');
     };
+    /**
+     * Refresh the table layout.
+     * @param {object} updatedResult
+     */
     var refreshLayout = function (updatedResult) {
         $timeout(function () {
             if (updatedResult) {
@@ -58,24 +65,23 @@ function ($element, $scope, $filter, $timeout) {
                 });
             }
             if (firstLayout) {
-                var minParentWidth = $element.parent().children(':first-child').children().map(function (idx, elem) {
-                    return angular.element(elem).outerWidth();
-                }).get().reduce(function (prev, cur) { return prev + cur; }, 0);
-                $element.children().css('min-width', minParentWidth + 4);
-                if (initMaxWidth < $element.width() || !resizable) {
-                    $element.children().width(initMaxWidth);
+                if ($scope.initMaxWidth < $element.children(':first-child').width() || !resizable) {
+                    $element.children().width($scope.initMaxWidth);
                 } else {
-                    $element.children().width($element.width());
+                    $element.children().width($element.children(':first-child').width());
                 }
                 var resizeElement = $element.children('.searchResultTableResize');
-                if (initMaxHeight < resizeElement.height() || !resizable) {
-                    resizeElement.height(initMaxHeight);
+                if ($scope.initMaxHeight < resizeElement.height() || !resizable) {
+                    resizeElement.height($scope.initMaxHeight);
                 }
-                $element.parent().css('visibility', '');
                 firstLayout = false;
             }
         });
     };
+    /**
+     * Prepare for table layout update.
+     * @param {object} result
+     */
     var prepareTableUpdate = function (result) {
         var resultHeader = tableHeader.children('.result' + result.id + 'Header');
         resultHeader.width(resultHeader.width());
@@ -85,8 +91,11 @@ function ($element, $scope, $filter, $timeout) {
         resultBody.css('visibility', 'hidden');
     };
 
-
-
+    /**
+     * Remove a record from a result.
+     * @param {object} result
+     * @param {object} record
+     */
     this.removeRecord = function (result, record) {
         _.pull(result.records, record);
 
@@ -102,12 +111,24 @@ function ($element, $scope, $filter, $timeout) {
         }
         refreshLayout(result);
     };
+    /**
+     * Remove result from list.
+     * @param {object} result - to remove
+     */
     this.removeResult = function (result) {
         _.pull($scope.results, result);
         if ($scope.results.length === 0) {
             $scope.onRemoveAll();
         }
     };
+    /**
+     * Format values if they are of a known type
+     * @param {string} key - key of value to format
+     * @param {*} value - value to format
+     * @param {object} result - whole result
+     *
+     * @returns {{string|*}} Formatted value or original
+     */
     this.formatValue = function (key, value, result) {
         if (result.fieldTypes) {
             var type = _.find(result.fieldTypes, {'name': key});
@@ -127,73 +148,80 @@ function ($element, $scope, $filter, $timeout) {
         return value;
     };
 
-    $scope.$on('Results Loaded', function () {
-
-        _.forEach($scope.results, function (result, idx) {
-            result.id = idx;
-            //Filter out empty fields
-            var empty = _.reject(_.keys(result.records[0]), function (key) {
-                return _.any(_.pluck(result.records, key), function (value) {
-                    return !(_.isUndefined(value) || _.isNull(value) || (_.isString(value) && _.isEmpty(value.trim())));
-                });
+    _.forEach($scope.results, function (result, idx) {
+        result.id = idx;
+        //Filter out empty fields
+        var empty = _.reject(_.keys(result.records[0]), function (key) {
+            return _.any(_.pluck(result.records, key), function (value) {
+                return !(_.isUndefined(value) || _.isNull(value) || (_.isString(value) && _.isEmpty(value.trim())));
             });
-            result.records = _.map(result.records, function (record) {
-                return _.omit(record, empty);
-            });
+        });
+        result.records = _.map(result.records, function (record) {
+            return _.omit(record, empty);
+        });
 
-            result.paging = {
-                suggestedPage: 1,
-                currentPage: 1,
-                pageSize: columns.length - 1,
-                checkSuggestedPage: function () {
-                    if (result.paging.suggestedPage > 0 &&
-                        result.paging.suggestedPage <= result.paging.numberOfPages()) {
-                        prepareTableUpdate(result);
-                        result.paging.currentPage = result.paging.suggestedPage;
-                        refreshLayout(result);
-                    }
-                },
-                numberOfPages: function () {
-                    var num = 0;
-                    if (_.isArray(result.records)) {
-                        num = Math.ceil(result.records.length/result.paging.pageSize);
-                    }
-                    return num;
-                },
-                previousPage: function () {
+        result.paging = {
+            suggestedPage: 1,
+            currentPage: 1,
+            pageSize: columns.length - 1,
+            checkSuggestedPage: function () {
+                if (result.paging.suggestedPage > 0 &&
+                    result.paging.suggestedPage <= result.paging.numberOfPages()) {
                     prepareTableUpdate(result);
-                    result.paging.suggestedPage = (result.paging.currentPage = (result.paging.currentPage < 2) ? (result.paging.numberOfPages()) : (result.paging.currentPage-1));
-                    refreshLayout(result);
-                },
-                nextPage: function () {
-                    prepareTableUpdate(result);
-                    result.paging.suggestedPage = (result.paging.currentPage = (result.paging.currentPage >= result.paging.numberOfPages()) ? 1 : (result.paging.currentPage+1));
+                    result.paging.currentPage = result.paging.suggestedPage;
                     refreshLayout(result);
                 }
-            };
-        });
-        refreshLayout();
+            },
+            numberOfPages: function () {
+                var num = 0;
+                if (_.isArray(result.records)) {
+                    num = Math.ceil(result.records.length/result.paging.pageSize);
+                }
+                return num;
+            },
+            previousPage: function () {
+                prepareTableUpdate(result);
+                result.paging.suggestedPage = (result.paging.currentPage = (result.paging.currentPage < 2) ? (result.paging.numberOfPages()) : (result.paging.currentPage-1));
+                refreshLayout(result);
+            },
+            nextPage: function () {
+                prepareTableUpdate(result);
+                result.paging.suggestedPage = (result.paging.currentPage = (result.paging.currentPage >= result.paging.numberOfPages()) ? 1 : (result.paging.currentPage+1));
+                refreshLayout(result);
+            }
+        };
     });
+
+    // Wait until element is displayed, then refresh layout.
+    var checkDisplay = $interval(function () {
+        var display = $element.parent().css('display');
+        if (display !== 'none') {
+            $interval.cancel(checkDisplay); //cancel further checks
+            refreshLayout();
+        }
+    }, 100);
 }])
 
 .directive('stOl3MapPopupSearchResultTable', [
 function () {
     return {
-        restrict: 'A',
+        restrict: 'EA',
         controller: 'searchResultTableController',
         controllerAs: 'resultTableCtrl',
         scope: {
             results: '=',
             onRemoveAll: '&',
-            initMaxWidth: '@',
-            initMaxHeight: '@',
             maxColWidth: '@',
             resizable: '@'
         },
         templateUrl: 'core/interaction/resulttable.tpl.html',
         require: '^stOl3MapPopup',
         link: function (scope, element, attrs, mapPopCtrl) {
-            mapPopCtrl.launchSearch();
+            scope.onRemoveAll = function () {
+                scope.$parent.$parent.removeTab(scope.$parent.tab);
+            };
+            scope.initMaxWidth = mapPopCtrl.maxWidth;
+            scope.initMaxHeight = mapPopCtrl.maxHeight;
         }
     };
 }])
@@ -210,7 +238,9 @@ function () {
                     }
                 });
                 scope.$on('$destroy', function () {
-                    element.resizable('destroy');
+                    if (element.resizable('instance')) {
+                        element.resizable('destroy');
+                    }
                 });
             }
         }

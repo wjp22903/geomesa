@@ -24,7 +24,7 @@ function ($rootScope, catMgr, Category, WidgetDef) {
     };
 
     var widgetDef = new WidgetDef('st-timelapse-geo-category', catScope);
-    var category = new Category(0, 'Time-enabled', 'fa-clock-o', widgetDef, null, true);
+    var category = new Category(1, 'Time-enabled', 'fa-clock-o', widgetDef, null, true);
     category.height = 500;
     catMgr.addCategory(1, category);
 }])
@@ -100,7 +100,7 @@ function ($log, $timeout, owsLayers, ol3Map, LiveWmsLayer, tlLayerManager,
                     cnt: filterLayerCount[name],
                     layerThisBelongsTo: layerThisBelongsTo,
                     Name: name,
-                    Title: title || ((layerThisBelongsTo.Title || name) + ' (Options ' + filterLayerCount[name] + ')'),
+                    Title: title || (layerThisBelongsTo.Title || name),
                     viewState: {
                         isOnMap: false,
                         toggledOn: false,
@@ -234,19 +234,20 @@ function ($log, $timeout, owsLayers, ol3Map, LiveWmsLayer, tlLayerManager,
                     historical: {},
                     summary: summaryExploreMgr.workspaces
                 };
-                owsLayers.getLayers('timelapse')
+                var keywordPrefix = $scope.keywordPrefix || 'timelapse';
+                owsLayers.getLayers(keywordPrefix)
                     .then(function (layers) {
                         _.each(layers, function (l) {
                             var layer = _.cloneDeep(l);
                             layer.hasViewables = function (list) {return !_.isEmpty(list);};
-                            if (layer.KeywordConfig.timelapse.live) {
+                            if (layer.KeywordConfig[keywordPrefix].live) {
                                 layer.filterLayers = [];
                             }
-                            if (layer.KeywordConfig.timelapse.summary) {
+                            if (layer.KeywordConfig[keywordPrefix].summary) {
                                 layer.summaries = [];
                             }
                             _.each(['live', 'historical', 'summary'], function (role) {
-                                _.forOwn(layer.KeywordConfig.timelapse[role], function (value, workspace, obj) {
+                                _.forOwn(layer.KeywordConfig[keywordPrefix][role], function (value, workspace, obj) {
                                     if (_.isArray($scope.workspaces[role][workspace])) {
                                         $scope.workspaces[role][workspace].push(layer);
                                     } else {
@@ -292,7 +293,8 @@ function ($log, $timeout, owsLayers, ol3Map, LiveWmsLayer, tlLayerManager,
                         LAYERS: layer.Name,
                         CQL_FILTER: 'INCLUDE'
                     };
-                    var pollingLayer = new LiveWmsLayer(layer.Title, requestParams, layer.layerThisBelongsTo, true);
+                    var LiveConstructor = $scope.LiveConstructor || LiveWmsLayer;
+                    var pollingLayer = new LiveConstructor(layer.Title, requestParams, layer.layerThisBelongsTo, true);
                     pollingLayer.setPollingInterval($scope.liveRefresh.value * 1000);
                     var ol3Layer = pollingLayer.getOl3Layer();
                     layer.mapLayerId = pollingLayer.id;

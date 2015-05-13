@@ -36,11 +36,18 @@ function ($log, $rootScope) {
     var _searchables = {};
     var _searchResults = [];
 
-    this.search = function (coord, resolution, callback) {
+    /**
+     * Call all registered searchables.
+     * @param {number[]} coord - [lon, lat]
+     * @param {number} resolution
+     * @param {function} callback - invoked when results are ready
+     * @param {Scope} parentScope - parent scope for search result displays
+     */
+    this.search = function (coord, resolution, callback, parentScope) {
         $log.debug(tag + 'Starting new click search.');
         var _searchResults = [];
-        var promises = _.flatten(_.map(_searchables, function (search) {
-            return search(coord, resolution);
+        var promises = _.flattenDeep(_.map(_searchables, function (search) {
+            return search(coord, resolution, parentScope);
         }));
         var invokeCallback = function (results) {
             $rootScope.$evalAsync(function () {
@@ -63,7 +70,6 @@ function ($log, $rootScope) {
             });
         }
     };
-
     /**
      * The click service expects registree to provide a callback that
      * will return a $q promise that will resolve with an object with
@@ -75,6 +81,9 @@ function ($log, $rootScope) {
      *                                query was successfull.
      *     [reason]: (String) The error message to display if the query
      *                        resulted in an error.
+     *
+     * @param {function} callback
+     * @returns {number} Unique ID of registered callback
      */
     this.registerSearchable = function (callback) {
         $log.debug(tag + 'Registering searchable.');
@@ -83,8 +92,8 @@ function ($log, $rootScope) {
         return id;
     };
     /**
-     * Removes a searchable.
-     * Requires the ID returned by registerSearchable().
+     * Removes a searchable by ID.
+     * @param {number} id - the ID returned by registerSearchable()
      */
     this.unregisterSearchableById = function (id) {
         delete _searchables[id];
@@ -100,7 +109,8 @@ function ($log, $rootScope) {
 '$rootScope',
 'mapClickSearchService',
 'ol3Map',
-function ($element, $filter, $scope, $rootScope, mapClickSearchService, ol3Map) {
+'stealth.core.utils.WidgetDef',
+function ($element, $filter, $scope, $rootScope, mapClickSearchService, ol3Map, WidgetDef) {
     /**
      * Private members.
      */
@@ -120,33 +130,53 @@ function ($element, $filter, $scope, $rootScope, mapClickSearchService, ol3Map) 
     this.wizardActive = false;
     this.lat = parseFloat($element.attr('lat'));
     this.lon = parseFloat($element.attr('lon'));
-    this.maxWidth = Math.ceil(mapSize[0] * 0.5);
-    this.maxHeight = Math.ceil(mapSize[1] * 0.5);
+    this.maxWidth = Math.ceil(mapSize[0] * 0.35);
+    this.maxHeight = Math.ceil(mapSize[1] * 0.35);
     this.results = [];
 
     /**
      * Methods available to the view.
      */
+    /**
+     * Bring popup to front.
+     */
     this.focus = function () {
         $element.css('z-index', '92');
         $rootScope.$emit('Popup Focus Change', id);
     };
+    /**
+     * Whether or not popup is pinned.
+     * @returns {boolean}
+     */
     this.isPinned = function () {
         return isPinned;
     };
+    /**
+     * Toggle pinned state.
+     */
     this.togglePin = function () {
         isPinned = !isPinned;
     };
+    /**
+     * Close this popup.
+     */
     this.closePopup = function () {
         ol3Map.removeOverlay(overlay);
         $scope.$destroy();
         $element.remove();
     };
+    /**
+     * Initiate search and receive results.
+     */
     this.launchSearch = function () {
         mapClickSearchService.search([this.lon, this.lat], ol3Map.getResolution(), function(responses) {
             _.forEach(responses, function (response) {
-                if (!response.isError && response.records && response.records.length > 0) {
-                    _self.results.push(response);
+                if (response) {
+                    _.each(_.flattenDeep([response]), function (singleResponse) {
+                        if (!singleResponse.isError && singleResponse.widgetDef) {
+                            _self.results.push(singleResponse);
+                        }
+                    });
                 }
             });
             if (_self.results.length > 0) {
@@ -157,7 +187,7 @@ function ($element, $filter, $scope, $rootScope, mapClickSearchService, ol3Map) 
             } else {
                 _self.closePopup();
             }
-        });
+        }, $scope);
     };
 
     // Add overlay to the map and position it at the click site.

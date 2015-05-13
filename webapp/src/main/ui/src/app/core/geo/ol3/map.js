@@ -2,6 +2,9 @@ angular.module('stealth.core.geo.ol3.map', [
     'stealth.core.geo.ol3.layers'
 ])
 
+/**
+ * Displays an OL3 map.
+ */
 .directive('stOl3Map', [
 '$log',
 '$interval',
@@ -28,6 +31,9 @@ function ($log, $interval, ol3Map, CONFIG) {
     };
 }])
 
+/**
+ * Wraps an OL3 map.
+ */
 .service('ol3Map', [
 '$log',
 '$filter',
@@ -88,28 +94,39 @@ function ($log, $filter, $q, mapClickSearchService, MapLayer, TintLayer, CONFIG)
     });
     //Layer list stored in reverse. Bottom layer at end of list.
     var _layers = [];
+    var updateLayerZIndices = function () {
+        //Something changed the layer order.
+        //Traverse the list and set the z-indices.
+        _.each(_layers, function (layer, index) {
+            layer.reverseZIndex = index;
+        });
+    };
 
     // ***** API *****
     /**
      * Assign map to an element (i.e. target).
+     * @param {string} targetId - id attr value of target element
      */
     this.setTarget = function (targetId) {
         _map.setTarget(targetId);
     };
     /**
      * Zoom map to specified extent.
+     * @param {number[]} extent - [minLon, minLat, maxLon, maxLat]
      */
     this.fitExtent = function (extent) {
         _map.getView().fitExtent(extent, _map.getSize());
     };
     /**
      * Get current map extent.
+     * @returns {number[]} [minLon, minLat, maxLon, maxLat]
      */
     this.getExtent = function () {
         return _map.getView().calculateExtent(_map.getSize());
     };
     /**
      * Get current map size.
+     * @returns {number[]} [width, height]
      */
     this.getSize = function () {
         return _map.getSize();
@@ -117,18 +134,23 @@ function ($log, $filter, $q, mapClickSearchService, MapLayer, TintLayer, CONFIG)
     /**
      * Returns array of layers currently on map (visible or not).
      * Layers are in reverse. Bottom layer at end of list.
+     * @returns {stealth.core.geo.ol3.layers.MapLayer[]}
      */
     this.getLayersReversed = function () {
         return _layers;
     };
     /**
      * Get the map's ol.View.
+     * @returns {ol.View}
      */
     this.getView = function () {
         return _map.getView();
     };
     /**
      * Adds a layer to the map.
+     * @param {stealth.core.geo.ol3.layers.MapLayer} layer - to add
+     * @param {number} [index=] - desired index for the layer
+     * @returns {stealth.core.geo.ol3.layers.MapLayer} The added layer
      */
     this.addLayer = function (layer, index) {
         var ol3Layer = layer.getOl3Layer();
@@ -147,18 +169,16 @@ function ($log, $filter, $q, mapClickSearchService, MapLayer, TintLayer, CONFIG)
         }
         _map.getLayers().insertAt(_layers.length - index, ol3Layer);
         _layers.splice(index, 0, layer);
+        updateLayerZIndices();
 
-        layer.searchId = mapClickSearchService.registerSearchable(function (coord, res) {
-            if (layer.isQueryable() && ol3Layer.getVisible()) {
-                return layer.searchPoint(coord, res);
-            } else {
-                return layer.searchPointEmpty();
-            }
+        layer.searchId = mapClickSearchService.registerSearchable(function (coord, res, parentScope) {
+            return layer.buildSearchPointWidgets(coord, res, parentScope);
         });
         return layer;
     };
     /**
      * Removes a layer from the map.
+     * @param {stealth.core.geo.ol3.layers.MapLayer} layer - to remove
      */
     this.removeLayer = function (layer) {
         if (_.isNumber(layer.searchId)) {
@@ -167,7 +187,12 @@ function ($log, $filter, $q, mapClickSearchService, MapLayer, TintLayer, CONFIG)
         }
         _map.removeLayer(layer.getOl3Layer());
         _.pull(_layers, layer);
+        updateLayerZIndices();
     };
+    /**
+     * Removes a layer from the map by ID.
+     * @param {number} id - ID of layer to remove
+     */
     this.removeLayerById = function (id) {
         var layer = _.find(_layers, {id: id});
         if (layer) {
@@ -175,34 +200,42 @@ function ($log, $filter, $q, mapClickSearchService, MapLayer, TintLayer, CONFIG)
         }
     };
     /**
-      * Get layer by ID
-      */
+     * Get layer by ID
+     * @param {number} id - ID of layer to find
+     * @returns {stealth.core.geo.ol3.layers.MapLayer|undefined}
+     */
     this.getLayerById = function (id) {
         return _.find(_layers, {id: id});
     };
     /**
      * Move an OL3 layer on the map from index to newIndex.
+     * @param {number} index - current index
+     * @param {number} newIndex - new index
      */
     this.moveOl3Layer = function (index, newIndex) {
         if (index != newIndex) {
             var layers = _map.getLayers();
             layers.insertAt(newIndex, layers.removeAt(index));
+            updateLayerZIndices();
         }
     };
     /**
      * Adds an interaction to the map.
+     * @param {ol.interaction.Interaction} interaction
      */
     this.addInteraction = function (interaction) {
         _map.addInteraction(interaction);
     };
     /**
      * Removes an interaction from the map.
+     * @param {ol.interaction.Interaction} interaction
      */
     this.removeInteraction = function (interaction) {
         _map.removeInteraction(interaction);
     };
     /**
      * Adds an overlay to the map.
+     * @param {ol.Overlay} overlay
      */
     this.addOverlay = function (overlay) {
         _map.addOverlay(overlay);
@@ -210,36 +243,48 @@ function ($log, $filter, $q, mapClickSearchService, MapLayer, TintLayer, CONFIG)
     };
     /**
      * Removes an overlay from the map.
+     * @param {ol.Overlay} overlay
      */
     this.removeOverlay = function (overlay) {
         _map.removeOverlay(overlay);
     };
     /**
      * Adds a listener to the map.
+     * @param {(string|string[])} type - event type of an array of types
+     * @param {function} listener - listener function
+     * @param {object} opt_this - object to use as this in listener
+     *
+     * @returns {goog.events.Key} Unique key for listener
      */
     this.on = function (type, listener, opt_this) {
         return _map.on(type, listener, opt_this);
     };
     /**
      * Removes a listener from the map.
+     * @param {(string|string[])} type - event type of an array of types
+     * @param {function} listener - listener function
+     * @param {object} opt_this - object used as this in listener
      */
     this.un = function (type, listener, opt_this) {
         _map.un(type, listener, opt_this);
     };
     /**
-     * Removes a listener using the key returned by on() or once()
+     * Removes a listener using the key returned by on()
+     * @param {goog.events.Key} - listener key
      */
     this.unByKey = function (key) {
         _map.unByKey(key);
     };
     /**
      * Returns the current resolution for the map view.
+     * @returns {number}
      */
     this.getResolution = function () {
         return _map.getView().getResolution();
     };
     /**
      * Returns the current center of the map view.
+     * @returns {number[]} [lon, lat]
      */
     this.getCenter = function () {
         return _map.getView().getCenter();

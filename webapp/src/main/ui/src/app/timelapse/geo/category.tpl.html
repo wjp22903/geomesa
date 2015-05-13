@@ -1,4 +1,4 @@
-<div ng-hide="workspaces.live | lodash:'isEmpty'" class="categoryGrouping">
+<div ng-hide="timelapse.hideLive || workspaces.live | lodash:'isEmpty'" class="categoryGrouping">
     <div class="categoryCell">
         <span class="btn fa-stack toggleSlide"
               ng-click="toggleSlideLive(timelapse.isLiveOn)">
@@ -148,7 +148,7 @@
         </div>
     </div>
 </div>
-<div class="categoryGrouping">
+<div class="categoryGrouping" ng-hide="timelapse.hideHistorical">
     <div class="categoryCell">
         <span class="btn fa-stack toggleSlide"
               ng-click="toggleSlideHistorical(timelapse.isHistoricalOn)">
@@ -251,7 +251,7 @@
         </div>
     </div>
 </div>
-<div ng-hide="workspaces.summary | lodash:'isEmpty'" class="categoryGrouping">
+<div ng-hide="timelapse.hideSummary || workspaces.summary | lodash:'isEmpty'" class="categoryGrouping">
     <div class="categoryCell">
             <span class="btn fa-stack toggleSlide"
                   ng-click="toggleSlideSummary(timelapse.isSummaryOn)">

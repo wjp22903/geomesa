@@ -503,7 +503,7 @@ function ($log, $rootScope, $timeout,
     histWizard.setCategoryScope(scope);
 
     var widgetDef = new WidgetDef('st-histogram-geo-category', scope);
-    var category = new Category(1, 'Histograms', 'fa-bar-chart', widgetDef, null, true);
+    var category = new Category(2, 'Histograms', 'fa-bar-chart', widgetDef, null, true);
     catMgr.addCategory(1, category);
 }])
 

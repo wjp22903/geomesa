@@ -1,13 +1,15 @@
-<div>
-    <div class="pull-left" style="display:inline-block;">
+<div ng-mousedown="$event.stopPropagation();">
+    <div class="mapPopupTabStrip"
+         ng-class="{'ng-hide': tabs.length < 2}">
         <div ng-repeat="tab in tabs" ng-click="setActiveTabIdx($index)" class="btn-default"
+             ng-class="{mapPopupActiveTab: activeTabIdx===$index}"
              tooltip-html-unsafe="{{::tab.tooltipText}}"
-             tooltip-placement="left" tooltip-animation="false" tootip-popup-delay="500"
+             tooltip-placement="top" tooltip-animation="false" tootip-popup-delay="500"
              tooltip-trigger="mouseenter">
-            <i class="fa fa-fw" ng-class="::tab.iconClass"></i>
+            <i class="fa fa-fw fa-lg" ng-class="::tab.iconClass"></i>
         </div>
     </div>
-    <div class="pull-left" style="display:inline-block;">
+    <div class="mapPopupTabContentContainer">
         <st-widget-compiler ng-repeat="tab in tabs"
                             widget-def="::tab.widgetDef"
                             ng-class="{'ng-hide': activeTabIdx!==$index}">

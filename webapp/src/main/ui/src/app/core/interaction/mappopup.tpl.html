@@ -1,12 +1,11 @@
-<div ng-mousedown="mapPopCtrl.focus()">
-    <div class="fa fa-fw fa-spinner fa-spin fa-lg outlineTextWhite"
-         style="position:relative;top:-13px;left:-13px;"
+<div ng-click="mapPopCtrl.focus()">
+    <div class="fa fa-fw fa-spinner fa-spin fa-lg mapPopupSpinner"
          ng-class="{'ng-hide': !mapPopCtrl.loading}">
     </div>
-    <div class="mapPopupContainer" style="visibility: hidden" ng-class="{'ng-hide': mapPopCtrl.wizardActive}">
-        <div style="background-color: #ddd; width: 100%">
+    <div class="mapPopupContainer ng-hide" ng-class="{'ng-hide': mapPopCtrl.wizardActive || mapPopCtrl.loading}">
+        <div class="mapPopupHeader">
             <i class="fa fa-fw fa-search"></i>
-            <span> Lat: {{ ::mapPopCtrl.lat | number }}, Lon: {{ ::mapPopCtrl.lon | number }}</span>
+            <span> ({{ ::mapPopCtrl.lat | number }}, {{ ::mapPopCtrl.lon | number }})</span>
             <span class="pull-right">
                 <span class="btn btn-default fa-stack toggleButton"
                       ng-class="{active: mapPopCtrl.isPinned()}"
@@ -21,13 +20,7 @@
                 </span>
             </span>
         </div>
-        <div st-ol3-map-popup-search-result-table
-             results="mapPopCtrl.results"
-             on-remove-all="mapPopCtrl.closePopup();"
-             init-max-width="{{ ::mapPopCtrl.maxWidth }}"
-             init-max-height="{{ ::mapPopCtrl.maxHeight }}"
-             max-col-width="175"
-             resizable="true">
+        <div st-ol3-map-popup-tabs>
         </div>
     </div>
 </div>

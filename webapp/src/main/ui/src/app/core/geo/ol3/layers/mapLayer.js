@@ -12,9 +12,11 @@ function ($log, $rootScope, $q, $timeout, coreCapabilitiesExtender, WidgetDef) {
     $log.debug(tag + 'factory started');
     var _idSeq = 0;
     /**
-     * name {String} - Display name for layer
-     * ol3Layer {ol.layer.Layer} - Underlying OL3 layer impl
-     * zIndexHint {Integer} - Suggestion for where layer should go in stack.
+     * Base class for all map layers.
+     * @param {string} name - Display name for layer
+     * @param {ol.layer.Layer} ol3Layer - Underlying OL3 layer impl
+     * @param {boolean} queryable - Can this layer respond to map queries
+     * @param {number} zIndexHint - Suggestion for where layer should go in stack.
      *     Lower values suggest bottom of stack.
      *     Some values for expected categories:
      *         -20 base layers
@@ -24,14 +26,24 @@ function ($log, $rootScope, $q, $timeout, coreCapabilitiesExtender, WidgetDef) {
      *     These hints only apply when layer is added to stack.  Users can
      *     reorder as desired.  Also, once stack is reordered, the application
      *     of hints breaks down and layers may be inserted in unexpected order.
+     *
+     * @class
      */
     var MapLayer = function (name, ol3Layer, queryable, zIndexHint) {
-        var _queryable = queryable;
+        //@private
+        var _self = this;
+
+        //@protected
         this.id = _idSeq++;
         this.name = name;
         this.ol3Layer = ol3Layer;
+        this.queryable = queryable;
         this.zIndexHint = zIndexHint || 0;
+        this.reverseZIndex = -1; //Lower # means layer is higher on map. This will be set by the map.
         this.styleDirective = 'st-map-layer-style';
+        this.styleDirectiveScope = null;
+        this.styleDirectiveIsoScopeAttrs = null;
+
         if (ol3Layer) {
             var scope = $rootScope.$new();
             scope.layerState = {
@@ -60,9 +72,22 @@ function ($log, $rootScope, $q, $timeout, coreCapabilitiesExtender, WidgetDef) {
                 });
             });
 
+            /**
+             * Queries this layer at specified coordinate and resolution
+             * @param {number[]} coord - [longitude, latitude]
+             * @param {number} res - map resolution
+             *
+             * @returns {Promise}
+             * @protected
+             */
             this.searchPoint = function (coord, res) {
-                return this.searchPointEmpty();
+                return $q.when(this.getEmptySearchPointResult());
             };
+            /**
+             * Creates a non-error search result with no records
+             * @returns {object} records property is undefined
+             * @protected
+             */
             this.getEmptySearchPointResult = function () {
                 return {
                     name: this.name,
@@ -70,36 +95,92 @@ function ($log, $rootScope, $q, $timeout, coreCapabilitiesExtender, WidgetDef) {
                     capabilities: this.getCapabilities()
                 };
             };
-            this.searchPointEmpty = function () {
-                return $q.when(this.getEmptySearchPointResult());
-            };
-            this.isQueryable = function () {
-                return _queryable;
-            };
-            this.setQueryable = function (newQueryable) {
-                _queryable = newQueryable;
-                return this;
-            };
-
+            /**
+             * Returns the un-extended, base capabilities set for this layer.
+             * @returns {object}
+             * @protected
+             */
             this.getBaseCapabilities = function () {
                 return {};
             };
+            /**
+             * Returns layer's capabilities extender.
+             * @returns {stealth.core.interaction.capabilities.Extender}
+             * @protected
+             */
             this.getCapabilitiesExtender = function () {
                 return coreCapabilitiesExtender;
             };
+            /**
+             * Creates an options object that is passed to the capabilities extender's
+             * extendCapabilities method.
+             * @returns {object}
+             * @protected
+             */
             this.getCapabilitiesOpts = function () {
                 return {};
             };
+            /**
+             * Returns the full, extended capabilities for this layer.
+             * @returns {object}
+             * @protected
+             */
             this.getCapabilities = function () {
                 return this.getCapabilitiesExtender().extendCapabilities(
                     this.getBaseCapabilities(), this,
                     this.getCapabilitiesOpts());
             };
+            /**
+             * An object definining a result widget.
+             * @typedef {object} MapLayer~SearchPointWidget
+             * @property {(string|number)} level - Sorted (asc) to determine ordering
+             * @property {string} iconClass - CSS classes to use for icon
+             * @property {string} tooltipText - tooltip text for icon
+             * @property {stealth.core.utils.WidgetDef} widgetDef - widget to display content
+             */
+            /**
+             * Creates widgets to display layer's search results.
+             * @param {number[]} coord - [longitude, latitude]
+             * @param {number} res - map resolution
+             * @param {Scope} [parentScope=$rootScope] - parent for widget scopes
+             *
+             * @returns {Promise[]} Each Promise returns a {@link MapLayer~SearchPointWidget}
+             *
+             * @protected
+             */
+            this.buildSearchPointWidgets = function (coord, res, parentScope) {
+                if (!(this.queryable && this.ol3Layer.getVisible())) {
+                    return $q.when({isError: true});
+                }
+                var promises = this.searchPoint(coord, res);
+                if (!_.isArray(promises)) {
+                    promises = [promises];
+                }
+                return _.map(promises, function (promise) {
+                    return promise.then(function (response) {
+                        var s = (parentScope || $rootScope).$new();
+                        s.results = [response];
+                        return {
+                            level: _.padLeft(_self.reverseZIndex, 4, '0'),
+                            iconClass: _self.styleDirectiveScope.styleVars.iconClass,
+                            tooltipText: response.name,
+                            widgetDef: (response.isError ||
+                                !_.isArray(response.records) ||
+                                _.isEmpty(response.records)) ?
+                                    null : new WidgetDef('st-ol3-map-popup-search-result-table', s,
+                                        "results='results' max-col-width='125' resizable='true'")
+                        };
+                    });
+                });
+            };
         }
-        this.styleDirectiveIsoScopeAttrs = null;
         $log.debug(tag + 'new MapLayer(' + name + ')');
     };
 
+    /**
+     * @returns {stealth.core.utils.WidgetDef} Layer's style widget
+     * @public
+     */
     MapLayer.prototype.getStyleDisplayDef = function () {
         if (!this.styleDisplayDef) {
             this.styleDisplayDef = new WidgetDef(
@@ -108,12 +189,24 @@ function ($log, $rootScope, $q, $timeout, coreCapabilitiesExtender, WidgetDef) {
         }
         return this.styleDisplayDef;
     };
+    /**
+     * @returns {number} Layer's ID
+     * @public
+     */
     MapLayer.prototype.getId = function () {
         return this.id;
     };
+    /**
+     * @returns {ol.layer.Layer} Layer's OL3 layer
+     * @public
+     */
     MapLayer.prototype.getOl3Layer = function () {
         return this.ol3Layer;
     };
+    /**
+     * @param {string} name - New name
+     * @public
+     */
     MapLayer.prototype.setName = function (name) {
         this.name = name;
         this.ol3Layer.set('name', name);
