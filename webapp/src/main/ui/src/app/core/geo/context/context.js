@@ -31,7 +31,8 @@ function ($rootScope, $timeout, catMgr, Category, WidgetDef, owsLayers, ol3Map,
                 wmsUrl: layer.serverUrl,
                 isTiled: _.deepHas(layer.KeywordConfig, 'capability.tiled'),
                 wfsUrl: layer.wfsUrl,
-                useProxyForWfs: layer.useProxyForWfs
+                useProxyForWfs: layer.useProxyForWfs,
+                layerThisBelongsTo: layer
             });
             wmsLayer.applyCql(layer.cqlFilter);
             var ol3Layer = wmsLayer.getOl3Layer();

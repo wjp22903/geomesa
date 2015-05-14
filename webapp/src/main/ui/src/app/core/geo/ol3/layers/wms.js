@@ -26,6 +26,7 @@ function ($log, $timeout, wfs, MapLayer, CONFIG) {
      * @param {onLoad} [options.onLoad] - Called on each WMS image load start.
      * @param {string} [options.wfsUrl] - URL to use for WFS queries.
      * @param {boolean} [options.useProxyForWfs=false] - If true, use CORS proxy for WFS.
+     * @param {Object} layerThisBelongsTo - GetCapabilities obj representing server layer
      */
     var WmsLayer = function (options) {
         var _options = options || {};
@@ -36,6 +37,7 @@ function ($log, $timeout, wfs, MapLayer, CONFIG) {
         var wmsUrl = _options.wmsUrl || (CONFIG.geoserver.defaultUrl + '/wms');
         var _olSource;
         var _olLayer;
+        var _layerThisBelongsTo = _options.layerThisBelongsTo;
         var _loadStart = function () {
             _self.styleDirectiveScope.$evalAsync(function () {
                 _isLoading = true;
@@ -106,6 +108,13 @@ function ($log, $timeout, wfs, MapLayer, CONFIG) {
 
         $log.debug(tag + 'new WmsLayer(' + arguments[0] + ')');
         MapLayer.apply(this, [_options.name, _olLayer, _options.queryable, _options.zIndexHint]);
+
+        var getBaseCapabilities = this.getBaseCapabilities;
+        this.getBaseCapabilities = function () {
+            return _.merge(_.cloneDeep(getBaseCapabilities()), 
+                _.deepGet(_layerThisBelongsTo, 'KeywordConfig.capability')
+            );
+        };
 
         this.updateRequestParams = function (params) {
             params.unique = _.now();

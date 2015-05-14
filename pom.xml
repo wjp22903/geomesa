@@ -118,6 +118,7 @@
             [
                 'stealth.air',
                 'stealth.histogram',
+                'stealth.crawl',
                 'stealth.static',
                 'stealth.targetpri',
                 'stealth.timelapse',
@@ -159,7 +160,8 @@
                     Name: "tiger:poi",
                     Title: "Manhattan Points of Interest",
                     KeywordList: [
-                        "stealth.context.Manhattan"
+                        "stealth.context.Manhattan",
+                        "stealth.capability.crawl"
                     ],
                     queryable: true,
                     useProxyForWfs: true

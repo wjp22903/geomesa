@@ -78,7 +78,8 @@ function ($timeout, owsLayers, colors, ol3Map, WmsLayer, CONFIG) {
             var mapLayer = new WmsLayer({
                 name: filterLayer.title + ' - ' + (filterLayer.layerTitle || filterLayer.layerName),
                 requestParams: requestParams,
-                queryable: true
+                queryable: true,
+                layerThisBelongsTo: layer
             });
 
             var updateRequestParams = function (filterLayer) {

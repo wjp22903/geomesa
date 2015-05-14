@@ -9,9 +9,8 @@ angular.module('stealth.timelapse.geo.ol3.layers', [
 'ol3Map',
 function (PollingImageWmsLayer, tlWizard, summaryExploreMgr, ol3Map) {
     var LiveWmsLayer = function (name, requestParams, layerThisBelongsTo, queryable, wmsUrl) {
-        PollingImageWmsLayer.apply(this, [name, requestParams, queryable, 5, wmsUrl]);
+        PollingImageWmsLayer.apply(this, [name, requestParams, layerThisBelongsTo, queryable, 5, wmsUrl]);
         var self = this;
-        var _layerThisBelongsTo = layerThisBelongsTo;
 
         var searchPoint = this.searchPoint;
         this.searchPoint = function (coord, res) {
@@ -24,8 +23,9 @@ function (PollingImageWmsLayer, tlWizard, summaryExploreMgr, ol3Map) {
             });
         };
 
+        var getBaseCapabilities = this.getBaseCapabilities;
         this.getBaseCapabilities = function () {
-            var capabilities = _.cloneDeep(_layerThisBelongsTo.KeywordConfig.capability);
+            var capabilities = getBaseCapabilities();
             if (!_.isUndefined(capabilities['timelapse'])) {
                 capabilities['timelapse']['toolTipText'] = 'Launch time-enabled query wizard';
                 capabilities['timelapse']['iconClass'] = 'fa-clock-o';
