@@ -1,5 +1,11 @@
 angular.module('stealth.core.utils')
 
+/**
+ * Formats a duration in millis in days, hours, minutes, and seconds.
+ * @param {Number} millis - Milliseconds to format
+ *
+ * @returns {string} Duration in DHMS format
+ */
 .filter('millisToDHMS', [
 function () {
     var times = [
@@ -55,14 +61,18 @@ function () {
     };
 }])
 
+/**
+ * Formats a distance in meters with commas and unit (m or km).
+ * @param {Number} meters - Meters to format
+ * @param {Number} [numDecimals=3] - Decimal places to round to
+ *
+ * @returns {string} Formatted distance
+ */
 .filter('formatMeters', [
 '$filter',
 function ($filter) {
     return function (meters, numDecimals) {
         if (_.isNumber(meters)) {
-            if (!_.isNumber(numDecimals)) {
-                numDecimals = 3;
-            }
             var prefix = ' ';
             if (meters > 1000) {
                 prefix = ' k';
@@ -75,6 +85,12 @@ function ($filter) {
     };
 }])
 
+/**
+ * Formats a coordinate in degrees, minutes, seconds, and hemisphere.
+ * @param {{Number[]|Number[][])} coord - [longitude, latitude] coord or an array of coords
+ *
+ * @returns {(string[]|string[][])} [latitude, longitude] in DMSH or an array of them
+ */
 .filter('coordToDMSH', function () {
     var format = function (coord) {
         return ol.coordinate.toStringHDMS(coord)
@@ -94,13 +110,21 @@ function ($filter) {
     };
 })
 
+/**
+ * Formats a number with commas, rounds decimals, and trims trailing zeroes.
+ * @param {Number} num - Number to format
+ * @param {Number} [numDecimals=3] - Decimal places to round to
+ *
+ * @returns {string} Formatted number
+ */
 .filter('numberTrim', [
 '$filter',
 function ($filter) {
-    return function (number, fractionSize) {
-        var n = $filter('number')(number, fractionSize);
-        if (_.isString(n)) {
-            return n.replace(/\.?0+$/, '');
+    return function (num, numDecimals) {
+        var n = $filter('number')(num, numDecimals);
+        if (_.isString(n) && n.match(/\./)) {
+            n = n.replace(/0+$/, '');
+            return n.replace(/\.$/, '');
         }
         return n;
     };
