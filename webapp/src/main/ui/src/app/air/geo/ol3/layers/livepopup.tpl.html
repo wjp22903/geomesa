@@ -1,0 +1,63 @@
+<div class="airCard">
+    <div class="airCardHeader">
+        <span ng-repeat="capa in capabilities"
+              class="btn btn-default fa-stack toggleButton pull-left"
+              tooltip-html-unsafe="<span style='white-space:nowrap;'>{{::capa.toolTipText}}</span>"
+              tooltip-placement="top" tooltip-animation="false" tooltip-popup-delay="500"
+              tooltip-trigger="mouseenter"
+              ng-if="capa.onClick"
+              ng-click="capa.onClick(name, record, capa)">
+            <i class="fa fa-fw fa-stack-1x text-primary" ng-class="capa.iconClass"></i>
+        </span>
+        <strong>{{record.label}}</strong>&nbsp;
+        <span class="btn btn-default fa-stack toggleButton pull-right"
+              ng-click="$parent.$parent.removeTab($parent.tab)">
+            <i class="fa fa-fw fa-remove fa-stack-1x text-danger"></i>
+        </span>
+    </div>
+    <table class="primaryContent">
+        <tr>
+            <td class="labelCell">Lat</td>
+            <td>{{record.lat | numberTrim:4}}&deg;</td>
+            <td class="labelCell">Lon</td>
+            <td>{{record.lon | numberTrim:4}}&deg;</td>
+        <tr>
+        <tr>
+            <td class="labelCell">TCRS</td>
+            <td>{{record.course | numberTrim:4}}&deg;</td>
+            <td class="labelCell">Affiliation</td>
+            <td>{{record.affiliation}}</td>
+        <tr>
+    </table>
+    <accordion>
+        <accordion-group is-open="group1.open">
+            <accordion-heading>
+                <div>
+                    Additional Details
+                    <i class="pull-right fa fa-fw"
+                       ng-class="{'fa-chevron-down': !group1.open, 'fa-chevron-up': group1.open}">
+                    </i>
+                </div>
+            </accordion-heading>
+            <table class="primaryContent">
+                <tr>
+                    <td class="labelCell">Old</td>
+                    <td>{{record.isOld}}</td>
+                </tr>
+            </table>
+            <table class="trackContent">
+                <tr>
+                    <th colspan="4">Track Data</th>
+                </tr>
+                <tr>
+                    <td class="labelCell" style="background-color:#E0F0FF;">Label</td>
+                    <td ng-class="{positiveBool: record.label}">{{record.label}}</td>
+                </tr>
+                <tr>
+                    <td class="labelCell" style="background-color:#FFBC59;">Sub-label</td>
+                    <td ng-class="{positiveBool: record.subLabel}">{{record.subLabel}}</td>
+                </tr>
+            </table>
+        </accordion-group>
+    </accordion>
+</div>

@@ -115,10 +115,12 @@
         </app.supported.browsers>
         <app.plugins>
             [
+                'stealth.air',
                 'stealth.histogram',
                 'stealth.static',
                 'stealth.targetpri',
                 'stealth.timelapse',
+                'stealth.mediator.air-timelapse',
                 'stealth.mediator.histogram-timelapse',
                 'stealth.mediator.static-targetpri',
                 'stealth.mediator.targetpri-timelapse'

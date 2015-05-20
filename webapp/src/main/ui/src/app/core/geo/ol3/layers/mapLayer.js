@@ -33,7 +33,6 @@ function ($log, $rootScope, $q, $timeout, coreCapabilitiesExtender, WidgetDef) {
         //@private
         var _self = this;
 
-        //@protected
         this.id = _idSeq++;
         this.name = name;
         this.ol3Layer = ol3Layer;
@@ -73,20 +72,31 @@ function ($log, $rootScope, $q, $timeout, coreCapabilitiesExtender, WidgetDef) {
             });
 
             /**
+             * An object definining a search response.
+             * @typedef {object} MapLayer~SearchPointResponse
+             * @property {string} name - Display name
+             * @property {boolean} isError
+             * @property {string} [reason]
+             * @property {object} capabilities
+             * @property {object[]} [records] - the search results
+             * @property {object} [layerFill]
+             * @property {object[]} [featureTypes]
+             * @property {boolean} [isFilterable]
+             * @property {function} [filterHandler]
+             */
+            /**
              * Queries this layer at specified coordinate and resolution
              * @param {number[]} coord - [longitude, latitude]
              * @param {number} res - map resolution
              *
              * @returns {Promise}
-             * @protected
              */
             this.searchPoint = function (coord, res) {
                 return $q.when(this.getEmptySearchPointResult());
             };
             /**
              * Creates a non-error search result with no records
-             * @returns {object} records property is undefined
-             * @protected
+             * @returns {MapLayer~SearchPointResponse} records property is undefined
              */
             this.getEmptySearchPointResult = function () {
                 return {
@@ -98,7 +108,6 @@ function ($log, $rootScope, $q, $timeout, coreCapabilitiesExtender, WidgetDef) {
             /**
              * Returns the un-extended, base capabilities set for this layer.
              * @returns {object}
-             * @protected
              */
             this.getBaseCapabilities = function () {
                 return {};
@@ -106,7 +115,6 @@ function ($log, $rootScope, $q, $timeout, coreCapabilitiesExtender, WidgetDef) {
             /**
              * Returns layer's capabilities extender.
              * @returns {stealth.core.interaction.capabilities.Extender}
-             * @protected
              */
             this.getCapabilitiesExtender = function () {
                 return coreCapabilitiesExtender;
@@ -115,7 +123,6 @@ function ($log, $rootScope, $q, $timeout, coreCapabilitiesExtender, WidgetDef) {
              * Creates an options object that is passed to the capabilities extender's
              * extendCapabilities method.
              * @returns {object}
-             * @protected
              */
             this.getCapabilitiesOpts = function () {
                 return {};
@@ -123,7 +130,6 @@ function ($log, $rootScope, $q, $timeout, coreCapabilitiesExtender, WidgetDef) {
             /**
              * Returns the full, extended capabilities for this layer.
              * @returns {object}
-             * @protected
              */
             this.getCapabilities = function () {
                 return this.getCapabilitiesExtender().extendCapabilities(
@@ -145,8 +151,6 @@ function ($log, $rootScope, $q, $timeout, coreCapabilitiesExtender, WidgetDef) {
              * @param {Scope} [parentScope=$rootScope] - parent for widget scopes
              *
              * @returns {Promise[]} Each Promise returns a {@link MapLayer~SearchPointWidget}
-             *
-             * @protected
              */
             this.buildSearchPointWidgets = function (coord, res, parentScope) {
                 if (!(this.queryable && this.ol3Layer.getVisible())) {
@@ -158,20 +162,30 @@ function ($log, $rootScope, $q, $timeout, coreCapabilitiesExtender, WidgetDef) {
                 }
                 return _.map(promises, function (promise) {
                     return promise.then(function (response) {
-                        var s = (parentScope || $rootScope).$new();
-                        s.results = [response];
-                        return {
-                            level: _.padLeft(_self.reverseZIndex, 4, '0'),
-                            iconClass: _self.styleDirectiveScope.styleVars.iconClass,
-                            tooltipText: response.name,
-                            widgetDef: (response.isError ||
-                                !_.isArray(response.records) ||
-                                _.isEmpty(response.records)) ?
-                                    null : new WidgetDef('st-ol3-map-popup-search-result-table', s,
-                                        "results='results' max-col-width='125' resizable='true'")
-                        };
+                        return _self.buildSearchPointWidgetsForResponse(response, parentScope);
                     });
                 });
+            };
+            /**
+             * Build the widget(s) for a search response.
+             * @param {MapLayer~SearchPointResponse} response - search response
+             * @param {Scope} [parentScope=$rootScope] - parent for widget scopes
+             *
+             * @returns {MapLayer~SearchPointWidget}
+             */
+            this.buildSearchPointWidgetsForResponse = function (response, parentScope) {
+                var s = (parentScope || $rootScope).$new();
+                s.results = [response];
+                return {
+                    level: _.padLeft(_self.reverseZIndex, 4, '0'),
+                    iconClass: _self.styleDirectiveScope.styleVars.iconClass,
+                    tooltipText: response.name,
+                    widgetDef: (response.isError ||
+                        !_.isArray(response.records) ||
+                        _.isEmpty(response.records)) ?
+                            null : new WidgetDef('st-ol3-map-popup-search-result-table', s,
+                                "results='results' max-col-width='125' resizable='true'")
+                };
             };
         }
         $log.debug(tag + 'new MapLayer(' + name + ')');

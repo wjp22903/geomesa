@@ -573,7 +573,9 @@
                 <app.title>Thresher</app.title>
                 <app.plugins>
                     [
-                        'stealth.timelapse'
+                        'stealth.air',
+                        'stealth.timelapse',
+                        'stealth.mediator.air-timelapse'
                     ]
                 </app.plugins>
                 <classification.text>Dynamic Page - Highest Possible Classification is TOP SECRET//SI//TK//NOFORN</classification.text>
