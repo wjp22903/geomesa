@@ -33,6 +33,7 @@ function ($log, $timeout, wfs, MapLayer, CONFIG) {
         var _isLoading = false;
         var _requestParams = _options.requestParams || {};
         var _isTiled = !_.isUndefined(_options.isTiled) && _options.isTiled;
+        var wmsUrl = _options.wmsUrl || (CONFIG.geoserver.defaultUrl + '/wms');
         var _olSource;
         var _olLayer;
         var _loadStart = function () {
@@ -57,8 +58,9 @@ function ($log, $timeout, wfs, MapLayer, CONFIG) {
 
         if (_isTiled) {
             var loadingTileCount = 0;
+            _requestParams.tiled = true;
             _olSource = new ol.source.TileWMS({
-                url: _options.wmsUrl || (CONFIG.geoserver.defaultUrl + '/gwc/service/wms'),
+                url: wmsUrl,
                 params: _requestParams
             });
 
@@ -81,7 +83,7 @@ function ($log, $timeout, wfs, MapLayer, CONFIG) {
         } else {
             _olSource = new ol.source.ImageWMS({
                 ratio: 1,
-                url: _options.wmsUrl || (CONFIG.geoserver.defaultUrl + '/wms'),
+                url: wmsUrl,
                 params: _requestParams
             });
 
