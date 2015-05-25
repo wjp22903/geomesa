@@ -28,8 +28,11 @@ function ($log, ol3Map) {
     DragInteraction.prototype.getDraggableFeatureAndLayer = function (evt) {
         var lyr = null;
         var feature = evt.map.forEachFeatureAtPixel(evt.pixel, function (feature, layer) {
-            lyr = layer;
-            return feature;
+            if (layer) {  //if feature is from overlay, layer=null
+                lyr = layer;
+                return feature;
+            }
+            return null;
         },
         null,
         function (layer) {
