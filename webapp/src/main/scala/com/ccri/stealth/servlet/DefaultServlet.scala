@@ -12,10 +12,14 @@ class DefaultServlet(appContext: String) extends ScalatraServlet
   with PkiAuthenticationSupport {
   val logger = LoggerFactory.getLogger(getClass)
   val rootConf = ConfigFactory.load()
-  val conf = rootConf.getConfig(appContext).withFallback(rootConf.getConfig("stealth"))
+  val conf =
+    if (rootConf.hasPath(appContext))
+      rootConf.getConfig(appContext).withFallback(rootConf.getConfig("stealth"))
+    else
+      rootConf.getConfig("stealth")
 
   get("/?") {
-      redirect("/!")
+    redirect("/!")
   }
 
   get("/!") {
