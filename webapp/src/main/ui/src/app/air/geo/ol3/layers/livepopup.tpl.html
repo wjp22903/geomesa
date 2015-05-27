@@ -9,7 +9,7 @@
               ng-click="capa.onClick(name, record, capa)">
             <i class="fa fa-fw fa-stack-1x text-primary" ng-class="capa.iconClass"></i>
         </span>
-        <strong>{{record.label}}</strong>{{(record.subLabel | lodash:'isEmpty') ? '' : '&nbsp;/&nbsp;' + record.subLabel}}
+        <strong>{{record.label}}</strong>&nbsp;{{(record.subLabel | lodash:'isEmpty') ? '' : '/&nbsp;' + record.subLabel}}
         <span class="btn btn-default fa-stack toggleButton pull-right"
               ng-click="$parent.$parent.removeTab($parent.tab)">
             <i class="fa fa-fw fa-remove fa-stack-1x text-danger"></i>

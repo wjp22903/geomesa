@@ -14,6 +14,24 @@ function ($provide) {
             return LiveWmsLayerConstructorFactory.getConstructor(LiveWmsLayer);
         }
     ]);
+
+    //Completely replace stealth.timelapse.stores.QueryBinStore with alternate impl
+    $provide.decorator('stealth.timelapse.geo.ol3.layers.TimeLapseLayer', [
+        '$delegate',
+        'stealth.air.geo.ol3.layers.TimeLapseLayerConstructorFactory',
+        function (TimeLapseLayer, TimeLapseLayerConstructorFactory) {
+            return TimeLapseLayerConstructorFactory.getConstructor(TimeLapseLayer);
+        }
+    ]);
+
+    //Completely replace stealth.timelapse.stores.QueryBinStore with alternate impl
+    $provide.decorator('stealth.timelapse.stores.QueryBinStore', [
+        '$delegate',
+        'stealth.air.stores.QueryBinStoreConstructorFactory',
+        function (QueryBinStore, QueryBinStoreConstructorFactory) {
+            return QueryBinStoreConstructorFactory.getConstructor(QueryBinStore);
+        }
+    ]);
 }])
 
 .run([
@@ -26,6 +44,14 @@ function (owsLayers) {
             _.deepSet(keywordConfig, 'timelapse.live',
                 _.merge(_.deepGet(keywordConfig, 'timelapse.live') || {},
                     airLive));
+        }
+
+        //Apply all air.historical config to timelapse.historical
+        var airHist = _.deepGet(keywordConfig, 'air.historical');
+        if (airHist) {
+            _.deepSet(keywordConfig, 'timelapse.historical',
+                _.merge(_.deepGet(keywordConfig, 'timelapse.historical') || {},
+                    airHist));
         }
 
         return keywordConfig;

@@ -27,7 +27,7 @@ function ($rootScope, WidgetDef) {
                 LiveWmsLayer.apply(this, [name, requestParams, layerThisBelongsTo, queryable, wmsUrl]);
 
                 //Check for keyword before providing "air" functionality
-                if (_.deepGet(_layerThisBelongsTo.KeywordConfig, 'air')) {
+                if (_.deepGet(_layerThisBelongsTo.KeywordConfig, 'air.live')) {
                     this.styleDirectiveScope.styleVars.iconClass = 'fa fa-fw fa-lg fa-plane';
                     this.buildSearchPointWidgetsForResponse = function (response, parentScope) {
                         if (response.isError ||

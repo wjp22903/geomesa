@@ -83,6 +83,8 @@ function ($log, $rootScope, $q, $timeout, coreCapabilitiesExtender, WidgetDef) {
              * @property {object[]} [featureTypes]
              * @property {boolean} [isFilterable]
              * @property {function} [filterHandler]
+             * @property {string} [levelSuffix] - appended to level to provide sub-ordering
+             *     Ex: _0001_0002
              */
             /**
              * Queries this layer at specified coordinate and resolution
@@ -171,13 +173,13 @@ function ($log, $rootScope, $q, $timeout, coreCapabilitiesExtender, WidgetDef) {
              * @param {MapLayer~SearchPointResponse} response - search response
              * @param {Scope} [parentScope=$rootScope] - parent for widget scopes
              *
-             * @returns {MapLayer~SearchPointWidget}
+             * @returns {(MapLayer~SearchPointWidget|MapLayer~SearchPointWidget[])}
              */
             this.buildSearchPointWidgetsForResponse = function (response, parentScope) {
                 var s = (parentScope || $rootScope).$new();
                 s.results = [response];
                 return {
-                    level: _.padLeft(_self.reverseZIndex, 4, '0'),
+                    level: _.padLeft(_self.reverseZIndex, 4, '0') + (response.levelSuffix || ''),
                     iconClass: _self.styleDirectiveScope.styleVars.iconClass,
                     tooltipText: response.name,
                     widgetDef: (response.isError ||

@@ -329,8 +329,12 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
                 var viewState = store.getViewState();
                 return viewState.toggledOn && !viewState.isError;
             });
-            return _.map(activeStores, function (store) {
-                return store.searchPointAndTime(coord, res, _startMillis, _endMillis);
+            return _.map(activeStores, function (store, index) {
+                return store.searchPointAndTime(coord, res, _startMillis, _endMillis)
+                    .then(function (response) {
+                        response.levelSuffix = '_' + _.padLeft(index, 4, '0');
+                        return response;
+                    });
             });
         };
 
