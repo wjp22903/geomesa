@@ -1,4 +1,5 @@
 angular.module('stealth.targetpri.runner', [
+    'stealth.core.geo.ol3.format',
     'stealth.targetpri.results'
 ])
 
@@ -20,6 +21,7 @@ function ($rootScope, routeRankRunner) {
 'rankService',
 'ol3Map',
 'ol3Styles',
+'stealth.core.geo.ol3.format.GeoJson',
 'stealth.core.geo.ol3.layers.MapLayer',
 'stealth.targetpri.geo.ol3.layers.TargetPriResultLayer',
 'stealth.targetpri.results.Category',
@@ -27,8 +29,8 @@ function ($rootScope, routeRankRunner) {
 'colors',
 'cqlHelper',
 function ($rootScope, $q, sidebarManager, WidgetDef, proximityService,
-          rankService, ol3Map, ol3Styles, MapLayer, TargetPriResultLayer, Category, catMgr, colors, cqlHelper) {
-    var geoJsonFormat = new ol.format.GeoJSON();
+          rankService, ol3Map, ol3Styles, GeoJson, MapLayer, TargetPriResultLayer, Category, catMgr, colors, cqlHelper) {
+    var geoJsonFormat = new GeoJson(); // stealth GeoJson, extending OL3 for STEALTH-319
     this.run = function (req) {
         var category = catMgr.addCategory(2, new Category(req.name, function () {
             sidebarManager.removeButton(buttonId);

@@ -167,4 +167,36 @@ function () {
         return features;
     };
 }])
+
+.factory('stealth.core.geo.ol3.format.GeoJson', [
+function () {
+    var GeoJson = function (/* inherited */) {
+        ol.format.GeoJSON.apply(this, arguments);
+    };
+    GeoJson.prototype = Object.create(ol.format.GeoJSON.prototype);
+
+    GeoJson.prototype.writeFeatureObject = function (/* inherited */) {
+        var object = ol.format.GeoJSON.prototype.writeFeatureObject.apply(this, arguments);
+        if (object.properties === null) {
+            object.properties = {};
+        }
+        return object;
+    };
+
+    GeoJson.prototype.writeFeaturesObject = function (/* inherited */) {
+        var object = ol.format.GeoJSON.prototype.writeFeaturesObject.apply(this, arguments);
+        if (_.isUndefined(object.crs)) {
+            object.crs = {
+                type: 'name',
+                properties: {
+                    name: this.defaultDataProjection.getCode()
+                }
+            };
+        }
+        return object;
+    };
+
+    return GeoJson;
+}])
+
 ;

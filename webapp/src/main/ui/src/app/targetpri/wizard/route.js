@@ -1,4 +1,6 @@
-angular.module('stealth.targetpri.wizard.route')
+angular.module('stealth.targetpri.wizard.route', [
+    'stealth.core.geo.ol3.format'
+])
 
 .factory('routeTpWizFactory', [
 '$rootScope', 
@@ -131,9 +133,10 @@ function () {
 .directive('stTpRouteDrawTools', [
 '$timeout',
 'ol3Map',
+'stealth.core.geo.ol3.format.GeoJson',
 'csvFormat',
 'routeDrawHelper',
-function ($timeout, ol3Map, csvFormat, routeDrawHelper) {
+function ($timeout, ol3Map, GeoJson, csvFormat, routeDrawHelper) {
     return {
         restrict: 'E',
         scope: {
@@ -144,7 +147,7 @@ function ($timeout, ol3Map, csvFormat, routeDrawHelper) {
         },
         templateUrl: 'targetpri/wizard/templates/drawTools.tpl.html',
         link: function (scope, element, attrs) {
-            var geoJsonFormat = new ol.format.GeoJSON();
+            var geoJsonFormat = new GeoJson(); // stealth GeoJson, extending OL3 for STEALTH-319
             var fileInput = element.append('<input type="file" class="hidden">')[0].lastChild;
 
             //Couple FileReader to the hidden file input created above.
