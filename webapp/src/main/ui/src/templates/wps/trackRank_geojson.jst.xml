@@ -59,6 +59,12 @@
                 <wps:LiteralData>{{inputIdField}}</wps:LiteralData>
             </wps:Data>
         </wps:Input>
+        <wps:Input>
+            <ows:Identifier>dtgField</ows:Identifier>
+            <wps:Data>
+                <wps:LiteralData>{{inputDtgField}}</wps:LiteralData>
+            </wps:Data>
+        </wps:Input>
     </wps:DataInputs>
     <wps:ResponseForm>
         <wps:RawDataOutput mimeType="application/json">

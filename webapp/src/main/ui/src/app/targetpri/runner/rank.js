@@ -20,6 +20,7 @@ function ($q, wps, CONFIG) {
                         dataLayer: dataSource.dataSource.Name,
                         dataLayerFilter: dataSource.filter,
                         inputIdField: dataSource.dataSource.fieldNames.id,
+                        inputDtgField: dataSource.dataSource.fieldNames.dtg,
                         proximityLayer: layerName
                     }, arg));
                     dataSource.dataSource.proximityLayerName = layerName;
