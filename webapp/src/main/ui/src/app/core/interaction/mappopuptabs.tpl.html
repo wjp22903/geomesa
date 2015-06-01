@@ -4,7 +4,7 @@
         <div ng-repeat="tab in tabs" ng-click="setActiveTabIdx($index)" class="btn-default"
              ng-class="{mapPopupActiveTab: activeTabIdx===$index}"
              tooltip-html-unsafe="{{::tab.tooltipText}}"
-             tooltip-placement="top" tooltip-animation="false" tootip-popup-delay="500"
+             tooltip-placement="top" tooltip-animation="false" tooltip-popup-delay="500"
              tooltip-trigger="mouseenter">
             <i class="fa fa-fw fa-lg" ng-class="::tab.iconClass"></i>
         </div>
