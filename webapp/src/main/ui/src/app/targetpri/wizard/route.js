@@ -42,9 +42,9 @@ function ($rootScope, Wizard, Step, WidgetDef, ol3Map, ol3Styles, elementAppende
             });
             var modify = new ol.interaction.Modify({
                 features: featureOverlay.getFeatures(),
-                //require SHIFT key to delete vertices
+                //require ALT key to delete vertices
                 deleteCondition: function (event) {
-                    return ol.events.condition.shiftKeyOnly(event) &&
+                    return ol.events.condition.altKeyOnly(event) &&
                         ol.events.condition.singleClick(event);
                 }
             });

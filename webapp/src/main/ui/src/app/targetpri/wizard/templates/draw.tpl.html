@@ -1,6 +1,9 @@
 <ng-form name="wizardForm">
     <input type="hidden" ng-model="geoFeature" required>
-    Click to draw. Double-click to finish drawing.<br>
-    Click and drag to modify. SHIFT+click to erase a vertex.<br>
-    You must erase current {{type}} before you can define another.
+    <ol>
+        <li>Click to draw line segments, SHIFT+click+hold to draw in freehand.</li>
+        <li>Double-click to finish drawing.</li>
+        <li>Click and drag to modify. ALT+click to erase a vertex.</li>
+        <p>(To re-draw {{type}} click the eraser icon.)</p>
+    </ol>
 </ng-form>
