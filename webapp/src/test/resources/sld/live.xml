@@ -13,7 +13,7 @@
                     <LineSymbolizer>
                         <Geometry>
                             <ogc:Function name="getGeometryN">
-                                <ogc:PropertyName>Location</ogc:PropertyName>
+                                <ogc:PropertyName>lineHist</ogc:PropertyName>
                                 <ogc:Literal>0</ogc:Literal>
                             </ogc:Function>
                         </Geometry>
@@ -27,7 +27,7 @@
                     <LineSymbolizer>
                         <Geometry>
                             <ogc:Function name="getGeometryN">
-                                <ogc:PropertyName>Location</ogc:PropertyName>
+                                <ogc:PropertyName>lineHist</ogc:PropertyName>
                                 <ogc:Literal>1</ogc:Literal>
                             </ogc:Function>
                         </Geometry>
@@ -41,7 +41,7 @@
                         <Geometry>
                             <ogc:Function name="startPoint">
                                 <ogc:Function name="getGeometryN">
-                                    <ogc:PropertyName>Location</ogc:PropertyName>
+                                    <ogc:PropertyName>lineHist</ogc:PropertyName>
                                     <ogc:Literal>0</ogc:Literal>
                                 </ogc:Function>
                             </ogc:Function>
@@ -84,27 +84,11 @@
                         <Fill>
                             <CssParameter name="fill">#FFFFFF</CssParameter>
                         </Fill>
-                        <!--Graphic>
-                            <Mark>
-                                <WellKnownName>square</WellKnownName>
-                                <Fill>
-                                    <CssParameter name="fill">#000000</CssParameter>
-                                </Fill>
-                            </Mark>
-                         </Graphic-->
                         <VendorOption name="graphic-resize">stretch</VendorOption>
                         <VendorOption name="graphic-margin">2</VendorOption>
                         <VendorOption name="conflict-resolution">false</VendorOption>
                     </TextSymbolizer>
                     <PointSymbolizer>
-                        <Geometry>
-                            <ogc:Function name="startPoint">
-                                <ogc:Function name="getGeometryN">
-                                    <ogc:PropertyName>Location</ogc:PropertyName>
-                                    <ogc:Literal>0</ogc:Literal>
-                                </ogc:Function>
-                            </ogc:Function>
-                        </Geometry>
                         <Graphic>
                             <Mark>
                                 <WellKnownName>ttf://SansSerif.bold#0x2191</WellKnownName>
@@ -118,6 +102,9 @@
                                 </Stroke>
                             </Mark>
                             <Size>20</Size>
+                            <Rotation>
+                                <ogc:PropertyName>course</ogc:PropertyName>
+                            </Rotation>
                         </Graphic>
                     </PointSymbolizer>
                 </Rule>
