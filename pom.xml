@@ -80,6 +80,7 @@
         <phantomjs.classifier>INVALID</phantomjs.classifier>
         <jetty.version>8.1.16.v20140903</jetty.version>
         <jetty.port>8080</jetty.port>
+        <jetty.ssl.port>8443</jetty.ssl.port>
 
         <app.title>Stealth</app.title>
         <app.context>stealth</app.context>

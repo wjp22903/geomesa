@@ -98,7 +98,7 @@
                         </connector>
                         <!-- Look at src/test/resources/certs.sh for how these stores and client certs are created. -->
                         <connector implementation="org.eclipse.jetty.server.ssl.SslSelectChannelConnector">
-                            <port>8443</port>
+                            <port>${jetty.ssl.port}</port>
                             <maxIdleTime>60000</maxIdleTime>
                             <keystore>${security.keystore.path}</keystore>
                             <keystoreType>${security.keystore.type}</keystoreType>
