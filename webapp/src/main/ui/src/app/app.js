@@ -1,5 +1,6 @@
 angular.module('stealth.app', [
     'ngAnimate',
+    'ngCookies',
     'truncate',
     'ui.bootstrap',
     'ui.utils',

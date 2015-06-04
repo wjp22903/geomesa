@@ -15,6 +15,7 @@
             <td>
                 <input type="text" ng-model="query.params.startDtg" ui-jq="datetimepicker"
                        ng-readonly="!query.timeData.isCustom" ng-focus="query.updateTimeRange()"
+                       ng-change="query.checkAndSetTimeRange(query.params.startDtg, query.params.endDtg)"
                        ui-options="{todayButton: false, yearStart: 1990, yearEnd: 2030, step: 15, format: 'Y-m-d H:i'}"
                        st-utc-moment-format="YYYY-MM-DD HH:mm" style="font-size:16px;" required> Z
             </td>
@@ -24,9 +25,15 @@
             <td>
                 <input type="text" ng-model="query.params.endDtg" ui-jq="datetimepicker"
                        ng-readonly="!query.timeData.isCustom" ng-focus="query.updateTimeRange()"
+                       ng-change="query.checkAndSetTimeRange(query.params.startDtg, query.params.endDtg)"
                        ui-options="{todayButton: false, yearStart: 1990, yearEnd: 2030, step: 15, format: 'Y-m-d H:i'}"
                        st-utc-moment-format="YYYY-MM-DD HH:mm" style="font-size:16px;" required> Z
             </td>
         </tr>
     </table>
+    <input type="hidden" ng-model="query.timeData.valid" required></input>
+    <div class="alert alert-danger" ng-hide="query.timeData.valid">
+        <span class="fa fa-lg fa-fw fa-exclamation-triangle"></span>
+        <span>{{query.timeData.errorMsg}}</span>
+    </div>
 </ng-form>

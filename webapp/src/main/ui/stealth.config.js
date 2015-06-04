@@ -39,6 +39,7 @@ module.exports = {
             'vendor/bower/angular/angular.js',
             'vendor/bower/angular-ui-router/release/angular-ui-router.js',
             'vendor/bower/angular-animate/angular-animate.js',
+            'vendor/bower/angular-cookies/angular-cookies.js',
             'vendor/bower/angular-ui-utils/ui-utils.js',
             'vendor/bower/momentjs/min/moment.min.js',
             'vendor/bower/angular-ui-bootstrap-bower/ui-bootstrap-tpls.js',

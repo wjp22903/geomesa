@@ -8,14 +8,7 @@ angular.module('stealth.core.utils')
  */
 .filter('millisToDHMS', [
 function () {
-    var times = [
-        {unit: 'd', base: 86400},
-        {unit: 'h', base: 3600},
-        {unit: 'm', base: 60},
-        {unit: 's', base: 1}
-    ];
-
-    return function(millis) {
+    return function(millis, trim) {
         var remaining = (millis / 1000) | 0;
         var formatted = '';
 
@@ -28,36 +21,45 @@ function () {
         var secs = Math.floor(remaining);
 
         if (0 < days && days < 10) {
-            formatted += '0' + days + 'd';
+            formatted += (trim ? '' : '0') + days + 'd';
         } else if (9 < days) {
             formatted += days + 'd';
         }
+        formatted += ' ';
 
         if (0 < days && hours < 1) {
-            formatted += '00h';
+            if (!trim) {
+                formatted += '00h';
+            }
         } else if (0 < hours && hours < 10) {
-            formatted += '0' + hours + 'h';
+            formatted += (trim ? '' : '0') + hours + 'h';
         } else if (9 < hours) {
             formatted += hours + 'h';
         }
+        formatted += ' ';
 
         if ((0 < days || 0 < hours) && mins < 1) {
-            formatted += '00m';
+            if (!trim) {
+                formatted += '00m';
+            }
         } else if (0 < mins && mins < 10) {
-            formatted += '0' + mins + 'm';
+            formatted += (trim ? '' : '0') + mins + 'm';
         } else if (9 < mins) {
             formatted += mins + 'm';
         }
+        formatted += ' ';
 
         if (secs < 1) {
-            formatted += '00s';
+            if (!trim) {
+                formatted += '00s';
+            }
         } else if (secs < 10) {
-            formatted += '0' + secs + 's';
+            formatted += (trim ? '' : '0') + secs + 's';
         } else if (9 < secs) {
             formatted += secs + 's';
         }
 
-        return formatted;
+        return formatted.trim();
     };
 }])
 
