@@ -1,4 +1,7 @@
-angular.module('stealth.core.geo.ol3.layers')
+angular.module('stealth.core.geo.ol3.layers', [
+    'stealth.core.interaction.capabilities',
+    'stealth.core.utils'
+])
 
 .factory('stealth.core.geo.ol3.layers.MapLayer', [
 '$log',

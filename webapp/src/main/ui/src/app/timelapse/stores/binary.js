@@ -1,4 +1,6 @@
-angular.module('stealth.timelapse.stores')
+angular.module('stealth.timelapse.stores', [
+    'stealth.core.utils'
+])
 
 .factory('stealth.timelapse.stores.BinStore', [
 '$log',
@@ -6,7 +8,8 @@ angular.module('stealth.timelapse.stores')
 '$filter',
 'toastr',
 'colors',
-function ($log, $q, $filter, toastr, colors) {
+'clickSearchHelper',
+function ($log, $q, $filter, toastr, colors, clickSearchHelper) {
     var tag = 'stealth.timelapse.stores.BinStore: ';
     $log.debug(tag + 'factory started');
 
@@ -189,31 +192,34 @@ function ($log, $q, $filter, toastr, colors) {
         };
 
         this.searchPointAndTimeForRecords = function (coord, res, startMillis, endMillis) {
-            var records = [];
-            var modifier = res * Math.max(_pointRadius, 4);
-            var minLat = Math.max((coord[1] - modifier), -90);
-            var maxLat = Math.min((coord[1] + modifier), 90);
-            var minLon = Math.max((coord[0] - modifier), -180);
-            var maxLon = Math.min((coord[0] + modifier), 180);
+            var features = [];
+            var trimmedFeatures;
+            var overrides = {
+                fixedPixelBuffer: Math.max(_pointRadius, 4)
+            };
+            var extent = clickSearchHelper.getSearchExtent(coord, res, overrides);
 
             for (var i = 0; i < _numRecords; i++) {
                 var lat = _latView[i * _stride];
                 var lon = _lonView[i * _stride];
                 var millis = _secondsView[i * _stride] * 1000;
-                if (lat >= minLat && lat <= maxLat &&
-                    lon >= minLon && lon <= maxLon &&
+                if (ol.extent.containsXY(extent, lon, lat) &&
                     millis <= endMillis && millis >= startMillis)
                 {
-                    records.push({
+                    features.push(new ol.Feature({
+                        geometry: new ol.geom.Point([lon, lat]),
                         lat: lat,
                         lon: lon,
                         dtg: millis,
                         id: _idView[i * _stride],
                         label: this.getLabelString(i * _stride)
-                    });
+                    }));
                 }
             }
-            return records;
+            trimmedFeatures = clickSearchHelper.sortAndTrimFeatures(coord, features);
+            return _.map(trimmedFeatures, function (feat) {
+                return _.omit(feat.getProperties(), 'geometry');
+            });
         };
         this.searchPointAndTime = function (coord, res, startMillis, endMillis) {
             return $q.when({

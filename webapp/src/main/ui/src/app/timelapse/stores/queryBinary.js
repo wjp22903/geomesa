@@ -1,5 +1,6 @@
 angular.module('stealth.timelapse.stores', [
-    'stealth.core.geo.ows'
+    'stealth.core.geo.ows',
+    'stealth.core.utils'
 ])
 
 .factory('stealth.timelapse.stores.QueryBinStore', [
@@ -10,11 +11,13 @@ angular.module('stealth.timelapse.stores', [
 '$window',
 'toastr',
 'cqlHelper',
+'clickSearchHelper',
 'CONFIG',
 'wfs',
 'queryBinStoreExtender',
 'stealth.timelapse.stores.BinStore',
-function ($log, $rootScope, $q, $filter, $window, toastr, cqlHelper, CONFIG, wfs, queryBinStoreExtender, BinStore) {
+function ($log, $rootScope, $q, $filter, $window, toastr, cqlHelper, clickSearchHelper,
+          CONFIG, wfs, queryBinStoreExtender, BinStore) {
     var tag = 'stealth.timelapse.stores.QueryBinStore: ';
     $log.debug(tag + 'factory started.');
 
@@ -90,7 +93,7 @@ function ($log, $rootScope, $q, $filter, $window, toastr, cqlHelper, CONFIG, wfs
             return Math.min(_thisStore.getMaxTimeInMillis(), t) + 1000;
         }
 
-        var searchPointAndTimeWithCql = function (cql, capabilities) {
+        var searchPointAndTimeWithCql = function (cql, capabilities, coord, clickOverrides) {
             var deferred = $q.defer();
 
             var overrides = {
@@ -100,8 +103,9 @@ function ($log, $rootScope, $q, $filter, $window, toastr, cqlHelper, CONFIG, wfs
             var typeName = _query.layerData.currentLayer.Name;
             wfs.getFeature(CONFIG.geoserver.defaultUrl, typeName, CONFIG.geoserver.omitProxy, overrides)
             .success(function (data, status, headers, config, statusText) {
+                var trimmedFeatures = clickSearchHelper.sortAndTrimFeatures(coord, data.features, clickOverrides);
                 var omitKeys = _.keys(_.deepGet(_query.layerData.currentLayer.KeywordConfig, 'field.hide'));
-                var records = _.map(_.pluck(data.features, 'properties'), function (record) {
+                var records = _.map(_.pluck(trimmedFeatures, 'properties'), function (record) {
                     return _.omit(record, omitKeys);
                 });
                 deferred.resolve({
@@ -145,8 +149,13 @@ function ($log, $rootScope, $q, $filter, $window, toastr, cqlHelper, CONFIG, wfs
             var deferred = $q.defer();
             var boundedStartMillis = boundStartMillis(startMillis);
             var boundedEndMillis = boundEndMillis(endMillis);
+            var KeywordConfig = _query.layerData.currentLayer.KeywordConfig;
+            var clickOverrides = {
+                fixedPixelBuffer: Math.max(this.getPointRadius(), 4)
+            };
+            _.merge(clickOverrides, clickSearchHelper.getLayerOverrides(KeywordConfig));
 
-            var capabilities = _query.layerData.currentLayer.KeywordConfig.capability || {};
+            var capabilities = KeywordConfig.capability || {};
             capabilities = queryBinStoreExtender.extendCapabilities(capabilities, this, {
                 startMillis: boundedStartMillis,
                 endMillis: boundedEndMillis
@@ -157,21 +166,21 @@ function ($log, $rootScope, $q, $filter, $window, toastr, cqlHelper, CONFIG, wfs
                 var labels = _.pluck(this.searchPointAndTimeForRecords(coord, res, startMillis, endMillis), 'label');
                 if (labels.length > 0) {
                     var cql = label + ' IN (' + labels.join() + ')';
-                    return searchPointAndTimeWithCql(cql, capabilities);
+                    return searchPointAndTimeWithCql(cql, capabilities, coord, clickOverrides);
                 } else {
                     return $q.when({name: this.getName(), records: []}); //empty results
                 }
             } else {
                 var typeName = _query.layerData.currentLayer.Name;
-                var modifier = res * Math.max(this.getPointRadius(), 4);
+                var extent = clickSearchHelper.getSearchExtent(coord, res, clickOverrides);
                 var cqlParams = {
                     params: {
                         geomField: _query.params.geomField,
                         dtgField: _query.params.dtgField,
-                        minLat: Math.max((coord[1] - modifier), _query.params.minLat),
-                        maxLat: Math.min((coord[1] + modifier), _query.params.maxLat),
-                        minLon: Math.max((coord[0] - modifier), _query.params.minLon),
-                        maxLon: Math.min((coord[0] + modifier), _query.params.maxLon),
+                        minLon: Math.max(extent[0], _query.params.minLon),
+                        minLat: Math.max(extent[1], _query.params.minLat),
+                        maxLon: Math.min(extent[2], _query.params.maxLon),
+                        maxLat: Math.min(extent[3], _query.params.maxLat),
                         startDtg: moment.utc(boundedStartMillis),
                         endDtg: moment.utc(boundedEndMillis),
                         cql: _query.params.cql
@@ -191,7 +200,7 @@ function ($log, $rootScope, $q, $filter, $window, toastr, cqlHelper, CONFIG, wfs
                     return deferred.promise;
                 }
 
-                return searchPointAndTimeWithCql(cqlHelper.buildSpaceTimeFilter(cqlParams.params), capabilities);
+                return searchPointAndTimeWithCql(cqlHelper.buildSpaceTimeFilter(cqlParams.params), capabilities, coord, clickOverrides);
             }
         };
 

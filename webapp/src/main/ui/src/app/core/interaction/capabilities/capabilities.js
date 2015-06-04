@@ -1,4 +1,6 @@
-angular.module('stealth.core.interaction.capabilities')
+angular.module('stealth.core.interaction.capabilities', [
+    'ui.bootstrap'
+])
 
 .factory('stealth.core.interaction.capabilities.Extender', [
 function () {

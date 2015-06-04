@@ -1,5 +1,6 @@
 angular.module('stealth.core.geo.ol3.map', [
-    'stealth.core.geo.ol3.layers'
+    'stealth.core.geo.ol3.layers',
+    'stealth.core.interaction.mappopup'
 ])
 
 /**

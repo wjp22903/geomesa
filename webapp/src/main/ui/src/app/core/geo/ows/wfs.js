@@ -7,6 +7,7 @@ angular.module('stealth.core.geo.ows')
 function ($q, $http, $filter) {
     var _descriptionsCache = {};
     var _capabilitiesCache = {};
+    var _geomFieldsCache = {};
     var _parser = new OpenLayers.Format.WFSCapabilities.v1_1_0_custom();
 
     var _requestFeatureTypeDescription = function (url, typeName) {
@@ -102,6 +103,40 @@ function ($q, $http, $filter) {
                 return _.reject(data, 'error'); //return results without failures
             }
         });
+    };
+
+    /** According to the geoserver source code starting at:
+     * https://github.com/geoserver/geoserver/blob/2.5.x/src/wfs/src/main/java/org/geoserver/wfs/json/JSONDescribeFeatureTypeResponse.java#L85
+     * And the geotools API docs:
+     * http://docs.geotools.org/stable/javadocs/org/opengis/feature/type/FeatureType.html#getGeometryDescriptor()
+     * The default geometry attribute for a feature will be the only property that
+     * has a type prefixed with 'gml:' in a JSON DescribeFeatureType response.
+     */
+    this.getDefaultGeometryFieldName = function (url, typeName, omitProxy, forceRefresh, omitWfs) {
+        if (!forceRefresh && angular.isDefined(_geomFieldsCache[url]) &&
+            angular.isDefined(_geomFieldsCache[url][typeName])) {
+            return $q.when(_geomFieldsCache[url][typeName]);
+        }
+
+        return this.getFeatureTypeDescription(url, typeName, omitProxy, forceRefresh, omitWfs).then(
+            function (data) {
+                if (!data.error) {
+                    var geomOptions = _.filter(data.featureTypes[0].properties, function (prop) {
+                        return (prop.type.indexOf('gml:') !== -1);
+                    });
+                    if (geomOptions.length === 1) {
+                        if (_.isUndefined(_geomFieldsCache[url])) {
+                            _geomFieldsCache[url] = {};
+                        }
+                        _geomFieldsCache[url][typeName] = geomOptions[0].name;
+                        return _geomFieldsCache[url][typeName];
+                    }
+                    return $q.reject('Could not find or uniquely identify default geometry field.');
+                } else {
+                    return $q.reject(data.error);
+                }
+            }
+        );
     };
 }])
 ;

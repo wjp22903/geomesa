@@ -6,8 +6,7 @@ angular.module('stealth.timelapse.geo.ol3.layers', [
 'stealth.core.geo.ol3.layers.PollingImageWmsLayer',
 'tlWizard',
 'summaryExploreMgr',
-'ol3Map',
-function (PollingImageWmsLayer, tlWizard, summaryExploreMgr, ol3Map) {
+function (PollingImageWmsLayer, tlWizard, summaryExploreMgr) {
     var LiveWmsLayer = function (name, requestParams, layerThisBelongsTo, queryable, wmsUrl) {
         PollingImageWmsLayer.call(this, {
             name: name,
@@ -17,18 +16,6 @@ function (PollingImageWmsLayer, tlWizard, summaryExploreMgr, ol3Map) {
             wmsUrl: wmsUrl,
             layerThisBelongsTo: layerThisBelongsTo
         });
-        var self = this;
-
-        var searchPoint = this.searchPoint;
-        this.searchPoint = function (coord, res) {
-            var buffer = 5;
-            if (!_.isUndefined(ol3Map.getView().getZoom())) {
-                buffer = Math.pow(ol3Map.getView().getZoom(), 2);
-            }
-            return searchPoint.call(this, coord, res, {
-                BUFFER: buffer
-            });
-        };
 
         var getBaseCapabilities = this.getBaseCapabilities;
         this.getBaseCapabilities = function () {

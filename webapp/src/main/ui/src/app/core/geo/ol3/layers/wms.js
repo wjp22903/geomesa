@@ -1,12 +1,18 @@
-angular.module('stealth.core.geo.ol3.layers')
+angular.module('stealth.core.geo.ol3.layers', [
+    'stealth.core.utils'
+])
 
 .factory('stealth.core.geo.ol3.layers.WmsLayer', [
 '$log',
 '$timeout',
+'$q',
+'toastr',
 'wfs',
+'clickSearchHelper',
+'cqlHelper',
 'stealth.core.geo.ol3.layers.MapLayer',
 'CONFIG',
-function ($log, $timeout, wfs, MapLayer, CONFIG) {
+function ($log, $timeout, $q, toastr, wfs, clickSearchHelper, cqlHelper, MapLayer, CONFIG) {
     var tag = 'stealth.core.geo.ol3.layers.WmsLayer: ';
     $log.debug(tag + 'factory started');
     /**
@@ -35,6 +41,7 @@ function ($log, $timeout, wfs, MapLayer, CONFIG) {
         var _requestParams = _options.requestParams || {};
         var _isTiled = !_.isUndefined(_options.isTiled) && _options.isTiled;
         var wmsUrl = _options.wmsUrl || (CONFIG.geoserver.defaultUrl + '/wms');
+        var _geomField;
         var _olSource;
         var _olLayer;
         var _layerThisBelongsTo = _options.layerThisBelongsTo;
@@ -53,6 +60,27 @@ function ($log, $timeout, wfs, MapLayer, CONFIG) {
                 _isLoading = false;
                 _self.styleDirectiveScope.$emit(_self.id + ':finishedLoading');
             });
+        };
+        var _getGeomField = function () {
+            if (_geomField) {
+                return $q.when(_geomField);
+            } else {
+                if (_.deepHas(_layerThisBelongsTo.KeywordConfig, 'click.search.field.geom')) {
+                    _geomField = _.deepGet(_layerThisBelongsTo.KeywordConfig, 'click.search.field.geom');
+                    return $q.when(_geomField);
+                } else {
+                    // No search geom field was specified so try falling back to the default geom field.
+                    return wfs.getDefaultGeometryFieldName(CONFIG.geoserver.defaultUrl,
+                                                           _olSource.getParams()['LAYERS'],
+                                                           CONFIG.geoserver.omitProxy)
+                    .then(
+                        function (geomField) {
+                            _geomField = geomField;
+                            return geomField;
+                        }
+                    );
+                }
+            }
         };
 
         if (_.isUndefined(_requestParams.VERSION)) {
@@ -134,51 +162,56 @@ function ($log, $timeout, wfs, MapLayer, CONFIG) {
 
         this.searchPoint = function (coord, res, requestOverrides) {
             var baseResponse = this.getEmptySearchPointResult();
-            var radius = 5; // Default to 5px search radius;
-            var url;
-            var extent;
-            var modifier;
-            var params;
-            var queryPromise;
+            return _getGeomField().then(
+                function (geomField) {
+                    var queryPromise;
+                    var params = {
+                        'srsName': ol.proj.get(CONFIG.map.projection).getCode()
+                    };
+                    var clickOverrides = _.merge({geom: geomField}, clickSearchHelper.getLayerOverrides(_layerThisBelongsTo.KeywordConfig));
+                    var extent = clickSearchHelper.getSearchExtent(coord, res, clickOverrides);
 
-            requestOverrides = requestOverrides || {};
-            if (_.isNumber(requestOverrides.BUFFER)) {
-                radius = requestOverrides.BUFFER;
-            }
-            modifier = res * radius;
-            extent = [
-                coord[0] - modifier,
-                coord[1] - modifier,
-                coord[0] + modifier,
-                coord[1] + modifier
-            ];
-            params = {
-                'BBOX': extent.join(','),
-                'srsName': ol.proj.get(CONFIG.map.projection).getCode()
-            };
-            _.merge(params, requestOverrides);
+                    params['CQL_FILTER'] = cqlHelper.combine(cqlHelper.operator.AND, [_olSource.getParams()['CQL_FILTER'],
+                                                                                      cqlHelper.buildBboxFilter(geomField, extent)]);
+                    _.merge(params, requestOverrides);
 
-            if (_.isString(_options.wfsUrl)) {
-                queryPromise = wfs.getFeature(_options.wfsUrl, _olSource.getParams()['LAYERS'], !(_options.useProxyForWfs), params, 'text', true);
-            } else if (_.isString(_options.wmsUrl)) {
-                queryPromise = wfs.getFeature(_options.wmsUrl.replace(/(gwc\/service\/)?wms/g, ''), _olSource.getParams()['LAYERS'], !(_options.useProxyForWfs), params);
-            } else {
-                queryPromise = wfs.getFeature(CONFIG.geoserver.defaultUrl, _olSource.getParams()['LAYERS'], CONFIG.geoserver.omitProxy, params);
-            }
-            return queryPromise.then(function (response) {
-                    return _.merge(baseResponse, {
-                        records: _.map(_.pluck(response.data.features, 'properties'), function (record) {
-                            return _.omit(record, _omitSearchProps);
-                        }),
-                        layerFill: {
-                            display: 'none'
-                        }
+                    if (_.isString(_options.wfsUrl)) {
+                        queryPromise = wfs.getFeature(_options.wfsUrl,
+                                                      _olSource.getParams()['LAYERS'],
+                                                      !(_options.useProxyForWfs), params, 'text', true);
+                    } else if (_.isString(_options.wmsUrl)) {
+                        queryPromise = wfs.getFeature(_options.wmsUrl.replace(/(gwc\/service\/)?wms/g, ''),
+                                                      _olSource.getParams()['LAYERS'],
+                                                      !(_options.useProxyForWfs), params);
+                    } else {
+                        queryPromise = wfs.getFeature(CONFIG.geoserver.defaultUrl,
+                                                      _olSource.getParams()['LAYERS'],
+                                                      CONFIG.geoserver.omitProxy, params);
+                    }
+                    return queryPromise.then(function (response) {
+                        var trimmedFeatures = clickSearchHelper.sortAndTrimFeatures(coord, response.data.features, clickOverrides);
+                        return _.merge(baseResponse, {
+                            records: _.map(_.pluck(trimmedFeatures, 'properties'), function (record) {
+                                return _.omit(record, _omitSearchProps);
+                            }),
+                            layerFill: {
+                                display: 'none'
+                            }
+                        });
+                    }, function (response) {
+                        return _.merge(baseResponse, {
+                            isError: true,
+                            reason: 'Server error'
+                        });
                     });
-                }, function (response) {
-                    return _.merge(baseResponse, {
+                },
+                function (reason) {
+                    toastr.error('Failed to search ' + _options.name + '. ' + reason,
+                                 'Search Error', { timeOut: 15000 });
+                    return $q.when(_.merge(baseResponse, {
                         isError: true,
-                        reason: 'Server error'
-                    });
+                        reason: reason
+                    }));
                 }
             );
         };

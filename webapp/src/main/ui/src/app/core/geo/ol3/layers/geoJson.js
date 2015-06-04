@@ -1,5 +1,6 @@
 angular.module('stealth.core.geo.ol3.layers', [
-    'stealth.core.geo.ows'
+    'stealth.core.geo.ows',
+    'stealth.core.utils'
 ])
 
 .factory('stealth.core.geo.ol3.layers.GeoJsonVectorLayer', [
@@ -8,9 +9,10 @@ angular.module('stealth.core.geo.ol3.layers', [
 'wfs',
 'colors',
 'ol3Styles',
+'clickSearchHelper',
 'stealth.core.geo.ol3.layers.MapLayer',
 'CONFIG',
-function ($log, $q, wfs, colors, ol3Styles, MapLayer, CONFIG) {
+function ($log, $q, wfs, colors, ol3Styles, clickSearchHelper, MapLayer, CONFIG) {
     var tag = 'stealth.core.geo.ol3.layers.GeoJsonVectorLayer: ';
     $log.debug(tag + 'factory started');
 
@@ -125,31 +127,25 @@ function ($log, $q, wfs, colors, ol3Styles, MapLayer, CONFIG) {
                     color: _viewState.fillColor
                 }
             });
+            var clickOverrides = clickSearchHelper.getLayerOverrides(_query.layerData.currentLayer.KeywordConfig);
+            var extent = clickSearchHelper.getSearchExtent(coord, resolution, clickOverrides);
+            var nearbyFeatures = [];
+            var trimmedFeatures;
 
             // If this layer is not toggled on, ...
             if (!_viewState.toggledOn || _viewState.isError || _.isUndefined(_queryResponse)) {
                 return $q.when(baseResponse);
             }
 
-            var factor = 10;
-            var lon = coord[0];
-            var lat = coord[1];
-            var extent = [
-                lon - factor * resolution,
-                lat - factor * resolution,
-                lon + factor * resolution,
-                lat + factor * resolution
-            ];
-            var nearbyFeatures = [];
-
             _olSource.forEachFeatureIntersectingExtent(extent, function (feature) {
                 nearbyFeatures.push(feature);
             });
 
+            trimmedFeatures = clickSearchHelper.sortAndTrimFeatures(coord, nearbyFeatures, clickOverrides);
             var omitLayerProperties = _.keys(_.deepGet(_query.layerData.currentLayer.KeywordConfig, 'field.hide'));
             return $q.when(_.merge(baseResponse, {
                 isError: false,
-                records: _.map(nearbyFeatures, function (feat, i) {
+                records: _.map(trimmedFeatures, function (feat, i) {
                     return _.omit(feat.getProperties(), omitLayerProperties.concat([feat.getGeometryName()]));
                 })
             }));
