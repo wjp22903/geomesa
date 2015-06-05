@@ -40,7 +40,7 @@ describe('Factory', function () {
                     lonView16[z] = lon;
                 }
                 store16 = new BinStore('Store for 16-byte records');
-                store16.setArrayBuffer(buf16);
+                store16.setArrayBuffer(buf16, true);
 
                 var buf24 = new ArrayBuffer(24 * NUM_RECORDS);
                 var idView24 = new Uint32Array(buf24, 0);
@@ -55,7 +55,7 @@ describe('Factory', function () {
                     lonView24[z] = lon;
                 }
                 store24 = new BinStore('Store for 24-byte records');
-                store24.setArrayBuffer(buf24);
+                store24.setArrayBuffer(buf24, true);
             }
         ]));
 

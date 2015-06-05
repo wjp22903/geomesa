@@ -49,4 +49,13 @@
                 </select>
             </td>
         </tr>
+        <tr ng-hide="config.hideSortOption">
+            <td style="padding-top:2px;">
+                <label>Sort on server&nbsp;</label>
+            </td>
+            <td style="padding-top:2px;">
+                <input type="checkbox" ng-model="query.params.sortOnServer">
+            </td>
+        </tr>
+    </table>
 </ng-form>

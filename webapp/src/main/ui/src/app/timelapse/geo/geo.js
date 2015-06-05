@@ -53,10 +53,11 @@ function ($log, $timeout, owsLayers, ol3Map, LiveWmsLayer, tlLayerManager,
                 $timeout(function () { // Prevents '$apply already in progress' error
                     var arrayBuffer = fileReader.result;
                     if (arrayBuffer.byteLength > 0) {
-                        currentStore.setArrayBuffer(arrayBuffer);
-                        if (!currentStore.getViewState().isError) {
-                            $scope.historicalLayer.setDtgBounds();
-                        }
+                        currentStore.setArrayBuffer(arrayBuffer, false, function () {
+                            if (!currentStore.getViewState().isError) {
+                                $scope.historicalLayer.setDtgBounds();
+                            }
+                        });
                     }
                 });
             };

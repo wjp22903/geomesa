@@ -3,13 +3,14 @@ angular.module('stealth.timelapse.stores')
 .factory('stealth.timelapse.stores.BinStore', [
 '$log',
 '$q',
+'$filter',
 'toastr',
 'colors',
-function ($log, $q, toastr, colors) {
+function ($log, $q, $filter, toastr, colors) {
     var tag = 'stealth.timelapse.stores.BinStore: ';
     $log.debug(tag + 'factory started');
 
-    var BinStore = function (name, fillColorHexString, pointRadius, colorBy, arrayBuffer) {
+    var BinStore = function (name, fillColorHexString, pointRadius, colorBy, arrayBuffer, alreadySorted) {
         var _layerThisBelongsTo;
 
         var _fillColorRgbArray = [0, 0, 0];
@@ -123,22 +124,40 @@ function ($log, $q, toastr, colors) {
         };
 
         // Setter for ArrayBuffer and dependent vars.
-        this.setArrayBuffer = function (buf) {
-            _arrayBuffer = buf;
+        this.setArrayBuffer = function (buf, sorted, callback) {
             if (buf.byteLength % 4 === 0) {
-                _idView = new Uint32Array(_arrayBuffer, 0);
-                _secondsView = new Uint32Array(_arrayBuffer, 4);
-                _latView = new Float32Array(_arrayBuffer, 8);
-                _lonView = new Float32Array(_arrayBuffer, 12);
-                _label1View = new Uint32Array(_arrayBuffer, 16);
-                _label2View = new Uint32Array(_arrayBuffer, 20);
+                _idView = new Uint32Array(buf, 0);
+                _secondsView = new Uint32Array(buf, 4);
+                _latView = new Float32Array(buf, 8);
+                _lonView = new Float32Array(buf, 12);
+                _label1View = new Uint32Array(buf, 16);
+                _label2View = new Uint32Array(buf, 20);
                 _recordSizeBytes = _determineRecordSize(_latView, _lonView);
                 if (_recordSizeBytes) {
                     _stride = _recordSizeBytes / 4;
                     _lastRecordIndex = _secondsView.length - (_stride - 1);
-                    _minTimeMillis = _secondsView[0] * 1000;
-                    _maxTimeMillis = _secondsView[_lastRecordIndex] * 1000;
-                    _numRecords = _arrayBuffer.byteLength / _recordSizeBytes;
+                    _numRecords = buf.byteLength / _recordSizeBytes;
+                    var finish = function () {
+                        _arrayBuffer = buf;
+                        _minTimeMillis = _secondsView[0] * 1000;
+                        _maxTimeMillis = _secondsView[_lastRecordIndex] * 1000;
+                        if (_.isFunction(callback)) {
+                            callback();
+                        }
+                        var numString = $filter('number')(_numRecords, 0);
+                        toastr.info(numString + ' results', this.getName());
+                        $log.info(this.getName() + ': ' + numString + ' results');
+                    };
+                    if (!sorted) {
+                        var vi32 = new Int32Array(buf);
+                        var vf64 = new Float64Array(buf);
+                        var si32 = new Int32Array(64);
+                        si32[0] = 0;
+                        si32[1] = _numRecords;
+                        sortBinRec(vi32, vf64, si32, 2, 1, _stride/2, _.bind(finish, this));
+                    } else {
+                        finish.call(this);
+                    }
                     return;
                 }
             }
@@ -146,11 +165,11 @@ function ($log, $q, toastr, colors) {
             $log.error('Invalid binary data format');
             _viewState.isError = true;
             _viewState.errorMsg = 'Invalid data format';
-            toastr.error('Error: ' + this.getName(), _viewState.errorMsg);
+            toastr.error(_viewState.errorMsg, 'Error: ' + this.getName());
         };
 
         if (!_.isUndefined(arrayBuffer)) {
-            this.setArrayBuffer(arrayBuffer);
+            this.setArrayBuffer(arrayBuffer, alreadySorted);
         }
 
         this.destroy = function () {

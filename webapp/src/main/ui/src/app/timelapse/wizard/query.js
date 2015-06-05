@@ -46,6 +46,7 @@ function ($filter, cookies, wfs, ol3Map, owsLayers, CONFIG) {
             valid: true
         };
         this.params = {
+            sortOnServer: false,
             idField: null,
             geomField: null,
             dtgField: null,

@@ -22,12 +22,16 @@ function (startMenuManager, tlWizard) {
 'stealth.core.wizard.Step',
 'stealth.core.utils.WidgetDef',
 'stealth.timelapse.wizard.Query',
+'CONFIG',
 function ($rootScope, wizardManager, boundTlWizFactory,
-          optionTlWizFactory, Wizard, Step, WidgetDef, Query) {
+          optionTlWizFactory, Wizard, Step, WidgetDef, Query, CONFIG) {
     var _self = this;
     this.launchWizard = function (queryOverrides) {
         var wizardScope = $rootScope.$new();
         wizardScope.query = new Query(queryOverrides);
+        wizardScope.config = {
+            hideSortOption: CONFIG.timelapse && CONFIG.timelapse.hideBinSortOption
+        };
         var baseWizard = new Wizard('Time-enabled Query', 'fa-clock-o', 'fa-check text-success', [
             new Step('Select data source', new WidgetDef('st-tl-wiz-source', wizardScope), null, true)
         ], wizardScope);

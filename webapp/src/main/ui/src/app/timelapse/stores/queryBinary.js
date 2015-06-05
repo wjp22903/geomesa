@@ -41,12 +41,14 @@ function ($log, $rootScope, $q, $filter, $window, toastr, cqlHelper, CONFIG, wfs
             var id = query.params.idField.name;
             var label = query.layerData.currentLayer.fieldNames.label;
             var overrides = {
-                sortBy: dtg,
                 propertyName: _.compact([dtg, geom, id, label]).join(),
                 outputFormat: 'application/vnd.binary-viewer',
                 format_options: 'dtg:' + dtg + ';trackId:' + id + (label ? ';label:' + label : ''),
                 cql_filter: cqlHelper.buildSpaceTimeFilter(query.params)
             };
+            if (query.params.sortOnServer) {
+                overrides.sortBy = dtg;
+            }
 
             wfs.getFeature(CONFIG.geoserver.defaultUrl, typeName, CONFIG.geoserver.omitProxy, overrides, responseType)
             .success(function (data, status, headers, config, statusText) {
@@ -65,8 +67,9 @@ function ($log, $rootScope, $q, $filter, $window, toastr, cqlHelper, CONFIG, wfs
                         _viewState.errorMsg = 'No results';
                         toastr.error('Error: ' + _thisStore.getName(), _viewState.errorMsg);
                     } else {
-                        _thisStore.setArrayBuffer(data);
-                        $rootScope.$emit('timelapse:querySuccessful');
+                        _thisStore.setArrayBuffer(data, query.params.sortOnServer, function () {
+                            $rootScope.$emit('timelapse:querySuccessful');
+                        });
                     }
                 }
             })
