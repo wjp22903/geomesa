@@ -42,8 +42,6 @@ function ($filter, cookies, wfs, ol3Map, owsLayers, CONFIG) {
 
         this.layerData = {};
         this.timeData = {
-            range: 1,
-            isCustom: false,
             maxTimeRangeMillis: Number.POSITIVE_INFINITY,
             valid: true
         };
@@ -66,11 +64,6 @@ function ($filter, cookies, wfs, ol3Map, owsLayers, CONFIG) {
                 var now = moment.utc();
                 var past = now.clone().subtract(range, 'hours');
                 this.checkAndSetTimeRange(past, now);
-                this.timeData.isCustom = false;
-                this.timeData.range = range;
-            } else {
-                this.timeData.isCustom = true;
-                this.timeData.range = 'Custom';
             }
         };
 
@@ -80,8 +73,6 @@ function ($filter, cookies, wfs, ol3Map, owsLayers, CONFIG) {
                 endDtg: end
             };
             _.merge(this.params, range);
-            this.timeData.isCustom = true;
-            this.timeData.range = 'Custom';
             if (!skipCookie) {
                 //Save cookie - expires in a year
                 cookies.put('timelapse.wizard.time', 0, range, moment.utc().add(1, 'y'));
@@ -173,6 +164,7 @@ function ($filter, cookies, wfs, ol3Map, owsLayers, CONFIG) {
 
             //Set time range limit, if this layer has one
             this.timeData.maxTimeRangeMillis = _self.layerData.currentLayer.maxTimeRangeMillis;
+            this.checkAndSetTimeRange(_self.params.startDtg, _self.params.endDtg, true);
         };
 
         var keywordPrefix = ['timelapse', 'historical'];
@@ -201,22 +193,16 @@ function ($filter, cookies, wfs, ol3Map, owsLayers, CONFIG) {
 
                 //Initialize values
                 _self.checkAndSetBounds(ol3Map.getExtent(), true);
-                var timeCookie = cookies.get('timelapse.wizard.time', 0);
-                var spaceCookie = cookies.get('timelapse.wizard.bbox', 0);
                 _.merge(
                     _self.params,
                     cookies.get('timelapse.wizard.bbox', 0),
-                    _.mapValues(timeCookie, function (time) {
+                    _.mapValues(cookies.get('timelapse.wizard.time', 0), function (time) {
                         return time ? moment.utc(time) : null;
                     }),
                     overrides
                 );
-                if (spaceCookie) {
-                    _self.checkAndSetBounds([_self.params.minLon, _self.params.minLat, _self.params.maxLon, _self.params.maxLat], true);
-                }
-                if (timeCookie) {
-                    _self.checkAndSetTimeRange(_self.params.startDtg, _self.params.endDtg, true);
-                }
+                _self.checkAndSetBounds([_self.params.minLon, _self.params.minLat, _self.params.maxLon, _self.params.maxLat], true);
+                _self.checkAndSetTimeRange(_self.params.startDtg, _self.params.endDtg, true);
             });
     };
 
