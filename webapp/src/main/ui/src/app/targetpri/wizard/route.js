@@ -33,7 +33,8 @@ function ($rootScope, Wizard, Step, WidgetDef, ol3Map, ol3Styles, elementAppende
                             }
                             this.appendWizard(self.createEndWiz(wizardScope));
                         }
-                    }
+                    },
+                    true
                 )
             ]);
         },
@@ -98,24 +99,37 @@ function ($rootScope, Wizard, Step, WidgetDef, ol3Map, ol3Styles, elementAppende
             wizardScope.proximityMeters = 2000;
             wizardScope.startDtg = now.clone().subtract(7, 'days');
             wizardScope.endDtg = now;
-            return new Wizard(null, null, 'fa-check text-success', [
-                new Step('Select data', new WidgetDef('st-tp-wiz-data', wizardScope), null, true),
-                new Step('Set options', new WidgetDef('st-tp-route-options-wiz', wizardScope), null, true, null, function (stepNum, success) {
-                    if (success) {
-                        $rootScope.$emit('targetpri:request:route',
-                            //TODO - package these settings into an obj within wizardScope
-                            {
-                                name: wizardScope.name,
-                                startDtg: wizardScope.startDtg,
-                                endDtg: wizardScope.endDtg,
-                                proximityMeters: wizardScope.proximityMeters,
-                                routeFeature: wizardScope.geoFeature,
-                                dataSources: wizardScope.datasources
+            return new Wizard(
+                null,
+                null,
+                'fa-check text-success',
+                [
+                    new Step('Select data', new WidgetDef('st-tp-wiz-data', wizardScope), null, true),
+                    new Step(
+                        'Set options',
+                        new WidgetDef('st-tp-route-options-wiz', wizardScope),
+                        null,
+                        true,
+                        null,
+                        function (stepNum, success) {
+                            if (success) {
+                                $rootScope.$emit('targetpri:request:route',
+                                    //TODO - package these settings into an obj within wizardScope
+                                    {
+                                        name: wizardScope.name,
+                                        startDtg: wizardScope.startDtg,
+                                        endDtg: wizardScope.endDtg,
+                                        proximityMeters: wizardScope.proximityMeters,
+                                        routeFeature: wizardScope.geoFeature,
+                                        dataSources: wizardScope.datasources
+                                    }
+                                );
                             }
-                        );
-                    }
-                })
-            ]);
+                        },
+                        false
+                    )
+                ]
+            );
         }
     };
     return self;

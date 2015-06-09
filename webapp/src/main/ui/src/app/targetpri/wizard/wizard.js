@@ -48,9 +48,10 @@ function ($rootScope, startMenuManager, wizardManager, Wizard, Step,
                                     break;
                             }
                         }
-                    }
+                    },
+                    true
                 )
-            ])
+            ], wizardScope)
         );
     };
     startMenuManager.addButton('Target Identification', 'fa-crosshairs', launchWizard);

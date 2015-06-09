@@ -48,13 +48,14 @@ function () {
 
 .factory('stealth.core.wizard.Step', [
 function () {
-    var Step = function (title, formDef, toolDef, mask, setup, teardown) {
+    var Step = function (title, formDef, toolDef, mask, setup, teardown, addsStep) {
         var _title = title;
         var _formDef = formDef;
         var _toolDef = toolDef;
         var _mask = mask;
         var _setup = setup || _.noop;
         var _teardown = teardown || _.noop;
+        var _addsStep = !!addsStep;
 
         this.getTitle = function () { return _title; };
         this.getFormDef = function () { return _formDef; };
@@ -62,6 +63,7 @@ function () {
         this.getMask = function () { return _mask; };
         this.getSetup = function () { return _setup; };
         this.getTeardown = function () { return _teardown; };
+        this.getAddsStep = function () { return _addsStep; };
     };
     return Step;
 }])

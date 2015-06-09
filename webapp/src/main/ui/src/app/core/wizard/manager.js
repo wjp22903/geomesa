@@ -51,7 +51,7 @@ function ($rootScope, sidebarManager, headerManager) {
         return _wizard ? _wizard.getEndIconClass() : null;
     };
     this.isLastStep = function () {
-        return (_wizard && _currentStepNum === _wizard.getSteps().length - 1);
+        return (_wizard && (_currentStepNum === _wizard.getSteps().length - 1) && !this.getCurrentStep().getAddsStep());
     };
     this.isCurrentStepInvalid = function () {
         var step = this.getCurrentStep();
@@ -110,9 +110,12 @@ function ($rootScope, sidebarManager, headerManager) {
         }
     };
     this.nextStep = function () {
-        if (_wizard && !_.isEmpty(_wizard.getSteps()) &&
-            _currentStepNum < (_wizard.getSteps().length - 1)) {
-            _updateCurrentStep(_currentStepNum + 1);
+        if (_wizard && !_.isEmpty(_wizard.getSteps())) {
+            if (_currentStepNum < (_wizard.getSteps().length - 1)) {
+                _updateCurrentStep(_currentStepNum + 1);
+            } else {
+                this.closeWizard(true);
+            }
         }
     };
 }])
