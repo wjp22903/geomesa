@@ -3,7 +3,7 @@
     <parent>
         <groupId>com.ccri.stealth</groupId>
         <artifactId>stealth</artifactId>
-        <version>2.0.1-SNAPSHOT</version>
+        <version>2.0.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>stealth-webapp</artifactId>
@@ -269,7 +269,7 @@
                                 <phase>generate-sources</phase>
                                 <configuration>
                                     <target>
-                                        <move file="${uidir.pathname}/node-${nodejs.version}-${nodejs.classifier}" tofile="${nodejs.local.dir}" />
+                                        <move file="${uidir.pathname}/node-${nodejs.version}-${nodejs.classifier}" tofile="${nodejs.local.dir}" failonerror="false" />
                                         <chmod dir="${nodejs.local.dir}" includes="**/bin/*" perm="755" />
                                         <copy file="${nodejs.local.dir}/node.exe" tofile="${uidir.pathname}/node.exe" overwrite="true" failonerror="false" />
                                     </target>
