@@ -3,6 +3,7 @@ angular.module('stealth.core', [
     'stealth.core.geo.ol3.format',
     'stealth.core.geo.ol3.layers',
     'stealth.core.geo.ol3.manager',
+    'stealth.core.geo.ol3.overlays',
     'stealth.core.geo.ol3.style',
     'stealth.core.geo.ows',
     'stealth.core.geo.query',

@@ -12,6 +12,7 @@ function ($log, $interval, WmsLayer) {
         var _pollingInterval = 3600000;
         var _params = options.requestParams;
         var _refreshAfterLoad = false;
+        var _refreshListeners = [];
 
         $log.debug(tag + 'new PollingImageWmsLayer(' + arguments[0] + ')');
         WmsLayer.call(_self, _.merge({
@@ -30,7 +31,20 @@ function ($log, $interval, WmsLayer) {
             } else if (_self.getOl3Layer().getVisible()) {
                 $log.debug(tag + name + ': refresh layer');
                 _self.updateRequestParams(_params);
+                _.forEach(_refreshListeners, function (listener) {
+                    listener(_params);
+                });
             }
+        };
+
+        _self.addRefreshListener = function (listener) {
+            if (_.isFunction(listener)) {
+                _refreshListeners.push(listener);
+            }
+        };
+
+        _self.removeRefreshListener = function (listener) {
+            _.pull(_refreshListeners, listener);
         };
 
         _self.cancelPolling = function () {
@@ -49,14 +63,9 @@ function ($log, $interval, WmsLayer) {
                 _self.cancelPolling();
             } else {
                 // Otherwise, start a new polling routine with the new interval.
-                if (_.isNull(polling)) {
-                    polling = startPolling(_pollingInterval, _self.refresh);
-                    _self.refresh();
-                } else {
-                    $interval.cancel(polling);
-                    polling = startPolling(_pollingInterval, _self.refresh);
-                    _self.refresh();
-                }
+                _self.cancelPolling();
+                polling = startPolling(_pollingInterval, _self.refresh);
+                _self.refresh();
             }
         };
 

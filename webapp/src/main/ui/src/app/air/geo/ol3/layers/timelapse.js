@@ -29,7 +29,6 @@ function (WidgetDef) {
                                 s.record = record;
                                 return {
                                     //Order results by their order in records list
-                                    //We could order them by distance from search coord in parent class.
                                     level: _.padLeft(_self.reverseZIndex, 4, '0') + (response.levelSuffix || '') + '_' + _.padLeft(index, 4, '0'),
                                     iconClass: _self.styleDirectiveScope.styleVars.iconClass,
                                     tooltipText: s.name,

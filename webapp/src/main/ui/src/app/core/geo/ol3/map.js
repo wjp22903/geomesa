@@ -250,6 +250,14 @@ function ($log, $filter, $q, mapClickSearchService, MapLayer, TintLayer, CONFIG)
         _map.removeOverlay(overlay);
     };
     /**
+     * Get a {ol.FeatureOverlay} with no features and default styling
+     * for use with this map.
+     * @returns {ol.FeatureOverlay} FeatureOverlay for use with this map
+     */
+    this.getFeatureOverlay = function () {
+        return new ol.FeatureOverlay({map: _map});
+    };
+    /**
      * Adds a listener to the map.
      * @param {(string|string[])} type - event type of an array of types
      * @param {function} listener - listener function

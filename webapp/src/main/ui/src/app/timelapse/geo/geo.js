@@ -239,16 +239,17 @@ function ($log, $timeout, owsLayers, ol3Map, LiveWmsLayer, tlLayerManager,
                 owsLayers.getLayers(keywordPrefix)
                     .then(function (layers) {
                         _.each(layers, function (l) {
-                            var layer = _.cloneDeep(l);
-                            layer.hasViewables = function (list) {return !_.isEmpty(list);};
-                            if (layer.KeywordConfig[keywordPrefix].live) {
-                                layer.filterLayers = [];
-                            }
-                            if (layer.KeywordConfig[keywordPrefix].summary) {
-                                layer.summaries = [];
-                            }
                             _.each(['live', 'historical', 'summary'], function (role) {
-                                _.forOwn(layer.KeywordConfig[keywordPrefix][role], function (value, workspace, obj) {
+                                _.forOwn(l.KeywordConfig[keywordPrefix][role], function (value, workspace, obj) {
+                                    var layer = _.cloneDeep(l);
+                                    layer.hasViewables = function (list) {return !_.isEmpty(list);};
+                                    layer.stealthWorkspace = workspace;
+                                    if (layer.KeywordConfig[keywordPrefix].live) {
+                                        layer.filterLayers = [];
+                                    }
+                                    if (layer.KeywordConfig[keywordPrefix].summary) {
+                                        layer.summaries = [];
+                                    }
                                     if (_.isArray($scope.workspaces[role][workspace])) {
                                         $scope.workspaces[role][workspace].push(layer);
                                     } else {
