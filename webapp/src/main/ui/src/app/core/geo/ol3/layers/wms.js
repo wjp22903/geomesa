@@ -45,7 +45,7 @@ function ($log, $timeout, $q, toastr, wfs, clickSearchHelper, cqlHelper, MapLaye
         var _olSource;
         var _olLayer;
         var _layerThisBelongsTo = _options.layerThisBelongsTo;
-        var _omitSearchProps = _.keys(_.get(_layerThisBelongsTo.KeywordConfig, 'field.hide'));
+        var _omitSearchProps = _layerThisBelongsTo ? _.keys(_.get(_layerThisBelongsTo.KeywordConfig, 'field.hide')) : [];
         var _loadStart = function () {
             _self.styleDirectiveScope.$evalAsync(function () {
                 _isLoading = true;

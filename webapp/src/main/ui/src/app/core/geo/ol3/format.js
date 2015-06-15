@@ -199,4 +199,55 @@ function () {
     return GeoJson;
 }])
 
+/**
+ * The GML2 class this factory creates extends ol.format.GML2, overriding the readFeatureElement method
+ * to support CDATA nodes, which ol.format.GML2 otherwise tries to handle as geometryElements.
+ */
+.factory('stealth.core.geo.ol3.format.GML2', [
+function () {
+    var GML2 = function (/* inherited */) {
+        ol.format.GML2.apply(this, arguments);
+    };
+    GML2.prototype = Object.create(ol.format.GML2.prototype);
+
+    /* copied from ol.format.GMLBase, with fixing change */
+    GML2.prototype.readFeatureElement = function(node, objectStack) {
+      var n;
+      var fid = node.getAttribute('fid') ||
+          ol.xml.getAttributeNS(node, ol.format.GMLBase.GMLNS, 'id');
+      var values = {}, geometryName;
+      for (n = node.firstElementChild; !_.isNull(n);
+          n = n.nextElementSibling) {
+        var localName = ol.xml.getLocalName(n);
+        // Assume attribute elements have one child node and that the child
+        // is a text node.  Otherwise assume it is a geometry node.
+        if (n.childNodes.length === 0 ||
+            (n.childNodes.length === 1 &&
+            (n.firstChild.nodeType === 3 || n.firstChild.nodeType === 4))) { // nodeType == 4 is CDATA
+          var value = ol.xml.getAllTextContent(n, false);
+          if (_.isEmpty(value)) {
+            value = undefined;
+          }
+          values[localName] = value;
+        } else {
+          // boundedBy is an extent and must not be considered as a geometry
+          if (localName !== 'boundedBy') {
+            geometryName = localName;
+          }
+          values[localName] = this.readGeometryElement(n, objectStack);
+        }
+      }
+      var feature = new ol.Feature(values);
+      if (!_.isUndefined(geometryName)) {
+        feature.setGeometryName(geometryName);
+      }
+      if (fid) {
+        feature.setId(fid);
+      }
+      return feature;
+    };
+
+    return GML2;
+}])
+
 ;

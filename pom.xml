@@ -122,6 +122,7 @@
                 'stealth.static',
                 'stealth.targetpri',
                 'stealth.timelapse',
+                'stealth.imagery.omar',
                 'stealth.mediator.air-timelapse',
                 'stealth.mediator.histogram-timelapse',
                 'stealth.mediator.static-targetpri',

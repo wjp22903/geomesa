@@ -1,0 +1,8 @@
+<ng-form name="wizardForm">
+    <p>Select data source.</p>
+    <select class="form-control input-sm"
+            ng-model="query.params.server"
+            ng-init="OMAR.servers[0].name"
+            ng-options="server.name for server in ::OMAR.servers">
+    </select>
+</ng-form>

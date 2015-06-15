@@ -23,7 +23,7 @@ function ($log, MapLayer) {
                 fill: new ol.style.Fill({color: '#000'})
             })
         });
-        MapLayer.apply(this, ['Tint', _olLayer, false]);
+        MapLayer.apply(this, ['Tint', _olLayer, false, -8]);
         var _self = this;
 
         var _darkness = darkness;

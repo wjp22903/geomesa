@@ -1,0 +1,54 @@
+<div class="imagery-results-container">
+    <progressbar class="progress-striped active" value="100" type="primary" ng-if="query.running">{{progressText}}</progressbar>
+    <div ng-class="{'ng-hide': query.running || !query.results.length}">
+        <span class="pull-right">
+            <button class="btn btn-primary btn-xs" ng-click="select.zoomToCoverage()">
+                <i class="fa fa-search-plus"></i> Zoom to all
+            </button>
+            <button class="btn btn-primary btn-xs" ng-class="{active: select.coverageLayerVisible}" ng-click="select.toggleCoverage()">
+                <i class="fa fa-square-o"></i> Toggle coverage
+            </button>
+        </span>
+    </div>
+    <ul ng-class="{'ng-hide': query.running}" class="results-list list-unstyled">
+        <li ng-class="{'ng-hide': !!query.results.length}" class="imagery-empty-results">
+            No imagery found.
+            <button class="btn btn-primary btn-xs" ng-click="select.restart()">
+                Search Again
+            </button>
+        </li>
+        <li class="imagery-result list-hover"
+            ng-repeat="image in query.results | startFrom:(paging.currentPage-1)*paging.pageSize | limitTo:paging.pageSize"
+            ng-class="{'list-selected': image.isSelected}"
+            ng-mouseover="select.imageMouseenter(image)"
+            ng-mouseleave="select.imageMouseleave(image)">
+            <img ng-src="{{::select.imageUrl(image)}}">
+            <h4>
+                {{::select.imageName(image)}}
+                    <span class="pull-right image-controls">
+                        <span class="btn-group" data-toggle="buttons">
+                            <label class="btn btn-primary btn-xs"
+                                   ng-class="{active: image.isSelected}">
+                                <input type="checkbox"
+                                       ng-model="image.isSelected"
+                                       ng-change="select.toggleImage(image)"> Map
+                            </label>
+                            <label class="btn btn-primary btn-xs"
+                                   ng-class="{active: image.isSelected && image.isVisible}"
+                                   ng-disabled="!image.isSelected">
+                                <input type="checkbox"
+                                       ng-model="image.isVisible"
+                                       ng-change="select.updateImageVis(image)"> Show
+                            </label>
+                        </span><br/>
+                        <button class="btn btn-primary btn-xs imagery-zoom" ng-click="select.zoomToImage(image)">
+                            <i class="fa fa-search-plus"></i> Zoom to
+                        </button>
+                    </span>
+            </h4>
+            <div ng-repeat="key in select.filterImageAttributes(image)">
+                <strong>{{::key }}:</strong> {{::select.getAttribute(image, key)}}
+            </div>
+        </li>
+    </ul>
+</div>

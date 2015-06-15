@@ -45,10 +45,13 @@ function () {
      * @param {string} dtgField - Name of the datetime field to query
      * @param {moment} [startDtg] - Lower bound
      * @param {moment} [endDtg] - Upper bound
+     * @param {boolean} [dtgFieldIsString] - Treat the datetime field as a String field, instead of a Date field
      *
      * @returns {string}
      */
-    this.buildDtgFilter = function (dtgField, startDtg, endDtg) {
+    this.buildDtgFilter = function (dtgField, startDtg, endDtg, dtgFieldIsString, dtgFormatter) {
+        var _dtgFieldIsString = !!dtgFieldIsString;
+        var fmtDate = _.isFunction(dtgFormatter) ? dtgFormatter : function (dtg) { return dtg.toISOString(); };
         if (startDtg && endDtg) {
             var start = startDtg;
             var end = endDtg;
@@ -56,11 +59,23 @@ function () {
                 start = endDtg;
                 end = startDtg;
             }
-            return dtgField + ' DURING ' + start.toISOString() + '/' + end.toISOString();
+            if (_dtgFieldIsString) {
+                return dtgField + " >= '" + fmtDate(start) + "' AND " + dtgField + " <= '"+ fmtDate(end) + "'";
+            } else {
+                return dtgField + ' DURING ' + fmtDate(start) + '/' + fmtDate(end);
+            }
         } else if (startDtg) {
-            return dtgField + ' AFTER ' + startDtg.toISOString();
+            if (_dtgFieldIsString) {
+                return dtgField + " >= '" + fmtDate(startDtg) + "'";
+            } else {
+                return dtgField + ' AFTER ' + fmtDate(startDtg);
+            }
         } else if (endDtg) {
-            return dtgField + ' BEFORE ' + endDtg.toISOString();
+            if (_dtgFieldIsString) {
+                return dtgField + " <= '" + fmtDate(endDtg) + "'";
+            } else {
+                return dtgField + ' BEFORE ' + fmtDate(endDtg);
+            }
         }
         return 'INCLUDE';
     };
@@ -85,6 +100,7 @@ function () {
      * @param {number} params.maxLon - Maximum longitude
      * @param {number} params.maxLat - Maximum latitude
      * @param {string} params.dtgField.name - Name of the datetime field to query
+     * @param {boolean} params.dtgField.isString - The datetime field should be treated as a String, not a Date
      * @param {moment} [params.startDtg] - Lower time bound
      * @param {moment} [params.endDtg] - Upper time bound
      * @param {string} [params.cql] - Any additional CQL filter
@@ -99,7 +115,7 @@ function () {
                 params.maxLon,
                 params.maxLat]),
             this.buildDtgFilter(params.dtgField.name,
-                params.startDtg, params.endDtg),
+                params.startDtg, params.endDtg, params.dtgField.isString, params.dtgField.dtgFormatter),
             params.cql
         );
     };

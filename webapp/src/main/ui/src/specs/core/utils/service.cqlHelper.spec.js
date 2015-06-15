@@ -43,7 +43,7 @@ describe('Service', function () {
         });
 
 
-        it('should build dtg filters', function () {
+        it('should build dtg filters from dates', function () {
             var start = '2000-01-01T00:00:00.000Z';
             var end = '2001-12-31T23:59:59.999Z';
             var startDtg = moment(start);
@@ -58,6 +58,46 @@ describe('Service', function () {
             result = cqlHelper.buildDtgFilter('mydtg', null, endDtg);
             expect(result).to.equal('mydtg BEFORE ' + end);
         });
+
+
+        it('should build dtg filters from strings', function () {
+            var start = '2000-01-01T00:00:00.000Z';
+            var end = '2001-12-31T23:59:59.999Z';
+            var startDtg = moment(start);
+            var endDtg = moment(end);
+            var result;
+            result = cqlHelper.buildDtgFilter('mydtg', startDtg, endDtg, true);
+            expect(result).to.equal("mydtg >= '" + start + "' AND mydtg <= '" + end + "'");
+            result = cqlHelper.buildDtgFilter('mydtg', endDtg, startDtg, true);
+            expect(result).to.equal("mydtg >= '" + start + "' AND mydtg <= '" + end + "'");
+            result = cqlHelper.buildDtgFilter('mydtg', startDtg, null, true);
+            expect(result).to.equal("mydtg >= '" + start + "'");
+            result = cqlHelper.buildDtgFilter('mydtg', null, endDtg, true);
+            expect(result).to.equal("mydtg <= '" + end + "'");
+        });
+
+
+        it('should build dtg filters from strings with alternate formatting', function () {
+            var start = '2000-01-01T00:00:00.000Z';
+            var end = '2001-12-31T23:59:59.999Z';
+            var startFormatted = "20000101000000";
+            var endFormatted = "20011231235959";
+            var formatter = function (dtg) {
+                return moment(dtg).utc().format("YYYYMMDDHHmmss");
+            };
+            var startDtg = moment(start);
+            var endDtg = moment(end);
+            var result;
+            result = cqlHelper.buildDtgFilter('mydtg', startDtg, endDtg, true, formatter);
+            expect(result).to.equal("mydtg >= '" + startFormatted + "' AND mydtg <= '" + endFormatted + "'");
+            result = cqlHelper.buildDtgFilter('mydtg', endDtg, startDtg, true, formatter);
+            expect(result).to.equal("mydtg >= '" + startFormatted + "' AND mydtg <= '" + endFormatted + "'");
+            result = cqlHelper.buildDtgFilter('mydtg', startDtg, null, true, formatter);
+            expect(result).to.equal("mydtg >= '" + startFormatted + "'");
+            result = cqlHelper.buildDtgFilter('mydtg', null, endDtg, true, formatter);
+            expect(result).to.equal("mydtg <= '" + endFormatted + "'");
+        });
+
 
         it('should build bbox filters', function () {
             var result;
