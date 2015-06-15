@@ -37,7 +37,7 @@ function ($rootScope, WidgetDef) {
                         } else {
                             return _.map(response.records, function (record, index) {
                                 var s = (parentScope || $rootScope).$new();
-                                s.name = response.name + ' (' + record[_.deepGet(_layerThisBelongsTo.KeywordConfig, 'capability.live.field.displayId') || 'trkId'] + ')';
+                                s.name = response.name + ' (' + record[_.deepGet(_layerThisBelongsTo.KeywordConfig, 'capability.live.field.displayId') || 'label'] + ')';
                                 s.capabilities = response.capabilities;
                                 s.record = record;
                                 return {

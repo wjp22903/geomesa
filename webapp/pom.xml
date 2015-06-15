@@ -570,6 +570,7 @@
                 <app.plugins>
                     [
                         'stealth.air',
+                        'stealth.static',
                         'stealth.timelapse',
                         'stealth.mediator.air-timelapse'
                     ]
@@ -579,6 +580,7 @@
                 <map.initLayers>[]</map.initLayers>
                 <map.extraLayers>[]</map.extraLayers>
                 <map.liveOptions>[]</map.liveOptions>
+                <map.initTint>0</map.initTint>
                 <map.click.search.strategy>nearest-fixed-1</map.click.search.strategy>
                 <geoserver.url>/geoserver</geoserver.url>
                 <geoserver.omitProxy>true</geoserver.omitProxy>
@@ -599,6 +601,7 @@
                 <map.initLayers>[]</map.initLayers>
                 <map.extraLayers>[]</map.extraLayers>
                 <map.liveOptions>[]</map.liveOptions>
+                <map.initTint>0</map.initTint>
                 <map.click.search.strategy>nearest-fixed-1</map.click.search.strategy>
                 <geoserver.url>/geoserver</geoserver.url>
                 <geoserver.omitProxy>true</geoserver.omitProxy>

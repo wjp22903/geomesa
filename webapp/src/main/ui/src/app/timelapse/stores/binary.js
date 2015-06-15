@@ -151,8 +151,11 @@ function ($log, $q, $filter, toastr, colors, clickSearchHelper) {
                         toastr.info(numString + ' results', this.getName());
                         $log.info(this.getName() + ': ' + numString + ' results');
                     };
+                    var vi32 = new Int32Array(buf);
+                    if (!_.isBoolean(sorted)) {
+                        sorted = sortedBinRec(vi32, 0, _numRecords, 1, _stride/2);
+                    }
                     if (!sorted) {
-                        var vi32 = new Int32Array(buf);
                         var vf64 = new Float64Array(buf);
                         var si32 = new Int32Array(64);
                         si32[0] = 0;
