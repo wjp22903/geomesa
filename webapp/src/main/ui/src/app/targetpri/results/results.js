@@ -1,9 +1,11 @@
-angular.module('stealth.targetpri.results')
+angular.module('stealth.targetpri.results', [
+    'stealth.core.geo.ol3.geodetics'
+])
 
 .directive('stTargetPriResults', [
-'$filter',
+'ol3Geodetics',
 'targetPriResultLayerExtender',
-function ($filter, tpExtender) {
+function (ol3Geodetics, tpExtender) {
     return {
         restrict: 'E',
         templateUrl: 'targetpri/results/results.tpl.html',
@@ -13,7 +15,7 @@ function ($filter, tpExtender) {
                     waiting: true
                 };
                 $scope.extraRequestInfo = {
-                    routeMeters: $filter('distanceVincenty')(
+                    routeMeters: ol3Geodetics.distanceVincenty(
                         $scope.request.routeFeature.getGeometry().getCoordinates())
                 };
                 $scope.sortOpts = {

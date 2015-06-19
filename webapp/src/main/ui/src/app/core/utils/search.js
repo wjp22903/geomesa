@@ -1,12 +1,13 @@
 angular.module('stealth.core.utils', [
-    'stealth.core.geo.ol3.format'
+    'stealth.core.geo.ol3.format',
+    'stealth.core.geo.ol3.geodetics'
 ])
 
 .service('clickSearchHelper', [
-'$filter',
+'ol3Geodetics',
 'stealth.core.geo.ol3.format.GeoJson',
 'CONFIG',
-function ($filter, GeoJson, CONFIG) {
+function (ol3Geodetics, GeoJson, CONFIG) {
     var defaultStrategy = CONFIG.map.clicksearch.strategy;
     var defaultFixedPixelBuffer = CONFIG.map.clicksearch.fixedPixelBuffer;
     var defaultZoomMeterBuffer = CONFIG.map.clicksearch.zoomMeterBuffer;
@@ -15,7 +16,6 @@ function ($filter, GeoJson, CONFIG) {
         code: CONFIG.map.projection,
         units: CONFIG.map.units
     });
-    var haversineDistance = $filter('distanceHaversine');
 
     function isZoomStrategy (strat) {
         return strat.indexOf('zoom') !== -1;
@@ -72,7 +72,7 @@ function ($filter, GeoJson, CONFIG) {
             if (!geom) {
                 geom = _.isFunction(feat.getGeometry) ? feat.getGeometry() : parser.readGeometry(feat.geometry);
             }
-            return haversineDistance(coord, geom.getClosestPoint(coord));
+            return ol3Geodetics.distanceHaversine([coord, geom.getClosestPoint(coord)]);
         });
         var strategy = overrides.strategy || defaultStrategy;
 

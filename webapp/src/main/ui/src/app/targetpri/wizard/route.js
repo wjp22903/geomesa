@@ -1,5 +1,6 @@
 angular.module('stealth.targetpri.wizard.route', [
-    'stealth.core.geo.ol3.format'
+    'stealth.core.geo.ol3.format',
+    'stealth.core.geo.ol3.geodetics'
 ])
 
 .factory('routeTpWizFactory', [
@@ -233,14 +234,14 @@ function ($timeout, ol3Map, GeoJson, csvFormat, routeDrawHelper) {
 }])
 
 .service('routeDrawHelper', [
-'$filter',
+'ol3Geodetics',
 '$timeout',
-function ($filter, $timeout) {
+function (ol3Geodetics, $timeout) {
     this.initFeature = function (feature, scope, moreInit) {
         var coords = feature.getGeometry().getCoordinates();
         scope.routeInfo = {
             coords: coords,
-            meters: $filter('distanceVincenty')(coords)
+            meters: ol3Geodetics.distanceVincenty(coords)
         };
         if (!feature.get('pointData')) {
             feature.set('pointData', {
@@ -263,7 +264,7 @@ function ($filter, $timeout) {
             var coords = evt2.target.getGeometry().getCoordinates();
             $timeout(function () {
                 scope.routeInfo.coords = coords;
-                scope.routeInfo.meters = $filter('distanceVincenty')(coords);
+                scope.routeInfo.meters = ol3Geodetics.distanceVincenty(coords);
             });
             var newPointData = {
                 type: 'FeatureCollection',
