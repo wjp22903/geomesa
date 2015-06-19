@@ -1,28 +1,34 @@
 angular.module('stealth.core.utils')
 
-.directive('stFloatSlider', [
+.directive('stFloatInput', [
 '$log',
 function ($log) {
-    $log.debug('stealth.core.utils.stFloatSlider: directive defined');
+    $log.debug('stealth.core.utils.stFloatInput: directive defined');
     return {
         require: 'ngModel',
-        link: function(scope, element, attrs, controller) {
-            controller.$parsers.unshift(function (sliderValue) {
-                return parseFloat(sliderValue);
+        link: function (scope, element, attrs, controller) {
+            controller.$parsers.unshift(function (value) {
+                return parseFloat(value);
+            });
+            controller.$formatters.push(function (value) {
+                return value.toString(10);
             });
         }
     };
 }])
 
-.directive('stIntSlider', [
+.directive('stIntInput', [
 '$log',
 function ($log) {
-    $log.debug('stealth.core.utils.stIntSlider: directive defined');
+    $log.debug('stealth.core.utils.stIntInput: directive defined');
     return {
         require: 'ngModel',
-        link: function(scope, element, attrs, controller) {
-            controller.$parsers.unshift(function (sliderValue) {
-                return parseInt(sliderValue, 10);
+        link: function (scope, element, attrs, controller) {
+            controller.$parsers.unshift(function (value) {
+                return parseInt(value, 10);
+            });
+            controller.$formatters.push(function (value) {
+                return value.toString(10);
             });
         }
     };

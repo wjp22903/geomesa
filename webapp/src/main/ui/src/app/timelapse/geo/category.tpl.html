@@ -34,9 +34,16 @@
     <div class="categoryCell">
         <span style="margin-left:2px">
             Refresh:
-            <select ng-model="liveRefresh.value"
-                    ng-options="val for val in liveRefresh.options"
+            <select ng-model="liveRefresh.value" st-int-input
                     ng-change="refreshValChanged(liveRefresh.value)">
+                <option value="0">off</option>
+                <option value="2">2</option>
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="30">30</option>
+                <option value="60">60</option>
+                <option value="120">120</option>
+                <option value="300">300</option>
             </select>
             s
         </span>

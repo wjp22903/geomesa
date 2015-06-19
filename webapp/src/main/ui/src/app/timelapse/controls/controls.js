@@ -287,7 +287,7 @@ function ($log, $timeout) {
     };
 
     function getTemplate () {
-      var tpl = '<input type="range" st-int-slider';
+      var tpl = '<input type="range" st-int-input';
       if (bowser.chrome) {
           tpl += ' style="display:inline-block;"';
       }

@@ -84,10 +84,7 @@ function ($log, $q, wfs, colors, ol3Styles, clickSearchHelper, MapLayer, CONFIG)
             var url = query.serverData.currentGeoserverUrl + '/' +
                       query.layerData.currentLayer.prefix;
             var typeName = query.layerData.currentLayer.name;
-            var geom = query.params.geomField.name;
-            var id = query.layerData.currentLayer.trkIdField;
             var overrides = {
-                propertyName: geom + ',' + id,
                 cql_filter: buildCQLFilter(query)
             };
 

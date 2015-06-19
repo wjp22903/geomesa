@@ -63,7 +63,7 @@ describe('Directive', function () {
 
         it('should be an range input with int parser', function () {
             expect(inputEl.attr('type')).to.equal('range');
-            expect(inputEl.attr('st-int-slider')).to.equal('');
+            expect(inputEl.attr('st-int-input')).to.equal('');
         });
 
         describe('when slider value is changed', function () {

@@ -19,8 +19,7 @@ function ($rootScope, catMgr, Category, WidgetDef) {
         isSummaryOn: true
     };
     catScope.liveRefresh = {
-        value: 10,
-        options: [2, 5, 10, 30, 60]
+        value: 10
     };
 
     var widgetDef = new WidgetDef('st-timelapse-geo-category', catScope);
