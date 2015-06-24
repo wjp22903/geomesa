@@ -1,0 +1,32 @@
+<ng-form name="wizardForm">
+    <p>
+        Set additional options for route analysis
+    </p>
+
+    <div style="text-align:center;">
+        <table style="border-collapse:separate;border-spacing:2px;margin:5px auto;">
+            <tr>
+                <td style="padding-top:2px"><label>Name: </label></td>
+                <td><input type="text" class="form-control" ng-model="name" required></textarea></td>
+            </tr>
+            <tr>
+                <td style="padding-top:2px; line-height:60%"><label>Resolution: </label><br>
+                    <label style="font-size:75%; font-style: italic">Frequency of sampling raster</label></td>
+                <td><input type="text" class="form-control" ng-model="resolution" required></textarea></td>
+            </tr>
+            <tr>
+                <td style="padding-top:2px"><label>Y-Axis Label: </label></td>
+                <td><input type="text" class="form-control" ng-model="yAxis" required></textarea></td>
+            </tr>
+            <tr>
+                <td style="padding-top:2px"><label>Color: </label></td>
+                <td style="text-align: left"><span class="colorpickerBtn" ng-style="style"
+                          style="margin-left:2px"
+                          colorpicker colorpicker-position="bottom"
+                          ng-model="style['background-color']"
+                          ng-change="query.params.fillColor = style['background-color']"></span></td>
+            </tr>
+        </table>
+    </div>
+
+</ng-form>

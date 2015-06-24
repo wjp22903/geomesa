@@ -1,0 +1,28 @@
+<div class="routeanalysisPopupContainer"
+     style="cursor:default;"
+     ng-mousedown="focus()">
+    <div class="routeanalysisPopupHeader">
+        <i class="fa fa-fw fa-line-chart"></i>
+        <span><b>{{routeanalysis.title | characters:60:true}}</b></span>
+        <span class="btn btn-default fa-stack toggleButton pull-right"
+              ng-click="routeanalysis.closePopup(routeanalysis)"
+              ng-style="{'background-color': routeanalysis.arrowColor}"
+              tooltip-html-unsafe="<span style='white-space:nowrap'>Hide route analysis</span>"
+              tooltip-placement="left" tooltip-animation="false" tooltip-popup-delay="500"
+              tooltip-trigger="mouseenter">
+            <i class="fa fa-fw fa-chevron-down fa-stack-1x" style="color:white;"></i>
+        </span>
+        <span class="btn btn-default fa-stack toggleButton pull-right"
+              style="padding-right:5px"
+              ng-click="routeanalysis.updateRouteAnalysis(routeanalysis.layerId)"
+              tooltip-html-unsafe="<span style='white-space:nowrap'>Refresh data</span>"
+              tooltip-placement="left" tooltip-animation="false" tooltip-popup-delay="500"
+              tooltip-trigger="mouseenter">
+            <i class="fa fa-fw fa-refresh fa-stack-1x text-primary"
+               ng-class="(routeanalysis.viewState.isLoading) ? 'fa-spin' : ''"></i>
+        </span>
+    </div>
+    <div id="{{routeId}}"
+         class="routeanalysisViz"
+         ng-mousedown="$event.stopPropagation()"></div>
+</div>

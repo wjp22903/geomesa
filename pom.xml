@@ -121,6 +121,7 @@
                 'stealth.crawl',
                 'stealth.dcm',
                 'stealth.histogram',
+                'stealth.routeanalysis',
                 'stealth.static',
                 'stealth.targetpri',
                 'stealth.timelapse',
@@ -205,7 +206,7 @@
         </map.liveOptions>
         <map.projection>EPSG:4326</map.projection>
         <map.units>degrees</map.units>
-        <map.initTint>0.75</map.initTint>
+        <map.initTint>0.70</map.initTint>
         <map.click.search.strategy>bbox-fixed</map.click.search.strategy>
         <map.click.search.fixed.pixelBuffer>5</map.click.search.fixed.pixelBuffer>
         <map.click.search.zoom.meterBuffer>10000</map.click.search.zoom.meterBuffer>

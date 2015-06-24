@@ -638,6 +638,24 @@
                 <geoserver.omitProxy>true</geoserver.omitProxy>
             </properties>
         </profile>
+        <profile>
+            <id>tcri</id>
+            <properties>
+                <stealth.classifier>tcri</stealth.classifier>
+                <app.plugins>
+                    [
+                        'stealth.air',
+                        'stealth.dcm',
+                        'stealth.routeanalysis',
+                        'stealth.static',
+                        'stealth.timelapse',
+                        'stealth.mediator.air-timelapse'
+                    ]
+                </app.plugins>
+                <geoserver.url>/geoserver</geoserver.url>
+                <geoserver.omitProxy>true</geoserver.omitProxy>
+            </properties>
+        </profile>
 
         <!-- Profiles for always-up demos deployed by CI -->
         <profile>
