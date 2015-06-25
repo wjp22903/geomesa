@@ -33,7 +33,7 @@ function ($log, $interval, $timeout, $rootScope) {
         var endMillis = toMillis(dtg.value, dtg.unit);
         var startMillis = Math.max(endMillis - window.millis, toMillis(dtg.min, dtg.unit));
         _.each(controlsListeners, function (listener) {
-            listener(startMillis, dtg.millis);
+            listener(startMillis, dtg.millis, window.millis);
         });
     }
 

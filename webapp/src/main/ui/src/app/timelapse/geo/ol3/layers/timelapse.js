@@ -87,13 +87,13 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
 
         // Transient drawing parameters.
         var _iDiv = 0;
-        var _x, _y, _idx, _center, _rgba;
+        var _x, _y, _idx, _center, _rgba, _rampFactor;
         var _curSize = [0,0], _curExtent = [0,0,0,0];
-        var _startMillis = 0, _startSeconds = 0, _endMillis = 0, _windowMillis = 0;
+        var _startMillis = 0, _endMillis = 0, _windowMillis = 0, _windowSeconds = 0, _windowBeginSeconds = 0;
         var zn, x, y, y2, pixel, rPlus1, yw, lat, lon;
         var south, north, west, east;
         var color, iLower, iUpper, stride, iUpperStride;
-        var nDivIdx, radiusRamp, r2Plus1Ramp, alphaRamp, colorById, iCol, rMinus1;
+        var radiusRamp, r2Plus1Ramp, alphaRamp, colorById, iCol, rMinus1;
 
         // Binary stores holding observations.
         var _stores = [];
@@ -175,7 +175,11 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
                 }
                 lat = store.getLat(_idx);
                 lon = store.getLon(_idx);
-                _iDiv = (store.getTimeInSeconds(_idx) - _startSeconds) / nDivIdx | 0;
+                if (_windowSeconds === 0) {
+                    _iDiv = _rampFactor | 0;
+                } else {
+                    _iDiv = (store.getTimeInSeconds(_idx) - _windowBeginSeconds) * _rampFactor | 0;
+                }
                 if ( lat > south &&
                      lat < north &&
                      lon > west &&
@@ -300,15 +304,16 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
         };
 
         this.redrawCurrent = function () {
-            this.redraw(_startMillis, _endMillis);
+            this.redraw(_startMillis, _endMillis, _windowMillis);
         };
 
-        this.redraw = function (startMillis, endMillis) {
+        this.redraw = function (startMillis, endMillis, windowMillis) {
             _startMillis = startMillis;
             _endMillis = endMillis;
-            _windowMillis = _endMillis - _startMillis;
-            nDivIdx = (_windowMillis / _nDiv / 1000) + 1.5 | 0;
-            _startSeconds = ((_startMillis - 500) / 1000) | 0;
+            _windowMillis = windowMillis;
+            _windowSeconds = windowMillis / 1000 | 0;
+            _windowBeginSeconds = ((_endMillis - windowMillis) / 1000) | 0;
+            _rampFactor = (_nDiv - 1) / (_windowSeconds === 0 ? 1 : _windowSeconds);
 
             // Clear image buffer.
             _clear(_imageView);
