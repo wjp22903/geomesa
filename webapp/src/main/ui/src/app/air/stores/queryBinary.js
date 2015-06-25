@@ -13,7 +13,7 @@ function () {
                     return searchPointAndTime.apply(this, arguments)
                         .then(function (response) {
                             //If this is an "air" layer, add a special identifier to each record.
-                            if (_.deepGet(_self.getQuery().layerData.currentLayer.KeywordConfig, 'air.historical')) {
+                            if (_.has(_self.getQuery().layerData.currentLayer.KeywordConfig, 'air.historical')) {
                                 response.stealthType = 'stealth.air';
                             }
                             return response;

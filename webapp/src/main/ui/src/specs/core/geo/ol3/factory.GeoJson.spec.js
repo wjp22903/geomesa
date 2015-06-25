@@ -38,7 +38,6 @@ describe('Factory', function () {
                 geometry: new ol.geom.Point([0, 0])
             });
             var geoJson = geoJsonFormat.writeFeaturesObject([pt]);
-            console.log(geoJson);
             expect(geoJson).to.be.an('object');
             expect(geoJson).to.have.any.keys(['crs']);
         });

@@ -19,11 +19,11 @@ function ($log, $filter, owsLayers) {
                         _.each(layers, function (l) {
                             var layer = _.cloneDeep(l);
                             layer.isSelected = false;
-                            _.each(_.deepGet(layer.KeywordConfig, keywordPrefix), function (conf, workspace) {
+                            _.each(_.get(layer.KeywordConfig, keywordPrefix), function (conf, workspace) {
                                 layer.fieldNames = _.merge({
                                     id: 'id',
                                     dtg: 'dtg'
-                                }, _.deepGet(layer.KeywordConfig, keywordPrefix.concat([workspace, 'field'])));
+                                }, _.get(layer.KeywordConfig, keywordPrefix.concat([workspace, 'field'])));
                             });
                             $scope.layers.push(layer);
                         });

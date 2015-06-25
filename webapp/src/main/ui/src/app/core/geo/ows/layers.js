@@ -11,8 +11,8 @@ function ($filter, wms, KeywordExtender, CONFIG) {
 
     /**
      * Search for layers matching the keyword prefix.
-     * @param {(string|string[])} keywordPrefix - passed to lodash-deep see docs
-     *     https://github.com/marklagendijk/lodash-deep#propertyPath
+     * @param {(string|string[])} keywordPrefix - passed to lodash
+     *     @see docs https://lodash.com/docs#has
      * @param {boolean} forceRefresh - whether or not to reload layer list from server
      *
      * @returns {Promise} Returns a list of layers matching the keyword prefix
@@ -32,12 +32,12 @@ function ($filter, wms, KeywordExtender, CONFIG) {
 
                     _.each(layers, function (layer) {
                         layer.KeywordConfig = {};
-                        _.eachRight(_.sortBy(layer.KeywordList), function (keyword) {
+                        _.eachRight(_.sortByOrder(layer.KeywordList, [_.identity], [false]), function (keyword) {
                             if (keyword.indexOf(CONFIG.app.context + '.') === 0) {
                                 var parts = $filter('splitLimit')(keyword, '=', 1);
                                 var path = _.rest(parts[0].split('.'));
-                                if (!_.deepHas(layer.KeywordConfig, path)) {
-                                    _.deepSet(layer.KeywordConfig, path, parts[1] || {});
+                                if (!_.has(layer.KeywordConfig, path)) {
+                                    _.set(layer.KeywordConfig, path, parts[1] || {});
                                 }
                             }
                         });
@@ -53,7 +53,7 @@ function ($filter, wms, KeywordExtender, CONFIG) {
         return _layersPromise.then(function (layers) {
             if (_.isString(keywordPrefix) || _.isArray(keywordPrefix)) {
                 return _.filter(layers, function (layer) {
-                    return _.deepHas(layer.KeywordConfig, keywordPrefix);
+                    return _.has(layer.KeywordConfig, keywordPrefix);
                 });
             } else {
                 return layers;

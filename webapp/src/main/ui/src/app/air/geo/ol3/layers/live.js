@@ -37,9 +37,9 @@ function ($rootScope, $q, wfs, highlightManager, WidgetDef, GeoJson, CONFIG) {
                 LiveWmsLayer.apply(this, [name, requestParams, layerThisBelongsTo, queryable, wmsUrl]);
 
                 //Check for keyword before providing "air" functionality
-                if (_.deepHas(_layerThisBelongsTo.KeywordConfig, 'air.live')) {
-                    var _idField = _.deepGet(_layerThisBelongsTo.KeywordConfig, ['air', 'live', _layerThisBelongsTo.stealthWorkspace, 'idField']);
-                    var _omitSearchProps = _.keys(_.deepGet(_layerThisBelongsTo.KeywordConfig, 'field.hide'));
+                if (_.has(_layerThisBelongsTo.KeywordConfig, 'air.live')) {
+                    var _idField = _.get(_layerThisBelongsTo.KeywordConfig, ['air', 'live', _layerThisBelongsTo.stealthWorkspace, 'idField']);
+                    var _omitSearchProps = _.keys(_.get(_layerThisBelongsTo.KeywordConfig, 'field.hide'));
                     var _parser = new GeoJson();
                     var _refreshRecordFeature = function (record) {
                         var queryResponse;
@@ -105,7 +105,7 @@ function ($rootScope, $q, wfs, highlightManager, WidgetDef, GeoJson, CONFIG) {
                                     );
                                 };
                                 var s = (parentScope || $rootScope).$new();
-                                s.name = response.name + ' (' + record[_.deepGet(_layerThisBelongsTo.KeywordConfig, 'capability.live.field.displayId') || 'label'] + ')';
+                                s.name = response.name + ' (' + record[_.get(_layerThisBelongsTo.KeywordConfig, 'capability.live.field.displayId', 'label')] + ')';
                                 s.capabilities = response.capabilities;
                                 s.record = record;
                                 s.highlight = {};

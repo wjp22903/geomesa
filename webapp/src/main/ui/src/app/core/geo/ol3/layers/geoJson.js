@@ -142,7 +142,7 @@ function ($log, $q, wfs, colors, ol3Styles, clickSearchHelper, MapLayer, CONFIG)
             });
 
             trimmedFeatures = clickSearchHelper.sortAndTrimFeatures(coord, nearbyFeatures, clickOverrides);
-            var omitLayerProperties = _.keys(_.deepGet(_query.layerData.currentLayer.KeywordConfig, 'field.hide'));
+            var omitLayerProperties = _.keys(_.get(_query.layerData.currentLayer.KeywordConfig, 'field.hide'));
             return $q.when(_.merge(baseResponse, {
                 isError: false,
                 records: _.map(trimmedFeatures, function (feat, i) {

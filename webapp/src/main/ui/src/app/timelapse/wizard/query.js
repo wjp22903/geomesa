@@ -173,14 +173,14 @@ function ($filter, cookies, wfs, ol3Map, owsLayers, CONFIG) {
             .then(function (layers) {
                 _self.layerData.layers = _.sortBy(layers, 'Title');
                 _.each(_self.layerData.layers, function (layer) {
-                    _.each(_.deepGet(layer.KeywordConfig, keywordPrefix), function (conf, workspace) {
+                    _.each(_.get(layer.KeywordConfig, keywordPrefix), function (conf, workspace) {
                         layer.fieldNames = _.merge({
                             trkId: 'trkId',
                             geom: 'geom',
                             dtg: 'dtg'
-                        }, _.deepGet(layer.KeywordConfig, keywordPrefix.concat([workspace, 'field'])));
+                        }, _.get(layer.KeywordConfig, keywordPrefix.concat([workspace, 'field'])));
                         layer.maxTimeRangeMillis =
-                            parseInt(_.deepGet(layer.KeywordConfig, keywordPrefix.concat([workspace, 'maxTimeRangeMillis'])), 10) ||
+                            parseInt(_.get(layer.KeywordConfig, keywordPrefix.concat([workspace, 'maxTimeRangeMillis'])), 10) ||
                             Number.POSITIVE_INFINITY;
                     });
                 });

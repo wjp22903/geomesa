@@ -29,7 +29,7 @@ function ($rootScope, $timeout, catMgr, Category, WidgetDef, owsLayers, ol3Map,
                 opacity: layer.viewState.lastOpacity,
                 zIndexHint: (workspace.toLowerCase().indexOf('base') === 0 ? -20 : -10),
                 wmsUrl: layer.serverUrl,
-                isTiled: _.deepHas(layer.KeywordConfig, 'capability.tiled'),
+                isTiled: _.has(layer.KeywordConfig, 'capability.tiled'),
                 wfsUrl: layer.wfsUrl,
                 useProxyForWfs: layer.useProxyForWfs,
                 layerThisBelongsTo: layer
@@ -99,7 +99,7 @@ function ($rootScope, $timeout, catMgr, Category, WidgetDef, owsLayers, ol3Map,
                     }
                     return 'Add to map';
                 };
-                _.each(_.deepGet(layer.KeywordConfig, keywordPrefix), function (conf, workspace) {
+                _.each(_.get(layer.KeywordConfig, keywordPrefix), function (conf, workspace) {
                     if (_.isArray(categoryScope.workspaces[workspace])) {
                         categoryScope.workspaces[workspace].push(layer);
                     } else {

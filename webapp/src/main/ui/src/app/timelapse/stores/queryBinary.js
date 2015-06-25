@@ -105,7 +105,7 @@ function ($log, $rootScope, $q, $filter, $window, toastr, cqlHelper, clickSearch
             wfs.getFeature(CONFIG.geoserver.defaultUrl, typeName, CONFIG.geoserver.omitProxy, overrides)
             .success(function (data, status, headers, config, statusText) {
                 var trimmedFeatures = clickSearchHelper.sortAndTrimFeatures(coord, data.features, clickOverrides);
-                var omitKeys = _.keys(_.deepGet(_query.layerData.currentLayer.KeywordConfig, 'field.hide'));
+                var omitKeys = _.keys(_.get(_query.layerData.currentLayer.KeywordConfig, 'field.hide'));
                 var records = _.map(_.pluck(trimmedFeatures, 'properties'), function (record) {
                     return _.omit(record, omitKeys);
                 });

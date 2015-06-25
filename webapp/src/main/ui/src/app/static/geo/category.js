@@ -201,7 +201,7 @@ function ($timeout, owsLayers, colors, ol3Map, WmsLayer, CONFIG) {
                 updateIconImgSrc(filterLayer);
                 layer.filterLayers.push(filterLayer);
 
-                _.each(_.deepGet(layer.KeywordConfig, keywordPrefix), function (conf, workspace) {
+                _.each(_.get(layer.KeywordConfig, keywordPrefix), function (conf, workspace) {
                     if (_.isArray(_self.workspaces[workspace])) {
                         _self.workspaces[workspace].push(layer);
                     } else {

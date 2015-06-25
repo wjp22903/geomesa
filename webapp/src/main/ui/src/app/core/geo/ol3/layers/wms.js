@@ -45,7 +45,7 @@ function ($log, $timeout, $q, toastr, wfs, clickSearchHelper, cqlHelper, MapLaye
         var _olSource;
         var _olLayer;
         var _layerThisBelongsTo = _options.layerThisBelongsTo;
-        var _omitSearchProps = _.keys(_.deepGet(_layerThisBelongsTo.KeywordConfig, 'field.hide'));
+        var _omitSearchProps = _.keys(_.get(_layerThisBelongsTo.KeywordConfig, 'field.hide'));
         var _loadStart = function () {
             _self.styleDirectiveScope.$evalAsync(function () {
                 _isLoading = true;
@@ -65,8 +65,8 @@ function ($log, $timeout, $q, toastr, wfs, clickSearchHelper, cqlHelper, MapLaye
             if (_geomField) {
                 return $q.when(_geomField);
             } else {
-                if (_.deepHas(_layerThisBelongsTo.KeywordConfig, 'click.search.field.geom')) {
-                    _geomField = _.deepGet(_layerThisBelongsTo.KeywordConfig, 'click.search.field.geom');
+                if (_.has(_layerThisBelongsTo.KeywordConfig, 'click.search.field.geom')) {
+                    _geomField = _.get(_layerThisBelongsTo.KeywordConfig, 'click.search.field.geom');
                     return $q.when(_geomField);
                 } else {
                     // No search geom field was specified so try falling back to the default geom field.
@@ -141,7 +141,7 @@ function ($log, $timeout, $q, toastr, wfs, clickSearchHelper, cqlHelper, MapLaye
         var getBaseCapabilities = this.getBaseCapabilities;
         this.getBaseCapabilities = function () {
             return _.merge(_.cloneDeep(getBaseCapabilities()),
-                _.deepGet(_layerThisBelongsTo, 'KeywordConfig.capability')
+                _.get(_layerThisBelongsTo, 'KeywordConfig.capability')
             );
         };
 

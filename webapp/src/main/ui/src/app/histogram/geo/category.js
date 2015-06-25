@@ -394,9 +394,9 @@ function ($log, $rootScope, $timeout,
         var oneWeekAgo = now.clone().subtract(7, 'days');
 
         var dtgF = _.find(gsLayer.featureTypeDescription.featureTypes[0].properties,
-            {'name': _.deepGet(gsLayer.KeywordConfig, 'capability.histogram.field.dtg') || 'dtg'});
+            {'name': _.get(gsLayer.KeywordConfig, 'capability.histogram.field.dtg', 'dtg')});
         var geomF = _.find(gsLayer.featureTypeDescription.featureTypes[0].properties,
-            {'name': _.deepGet(gsLayer.KeywordConfig, 'capability.histogram.field.geom') || 'geom'});
+            {'name': _.get(gsLayer.KeywordConfig, 'capability.histogram.field.geom', 'geom')});
 
         var query = {
             featureTypeData: gsLayer.featureTypeDescription,
@@ -480,7 +480,7 @@ function ($log, $rootScope, $timeout,
                 gsLayer.derivedLayers = [];
                 getFeatureTypeDescription(gsLayer);
 
-                _.each(_.deepGet(gsLayer.KeywordConfig, keywordPrefix), function (conf, role, keywordObj) {
+                _.each(_.get(gsLayer.KeywordConfig, keywordPrefix), function (conf, role, keywordObj) {
                     var workspaceObj = keywordObj[role];
                     _.forOwn(workspaceObj, function (value, workspace) {
                         if (_.isArray(scope.workspaces[workspace])) {

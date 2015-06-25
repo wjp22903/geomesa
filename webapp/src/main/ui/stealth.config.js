@@ -33,7 +33,6 @@ module.exports = {
         js: [
             'vendor/bower/d3/d3.js',
             'vendor/bower/lodash/lodash.js',
-            'vendor/bower/lodash-deep/lodash-deep.js',
             'vendor/bower/jquery/dist/jquery.js',
             'vendor/bower/jquery-ui/jquery-ui.js',
             'vendor/bower/angular/angular.js',

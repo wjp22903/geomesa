@@ -39,18 +39,18 @@ function ($provide) {
 function (owsLayers) {
     owsLayers.keywordExtender.addKeywordExtender(function (keywordConfig) {
         //Apply all air.live config to timelapse.live
-        var airLive = _.deepGet(keywordConfig, 'air.live');
+        var airLive = _.get(keywordConfig, 'air.live');
         if (airLive) {
-            _.deepSet(keywordConfig, 'timelapse.live',
-                _.merge(_.deepGet(keywordConfig, 'timelapse.live') || {},
+            _.set(keywordConfig, 'timelapse.live',
+                _.merge(_.get(keywordConfig, 'timelapse.live', {}),
                     airLive));
         }
 
         //Apply all air.historical config to timelapse.historical
-        var airHist = _.deepGet(keywordConfig, 'air.historical');
+        var airHist = _.get(keywordConfig, 'air.historical');
         if (airHist) {
-            _.deepSet(keywordConfig, 'timelapse.historical',
-                _.merge(_.deepGet(keywordConfig, 'timelapse.historical') || {},
+            _.set(keywordConfig, 'timelapse.historical',
+                _.merge(_.get(keywordConfig, 'timelapse.historical', {}),
                     airHist));
         }
 

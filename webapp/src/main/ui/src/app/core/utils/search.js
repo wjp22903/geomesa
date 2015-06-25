@@ -27,14 +27,14 @@ function (ol3Geodetics, GeoJson, CONFIG) {
 
     this.getLayerOverrides = function (KeywordConfig) {
         var overrides = {};
-        if (_.deepHas(KeywordConfig, 'click.search.strategy')) {
-            overrides.strategy = _.deepGet(KeywordConfig, 'click.search.strategy');
+        if (_.has(KeywordConfig, 'click.search.strategy')) {
+            overrides.strategy = _.get(KeywordConfig, 'click.search.strategy');
         }
-        if (_.deepHas(KeywordConfig, 'click.search.fixed.pixelBuffer')) {
-            overrides.fixedPixelBuffer = _.deepGet(KeywordConfig, 'click.search.fixed.pixelBuffer');
+        if (_.has(KeywordConfig, 'click.search.fixed.pixelBuffer')) {
+            overrides.fixedPixelBuffer = _.get(KeywordConfig, 'click.search.fixed.pixelBuffer');
         }
-        if (_.deepHas(KeywordConfig, 'click.search.zoom.meterBuffer')) {
-            overrides.zoomMeterBuffer = _.deepGet(KeywordConfig, 'click.search.zoom.meterBuffer');
+        if (_.has(KeywordConfig, 'click.search.zoom.meterBuffer')) {
+            overrides.zoomMeterBuffer = _.get(KeywordConfig, 'click.search.zoom.meterBuffer');
         }
         return overrides;
     };
