@@ -12,12 +12,13 @@ angular.module('stealth.air.geo.ol3.layers', [
 .factory('stealth.air.geo.ol3.layers.LiveWmsLayerConstructorFactory', [
 '$rootScope',
 '$q',
+'toastr',
 'wfs',
 'highlightManager',
 'stealth.core.utils.WidgetDef',
 'stealth.core.geo.ol3.format.GeoJson',
 'CONFIG',
-function ($rootScope, $q, wfs, highlightManager, WidgetDef, GeoJson, CONFIG) {
+function ($rootScope, $q, toastr, wfs, highlightManager, WidgetDef, GeoJson, CONFIG) {
     return {
         getConstructor: function (LiveWmsLayer) {
             /**
@@ -70,6 +71,11 @@ function ($rootScope, $q, wfs, highlightManager, WidgetDef, GeoJson, CONFIG) {
                         );
                     };
 
+                    if (_.isUndefined(_idField)) {
+                        toastr.error('No ID field specified for ' + _layerThisBelongsTo.Name + '. Track highlighting will not work.',
+                                     'Highlight Error',
+                                     { timeOut: 15000 });
+                    }
                     this.styleDirectiveScope.styleVars.iconClass = 'fa fa-fw fa-lg fa-plane';
                     this.buildSearchPointWidgetsForResponse = function (response, parentScope) {
                         if (response.isError ||
@@ -118,8 +124,10 @@ function ($rootScope, $q, wfs, highlightManager, WidgetDef, GeoJson, CONFIG) {
                                         "name='name' capabilities='capabilities' record='record' highlight='highlight'"),
                                     onTabFocus: function () {
                                         tabFocused = true;
-                                        _self.addRefreshListener(refreshListener);
-                                        _self.refresh();
+                                        if (!_.isUndefined(_idField)) {
+                                            _self.addRefreshListener(refreshListener);
+                                            _self.refresh();
+                                        }
                                     },
                                     onTabBlur: function () {
                                         tabFocused = false;

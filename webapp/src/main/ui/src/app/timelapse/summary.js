@@ -50,14 +50,21 @@ function ($timeout, toastr, ol3Map, GeoJsonVectorLayer, coreCapabilitiesExtender
     this.workspaces = {};
 
     this.summaryQuery = function (name, record, capability) {
+        if (_.isEmpty(capability.layerName) ||
+            _.isEmpty(capability.trkIdField) ||
+            _.isEmpty(record[capability.trkIdField]))
+        {
+            toastr.error(name + ' is missing information required to perform summary search.', 'Summary Error');
+            return;
+        }
         var query = {
             layerData: {
                 currentLayer: {
                     name: capability['layerName'],
                     prefix: capability['layerName'].split(':')[0],
-                    title: 'Summary: ' + name + '/' + (record[capability['trkIdField']] || record['frHex']),
-                    trkIdField: (capability['trkIdField'] || 'thresherId'),
-                    trkId: (record[capability['trkIdField']] || '47ef7f71-5a9b-4b8b-87cc-db4bbe9beca7'),
+                    title: 'Summary: ' + name + '/' + record[capability['trkIdField']],
+                    trkIdField: capability['trkIdField'],
+                    trkId: record[capability['trkIdField']],
                     error: null
                 }
             },
