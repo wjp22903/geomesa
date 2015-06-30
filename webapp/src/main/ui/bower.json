@@ -20,7 +20,6 @@
     "datetimepicker": "~2.4.1",
     "filereader.js": "https://github.com/bgrins/filereader.js.git#107f68c3b99d7ec0f3cba9c0baabfb03067650b5",
     "FileSaver": "899ed116a946921223f25eaa2f54862b737c6e73",
-    "flexy-layout": "https://github.com/lorenzofox3/flexy-layout.git#96434e207700f201764491716f78cb252ac38c29",
     "font-awesome": "~4.3.0",
     "html5slider.polyfill": "https://github.com/fryn/html5slider.git#551582b645d0b63173248563802f28f792cf37d3",
     "jquery": "~2.1.1",
@@ -29,7 +28,6 @@
     "mathjs": "~1.4.0",
     "momentjs": "~2.9.0",
     "ol3": "https://github.com/openlayers/ol3/releases/download/v3.5.0/v3.5.0.zip",
-    "openlayers": "https://github.com/openlayers/openlayers/releases/download/release-2.13.1/OpenLayers-2.13.1.zip",
     "sonic.js": "git@github.com:ccri/sonic.js.git#v0.5.71",
     "world.geo.json": "https://github.com/johan/world.geo.json.git#d19059de55ea2954b9285698d2ef794a3d9ee98e"
   }

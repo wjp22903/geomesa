@@ -54,13 +54,9 @@ module.exports = {
             'vendor/bower/angular-toastr/dist/angular-toastr.tpls.js',
             'vendor/bower/sonic.js/dist/sonic.js',
             'vendor/bower/mathjs/dist/math.js',
-            'vendor/bower/openlayers/OpenLayers.debug.js',
             'vendor/bower/long/dist/Long.js'
         ],
         assets_nested: [
-            'vendor/openlayers/img/*',
-            'vendor/openlayers/theme/default/img/*',
-            'vendor/openlayers/theme/default/style.css'
         ],
         assets: [
             'vendor/bower/world.geo.json/countries.geo.json'
