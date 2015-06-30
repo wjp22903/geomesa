@@ -1,4 +1,4 @@
-<div ng-hide="timelapse.hideLive || workspaces.live | lodash:'isEmpty'" class="categoryGrouping">
+<div ng-class="{'ng-hide': timelapse.hideLive || (workspaces.live | lodash:'isEmpty')}" class="categoryGrouping">
     <div class="categoryCell">
         <span class="btn fa-stack toggleSlide"
               ng-click="toggleSlideLive(timelapse.isLiveOn)">
@@ -49,7 +49,7 @@
         </span>
     </div>
     <div ng-repeat="(workspace, layers) in workspaces.live"
-         ng-show="timelapse.isLiveOn">
+         ng-class="{'ng-hide': !timelapse.isLiveOn}">
         <div ng-repeat="layer in layers" class="categoryGrouping categoryIndent">
             <div class="categoryCell">
                 <i>{{::layer.Title || layer.Name | characters:35:true}}</i>
@@ -108,7 +108,7 @@
                            ng-if="!filterLayer.viewState.isExpanded"></i>
                     </span>
                 </div>
-                <div ng-show="filterLayer.viewState.isExpanded">
+                <div ng-class="{'ng-hide': !filterLayer.viewState.isExpanded}">
                     <div ng-repeat="attr in filterLayer.options.attrs">
                         <div>
                             <div class="categoryCell categoryIndent">
@@ -155,7 +155,7 @@
         </div>
     </div>
 </div>
-<div class="categoryGrouping" ng-hide="timelapse.hideHistorical">
+<div class="categoryGrouping" ng-class="{'ng-hide': timelapse.hideHistorical}">
     <div class="categoryCell">
         <span class="btn fa-stack toggleSlide"
               ng-click="toggleSlideHistorical(timelapse.isHistoricalOn)">
@@ -187,7 +187,7 @@
     </div>
     <div ng-repeat="store in historicalLayer.getStores()"
          class="categoryGrouping categoryIndent"
-         ng-show="timelapse.isHistoricalOn">
+         ng-class="{'ng-hide': !timelapse.isHistoricalOn}">
         <div id="col0" class="categoryCell">
             <div ng-if="store.getViewState().isDataPending() && !store.getViewState().isError">
                 <i class="fa fa-circle-o-notch fa-spin"></i>
@@ -258,7 +258,7 @@
         </div>
     </div>
 </div>
-<div ng-hide="timelapse.hideSummary || workspaces.summary | lodash:'isEmpty'" class="categoryGrouping">
+<div ng-class="{'ng-hide': timelapse.hideSummary || (workspaces.summary | lodash:'isEmpty')}" class="categoryGrouping">
     <div class="categoryCell">
             <span class="btn fa-stack toggleSlide"
                   ng-click="toggleSlideSummary(timelapse.isSummaryOn)">
@@ -274,7 +274,7 @@
     </div>
     <div class="categoryCell"><b>Summary</b></div>
     <div ng-repeat="(workspace, layers) in workspaces.summary"
-         ng-show="timelapse.isSummaryOn">
+         ng-class="{'ng-hide': !timelapse.isSummaryOn}">
         <div ng-repeat="layer in layers">
             <div class="categoryCell categoryIndent"
                  ng-if="layer.hasViewables(layer.summaries)">

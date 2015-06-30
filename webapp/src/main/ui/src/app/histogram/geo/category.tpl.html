@@ -1,4 +1,4 @@
-<div ng-hide="workspaces | lodash:'isEmpty'" class="categoryGrouping">
+<div ng-class="{'ng-hide': (workspaces | lodash:'isEmpty')}" class="categoryGrouping">
     <div ng-repeat="(workspace, gsLayers) in workspaces" class="categoryGrouping">
         <div class="categoryCell"><b>{{::workspace}}</b></div>
         <div ng-repeat="gsLayer in gsLayers" class="categoryGrouping categoryIndent">

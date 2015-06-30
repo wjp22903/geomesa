@@ -1,4 +1,4 @@
-<div class="glass anchorLeft anchorBottom" style="top:26px;min-width:165px;" ng-show="routeInfo | lodash:'isObject'">
+<div class="glass anchorLeft anchorBottom" style="top:26px;min-width:165px;" ng-class="{'ng-hide': !(routeInfo | lodash:'isObject')">
     <div style="border: 1px solid #ccc;background-color:#ddd;border-radius:4px;margin:4px;padding:0 2px;">
         <strong style="white-space:nowrap;">Distance: {{routeInfo.meters | formatMeters}}</strong>
     </div>

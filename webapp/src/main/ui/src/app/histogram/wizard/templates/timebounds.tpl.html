@@ -20,7 +20,7 @@
             </td>
         </tr>
     </table>
-    <p ng-show="query.origin === 'time-lapse'">
+    <p ng-class="{'ng-hide': query.origin !== 'time-lapse'}">
         Note: This time range is set to equal the <br>
         time-enabled layer's ({{::query.params.fromName}}) time window.<br>
         The histogram data will sync, upon refresh, to the <br>

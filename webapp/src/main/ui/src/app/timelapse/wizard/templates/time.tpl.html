@@ -29,7 +29,7 @@
         </tr>
     </table>
     <input type="hidden" ng-model="query.timeData.valid" required></input>
-    <div class="alert alert-danger" ng-hide="query.timeData.valid">
+    <div class="alert alert-danger ng-hide" ng-class="{'ng-hide': query.timeData.valid}">
         <span class="fa fa-lg fa-fw fa-exclamation-triangle"></span>
         <span>{{query.timeData.errorMsg}}</span>
     </div>

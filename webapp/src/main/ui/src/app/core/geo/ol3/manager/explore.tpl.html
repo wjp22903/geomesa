@@ -7,7 +7,7 @@
         </span>
     </div>
     <div ng-repeat="c in catMgr.getCategories()"
-         ng-show="c.toggledOn"
+         ng-class="{'ng-hide': !c.toggledOn}"
          class="category">
         <div style="background-color:#dddddd;">
             <i class="fa fa-fw fa-lg" ng-class="::c.iconClass"></i>
