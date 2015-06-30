@@ -57,6 +57,11 @@ function ($log, $timeout, owsLayers, ol3Map, LiveWmsLayer, tlLayerManager,
                                 $scope.historicalLayer.setDtgBounds();
                             }
                         });
+
+                        // In FF, FileReader holds on to the ArrayBuffer that was loaded last.
+                        // This work-around will force fileReader.result to point to a zero-length ArrayBuffer.
+                        var ui8a = new Uint8Array([]);
+                        fileReader.readAsArrayBuffer(new Blob([ui8a.buffer]));
                     }
                 });
             };
@@ -70,11 +75,6 @@ function ($log, $timeout, owsLayers, ol3Map, LiveWmsLayer, tlLayerManager,
             $scope.removeHistorical = function (store) {
                 store.destroy();
                 $scope.historicalLayer.removeStore(store);
-
-                // In FF, FileReader holds on to the ArrayBuffer that was loaded last.
-                // This work-around will force fileReader.result to point to a zero-length ArrayBuffer.
-                var ui8a = new Uint8Array([]);
-                fileReader.readAsArrayBuffer(new Blob([ui8a.buffer]));
             };
 
             $scope.collapseAllLiveFilterLayers = function (layers) {
