@@ -29,9 +29,6 @@ function ($rootScope, wizardManager, boundTlWizFactory,
     this.launchWizard = function (queryOverrides) {
         var wizardScope = $rootScope.$new();
         wizardScope.query = new Query(queryOverrides);
-        wizardScope.config = {
-            hideSortOption: CONFIG.timelapse && CONFIG.timelapse.hideBinSortOption
-        };
         var baseWizard = new Wizard('Time-enabled Query', 'fa-clock-o', 'fa-check text-success', [
             new Step('Select data source', new WidgetDef('st-tl-wiz-source', wizardScope), null, true)
         ], wizardScope);

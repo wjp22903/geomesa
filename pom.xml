@@ -211,7 +211,7 @@
         <!-- supported levels: unclassified, confidential, secret, topSecret, sci -->
         <classification.level>unclassified</classification.level>
 
-        <timelapse.hideBinSortOption>false</timelapse.hideBinSortOption>
+        <timelapse.hideBinSortOption>true</timelapse.hideBinSortOption>
 
         <security.anonymous.access>true</security.anonymous.access>
         <security.allowed.userDns>["CN=Guest User guest,O=CCRI,L=Charlottesville,ST=Virginia,C=US"]</security.allowed.userDns>
