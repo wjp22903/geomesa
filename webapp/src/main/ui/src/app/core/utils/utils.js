@@ -123,4 +123,41 @@ function () {
         return result;
     };
 }])
+
+.directive('stSelectTextOnFocus', [
+'$timeout',
+function ($timeout) {
+    return {
+        restrict: 'A',
+        link: function (scope, element, attrs) {
+            if (element.is("input:text,textarea")) {
+                element.on('focus', function () {
+                    $timeout(function () {
+                        element.select();
+                    }, 5);
+                });
+            }
+        }
+    };
+}])
+
+.directive('stEnter', [
+'$parse',
+function ($parse) {
+    return {
+        restrict: 'A',
+        link: function (scope, element, attrs) {
+            var fn = $parse(attrs['stEnter']);
+            if (_.isFunction(fn)) {
+                element.on('keypress', function (event) {
+                    if (event.keyCode === 13) {
+                        scope.$evalAsync(function () {
+                            fn(scope);
+                        });
+                    }
+                });
+            }
+        }
+    };
+}])
 ;

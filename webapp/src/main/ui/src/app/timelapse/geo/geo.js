@@ -31,6 +31,7 @@ function ($rootScope, catMgr, Category, WidgetDef) {
 .directive('stTimelapseGeoCategory', [
 '$log',
 '$timeout',
+'cqlHelper',
 'owsLayers',
 'ol3Map',
 'stealth.timelapse.geo.ol3.layers.LiveWmsLayer',
@@ -39,7 +40,7 @@ function ($rootScope, catMgr, Category, WidgetDef) {
 'stealth.timelapse.stores.BinStore',
 'tlWizard',
 'CONFIG',
-function ($log, $timeout, owsLayers, ol3Map, LiveWmsLayer, tlLayerManager,
+function ($log, $timeout, cqlHelper, owsLayers, ol3Map, LiveWmsLayer, tlLayerManager,
           summaryExploreMgr, BinStore, tlWizard, CONFIG) {
     var tag = 'stealth.core.geo.context.stTimelapseGeoCategory: ';
     $log.debug(tag + 'directive defined');
@@ -154,6 +155,25 @@ function ($log, $timeout, owsLayers, ol3Map, LiveWmsLayer, tlLayerManager,
                 $scope.updateLiveFilterCql(filterLayer);
             };
 
+            var buildOp = null;
+            $scope.handleLiveFilterTextChange = function (filterLayer, delay) {
+                var textFields = _.keys(_.get(filterLayer.layerThisBelongsTo.KeywordConfig, 'search.text.field'));
+                if (!_.isEmpty(textFields)) {
+                    $timeout.cancel(buildOp);
+                    buildOp = $timeout(function () {
+                        if (_.isString(filterLayer.options.cql.freeText) &&
+                            !_.isEmpty(filterLayer.options.cql.freeText.trim())) {
+                            filterLayer.options.cql.value = cqlHelper.combine(cqlHelper.operator.OR, _.map(textFields, function (field) {
+                                return field + " ILIKE '%" + filterLayer.options.cql.freeText.trim() + "%'";
+                            }));
+                        } else {
+                            filterLayer.options.cql.value = null;
+                        }
+                        $scope.handleLiveFilterExtraCqlChange(filterLayer);
+                    }, delay);
+                }
+            };
+
             $scope.updateLiveFilterCql = function (filterLayer) {
                 filterLayer.cqlFilter = '';
 
@@ -225,7 +245,6 @@ function ($log, $timeout, owsLayers, ol3Map, LiveWmsLayer, tlLayerManager,
                     }
                     pollingLayer.refresh(requestParams);
                 }
-                $scope.refreshNow();
             };
 
             if (_.isUndefined($scope.workspaces)) {
@@ -338,10 +357,6 @@ function ($log, $timeout, owsLayers, ol3Map, LiveWmsLayer, tlLayerManager,
                 ol3Layer.setVisible(!ol3Layer.getVisible());
             };
 
-            $scope.launchLiveQueryWizard = function () {
-                alert('TODO');
-            };
-
             $scope.toggleSummaryVisibility = function (layer) {
                 var mapLayer = ol3Map.getLayerById(layer.mapLayerId);
                 var ol3Layer = mapLayer.getOl3Layer();
@@ -350,10 +365,6 @@ function ($log, $timeout, owsLayers, ol3Map, LiveWmsLayer, tlLayerManager,
 
             $scope.launchHistoricalQueryWizard = function () {
                 tlWizard.launchWizard();
-            };
-
-            $scope.launchSummaryQueryWizard = function () {
-                alert('TODO');
             };
 
             $scope.refreshValChanged = function (refreshInSecs) {

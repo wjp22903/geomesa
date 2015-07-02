@@ -13,15 +13,6 @@
         </span>
     </div>
     <div class="categoryCell"><b>Live</b></div>
-    <div class="categoryCell">
-        <span class="btn btn-default fa-stack toggleButton"
-              ng-click="launchLiveQueryWizard()"
-              tooltip-html-unsafe="<span style='white-space:nowrap'>Add layer</span>"
-              tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
-              tooltip-trigger="mouseenter">
-            <i class="fa fa-fw fa-plus fa-stack-1x text-primary"></i>
-        </span>
-    </div>
     <div class="categoryCell" style="width:100%;text-align:right;">
         <span class="btn btn-default fa-stack toggleButton"
               ng-click="refreshNow()"
@@ -109,45 +100,60 @@
                     </span>
                 </div>
                 <div ng-class="{'ng-hide': !filterLayer.viewState.isExpanded}">
-                    <div ng-repeat="attr in filterLayer.options.attrs">
-                        <div>
-                            <div class="categoryCell categoryIndent">
-                                <span style="padding-left:5px;padding-right:5px;padding-bottom:2px;background-color:#e2c1c1;border-radius:5px">
-                                    {{::attr.name | characters:35:true}}:
-                                </span>
+                    <div style="padding:4px 8px;" ng-class="{'ng-hide': (filterLayer.layerThisBelongsTo.KeywordConfig.search.text.field | lodash:'isEmpty')}">
+                        <div class="categoryCell">Search:</div>
+                        <div class="categoryCell" style="width:100%;">
+                            <input type="text"
+                                   class="form-control input-sm"
+                                   placeholder="Enter search term"
+                                   st-select-text-on-focus
+                                   st-enter="handleLiveFilterTextChange(filterLayer)"
+                                   ng-change="handleLiveFilterTextChange(filterLayer, 1000)"
+                                   ng-blur="handleLiveFilterTextChange(filterLayer)"
+                                   ng-model="filterLayer.options.cql.freeText">
+                        </div>
+                    </div>
+                    <div ng-class="{'ng-hide': !(filterLayer.layerThisBelongsTo.KeywordConfig.search.text.field | lodash:'isEmpty')}">
+                        <div ng-repeat="attr in filterLayer.options.attrs">
+                            <div>
                                 <div class="categoryCell categoryIndent">
-                                  <div ng-repeat="choice in attr.choices">
-                                      <div class="categoryCell categoryIndent">
-                                          <input type="checkbox"
-                                                 ng-model="choice.isSelected"
-                                                 ng-change="updateLiveFilterCql(filterLayer)">
+                                    <span style="padding-left:5px;padding-right:5px;padding-bottom:2px;background-color:#e2c1c1;border-radius:5px">
+                                        {{::attr.name | characters:35:true}}:
+                                    </span>
+                                    <div class="categoryCell categoryIndent">
+                                      <div ng-repeat="choice in attr.choices">
+                                          <div class="categoryCell categoryIndent">
+                                              <input type="checkbox"
+                                                     ng-model="choice.isSelected"
+                                                     ng-change="updateLiveFilterCql(filterLayer)">
+                                          </div>
+                                          <div class="categoryCell">{{::choice.value | characters:35:true}}</div>
                                       </div>
-                                      <div class="categoryCell">{{::choice.value | characters:35:true}}</div>
-                                  </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="categoryCell categoryIndent">
-                        <input type="checkbox"
-                               ng-model="filterLayer.options.cql.isSelected"
-                               ng-change="updateLiveFilterCql(filterLayer)">
-                    </div>
-                    <div class="categoryCell">CQL:</div>
-                    <div class="categoryCell" style="width:510px;">
-                        <form ng-submit="handleLiveFilterExtraCqlChange(filterLayer)">
-                            <input type="text"
-                                   ng-blur="handleLiveFilterExtraCqlChange(filterLayer)"
-                                   ng-model="filterLayer.options.cql.value"
-                                   style="width:100%;border-radius:3px">
-                        </form>
-                    </div>
-                    <div>
                         <div class="categoryCell categoryIndent">
-                            <div>CQL filter used:</div>
-                            <textarea readonly
-                                      ng-model="filterLayer.cqlFilter"
-                                      style="resize:vertical;border-radius:3px;width:300px;outline:none;background-color:#e5e5e5"></textarea>
+                            <input type="checkbox"
+                                   ng-model="filterLayer.options.cql.isSelected"
+                                   ng-change="updateLiveFilterCql(filterLayer)">
+                        </div>
+                        <div class="categoryCell">CQL:</div>
+                        <div class="categoryCell" style="width:510px;">
+                            <form ng-submit="handleLiveFilterExtraCqlChange(filterLayer)">
+                                <input type="text"
+                                       ng-blur="handleLiveFilterExtraCqlChange(filterLayer)"
+                                       ng-model="filterLayer.options.cql.value"
+                                       style="width:100%;border-radius:3px">
+                            </form>
+                        </div>
+                        <div>
+                            <div class="categoryCell categoryIndent">
+                                <div>CQL filter used:</div>
+                                <textarea readonly
+                                          ng-model="filterLayer.cqlFilter"
+                                          style="resize:vertical;border-radius:3px;width:300px;outline:none;background-color:#e5e5e5"></textarea>
+                            </div>
                         </div>
                     </div>
                 </div>
