@@ -221,7 +221,7 @@
                                   toggle="store.toggleVisibility()"></st-toggle-visibility>
         </div>
         <div id="col2" class="categoryCell">
-            {{store.getName()}}
+            {{::store.getName() | characters:35:true}}
         </div>
         <div id="col3" class="categoryCell" style="width:100%;text-align:right">
             <ul ui-jq="menu" style="display:none;position:absolute;font-size:inherit;font-family:inherit;border-radius:4px;z-index:91;">
@@ -278,7 +278,7 @@
         <div ng-repeat="layer in layers">
             <div class="categoryCell categoryIndent"
                  ng-if="layer.hasViewables(layer.summaries)">
-                <i>{{layer.Title || layer.Name | characters:35:true}}</i>
+                <i>{{::layer.Title || layer.Name | characters:35:true}}</i>
             </div>
             <div ng-repeat="summary in layer.summaries" class="categoryGrouping categoryIndent">
                 <div class="categoryCell">
