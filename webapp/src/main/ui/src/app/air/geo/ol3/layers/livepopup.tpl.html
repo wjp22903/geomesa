@@ -2,7 +2,7 @@
     <div class="airCardHeader" ng-style="highlight">
         <span ng-repeat="capa in capabilities"
               class="btn btn-default fa-stack toggleButton pull-left"
-              tooltip-html-unsafe="<span style='white-space:nowrap;'>{{::capa.toolTipText}}</span>"
+              tooltip-html-unsafe="<span style='white-space:nowrap;'>{{capa.toolTipText}}</span>"
               tooltip-placement="top" tooltip-animation="false" tooltip-popup-delay="500"
               tooltip-trigger="mouseenter"
               ng-if="capa.onClick"

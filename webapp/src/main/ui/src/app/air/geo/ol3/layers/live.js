@@ -1,4 +1,5 @@
 angular.module('stealth.air.geo.ol3.layers', [
+    'stealth.core.geo.ol3.follow',
     'stealth.core.geo.ol3.format',
     'stealth.core.geo.ol3.overlays',
     'stealth.core.geo.ows',
@@ -15,10 +16,11 @@ angular.module('stealth.air.geo.ol3.layers', [
 'toastr',
 'wfs',
 'highlightManager',
+'mapFollowManager',
 'stealth.core.utils.WidgetDef',
 'stealth.core.geo.ol3.format.GeoJson',
 'CONFIG',
-function ($rootScope, $q, toastr, wfs, highlightManager, WidgetDef, GeoJson, CONFIG) {
+function ($rootScope, $q, toastr, wfs, highlightManager, mapFollowManager, WidgetDef, GeoJson, CONFIG) {
     return {
         getConstructor: function (LiveWmsLayer) {
             /**
@@ -110,18 +112,40 @@ function ($rootScope, $q, toastr, wfs, highlightManager, WidgetDef, GeoJson, CON
                                         }
                                     );
                                 };
+                                var toggleFollowing = function() {
+                                    if (s.following) {
+                                        mapFollowManager.stopFollowingFeature(highlightFeature);
+                                        s.capabilities.follow.toolTipText = 'Keep current track in center of map';
+                                        s.capabilities.follow.iconClass = 'fa-dot-circle-o';
+                                    } else {
+                                        mapFollowManager.followFeature(highlightFeature, function () {
+                                            toggleFollowing();
+                                        });
+                                        s.capabilities.follow.toolTipText = 'Stop following current track';
+                                        s.capabilities.follow.iconClass = 'fa-times-circle-o';
+                                    }
+                                    s.following = !s.following;
+                                };
                                 var s = (parentScope || $rootScope).$new();
                                 s.name = response.name + ' (' + record[_.get(_layerThisBelongsTo.KeywordConfig, 'capability.live.field.displayId', 'label')] + ')';
                                 s.capabilities = response.capabilities;
                                 s.record = record;
                                 s.highlight = {};
+                                s.following = false;
+                                if (_.isUndefined(s.capabilities.follow)) {
+                                    s.capabilities.follow = {
+                                        toolTipText: 'Keep current track in center of map',
+                                        iconClass: 'fa-dot-circle-o',
+                                        onClick: toggleFollowing
+                                    };
+                                }
                                 return {
                                     //Order results by their order in records list
                                     level: _.padLeft(_self.reverseZIndex, 4, '0') + '_' + _.padLeft(index, 4, '0'),
                                     iconClass: _self.styleDirectiveScope.styleVars.iconClass,
                                     tooltipText: s.name,
                                     widgetDef: new WidgetDef('st-live-air-wms-layer-popup', s,
-                                        "name='name' capabilities='capabilities' record='record' highlight='highlight'"),
+                                        "name='name' capabilities='capabilities' record='record' highlight='highlight' following='following'"),
                                     onTabFocus: function () {
                                         tabFocused = true;
                                         if (!_.isUndefined(_idField)) {
@@ -132,6 +156,9 @@ function ($rootScope, $q, toastr, wfs, highlightManager, WidgetDef, GeoJson, CON
                                     onTabBlur: function () {
                                         tabFocused = false;
                                         _self.removeRefreshListener(refreshListener);
+                                        if (s.following) {
+                                            toggleFollowing();
+                                        }
                                         if (inOverlay) {
                                             highlightManager.removeFeature(highlightFeature);
                                             inOverlay = false;
@@ -158,7 +185,8 @@ function () {
             name: '=',
             capabilities: '=',
             record: '=',
-            highlight: '='
+            highlight: '=',
+            following: '='
         },
         controller: 'liveAirPopupController',
         controllerAs: 'liveAirPopCtrl',

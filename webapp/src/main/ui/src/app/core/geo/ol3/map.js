@@ -221,6 +221,13 @@ function ($log, $filter, $q, mapClickSearchService, MapLayer, TintLayer, CONFIG)
         }
     };
     /**
+     * Gets the current interactions for the map.
+     * @returns {ol.Collection.<ol.interaction.Interaction>} interactions
+     */
+    this.getInteractions = function () {
+        return _map.getInteractions();
+    };
+    /**
      * Adds an interaction to the map.
      * @param {ol.interaction.Interaction} interaction
      */
