@@ -21,6 +21,7 @@ angular.module('stealth.air.geo.ol3.layers', [
 'stealth.core.geo.ol3.format.GeoJson',
 'CONFIG',
 function ($rootScope, $q, toastr, wfs, highlightManager, mapFollowManager, WidgetDef, GeoJson, CONFIG) {
+    var ERR_NO_FEATURES = 'No features found';
     return {
         getConstructor: function (LiveWmsLayer) {
             /**
@@ -67,7 +68,7 @@ function ($rootScope, $q, toastr, wfs, highlightManager, mapFollowManager, Widge
                                     });
                                     return _parser.readGeometry(response.data.features[0].geometry);
                                 } else {
-                                    return $q.reject('No features found');
+                                    return $q.reject(ERR_NO_FEATURES);
                                 }
                             }
                         );
@@ -109,6 +110,12 @@ function ($rootScope, $q, toastr, wfs, highlightManager, mapFollowManager, Widge
                                                     });
                                                 }
                                             }
+                                        }, function (reason) {
+                                            if (reason === ERR_NO_FEATURES) {
+                                                s.$applyAsync(function () {
+                                                    s.trackended = true;
+                                                });
+                                            }
                                         }
                                     );
                                 };
@@ -131,6 +138,7 @@ function ($rootScope, $q, toastr, wfs, highlightManager, mapFollowManager, Widge
                                 s.capabilities = response.capabilities;
                                 s.record = record;
                                 s.highlight = {};
+                                s.trackended = false;
                                 s.following = false;
                                 if (_.isUndefined(s.capabilities.follow)) {
                                     s.capabilities.follow = {
@@ -139,13 +147,16 @@ function ($rootScope, $q, toastr, wfs, highlightManager, mapFollowManager, Widge
                                         onClick: toggleFollowing
                                     };
                                 }
+                                if (_.isNumber(record.lon) && _.isNumber(record.lat)) {
+                                    highlightFeature = new ol.Feature(new ol.geom.Point([record.lon, record.lat]));
+                                }
                                 return {
                                     //Order results by their order in records list
                                     level: _.padLeft(_self.reverseZIndex, 4, '0') + '_' + _.padLeft(index, 4, '0'),
                                     iconClass: _self.styleDirectiveScope.styleVars.iconClass,
                                     tooltipText: s.name,
                                     widgetDef: new WidgetDef('st-live-air-wms-layer-popup', s,
-                                        "name='name' capabilities='capabilities' record='record' highlight='highlight' following='following'"),
+                                        "name='name' capabilities='capabilities' record='record' highlight='highlight' following='following' trackended='trackended'"),
                                     onTabFocus: function () {
                                         tabFocused = true;
                                         if (!_.isUndefined(_idField)) {
@@ -186,7 +197,8 @@ function () {
             capabilities: '=',
             record: '=',
             highlight: '=',
-            following: '='
+            following: '=',
+            trackended: '='
         },
         controller: 'liveAirPopupController',
         controllerAs: 'liveAirPopCtrl',
