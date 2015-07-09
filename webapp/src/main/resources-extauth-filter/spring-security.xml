@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+             xmlns:beans="http://www.springframework.org/schema/beans"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://www.springframework.org/schema/beans
+               http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+               http://www.springframework.org/schema/security
+               http://www.springframework.org/schema/security/spring-security-3.2.xsd">
+
+    <beans:bean id="proxyAwareWebAuthenticationDetailsSource" class="com.ccri.spring.ProxyAwareAuthenticationDetailsSource"/>
+    <beans:bean id="externalAuthUserDetailsService" class="com.ccri.spring.ExternalAuthUserDetailsService"/>
+    <beans:bean id="http403ForbiddenEntryPoint" class="org.springframework.security.web.authentication.Http403ForbiddenEntryPoint"/>
+
+    <beans:bean id="externalAuthenticationFilter" class="com.ccri.spring.ExternalAuthenticationFilter">
+        <!-- insert host project name into constructor-arg -->
+        <beans:constructor-arg value="${external.auth.project.name}"/>
+        <beans:property name="authenticationDetailsSource" ref="proxyAwareWebAuthenticationDetailsSource"/>
+        <beans:property name="authenticationManager" ref="authenticationManager"/>
+    </beans:bean>
+
+    <beans:bean id="externalAuthenticationProvider" class="org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider">
+        <beans:property name="preAuthenticatedUserDetailsService" ref="externalAuthUserDetailsService"/>
+    </beans:bean>
+
+    <http entry-point-ref="http403ForbiddenEntryPoint" create-session="stateless" use-expressions="true" access-denied-page="/access.html">
+        <custom-filter position="PRE_AUTH_FILTER" ref="externalAuthenticationFilter"/>
+        <!-- change role to one appropriate for the production environment -->
+        <intercept-url pattern="/**" access="hasAnyRole('${external.auth.group.name}')"/>
+    </http>
+
+    <authentication-manager alias="authenticationManager">
+        <authentication-provider ref="externalAuthenticationProvider"/>
+    </authentication-manager>
+</beans:beans>

@@ -70,6 +70,7 @@
         <logback-classic.version>1.1.2</logback-classic.version>
         <spray-json.version>1.3.0</spray-json.version>
         <scala.version>2.10.4</scala.version>
+        <spring.version>3.2.6.RELEASE</spring.version>
 
         <uidir.pathname>${project.basedir}/src/main/ui</uidir.pathname>
         <nodejs.local.dir>${uidir.pathname}/nodejs</nodejs.local.dir>
@@ -214,8 +215,6 @@
 
         <timelapse.hideBinSortOption>true</timelapse.hideBinSortOption>
 
-        <security.anonymous.access>true</security.anonymous.access>
-        <security.allowed.userDns>["CN=Guest User guest,O=CCRI,L=Charlottesville,ST=Virginia,C=US"]</security.allowed.userDns>
         <security.keystore.path>${basedir}/src/test/resources/certs/server.p12</security.keystore.path>
         <security.keystore.type>PKCS12</security.keystore.type>
         <security.keystore.password>password</security.keystore.password>
@@ -247,6 +246,11 @@
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>com.ccri.spring</groupId>
+                <artifactId>external-auth</artifactId>
+                <version>1.0.2-SNAPSHOT</version>
+            </dependency>
             <dependency>
                 <groupId>com.ccri.stealth</groupId>
                 <artifactId>stealth-webapp</artifactId>
@@ -330,6 +334,32 @@
                 <groupId>ch.qos.logback</groupId>
                 <artifactId>logback-classic</artifactId>
                 <version>${logback-classic.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-core</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-web</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-config</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-logging</groupId>
+                <artifactId>commons-logging</artifactId>
+                <version>1.1.1</version>
+            </dependency>
+            <dependency>
+                <groupId>org.specs2</groupId>
+                <artifactId>specs2_2.10</artifactId>
+                <version>2.3.13</version>
+                <scope>test</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>

@@ -88,6 +88,7 @@
                             <resourcesAsCSV>${project.build.directory}/${project.build.finalName}</resourcesAsCSV>
                         </baseResource>
                         <maxFormContentSize>500000</maxFormContentSize>
+                        <allowDuplicateFragmentNames>true</allowDuplicateFragmentNames>
                     </webApp>
                     <connectors>
                         <connector implementation="org.eclipse.jetty.server.nio.SelectChannelConnector">
@@ -210,6 +211,27 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.specs2</groupId>
+            <artifactId>specs2_2.10</artifactId>
+        </dependency>
+        <!-- Adding Spring Security -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-config</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
         </dependency>
     </dependencies>
 
@@ -451,14 +473,6 @@
         </profile>
 
         <profile>
-            <id>secure</id>
-            <properties>
-                <security.anonymous.access>false</security.anonymous.access>
-                <security.allowed.userDns>[]</security.allowed.userDns>
-            </properties>
-        </profile>
-
-        <profile>
             <id>production</id>
             <properties>
                 <grunt.target>--target=prod</grunt.target>
@@ -502,7 +516,7 @@
                                         <copy todir="${project.build.directory}/${project.build.finalName}/">
                                             <fileset dir="${project.build.directory}/classes/">
                                                 <include name="Runner.class" />
-                                                <include name="application.conf" />
+                                                <include name="reference.conf" />
                                             </fileset>
                                         </copy>
                                     </tasks>
@@ -563,6 +577,20 @@
         </profile>
         <profile>
             <id>thresher</id>
+            <build>
+                <resources>
+                    <resource>
+                        <directory>src/main/resources-extauth-filter</directory>
+                        <filtering>true</filtering>
+                    </resource>
+                </resources>
+            </build>
+            <dependencies>
+                <dependency>
+                    <groupId>com.ccri.spring</groupId>
+                    <artifactId>external-auth</artifactId>
+                </dependency>
+            </dependencies>
             <properties>
                 <stealth.classifier>thresher</stealth.classifier>
                 <app.context>thresher</app.context>
@@ -587,6 +615,20 @@
         </profile>
         <profile>
             <id>skyquest</id>
+            <build>
+                <resources>
+                    <resource>
+                        <directory>src/main/resources-extauth-filter</directory>
+                        <filtering>true</filtering>
+                    </resource>
+                </resources>
+            </build>
+            <dependencies>
+                <dependency>
+                    <groupId>com.ccri.spring</groupId>
+                    <artifactId>external-auth</artifactId>
+                </dependency>
+            </dependencies>
             <properties>
                 <stealth.classifier>skyquest</stealth.classifier>
                 <app.title>SkyQuest</app.title>
