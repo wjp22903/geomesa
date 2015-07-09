@@ -25,7 +25,7 @@ function () {
     this.combine = function (operator, clause) {
         //Create array of non-empty clauses
         var clauses = _.filter(_.flatten(_.rest(arguments)), function (c) {
-            return _.isString(c) && !_.isEmpty(c.trim());
+            return _.isString(c) && !_.isEmpty(c.trim()) && !_.isEmpty(c.replace(/[()]|INCLUDE/gi, '').trim());
         });
         //If more than one, wrap in parens
         if (clauses.length > 1) {
