@@ -288,7 +288,7 @@
             </div>
             <div ng-repeat="summary in layer.summaries" class="categoryGrouping categoryIndent">
                 <div class="categoryCell">
-                    <span ng-if="summary.viewState.isOnMap && summary.summaryLayer.getViewState().isDataPending()"
+                    <span ng-if="summary.viewState.isOnMap && summary.summaryLayer.isLoading()"
                           tooltip-html-unsafe="<span style='white-space:nowrap'>Loading</span>"
                           tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
                           tooltip-trigger="mouseenter">
@@ -301,14 +301,14 @@
                            tooltip-trigger="mouseenter">
                         </i>
                     </div>
-                    <span ng-if="summary.viewState.isOnMap && summary.summaryLayer.getViewState().isDataReady()"
+                    <span ng-if="summary.viewState.isOnMap"
                             class="btn btn-default toggleButton"
                             style="cursor:auto;"
                             ng-style="{'background-color': summary.summaryLayer.getViewState().fillColor}">
                     </span>
                 </div>
                 <div class="categoryCell">
-                    <st-toggle-visibility ng-if="summary.viewState.isOnMap && summary.summaryLayer.getViewState().isDataReady()"
+                    <st-toggle-visibility ng-if="summary.viewState.isOnMap"
                                           visible="summary.summaryLayer.getViewState().toggledOn"
                                           toggle="toggleSummaryVisibility(summary)"></st-toggle-visibility>
                 </div>

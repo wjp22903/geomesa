@@ -18,5 +18,19 @@ function (colors) {
             fill: new ol.style.Fill({color: colors.hexStringToRgbArray(fillColor).concat(0.4)})
         });
     };
+    this.getPointStyle = function (size, fillColor) {
+        return new ol.style.Style({
+            image: new ol.style.Circle({
+                radius: size,
+                fill: new ol.style.Fill({
+                    color: fillColor
+                }),
+                stroke: new ol.style.Stroke({
+                    color: '#FFFFFF',
+                    width: 1
+                })
+            })
+        });
+    };
 }])
 ;

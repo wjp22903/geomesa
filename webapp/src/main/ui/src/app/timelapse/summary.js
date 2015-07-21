@@ -11,7 +11,14 @@ function ($timeout, toastr, ol3Map, GeoJsonVectorLayer, coreCapabilitiesExtender
     var self = this;
     this.toggleSummaryLayer = function (layer) {
         if (_.isUndefined(layer.mapLayerId) || _.isNull(layer.mapLayerId)) {
-            var summaryLayer = new GeoJsonVectorLayer(layer.Title);
+            var summaryLayer = new GeoJsonVectorLayer({
+                name: layer.Title,
+                layerThisBelongsTo: layer.layerThisBelongsTo,
+                queryable: true,
+                requestParams: {
+                    CQL_FILTER: layer.cqlFilter
+                }
+            });
             layer.summaryLayer = summaryLayer;
             layer.mapLayerId = summaryLayer.id;
             layer.viewState.isOnMap = true;
@@ -22,8 +29,6 @@ function ($timeout, toastr, ol3Map, GeoJsonVectorLayer, coreCapabilitiesExtender
                 self.removeSummaryLayer(layer);
             };
             ol3Map.addLayer(summaryLayer);
-
-            summaryLayer.launchQuery(layer.query);
 
             // Update viewState on layer visibility change.
             ol3Layer.on('change:visible', function () {
@@ -57,37 +62,14 @@ function ($timeout, toastr, ol3Map, GeoJsonVectorLayer, coreCapabilitiesExtender
             toastr.error(name + ' is missing information required to perform summary search.', 'Summary Error');
             return;
         }
-        var query = {
-            layerData: {
-                currentLayer: {
-                    name: capability['layerName'],
-                    prefix: capability['layerName'].split(':')[0],
-                    title: 'Summary: ' + name + '/' + record[capability['trkIdField']],
-                    trkIdField: capability['trkIdField'],
-                    trkId: record[capability['trkIdField']],
-                    error: null
-                }
-            },
-            serverData: {
-                currentGeoserverUrl: CONFIG.geoserver.defaultUrl,
-                error: null
-            },
-            params: {
-                geomField: {
-                    name: 'geom'
-                }
-            }
-        };
 
         var layer = _.find(_.flatten(_.values(self.workspaces)),
-            {Name: query.layerData.currentLayer.name});
+            {Name: capability['layerName']});
         if (layer) {
-            query.layerData.currentLayer.KeywordConfig = layer.KeywordConfig;
-
             var summary = {
                 layerThisBelongsTo: layer,
-                Name: query.layerData.currentLayer.name,
-                Title: query.layerData.currentLayer.title,
+                Name: capability['layerName'],
+                Title: name,
                 viewState: {
                     isOnMap: false,
                     toggledOn: false,
@@ -95,13 +77,13 @@ function ($timeout, toastr, ol3Map, GeoJsonVectorLayer, coreCapabilitiesExtender
                     isExpanded: true,
                     isRemovable: true
                 },
-                query: query
+                cqlFilter: '(' + capability['trkIdField'] + '=\'' + record[capability['trkIdField']] + '\')'
             };
 
             layer.summaries.push(summary);
             self.toggleSummaryLayer(summary);
         } else {
-            toastr.error(query.layerData.currentLayer.name + ' not found.', 'Summary Error');
+            toastr.error(capability['layerName'] + ' not found.', 'Summary Error');
         }
     };
 

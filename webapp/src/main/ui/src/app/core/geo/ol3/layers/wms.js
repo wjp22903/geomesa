@@ -146,6 +146,7 @@ function ($log, $timeout, $q, toastr, wfs, clickSearchHelper, cqlHelper, MapLaye
         };
 
         this.updateRequestParams = function (params) {
+            params = params || {};
             params.unique = _.now();
             _olSource.updateParams(params);
         };
