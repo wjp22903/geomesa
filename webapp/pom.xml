@@ -531,6 +531,24 @@
             </build>
         </profile>
 
+        <profile>
+            <id>external-auth</id>
+            <build>
+                <resources>
+                    <resource>
+                        <directory>src/main/resources-extauth-filter</directory>
+                        <filtering>true</filtering>
+                    </resource>
+                </resources>
+            </build>
+            <dependencies>
+                <dependency>
+                    <groupId>com.ccri.spring</groupId>
+                    <artifactId>external-auth</artifactId>
+                </dependency>
+            </dependencies>
+        </profile>
+
         <!-- Deployment-specific profiles for production systems -->
         <profile>
             <id>ds</id>
@@ -577,20 +595,6 @@
         </profile>
         <profile>
             <id>thresher</id>
-            <build>
-                <resources>
-                    <resource>
-                        <directory>src/main/resources-extauth-filter</directory>
-                        <filtering>true</filtering>
-                    </resource>
-                </resources>
-            </build>
-            <dependencies>
-                <dependency>
-                    <groupId>com.ccri.spring</groupId>
-                    <artifactId>external-auth</artifactId>
-                </dependency>
-            </dependencies>
             <properties>
                 <stealth.classifier>thresher</stealth.classifier>
                 <app.context>thresher</app.context>
@@ -615,20 +619,6 @@
         </profile>
         <profile>
             <id>skyquest</id>
-            <build>
-                <resources>
-                    <resource>
-                        <directory>src/main/resources-extauth-filter</directory>
-                        <filtering>true</filtering>
-                    </resource>
-                </resources>
-            </build>
-            <dependencies>
-                <dependency>
-                    <groupId>com.ccri.spring</groupId>
-                    <artifactId>external-auth</artifactId>
-                </dependency>
-            </dependencies>
             <properties>
                 <stealth.classifier>skyquest</stealth.classifier>
                 <app.title>SkyQuest</app.title>
