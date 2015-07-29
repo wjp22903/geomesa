@@ -1,0 +1,22 @@
+<ng-form name="wizardForm">
+    <div class="form-inline">
+        <div class="form-group">
+            <label>Select data source:&nbsp;</label>
+            <select class="form-control input-sm"
+                    ng-model="query.layerData.currentLayer"
+                    ng-init="query.layerData.currentLayer"
+                    ng-change="query.getFeatureTypeDescription()"
+                    ng-options="layer.Title for layer in query.layerData.layers | orderBy: 'Name'"
+                    ng-disabled="!query.layerData.layers"
+                    required>
+            </select>
+        </div>
+    </div>
+    <hr>
+    <ol>
+        <li>Click to draw search area, SHIFT+click+hold to draw freehand.</li>
+        <li>Double-click to finish drawing.</li>
+        <li>Click and drag to modify. ALT+click to erase a vertex.</li>
+        <p>(To start over, click the eraser icon.)</p>
+    </ol>
+</ng-form>

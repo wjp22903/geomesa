@@ -38,10 +38,11 @@ function ($rootScope, catMgr, Category, WidgetDef) {
 'tlLayerManager',
 'summaryExploreMgr',
 'stealth.timelapse.stores.BinStore',
+'liveWizard',
 'tlWizard',
 'CONFIG',
 function ($log, $timeout, cqlHelper, owsLayers, ol3Map, LiveWmsLayer, tlLayerManager,
-          summaryExploreMgr, BinStore, tlWizard, CONFIG) {
+          summaryExploreMgr, BinStore, liveWizard, tlWizard, CONFIG) {
     var tag = 'stealth.core.geo.context.stTimelapseGeoCategory: ';
     $log.debug(tag + 'directive defined');
     return {
@@ -121,9 +122,8 @@ function ($log, $timeout, cqlHelper, owsLayers, ol3Map, LiveWmsLayer, tlLayerMan
             }
 
             $scope.cloneLiveFilterLayer = function (filterLayer) {
-                var title = 'Copy of ' + filterLayer.Title;
-                var clone = newLiveFilterLayer(angular.copy(filterLayer.Name),
-                                               title,
+                var clone = newLiveFilterLayer(filterLayer.Name,
+                                               filterLayer.Title,
                                                angular.copy(filterLayer.options),
                                                filterLayer.layerThisBelongsTo);
 
@@ -148,11 +148,15 @@ function ($log, $timeout, cqlHelper, owsLayers, ol3Map, LiveWmsLayer, tlLayerMan
                 }
             };
 
-            $scope.handleLiveFilterExtraCqlChange = function (filterLayer) {
+            var updateCql = null;
+            $scope.handleLiveFilterExtraCqlChange = function (filterLayer, delay) {
                 if (!_.isEmpty(filterLayer.options.cql.value)) {
                     filterLayer.options.cql.isSelected = true;
                 }
-                $scope.updateLiveFilterCql(filterLayer);
+                $timeout.cancel(updateCql);
+                updateCql = $timeout(function () {
+                    $scope.updateLiveFilterCql(filterLayer);
+                }, delay);
             };
 
             var buildOp = null;
@@ -163,13 +167,13 @@ function ($log, $timeout, cqlHelper, owsLayers, ol3Map, LiveWmsLayer, tlLayerMan
                     buildOp = $timeout(function () {
                         if (_.isString(filterLayer.options.cql.freeText) &&
                             !_.isEmpty(filterLayer.options.cql.freeText.trim())) {
-                            filterLayer.options.cql.value = cqlHelper.combine(cqlHelper.operator.OR, _.map(textFields, function (field) {
+                            filterLayer.cqlFilter = cqlHelper.combine(cqlHelper.operator.OR, _.map(textFields, function (field) {
                                 return field + " ILIKE '%" + filterLayer.options.cql.freeText.trim() + "%'";
                             }));
                         } else {
-                            filterLayer.options.cql.value = null;
+                            filterLayer.cqlFilter = null;
                         }
-                        $scope.handleLiveFilterExtraCqlChange(filterLayer);
+                        $scope.refreshLiveFilterLayer(filterLayer);
                     }, delay);
                 }
             };
@@ -233,6 +237,10 @@ function ($log, $timeout, cqlHelper, owsLayers, ol3Map, LiveWmsLayer, tlLayerMan
                 }
 
                 // Update request.
+                $scope.refreshLiveFilterLayer(filterLayer);
+            };
+
+            $scope.refreshLiveFilterLayer = function (filterLayer) {
                 var id = filterLayer.mapLayerId;
                 if (!_.isUndefined(id)) {
                     var pollingLayer = ol3Map.getLayerById(id);
@@ -355,6 +363,30 @@ function ($log, $timeout, cqlHelper, owsLayers, ol3Map, LiveWmsLayer, tlLayerMan
                 var mapLayer = ol3Map.getLayerById(layer.mapLayerId);
                 var ol3Layer = mapLayer.getOl3Layer();
                 ol3Layer.setVisible(!ol3Layer.getVisible());
+            };
+
+            $scope.launchLiveQueryWizard = function () {
+                liveWizard.launchWizard(null, function (dataSource, cql, title) {
+                    var layerThisBelongsTo = _.find(_.flatten(_.map($scope.workspaces.live)), function (layer) {
+                        //Name match might not be sufficient, if we start supporting
+                        //alternate views of a layer as separate layers.
+                        return layer.Name === dataSource.Name;
+                    });
+                    if (layerThisBelongsTo) {
+                        var filterLayer = newLiveFilterLayer(layerThisBelongsTo.Name,
+                                                             title,
+                                                             {
+                                                                showCql: true
+                                                             },
+                                                             layerThisBelongsTo);
+                        filterLayer.options.cql.value = cql === 'INCLUDE' ? null : cql;
+                        filterLayer.options.cql.isSelected = true;
+                        filterLayer.viewState.isExpanded = true;
+                        filterLayer.viewState.isRemovable = true;
+                        layerThisBelongsTo.filterLayers.push(filterLayer);
+                        $scope.toggleLiveLayer(filterLayer);
+                    }
+                });
             };
 
             $scope.toggleSummaryVisibility = function (layer) {

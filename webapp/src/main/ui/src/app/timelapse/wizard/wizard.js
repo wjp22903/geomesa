@@ -2,6 +2,7 @@ angular.module('stealth.timelapse.wizard', [
     'stealth.core.startmenu',
     'stealth.core.wizard',
     'stealth.timelapse.wizard.bounds',
+    'stealth.timelapse.wizard.live',
     'stealth.timelapse.wizard.options',
     'stealth.timelapse.wizard.query'
 ])
@@ -37,7 +38,7 @@ function ($rootScope, wizardManager, boundTlWizFactory,
         wizardManager.launchWizard(baseWizard);
     };
     $rootScope.$on('Launch Timelapse Wizard', function (event, queryOverrides) {
-        _self.launchWizard (queryOverrides);
+        _self.launchWizard(queryOverrides);
     });
 }])
 

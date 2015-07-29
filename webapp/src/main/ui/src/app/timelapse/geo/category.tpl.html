@@ -13,6 +13,15 @@
         </span>
     </div>
     <div class="categoryCell"><b>Live</b></div>
+    <div class="categoryCell">
+        <span class="btn btn-default fa-stack toggleButton"
+              ng-click="launchLiveQueryWizard()"
+              tooltip-html-unsafe="<span style='white-space:nowrap'>Add layer</span>"
+              tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
+              tooltip-trigger="mouseenter">
+            <i class="fa fa-fw fa-plus fa-stack-1x text-primary"></i>
+        </span>
+    </div>
     <div class="categoryCell" style="width:100%;text-align:right;">
         <span class="btn btn-default fa-stack toggleButton"
               ng-click="refreshNow()"
@@ -100,7 +109,7 @@
                     </span>
                 </div>
                 <div ng-class="{'ng-hide': !filterLayer.viewState.isExpanded}">
-                    <div style="padding:4px 8px;" ng-class="{'ng-hide': (filterLayer.layerThisBelongsTo.KeywordConfig.search.text.field | lodash:'isEmpty')}">
+                    <div style="padding:4px 8px;" ng-class="{'ng-hide': filterLayer.options.showCql || (filterLayer.layerThisBelongsTo.KeywordConfig.search.text.field | lodash:'isEmpty')}">
                         <div class="categoryCell">Search:</div>
                         <div class="categoryCell" style="width:100%;">
                             <input type="text"
@@ -113,7 +122,22 @@
                                    ng-model="filterLayer.options.cql.freeText">
                         </div>
                     </div>
-                    <div ng-class="{'ng-hide': !(filterLayer.layerThisBelongsTo.KeywordConfig.search.text.field | lodash:'isEmpty')}">
+                    <div style="padding:4px 8px;" ng-class="{'ng-hide': !(filterLayer.options.showCql)}">
+                        <div class="categoryCell">CQL:</div>
+                        <div class="categoryCell" style="width:100%;">
+                            <form ng-submit="handleLiveFilterExtraCqlChange(filterLayer)">
+                                <input type="text"
+                                       class="form-control input-sm"
+                                       placeholder="Enter CQL"
+                                       st-select-text-on-focus
+                                       st-enter="handleLiveFilterExtraCqlChange(filterLayer)"
+                                       ng-change="handleLiveFilterExtraCqlChange(filterLayer, 1000)"
+                                       ng-blur="handleLiveFilterExtraCqlChange(filterLayer)"
+                                       ng-model="filterLayer.options.cql.value">
+                            </form>
+                        </div>
+                    </div>
+                    <div ng-class="{'ng-hide': filterLayer.options.showCql || !(filterLayer.layerThisBelongsTo.KeywordConfig.search.text.field | lodash:'isEmpty')}">
                         <div ng-repeat="attr in filterLayer.options.attrs">
                             <div>
                                 <div class="categoryCell categoryIndent">

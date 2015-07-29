@@ -84,7 +84,7 @@ function (toastr, CONFIG, startMenuManager, omarWizard) {
     if (_.has(CONFIG, 'imagery.omar')) {
         startMenuManager.addButton('OMAR Search', 'fa-image', omarWizard.launchWizard);
     } else {
-        toastr.error("OMAR plugin mis-configured. This plugin will not be made available.");
+        toastr.error('This plugin will not be available.', 'OMAR plugin mis-configured');
     }
 }])
 ;
