@@ -22,11 +22,13 @@
     "FileSaver": "899ed116a946921223f25eaa2f54862b737c6e73",
     "font-awesome": "~4.3.0",
     "html5slider.polyfill": "https://github.com/fryn/html5slider.git#551582b645d0b63173248563802f28f792cf37d3",
+    "isteven-angular-multiselect": "~4.0.0",
     "jquery": "~2.1.1",
     "lodash": "~3.9.0",
     "long": "~2.2.3",
     "mathjs": "~1.4.0",
     "momentjs": "~2.9.0",
+    "openlayers": "https://github.com/openlayers/openlayers/releases/download/release-2.13.1/OpenLayers-2.13.1.zip",
     "ol3": "https://github.com/openlayers/ol3/releases/download/v3.5.0/v3.5.0.zip",
     "sonic.js": "git@github.com:ccri/sonic.js.git#v0.5.71",
     "world.geo.json": "https://github.com/johan/world.geo.json.git#d19059de55ea2954b9285698d2ef794a3d9ee98e"

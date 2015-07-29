@@ -21,7 +21,7 @@
                style="position:relative;left:2px;"></i>
         </span>
     </div>
-    <div class="wizardForm">
+    <div class="wizardForm" ng-class="manager.getCustomClass()">
         <div class="wizardFormHeader">
             {{manager.getCurrentStep().getTitle()}}
             <!-- step's tools added via st-widget-compiler -->
@@ -42,14 +42,14 @@
                 <span class="btn btn-xs btn-default"
                       ng-switch-default
                       ng-disabled="manager.isCurrentStepInvalid()"
-                      ng-click="manager.nextStep()">
+                      ng-click="manager.isCurrentStepInvalid() || manager.nextStep()">
                     Next
                     <i class="fa fa-caret-right"></i>
                 </span>
                 <span class="btn btn-xs btn-default"
                       ng-switch-when="true"
                       ng-disabled="manager.isCurrentStepInvalid()"
-                      ng-click="manager.closeWizard(true)">
+                      ng-click="manager.isCurrentStepInvalid() || manager.closeWizard(true)">
                     <b>Done</b>
                     <span ng-if="manager.getEndIconClass()">
                         <i class="fa" ng-class="manager.getEndIconClass()"></i>

@@ -54,7 +54,9 @@ module.exports = {
             'vendor/bower/angular-toastr/dist/angular-toastr.tpls.js',
             'vendor/bower/sonic.js/dist/sonic.js',
             'vendor/bower/mathjs/dist/math.js',
-            'vendor/bower/long/dist/Long.js'
+            'vendor/bower/openlayers/OpenLayers.debug.js',
+            'vendor/bower/long/dist/Long.js',
+            'vendor/bower/isteven-angular-multiselect/isteven-multi-select.js'
         ],
         assets_nested: [
         ],

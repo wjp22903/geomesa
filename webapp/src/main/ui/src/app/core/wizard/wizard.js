@@ -18,12 +18,13 @@ function (manager) {
 
 .factory('stealth.core.wizard.Wizard', [
 function () {
-    var Wizard = function (title, iconClass, endIconClass, steps, wizardScope) {
+    var Wizard = function (title, iconClass, endIconClass, steps, wizardScope, customClass) {
         var _title = title;
         var _iconClass = iconClass;
         var _endIconClass = endIconClass;
         var _steps = steps || [];
         var _wizardScope = wizardScope;
+        var _customClass = customClass;
 
         this.getTitle = function () { return _title; };
         this.getIconClass = function () { return _iconClass; };
@@ -31,6 +32,7 @@ function () {
         this.setEndIconClass = function (newClass) { _endIconClass = newClass; };
         this.getSteps = function () { return _steps; };
         this.getWizardScope = function () { return _wizardScope; };
+        this.getCustomClass = function () { return _customClass; };
         this.truncateSteps = function (stepNum) {
             var index = stepNum + 1;
             _steps.splice(index, _steps.length - index);

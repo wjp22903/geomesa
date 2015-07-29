@@ -7,6 +7,9 @@ angular.module('stealth.core.geo.ows')
 function ($q, $http, $filter) {
     var _descriptionsCache = {};
     var _geomFieldsCache = {};
+    var cqlFormat = new OpenLayers.Format.CQL_fixed();
+    var filter_1_1 = new OpenLayers.Format.Filter({ version: '1.1.0', srsName: 'EPSG:4326' }); // 1.1.0 spec filter
+    var xmlFormat = new OpenLayers.Format.XML();
 
     var _requestFeatureTypeDescription = function (url, typeName) {
         return $http.get(url, {
@@ -73,7 +76,7 @@ function ($q, $http, $filter) {
 
         return this.getFeatureTypeDescription(url, typeName, omitProxy, forceRefresh, omitWfs).then(
             function (data) {
-                if (!data.error) {
+                if (!data.error && data.featureTypes) {
                     var geomOptions = _.filter(data.featureTypes[0].properties, function (prop) {
                         return (prop.type.indexOf('gml:') !== -1);
                     });
@@ -90,6 +93,13 @@ function ($q, $http, $filter) {
                 }
             }
         );
+    };
+
+    this.cqlToFilterXml = function (cql) {
+        // convert our cql string into a filter object
+        var filter = cqlFormat.read(cql);
+        // convert to xml
+        return xmlFormat.write(filter_1_1.write(filter));
     };
 }])
 ;

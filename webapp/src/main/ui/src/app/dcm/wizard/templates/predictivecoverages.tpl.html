@@ -1,0 +1,24 @@
+<ng-form name="wizardForm">
+    <div style="height:531px">
+        <table class="table table-condensed">
+            <tr>
+                <td colspan="2" style="padding-top:25px">Choose a set of coverages for the prediction inputs:</td>
+            </tr>
+            <tr>
+                <td style="padding-top:2px"><label>Predictive Coverage:</label></td>
+                <td style="padding-top:2px">
+                    <div
+                            isteven-multi-select
+                            input-model="rasterLayers"
+                            output-model="prediction.predictiveCoverages"
+                            button-label="Title"
+                            item-label="Title "
+                            tick-property="ticked"
+                            is-disabled="!rasterLayers"
+                            >
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+</ng-form>

@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wps:Execute version="1.0.0" service="WPS" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns="http://www.opengis.net/wps/1.0.0" xmlns:wfs="http://www.opengis.net/wfs"
+             xmlns:wps="http://www.opengis.net/wps/1.0.0" xmlns:ows="http://www.opengis.net/ows/1.1"
+             xmlns:gml="http://www.opengis.net/gml" xmlns:ogc="http://www.opengis.net/ogc"
+             xmlns:wcs="http://www.opengis.net/wcs/1.1.1" xmlns:xlink="http://www.w3.org/1999/xlink"
+             xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd">
+    <ows:Identifier>gs:ImportRaster</ows:Identifier>
+    <wps:DataInputs>
+        <wps:Input>
+            <ows:Identifier>coverage</ows:Identifier>
+            <wps:Reference mimeType="{{outputType}}" xlink:href="http://geoserver/wps" method="POST">
+                <wps:Body>
+                    <wps:Execute version="1.0.0" service="WPS">
+                        <ows:Identifier>dcm:DCM</ows:Identifier>
+                        <wps:DataInputs>
+                            {{predictiveFeaturesWpsInput}}
+                            {{predictiveCoveragesWpsInput}}
+                            <wps:Input>
+                                <ows:Identifier>events</ows:Identifier>
+                                <wps:Reference mimeType="text/xml" xlink:href="http://geoserver/wfs" method="POST">
+                                    <wps:Body>
+                                        <wfs:GetFeature service="WFS" version="1.0.0" outputFormat="GML2">
+                                            <wfs:Query typeName="{{events.Name}}">
+                                                {{eventsFilterXml}}
+                                            </wfs:Query>
+                                        </wfs:GetFeature>
+                                    </wps:Body>
+                                </wps:Reference>
+                            </wps:Input>
+                            {{aoWpsInput}}
+                            <wps:Input>
+                                <ows:Identifier>width</ows:Identifier>
+                                <wps:Data>
+                                    <wps:LiteralData>{{width}}</wps:LiteralData>
+                                </wps:Data>
+                            </wps:Input>
+                            <wps:Input>
+                                <ows:Identifier>height</ows:Identifier>
+                                <wps:Data>
+                                    <wps:LiteralData>{{height}}</wps:LiteralData>
+                                </wps:Data>
+                            </wps:Input>
+                            <wps:Input>
+                                <ows:Identifier>sampleRatio</ows:Identifier>
+                                <wps:Data>
+                                    <wps:LiteralData>{{sampleRatio}}</wps:LiteralData>
+                                </wps:Data>
+                            </wps:Input>
+                            <wps:Input>
+                                <ows:Identifier>CRS</ows:Identifier>
+                                <wps:Data>
+                                    <wps:LiteralData>{{CRS}}</wps:LiteralData>
+                                </wps:Data>
+                            </wps:Input>
+                            <wps:Input>
+                                <ows:Identifier>feature selection</ows:Identifier>
+                                <wps:Data>
+                                    <wps:LiteralData>{{featureSelection}}</wps:LiteralData>
+                                </wps:Data>
+                            </wps:Input>
+                        </wps:DataInputs>
+                        <wps:ResponseForm>
+                            <wps:RawDataOutput mimeType="{{outputType}}">
+                                <ows:Identifier>prediction</ows:Identifier>
+                            </wps:RawDataOutput>
+                        </wps:ResponseForm>
+                    </wps:Execute>
+                </wps:Body>
+            </wps:Reference>
+        </wps:Input>
+        <wps:Input>
+            <ows:Identifier>workspace</ows:Identifier>
+            <wps:Data>
+                <wps:LiteralData>{{workspace}}</wps:LiteralData>
+            </wps:Data>
+        </wps:Input>
+        <wps:Input>
+            <ows:Identifier>store</ows:Identifier>
+            <wps:Data>
+                <wps:LiteralData>{{store}}</wps:LiteralData>
+            </wps:Data>
+        </wps:Input>
+        <wps:Input>
+            <ows:Identifier>name</ows:Identifier>
+            <wps:Data>
+                <wps:LiteralData>{{name}}</wps:LiteralData>
+            </wps:Data>
+        </wps:Input>
+        <wps:Input>
+            <ows:Identifier>srs</ows:Identifier>
+            <wps:Data>
+                <wps:LiteralData>{{CRS}}</wps:LiteralData>
+            </wps:Data>
+        </wps:Input>
+        <wps:Input>
+            <ows:Identifier>srsHandling</ows:Identifier>
+            <wps:Data>
+                <wps:LiteralData>{{srsHandling.projectionPolicy}}</wps:LiteralData>
+            </wps:Data>
+        </wps:Input>
+        <wps:Input>
+            <ows:Identifier>keywords</ows:Identifier>
+            <wps:Data>
+                <wps:LiteralData>{{keywords}}</wps:LiteralData>
+            </wps:Data>
+        </wps:Input>
+        <wps:Input>
+            <ows:Identifier>styleName</ows:Identifier>
+            <wps:Data>
+                <wps:LiteralData>threat_palette_01_05</wps:LiteralData>
+            </wps:Data>
+        </wps:Input>
+        <wps:Input>
+            <ows:Identifier>description</ows:Identifier>
+            <wps:Data>
+                <wps:LiteralData>{{description}}</wps:LiteralData>
+            </wps:Data>
+        </wps:Input>
+    </wps:DataInputs>
+    <wps:ResponseForm>
+        <wps:RawDataOutput>
+            <ows:Identifier>result</ows:Identifier>
+        </wps:RawDataOutput>
+    </wps:ResponseForm>
+</wps:Execute>

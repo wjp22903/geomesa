@@ -1,0 +1,58 @@
+<ng-form name="wizardForm">
+    <div style="height:531px">
+        <table class="table table-condensed">
+            <tr>
+                <td colspan="2" style="padding-top:25px">Choose a set of events for the prediction inputs:</td>
+            </tr>
+            <tr>
+                <td style="padding-top:2px"><label>Events:</label></td>
+                <td style="padding-top:2px">
+                    <div
+                            isteven-multi-select
+                            input-model="eventLayers"
+                            output-model="prediction.events"
+                            button-label="Title"
+                            item-label="Title"
+                            tick-property="ticked"
+                            is-disabled="!eventLayers"
+                            selection-mode="single"
+                    >
+                    </div>
+                </td>
+            <tr ng-show="prediction.events.length === 1">
+                <td style="padding-top:2px"><label>Properties:</label></td>
+                <td>
+                    <div ng-switch="prediction.events[0].featureTypeDescription"
+                         style="color:black;background:#eee;border 1px solid #aaa;border-radius:4px;padding:0;max-height: 390px;overflow: auto;">
+                        <div ng-switch-when="unavailable" class="alert alert-warning">
+                            <i class="fa fa-warning"></i> There is no feature type description for this layer.
+                        </div>
+                        <div ng-switch-default>
+                            <section ng-class="{'ng-hide': prediction.events[0].featureTypeDescription === 'unavailable'}"
+                                     ng-repeat="featureType in prediction.events[0].featureTypeDescription.featureTypes">
+                                <div style="overflow:auto;padding:0 10px;">
+                                    <table class="table-condensed">
+                                        <tr ng-repeat="property in featureType.properties">
+                                            <td>{{ property.name }}</td>
+                                            <td><code>{{ property.localType }}</code></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </section>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr ng-show="prediction.events.length === 1">
+                <td style="padding-top:2px"><label>CQL Filter:</label></td>
+                <td style="padding-top:2px">
+                    <input type="text"
+                           class="form-control input-sm"
+                           placeholder="Events CQL filter"
+                           ng-model="prediction.events[0].cql_filter"
+                           ng-change="updateEventCql(prediction.events[0])">
+                </td>
+            </tr>
+        </table>
+    </div>
+</ng-form>

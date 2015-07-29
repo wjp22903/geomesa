@@ -1,0 +1,15 @@
+<ng-form name="wizardForm">
+    <p>Select Threat Surfaces to add to the map.</p>
+    <table class="table" style="display:block; max-height:300px; overflow-y: auto; margin:5px auto;">
+        <tr>
+            <th>Prediction Name</th>
+            <th>Description</th>
+            <th>Add to Map</th>
+        </tr>
+        <tr ng-repeat="threatSurface in threatSurfaces">
+            <td>{{threatSurface.Title | characters:35:true}}</td>
+            <td>{{threatSurface.Abstract}}</td>
+            <td><button class="btn btn-default btn-xs" ng-click="addThreatSurface(threatSurface)"><i class="fa fa-plus"></i></button></td>
+        </tr>
+    </table>
+</ng-form>

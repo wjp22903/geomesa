@@ -1,0 +1,61 @@
+<ng-form name="wizardForm">
+    <div style="height:531px">
+        <div style="float:left;width:30%;height:100%;">
+            <select multiple
+                    class="form-control multi-select-horizontal"
+                    ng-model="vectorLayersSelected"
+                    ng-options="vectorLayer.Title for vectorLayer in vectorLayers">
+            </select>
+        </div>
+        <div class="btn-group-vertical" role="group" style="float:left;">
+            <button class="btn btn-default" ng-disabled="vectorLayersSelected.length == 0" ng-click="addToPredictiveFeatures(vectorLayersSelected)"><i class="fa fa-caret-right"></i></button>
+        </div>
+        <div style="height:100%">
+            <table class="table predictiveFeaturesTable" ng-if="prediction.predictiveFeatures.length > 0">
+                <tbody class="display-block">
+                    <tr ng-repeat="predictiveFeature in prediction.predictiveFeatures track by $index" class="display-block">
+                        <td style="padding-top:2px;" class="display-block">
+                            <div class="btn-group btn-group-sm" role="group" aria-label="...">
+                                <div class="btn btn-default" ng-click="removeFromPredictiveFeatures($index)">
+                                    <i class="fa fa-fw fa-close text-danger"></i>
+                                </div>
+                                <button class="btn btn-default predictiveFeatureButton"
+                                        ng-click="prediction.predictiveFeatures[$index].showAttributes = !prediction.predictiveFeatures[$index].showAttributes"
+                                        >
+                                    {{predictiveFeature.Title | characters:50:true}}
+                                    <span ng-if="prediction.predictiveFeatures[$index].showAttributes" class="pull-right">
+                                        <i class="fa fa-fw fa-caret-up"></i>
+                                    </span>
+                                    <span ng-if="!prediction.predictiveFeatures[$index].showAttributes" class="pull-right">
+                                        <i class="fa fa-fw fa-caret-down"></i>
+                                    </span>
+                                </button>
+                            </div>
+                            <div ng-switch="predictiveFeature.featureTypeDescription"
+                                 style="color:black;background:#eee;border 1px solid #aaa;border-radius:4px;padding:0;margin-top:5px;margin-right:2px;" ng-show="prediction.predictiveFeatures[$index].showAttributes">
+                                <div ng-switch-when="unavailable" class="alert alert-warning">
+                                    <i class="fa fa-warning"></i> There is no feature type description for this layer.
+                                </div>
+                                <div ng-switch-default style="font-size:12px !important">
+                                    <section ng-class="{'ng-hide': predictiveFeature.featureTypeDescription === 'unavailable'}"
+                                             ng-repeat="featureType in predictiveFeature.featureTypeDescription.featureTypes">
+                                        <div style="max-height:175px;overflow:auto;padding:0 10px;">
+                                            <table class="table-condensed">
+                                                <tr ng-repeat="property in featureType.properties">
+                                                    <td>{{ property.name }}</td>
+                                                    <td><code>{{ property.localType }}</code></td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </section>
+                                    <input class="form-control" type="text" placeholder="CQL Filter" ng-model="prediction.predictiveFeatures[$index].cql_filter"/>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <span ng-if="prediction.predictiveFeatures.length === 0">No Predictive Features selected.</span>
+        </div>
+    </div>
+</ng-form>

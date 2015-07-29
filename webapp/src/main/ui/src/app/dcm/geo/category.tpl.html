@@ -1,0 +1,62 @@
+<div class="categoryGrouping">
+    <div class="categoryCell"><b>New Spatial Prediction</b></div>
+    <div class="categoryCell">
+        <span class="btn btn-default fa-stack toggleButton"
+              ng-click="launchDcmWizard()"
+              tooltip-html-unsafe="<span style='white-space:nowrap'>Add layer</span>"
+              tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
+              tooltip-trigger="mouseenter">
+            <i class="fa fa-fw fa-plus fa-stack-1x text-primary"></i>
+        </span>
+    </div>
+    <div ng-repeat="layer in layers" class="layerGrouping categoryIndent">
+        <div class="categoryCell" ng-if="layer.viewState.isLoading">
+            <i class="fa fa-circle-o-notch fa-spin"></i>
+        </div>
+        <div class="categoryCell">
+            <st-toggle-visibility ng-if="layer.viewState.isOnMap"
+                                  visible="layer.viewState.toggledOn"
+                                  toggle="toggleVisibility(layer)"></st-toggle-visibility>
+        </div>
+        <div class="categoryCell">
+            <span ng-show="!layer.editTitle" ng-dblclick="editTitle(layer)">{{layer.Title | characters:35:true}}</span>
+            <input type="text" ng-model="layer.Title" pattern=".{1,}" ng-show="layer.editTitle" ng-blur="editTitle(layer)">
+        </div>
+        <div class="categoryCell" ng-if="!layer.viewState.isLoading">
+            <span class="btn btn-default fa-stack toggleButton ng-scope" ng-click="removeLayer(layer)" tooltip-html-unsafe="<span style='white-space:nowrap'>Remove Layer</span>" tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500" tooltip-trigger="mouseenter">
+                <i class="fa fa-fw fa-remove fa-stack-1x text-danger"></i>
+            </span>
+        </div>
+    </div>
+</div>
+<div class="categoryGrouping">
+    <div class="categoryCell"><b>Add saved Spatial Prediction</b></div>
+    <div class="categoryCell">
+        <span class="btn btn-default fa-stack toggleButton"
+              ng-click="launchThreatSurfaceWizard()"
+              tooltip-html-unsafe="<span style='white-space:nowrap'>Add layer</span>"
+              tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
+              tooltip-trigger="mouseenter">
+            <i class="fa fa-fw fa-plus fa-stack-1x text-primary"></i>
+        </span>
+    </div>
+    <div ng-repeat="threatSurface in threatSurfaces" class="layerGrouping categoryIndent">
+        <div class="categoryCell" ng-if="threatSurface.viewState.isLoading">
+            <i class="fa fa-circle-o-notch fa-spin"></i>
+        </div>
+        <div class="categoryCell">
+            <st-toggle-visibility ng-if="threatSurface.viewState.isOnMap"
+                                  visible="threatSurface.viewState.toggledOn"
+                                  toggle="toggleVisibility(threatSurface)"></st-toggle-visibility>
+        </div>
+        <div class="categoryCell">
+            <span ng-show="!threatSurface.editTitle" ng-dblclick="editTitle(threatSurface)">{{threatSurface.Title | characters:35:true}}</span>
+            <input type="text" ng-model="threatSurface.Title" pattern=".{1,}" ng-show="threatSurface.editTitle" ng-blur="editTitle(threatSurface)">
+        </div>
+        <div class="categoryCell" ng-if="!threatSurface.viewState.isLoading">
+            <span class="btn btn-default fa-stack toggleButton ng-scope" ng-click="removeLayer(threatSurface)" tooltip-html-unsafe="<span style='white-space:nowrap'>Remove Layer</span>" tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500" tooltip-trigger="mouseenter">
+                <i class="fa fa-fw fa-remove fa-stack-1x text-danger"></i>
+            </span>
+        </div>
+    </div>
+</div>

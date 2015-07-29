@@ -50,6 +50,9 @@ function ($rootScope, sidebarManager, headerManager) {
     this.getEndIconClass = function () {
         return _wizard ? _wizard.getEndIconClass() : null;
     };
+    this.getCustomClass = function () {
+        return _wizard ? _wizard.getCustomClass() : null;
+    };
     this.isLastStep = function () {
         return (_wizard && (_currentStepNum === _wizard.getSteps().length - 1) && !this.getCurrentStep().getAddsStep());
     };

@@ -7,7 +7,8 @@ angular.module('stealth.app', [
     'toastr',
     'templates-app',
     'stealth.core',
-    'stealth.plugins'
+    'stealth.plugins',
+    'isteven-multi-select'
 ])
 
 .config([
