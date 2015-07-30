@@ -10,7 +10,7 @@ function ($log, wps, CONFIG, wfs, cqlHelper) {
 
     this.cqlToFilterXml = function(cql_filter) {
         var filterXml = '';
-        if (cql_filter && cql_filter.length > 0) {
+        if (cql_filter) {
             filterXml += wfs.cqlToFilterXml(cql_filter);
         }
         return filterXml;
@@ -19,6 +19,12 @@ function ($log, wps, CONFIG, wfs, cqlHelper) {
     this.doDcmQuery = function (arg) {
         var templateFn = stealth.jst['wps/importRaster.xml'];
         var boundsArr = [arg.bounds.minLon, arg.bounds.minLat, arg.bounds.maxLon, arg.bounds.maxLat];
+        var cql_filter = '';
+        cql_filter + arg.events.cql_filter;
+        if (cql_filter) {
+            cql_filter += " AND ";
+        }
+        eventsFilterXml = this.cqlToFilterXml(cql_filter + cqlHelper.buildBboxFilter(arg.events.defaultGeomFieldName, boundsArr));
         var req = templateFn({
             predictiveFeaturesWpsInput: this.getPredictiveFeaturesWpsInput(arg.predictiveFeatures),
             predictiveCoveragesWpsInput: this.getPredictiveCoveragesWpsInput(arg.predictiveCoverages),
@@ -31,12 +37,12 @@ function ($log, wps, CONFIG, wfs, cqlHelper) {
             outputType: arg.outputType.output,
             workspace: arg.workspace,
             store: arg.title,
-            name: arg.title + "-layer",
+            name: arg.title,
             srsHandling: arg.srsHandling,
             keywords: arg.keywords,
             description: arg.description,
             aoWpsInput: this.getAoWpsInput(arg.geometry),
-            eventsFilterXml: this.cqlToFilterXml(arg.events.cql_filter + " AND " + cqlHelper.buildBboxFilter(arg.events.defaultGeomFieldName, boundsArr))
+            eventsFilterXml: eventsFilterXml
         });
         return wps.submit(CONFIG.geoserver.defaultUrl, req, CONFIG.geoserver.omitProxy);
     };

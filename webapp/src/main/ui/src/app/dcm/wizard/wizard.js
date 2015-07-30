@@ -6,7 +6,7 @@ angular.module('stealth.dcm.wizard', [
 'startMenuManager',
 'dcmWizard',
 function (startMenuManager, dcmWizard) {
-    startMenuManager.addButton('Run Discrete Choice Model', 'fa-line-chart', dcmWizard.launch);
+    startMenuManager.addButton('Spatial Prediction', 'fa-line-chart', dcmWizard.launch);
 }])
 
 .service('dcmWizard', [
@@ -158,7 +158,9 @@ function ($log, $rootScope, $filter,
                         var gsLayer = _.cloneDeep(l);
                         gsLayer.derivedLayers = [];
                         gsLayer.cql_filter = null;
-                        getFeatureTypeDescription(gsLayer);
+                        if (gsLayer.queryable) {
+                            getFeatureTypeDescription(gsLayer);
+                        }
                         wizScope.eventLayers.push(gsLayer);
                     }
                 });
@@ -219,7 +221,7 @@ function ($log, $rootScope, $filter,
             outputType: wizScope.outputTypes[0],
             workspace: null,
             srsHandling: wizScope.srsHandlingOptions[2],
-            keywords: "stealth.dcm.prediction, stealth.routeanalysis.data.Spatial Predictions",
+            keywords: CONFIG.app.context + ".dcm.prediction, " + CONFIG.app.context + ".routeanalysis.data.Spatial Predictions",
             bounds: {
                 minLon: -180,
                 minLat: -90,
@@ -243,7 +245,11 @@ function ($log, $rootScope, $filter,
         steps.push(new Step('Choose events to predict',
             new WidgetDef('st-dcm-wiz-events', wizScope),
             null,
-            true)
+            true,
+            function(stepNum) {},
+            function(stepNumd, success) {
+                wizScope.updateEventCql(wizScope.prediction.events[0]);
+            })
         );
 
         steps.push(new Step('Define spatial extent',
@@ -330,7 +336,7 @@ function ($log, $rootScope, $filter,
             }
         });
 
-        var wiz = new Wizard('Spatial Prediction', 'fa-bar-chart', 'fa-check text-success', steps, wizScope, 'dcmWizardForm');
+        var wiz = new Wizard('Spatial Prediction', 'fa-line-chart', 'fa-check text-success', steps, wizScope, 'dcmWizardForm');
         wizardManager.launchWizard(wiz);
     };
 

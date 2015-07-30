@@ -26,12 +26,6 @@
                 </td>
             </tr>
             <tr>
-                <td style="padding-top:2px"><label>Feature Selection*: </label></td>
-                <td>
-                    <input type="checkbox" class="form-control" checked ng-model="prediction.featureSelection">
-                </td>
-            </tr>
-            <tr>
                 <td style="padding-top:2px"><label>Output Type*: </label></td>
                 <td>
                     <select class="form-control" ng-options="type.name for type in outputTypes" ng-model="prediction.outputType" required></select>
@@ -59,6 +53,12 @@
                 <td style="padding-top:2px"><label>Prediction Description: </label></td>
                 <td>
                     <input type="text" class="form-control" ng-model="prediction.description">
+                </td>
+            </tr>
+            <tr>
+                <td style="padding-top:2px"><label>Feature Selection*: </label></td>
+                <td>
+                    <input type="checkbox" class="form-control" checked ng-model="prediction.featureSelection">
                 </td>
             </tr>
         </table>

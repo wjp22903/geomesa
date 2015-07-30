@@ -193,7 +193,7 @@ function ($log, $rootScope, $timeout,
     threatSurfaceWizard.setCategoryScope(scope);
 
     var widgetDef = new WidgetDef('st-dcm-geo-category', scope);
-    var category = new Category(2, 'Spatial Predictions', 'fa-bar-chart', widgetDef, null, true);
+    var category = new Category(2, 'Spatial Predictions', 'fa-line-chart', widgetDef, null, true);
     catMgr.addCategory(1, category);
 }])
 

@@ -18,6 +18,7 @@
                             selection-mode="single"
                     >
                     </div>
+                    <input type="hidden" ng-model="prediction.events" required />
                 </td>
             <tr ng-show="prediction.events.length === 1">
                 <td style="padding-top:2px"><label>Properties:</label></td>
@@ -49,8 +50,7 @@
                     <input type="text"
                            class="form-control input-sm"
                            placeholder="Events CQL filter"
-                           ng-model="prediction.events[0].cql_filter"
-                           ng-change="updateEventCql(prediction.events[0])">
+                           ng-model="prediction.events[0].cql_filter">
                 </td>
             </tr>
         </table>

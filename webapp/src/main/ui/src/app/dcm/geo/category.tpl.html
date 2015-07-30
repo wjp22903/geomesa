@@ -1,13 +1,21 @@
 <div class="categoryGrouping">
-    <div class="categoryCell"><b>New Spatial Prediction</b></div>
+    <div class="categoryCell"><b>Spatial Predictions</b></div>
     <div class="categoryCell">
         <span class="btn btn-default fa-stack toggleButton"
               ng-click="launchDcmWizard()"
-              tooltip-html-unsafe="<span style='white-space:nowrap'>Add layer</span>"
+              tooltip-html-unsafe="<span style='white-space:nowrap'>Run new spatial prediction</span>"
               tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
               tooltip-trigger="mouseenter">
             <i class="fa fa-fw fa-plus fa-stack-1x text-primary"></i>
         </span>
+        <span class="btn btn-default fa-stack toggleButton"
+              ng-click="launchThreatSurfaceWizard()"
+              tooltip-html-unsafe="<span style='white-space:nowrap'>Load saved spatial prediction</span>"
+              tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
+              tooltip-trigger="mouseenter">
+            <i class="fa fa-fw fa-folder-open fa-stack-1x text-primary"></i>
+        </span>
+        </div>
     </div>
     <div ng-repeat="layer in layers" class="layerGrouping categoryIndent">
         <div class="categoryCell" ng-if="layer.viewState.isLoading">
@@ -30,16 +38,6 @@
     </div>
 </div>
 <div class="categoryGrouping">
-    <div class="categoryCell"><b>Add saved Spatial Prediction</b></div>
-    <div class="categoryCell">
-        <span class="btn btn-default fa-stack toggleButton"
-              ng-click="launchThreatSurfaceWizard()"
-              tooltip-html-unsafe="<span style='white-space:nowrap'>Add layer</span>"
-              tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
-              tooltip-trigger="mouseenter">
-            <i class="fa fa-fw fa-plus fa-stack-1x text-primary"></i>
-        </span>
-    </div>
     <div ng-repeat="threatSurface in threatSurfaces" class="layerGrouping categoryIndent">
         <div class="categoryCell" ng-if="threatSurface.viewState.isLoading">
             <i class="fa fa-circle-o-notch fa-spin"></i>
