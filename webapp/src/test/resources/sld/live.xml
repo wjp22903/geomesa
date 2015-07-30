@@ -18,8 +18,8 @@
                             </ogc:Function>
                         </Geometry>
                         <Stroke>
-                            <CssParameter name="stroke">#0000FF</CssParameter>
-                            <CssParameter name="stroke-dasharray">5 3</CssParameter>
+                            <CssParameter name="stroke">#00FF00</CssParameter>
+                            <CssParameter name="stroke-dasharray">3 3</CssParameter>
                         </Stroke>
                     </LineSymbolizer>
                 </Rule>
@@ -32,20 +32,86 @@
                             </ogc:Function>
                         </Geometry>
                         <Stroke>
-                            <CssParameter name="stroke">#0000FF</CssParameter>
+                            <CssParameter name="stroke">#00FF00</CssParameter>
                         </Stroke>
                     </LineSymbolizer>
                 </Rule>
                 <Rule>
-                    <TextSymbolizer>
-                        <Geometry>
-                            <ogc:Function name="startPoint">
-                                <ogc:Function name="getGeometryN">
-                                    <ogc:PropertyName>lineHist</ogc:PropertyName>
-                                    <ogc:Literal>0</ogc:Literal>
+                    <PointSymbolizer>
+                        <Graphic>
+                            <Mark>
+                                <WellKnownName>ttf://SansSerif.bold#0x2191</WellKnownName>
+                                <Fill>
+                                    <CssParameter name="fill">#00FF00</CssParameter>
+                                    <CssParameter name="fill-opacity">1</CssParameter>
+                                </Fill>
+                                <Stroke>
+                                    <CssParameter name="stroke">#00FF00</CssParameter>
+                                    <CssParameter name="stroke-width">0.5</CssParameter>
+                                </Stroke>
+                            </Mark>
+                            <Size>20</Size>
+                            <Rotation>
+                                <ogc:PropertyName>course</ogc:PropertyName>
+                            </Rotation>
+                        </Graphic>
+                    </PointSymbolizer>
+                    <PointSymbolizer>
+                        <Graphic>
+                            <Mark>
+                                <WellKnownName>
+                                    <ogc:Function name="env">
+                                        <ogc:Literal>shapeName</ogc:Literal>
+                                        <ogc:Literal>circle</ogc:Literal>
+                                    </ogc:Function>
+                                </WellKnownName>
+                                <Fill>
+                                    <CssParameter name="fill">#
+                                        <ogc:Function name="env">
+                                            <ogc:Literal>shapeFill</ogc:Literal>
+                                            <ogc:Literal>000000</ogc:Literal>
+                                        </ogc:Function>
+                                    </CssParameter>
+                                    <CssParameter name="fill-opacity">
+                                        <ogc:Function name="env">
+                                            <ogc:Literal>shapeOpacity</ogc:Literal>
+                                            <ogc:Literal>0</ogc:Literal>
+                                        </ogc:Function>
+                                    </CssParameter>
+                                </Fill>
+                                <Stroke>
+                                    <CssParameter name="stroke">#
+                                        <ogc:Function name="env">
+                                            <ogc:Literal>shapeStrokeColor</ogc:Literal>
+                                            <ogc:Literal>CC0099</ogc:Literal>
+                                        </ogc:Function>
+                                    </CssParameter>
+                                    <CssParameter name="stroke-opacity">
+                                        <ogc:Function name="env">
+                                            <ogc:Literal>shapeStrokeOpacity</ogc:Literal>
+                                            <ogc:Literal>0</ogc:Literal>
+                                        </ogc:Function>
+                                    </CssParameter>
+                                    <CssParameter name="stroke-width">
+                                        <ogc:Function name="env">
+                                            <ogc:Literal>shapeStrokeWidth</ogc:Literal>
+                                            <ogc:Literal>3</ogc:Literal>
+                                        </ogc:Function>
+                                    </CssParameter>
+                                </Stroke>
+                            </Mark>
+                            <Size>
+                                <ogc:Function name="env">
+                                    <ogc:Literal>shapeSize</ogc:Literal>
+                                    <ogc:Literal>22</ogc:Literal>
                                 </ogc:Function>
-                            </ogc:Function>
-                        </Geometry>
+                            </Size>
+                        </Graphic>
+                    </PointSymbolizer>
+                </Rule>
+                <Rule>
+                    <MaxScaleDenominator>7000000</MaxScaleDenominator>
+                    <TextSymbolizer>
                         <Label>
                             <ogc:PropertyName>label</ogc:PropertyName><![CDATA[
                          ]]><ogc:PropertyName>subLabel</ogc:PropertyName><![CDATA[
@@ -88,25 +154,6 @@
                         <VendorOption name="graphic-margin">2</VendorOption>
                         <VendorOption name="conflict-resolution">false</VendorOption>
                     </TextSymbolizer>
-                    <PointSymbolizer>
-                        <Graphic>
-                            <Mark>
-                                <WellKnownName>ttf://SansSerif.bold#0x2191</WellKnownName>
-                                <Fill>
-                                    <CssParameter name="fill">#0000FF</CssParameter>
-                                    <CssParameter name="fill-opacity">1</CssParameter>
-                                </Fill>
-                                <Stroke>
-                                    <CssParameter name="stroke">#0000FF</CssParameter>
-                                    <CssParameter name="stroke-width">0.5</CssParameter>
-                                </Stroke>
-                            </Mark>
-                            <Size>20</Size>
-                            <Rotation>
-                                <ogc:PropertyName>course</ogc:PropertyName>
-                            </Rotation>
-                        </Graphic>
-                    </PointSymbolizer>
                 </Rule>
             </FeatureTypeStyle>
         </UserStyle>

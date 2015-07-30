@@ -66,14 +66,12 @@
                             </select>
                         </div>
                         <div class="cell">
-                            <span class="btn btn-default fa-stack toggleButton"
-                                  ng-click="store.toggleColorById()"
-                                  tooltip-html-unsafe="<span style='white-space:nowrap'>Toggle color by</span>"
-                                  tooltip-placement="top" tooltip-animation="false" tooltip-popup-delay="500"
-                                  tooltip-trigger="mouseenter">
-                                <i class="fa fa-fw fa-check-square-o fa-stack-1x"
-                                   ng-if="store.getViewState().colorById"></i>
-                            </span>
+                            <stealth.core.utils.checkbox
+                                checked="store.getViewState().colorById"
+                                toggle="store.toggleColorById()"
+                                tooltip-text="<span style='white-space:nowrap'>Toggle color by</span>"
+                                tooltip-placement="top">
+                            </stealth.core.utils.checkbox>
                         </div>
                     </div>
                 </div>

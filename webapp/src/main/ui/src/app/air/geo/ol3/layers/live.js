@@ -13,12 +13,13 @@ angular.module('stealth.air.geo.ol3.layers', [
 '$rootScope',
 '$q',
 'toastr',
+'colors',
 'wfs',
 'mapFollowManager',
 'stealth.core.utils.WidgetDef',
 'stealth.core.geo.ol3.format.GeoJson',
 'CONFIG',
-function ($rootScope, $q, toastr, wfs, mapFollowManager, WidgetDef, GeoJson, CONFIG) {
+function ($rootScope, $q, toastr, colors, wfs, mapFollowManager, WidgetDef, GeoJson, CONFIG) {
     var ERR_NO_FEATURES = 'No features found';
     return {
         getConstructor: function (LiveWmsLayer) {
@@ -33,7 +34,7 @@ function ($rootScope, $q, toastr, wfs, mapFollowManager, WidgetDef, GeoJson, CON
              * @class
              * @extends stealth.timelapse.geo.ol3.layers.LiveWmsLayer
              */
-            var LiveAirWmsLayer = function (name, requestParams, layerThisBelongsTo, queryable, wmsUrl) {
+            var LiveAirWmsLayer = function (name, requestParams, layerThisBelongsTo, queryable, wmsUrl, haloColor) {
                 var _self = this;
                 var _layerThisBelongsTo = layerThisBelongsTo;
                 LiveWmsLayer.apply(this, [name, requestParams, layerThisBelongsTo, queryable, wmsUrl]);
@@ -78,7 +79,21 @@ function ($rootScope, $q, toastr, wfs, mapFollowManager, WidgetDef, GeoJson, CON
                                      'Highlight Error',
                                      { timeOut: 15000 });
                     }
+
+                    //Live Air has its own style panel
+                    this.styleDirective = 'stealth.air.geo.ol3.layers.live-style';
                     this.styleDirectiveScope.styleVars.iconClass = 'fa fa-fw fa-lg fa-plane';
+                    this.styleDirectiveScope.viewState = {
+                        showHalo: !!haloColor,
+                        haloColor: haloColor || colors.getColor()
+                    };
+                    this.styleDirectiveScope.refreshStyleEnv = function () {
+                        _self.refresh({
+                            ENV: _self.styleDirectiveScope.viewState.showHalo ?
+                                'shapeStrokeOpacity:1;shapeStrokeColor:' + _self.styleDirectiveScope.viewState.haloColor.slice(1) : null
+                        });
+                    };
+
                     this.buildSearchPointWidgetsForResponse = function (response, parentScope) {
                         if (response.isError ||
                             !_.isArray(response.records) ||
@@ -216,6 +231,13 @@ function ($scope) {
     };
     $scope.group3 = {
         open: false
+    };
+}])
+
+.directive('stealth.air.geo.ol3.layers.liveStyle', [
+function () {
+    return {
+        templateUrl: 'air/geo/ol3/layers/livestyle.tpl.html'
     };
 }])
 ;

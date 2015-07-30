@@ -1,0 +1,30 @@
+<div class="layerStyleLiveAirWmsLayer layerStyleGrouping">
+    <ui-include src="'core/geo/ol3/layers/layer-fragments.tpl.html'" fragment="'.dragHandle'"></ui-include>
+    <ui-include src="'core/geo/ol3/layers/layer-fragments.tpl.html'" fragment="'.layerStyleRow.visibilityName'"></ui-include>
+    <ui-include src="'core/geo/ol3/layers/layer-fragments.tpl.html'" fragment="'.layerStyleRow.opacitySlider'"></ui-include>
+    <div class="layerStyleRow">
+        <div class="cell" style="padding-left:20px">Show halos?</div>
+        <div class="cell">
+            <stealth.core.utils.checkbox
+                checked="viewState.showHalo"
+                toggle="viewState.showHalo = !viewState.showHalo;refreshStyleEnv()"
+                tooltip-text="<span style='white-space:nowrap'>Toggle halos</span>"
+                tooltip-placement="top">
+            </stealth.core.utils.checkbox>
+        </div>
+        <div class="cell" ng-class="{'ng-hide': !viewState.showHalo}">
+            <div class="cell" style="padding-left:5px">Color:</div>
+            <div class="cell">
+                <span class="btn btn-default toggleButton"
+                      ng-style="{'background-color': viewState.haloColor}"
+                      colorpicker colorpicker-position="bottom"
+                      ng-model="viewState.haloColor"
+                      ng-change="refreshStyleEnv()"
+                      tooltip-html-unsafe="<span style='white-space:nowrap'>Change halo color</span>"
+                      tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
+                      tooltip-trigger="mouseenter">
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
