@@ -349,6 +349,12 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
         this.styleDirectiveScopeAttrs += " layer='layer'";
         this.styleDirectiveScope.stores = _stores;
         this.styleDirectiveScopeAttrs += " stores='stores'";
+        this.styleDirectiveScope.sortableOptions = {
+            handle: '.dragHandle',
+            stop: function(evt, ui) {
+                _self.redrawCurrent();
+            }
+        };
         this.styleDirectiveScope.sizeChanged = function (store, size) {
             if (!angular.isNumber(size)) { // Prevents deleting number in input field.
                 size = 1;
