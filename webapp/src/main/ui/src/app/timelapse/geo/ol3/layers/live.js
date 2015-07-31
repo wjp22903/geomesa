@@ -1,13 +1,17 @@
 angular.module('stealth.timelapse.geo.ol3.layers', [
-    'stealth.core.geo.ol3.map'
+    'stealth.core.geo.ol3.map',
+    'stealth.core.geo.ol3.overlays'
 ])
 
 .factory('stealth.timelapse.geo.ol3.layers.LiveWmsLayer', [
 'stealth.core.geo.ol3.layers.PollingImageWmsLayer',
+'stealth.core.geo.ol3.overlays.HighlightLayer',
 'tlWizard',
 'summaryExploreMgr',
-function (PollingImageWmsLayer, tlWizard, summaryExploreMgr) {
+function (PollingImageWmsLayer, HighlightLayer, tlWizard, summaryExploreMgr) {
     var LiveWmsLayer = function (name, requestParams, layerThisBelongsTo, queryable, wmsUrl) {
+        var _highlightLayer = new HighlightLayer();
+
         PollingImageWmsLayer.call(this, {
             name: name,
             requestParams: requestParams,
@@ -42,6 +46,10 @@ function (PollingImageWmsLayer, tlWizard, summaryExploreMgr) {
         };
 
         this.styleDirectiveScope.styleVars.iconClass = 'fa fa-fw fa-lg fa-clock-o';
+
+        this.getHighlightLayer = function () {
+            return _highlightLayer;
+        };
     };
     LiveWmsLayer.prototype = Object.create(PollingImageWmsLayer.prototype);
 

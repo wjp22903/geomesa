@@ -1,7 +1,6 @@
 angular.module('stealth.air.geo.ol3.layers', [
     'stealth.core.geo.ol3.follow',
     'stealth.core.geo.ol3.format',
-    'stealth.core.geo.ol3.overlays',
     'stealth.core.geo.ows',
     'stealth.core.utils'
 ])
@@ -15,12 +14,11 @@ angular.module('stealth.air.geo.ol3.layers', [
 '$q',
 'toastr',
 'wfs',
-'highlightManager',
 'mapFollowManager',
 'stealth.core.utils.WidgetDef',
 'stealth.core.geo.ol3.format.GeoJson',
 'CONFIG',
-function ($rootScope, $q, toastr, wfs, highlightManager, mapFollowManager, WidgetDef, GeoJson, CONFIG) {
+function ($rootScope, $q, toastr, wfs, mapFollowManager, WidgetDef, GeoJson, CONFIG) {
     var ERR_NO_FEATURES = 'No features found';
     return {
         getConstructor: function (LiveWmsLayer) {
@@ -45,6 +43,7 @@ function ($rootScope, $q, toastr, wfs, highlightManager, mapFollowManager, Widge
                     var _idField = _.get(_layerThisBelongsTo.KeywordConfig, ['air', 'live', _layerThisBelongsTo.stealthWorkspace, 'idField']);
                     var _omitSearchProps = _.keys(_.get(_layerThisBelongsTo.KeywordConfig, 'field.hide'));
                     var _parser = new GeoJson();
+                    var _highlightLayer = _self.getHighlightLayer();
                     var _refreshRecordFeature = function (record) {
                         var queryResponse;
                         var params = {
@@ -99,7 +98,7 @@ function ($rootScope, $q, toastr, wfs, highlightManager, mapFollowManager, Widge
                                                 highlightFeature.setGeometry(geom);
                                             }
                                             if (!inOverlay && tabFocused) {
-                                                var highlightColor = highlightManager.addFeature(highlightFeature);
+                                                var highlightColor = _highlightLayer.addFeature(highlightFeature);
                                                 inOverlay = true;
                                                 if (s.highlight['border-color'] !== highlightColor) {
                                                     s.$applyAsync(function () {
@@ -171,7 +170,7 @@ function ($rootScope, $q, toastr, wfs, highlightManager, mapFollowManager, Widge
                                             toggleFollowing();
                                         }
                                         if (inOverlay) {
-                                            highlightManager.removeFeature(highlightFeature);
+                                            _highlightLayer.removeFeature(highlightFeature);
                                             inOverlay = false;
                                         }
                                     }
