@@ -42,7 +42,6 @@ describe('Service', function () {
             expect(result).to.equal('(6) OR (7 AND INCLUDE)');
         });
 
-
         it('should build dtg filters from dates', function () {
             var start = '2000-01-01T00:00:00.000Z';
             var end = '2001-12-31T23:59:59.999Z';
@@ -59,7 +58,6 @@ describe('Service', function () {
             expect(result).to.equal('mydtg BEFORE ' + end);
         });
 
-
         it('should build dtg filters from strings', function () {
             var start = '2000-01-01T00:00:00.000Z';
             var end = '2001-12-31T23:59:59.999Z';
@@ -75,7 +73,6 @@ describe('Service', function () {
             result = cqlHelper.buildDtgFilter('mydtg', null, endDtg, true);
             expect(result).to.equal("mydtg <= '" + end + "'");
         });
-
 
         it('should build dtg filters from strings with alternate formatting', function () {
             var start = '2000-01-01T00:00:00.000Z';
@@ -98,6 +95,23 @@ describe('Service', function () {
             expect(result).to.equal("mydtg <= '" + endFormatted + "'");
         });
 
+        it('should build dtg filters without invalid dtgs', function () {
+            var start = '2000-01-01T00:00:00.000Z';
+            var startDtg = moment(start);
+            var end = '2000-02-01T00:00:00.000Z';
+            var endDtg = moment(end);
+            var invalidStart = '2000-01-00T00:00:00.000Z';
+            var invalidStartDtg = moment(invalidStart);
+            var invalidEnd = '2000-02-01T28:00:00.000Z';
+            var invalidEndDtg = moment(invalidEnd);
+            var result;
+            result = cqlHelper.buildDtgFilter('mydtg', invalidStartDtg, endDtg, true);
+            expect(result).to.equal("mydtg <= '" + end + "'");
+            result = cqlHelper.buildDtgFilter('mydtg', startDtg, invalidEndDtg);
+            expect(result).to.equal('mydtg AFTER ' + start);
+            result = cqlHelper.buildDtgFilter('mydtg', invalidStartDtg, invalidEndDtg);
+            expect(result).to.equal('INCLUDE');
+        });
 
         it('should build bbox filters', function () {
             var result;

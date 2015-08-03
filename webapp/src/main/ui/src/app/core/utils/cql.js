@@ -52,7 +52,7 @@ function () {
     this.buildDtgFilter = function (dtgField, startDtg, endDtg, dtgFieldIsString, dtgFormatter) {
         var _dtgFieldIsString = !!dtgFieldIsString;
         var fmtDate = _.isFunction(dtgFormatter) ? dtgFormatter : function (dtg) { return dtg.toISOString(); };
-        if (startDtg && endDtg) {
+        if (moment.isMoment(startDtg) && startDtg.isValid() && moment.isMoment(endDtg) && endDtg.isValid()) {
             var start = startDtg;
             var end = endDtg;
             if (startDtg.isAfter(endDtg)) {
@@ -64,13 +64,13 @@ function () {
             } else {
                 return dtgField + ' DURING ' + fmtDate(start) + '/' + fmtDate(end);
             }
-        } else if (startDtg) {
+        } else if (moment.isMoment(startDtg) && startDtg.isValid()) {
             if (_dtgFieldIsString) {
                 return dtgField + " >= '" + fmtDate(startDtg) + "'";
             } else {
                 return dtgField + ' AFTER ' + fmtDate(startDtg);
             }
-        } else if (endDtg) {
+        } else if (moment.isMoment(endDtg) && endDtg.isValid()) {
             if (_dtgFieldIsString) {
                 return dtgField + " <= '" + fmtDate(endDtg) + "'";
             } else {
