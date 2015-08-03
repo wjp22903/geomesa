@@ -211,5 +211,11 @@ function ($scope) {
     $scope.group1 = {
         open: false
     };
+    $scope.group2 = {
+        open: false
+    };
+    $scope.group3 = {
+        open: false
+    };
 }])
 ;

@@ -47,14 +47,33 @@
                         <td>{{record.isOld}}</td>
                     </tr>
                 </table>
+            </accordion-group>
+            <accordion-group is-open="group2.open">
+                <accordion-heading>
+                    <div>
+                        Source Data
+                        <i class="pull-right fa fa-fw"
+                           ng-class="{'fa-chevron-down': !group2.open, 'fa-chevron-up': group2.open}">
+                        </i>
+                    </div>
+                </accordion-heading>
                 <table class="trackContent">
-                    <tr>
-                        <th colspan="4">Track Data</th>
-                    </tr>
                     <tr>
                         <td class="labelCell" style="background-color:#E0F0FF;">Label</td>
                         <td ng-class="{positiveBool: record.label}">{{record.label}}</td>
                     </tr>
+                </table>
+            </accordion-group>
+            <accordion-group is-open="group3.open">
+                <accordion-heading>
+                    <div>
+                        Recent Obs Info
+                        <i class="pull-right fa fa-fw"
+                           ng-class="{'fa-chevron-down': !group3.open, 'fa-chevron-up': group3.open}">
+                        </i>
+                    </div>
+                </accordion-heading>
+                <table class="trackContent">
                     <tr>
                         <td class="labelCell" style="background-color:#FFBC59;">Sub-label</td>
                         <td ng-class="{positiveBool: record.subLabel}">{{record.subLabel}}</td>
