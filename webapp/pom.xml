@@ -602,6 +602,7 @@
                 <app.plugins>
                     [
                         'stealth.air',
+                        'stealth.alerts',
                         'stealth.timelapse',
                         'stealth.mediator.air-timelapse'
                     ]

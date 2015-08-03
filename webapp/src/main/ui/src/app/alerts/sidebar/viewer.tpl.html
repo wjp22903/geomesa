@@ -1,0 +1,40 @@
+<div class="anchorAll">
+    <div>
+        <div style="background-color:#f0f0f0;margin:2px 4px;border-radius:3px;padding-left:4px;"
+             ng-repeat="(workspace, layers) in workspaces">
+            <div><strong>{{::workspace}}</strong></div>
+            <span ng-repeat="layer in layers"
+                  style="margin:0 6px 0 4px;white-space:nowrap;display:inline-block;">
+                <input type="checkbox"
+                       ng-model="layer.alertState.toggledOn"
+                       ng-change="toggleLayerAlerts(layer)"> {{::layer.Title | characters:40:true}}
+            </span>
+        </div>
+    </div>
+    <div st-alerts-container class="alerts" style="overflow:auto;">
+        <div ng-repeat="alert in alerts"
+             ng-if="alert.layer.alertState.toggledOn"
+             class="alertListItem"
+             ng-click="selectAlert($event, alert)"
+             ng-class="{selected: isSelected(alert), new: alert.isNew}">
+            {{::alert.feature.getProperties().label}}
+        </div>
+    </div>
+    <div class="category anchorBottom anchorLeftRight">
+        <div style="background-color:#dddddd;">
+            <i class="fa fa-fw fa-lg fa-search"></i>
+            Alert Details
+        </div>
+        <div>
+            <div ng-class="{'ng-hide': !(selectedAlert.record | lodash:'isUndefined')}">
+                <strong>Select an alert in the list above to view details.</strong>
+            </div>
+            <st-live-air-wms-layer-popup
+                 ng-class="{'ng-hide': (selectedAlert.record | lodash:'isUndefined')}"
+                 name="name"
+                 capabilities="capabilities"
+                 record="selectedAlert.record"
+                 trackended="selectedAlert.trackEnded"></st-live-air-wms-layer-popup>
+        </div>
+    </div>
+</div>

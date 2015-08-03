@@ -118,6 +118,7 @@
         <app.plugins>
             [
                 'stealth.air',
+                'stealth.alerts',
                 'stealth.crawl',
                 'stealth.dcm',
                 'stealth.histogram',

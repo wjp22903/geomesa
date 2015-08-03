@@ -27,6 +27,7 @@ function ($log, $q, wfs, colors, ol3Styles, clickSearchHelper, MapLayer, GeoJson
         var _layerThisBelongsTo = _options.layerThisBelongsTo;
         var _geoserverUrl = _options.geoserverUrl || CONFIG.geoserver.defaultUrl;
         var _requestParams = _options.requestParams || {};
+        var _extraStyleBuilder = _options.extraStyleBuilder;
         var _typeName = _layerThisBelongsTo.Name;
         var _omitSearchProps = _.keys(_.get(_layerThisBelongsTo.KeywordConfig, 'field.hide'));
         var _viewState = {
@@ -37,29 +38,47 @@ function ($log, $q, wfs, colors, ol3Styles, clickSearchHelper, MapLayer, GeoJson
             size: 4
         };
         var _styleFunction = function (feature) {
-            var style;
+            var style = [];
             switch (feature.getGeometry().getType()) {
                 case ol.geom.GeometryType.MULTI_LINE_STRING:
                 case ol.geom.GeometryType.LINEAR_RING:
                 case ol.geom.GeometryType.LINE_STRING:
-                    style = ol3Styles.getLineStyle(_viewState.size, _viewState.fillColor);
+                    style.push(ol3Styles.getLineStyle(_viewState.size, _viewState.fillColor));
                     break;
                 case ol.geom.GeometryType.MULTI_POLYGON:
                 case ol.geom.GeometryType.CIRCLE:
                 case ol.geom.GeometryType.POLYGON:
-                    style = ol3Styles.getPolyStyle(_viewState.size, _viewState.fillColor);
+                    style.push(ol3Styles.getPolyStyle(_viewState.size, _viewState.fillColor));
                     break;
                 case ol.geom.GeometryType.MULTI_POINT:
                 case ol.geom.GeometryType.POINT:
-                    style = ol3Styles.getPointStyle(_viewState.size, _viewState.fillColor);
+                    style.push(ol3Styles.getPointStyle(_viewState.size, _viewState.fillColor));
                     break;
+            }
+            if (_.isFunction(_extraStyleBuilder)) {
+                Array.prototype.push.apply(style, _extraStyleBuilder(_viewState.size, _viewState.fillColor));
             }
             return style;
         };
         var _loadFeatures = function (features) {
             var parsedFeatures = parser.readFeatures(features);
-            _olSource.clear(true);
-            _olSource.addFeatures(parsedFeatures);
+            var existingFeatures = _olSource.getFeatures();
+            _.each(parsedFeatures, function (feature) {
+                var featureId = feature.getId();
+                var existingFeature = _.find(existingFeatures, function (ef) {
+                    return ef.getId() === featureId;
+                });
+                if (!_.isUndefined(existingFeature)) {
+                    _.pull(existingFeatures, existingFeature);
+                    existingFeature.setGeometry(feature.getGeometry());
+                    existingFeature.setProperties(feature.getProperties());
+                } else {
+                    _olSource.addFeature(feature);
+                }
+            });
+            _.each(existingFeatures, function (feature) {
+                _olSource.removeFeature(feature);
+            });
         };
         var _loadStart = function () {
             _self.styleDirectiveScope.$evalAsync(function () {
@@ -126,7 +145,7 @@ function ($log, $q, wfs, colors, ol3Styles, clickSearchHelper, MapLayer, GeoJson
 
         _self.getViewState = function () { return _viewState; };
 
-        _self.getFeatures = function () { return _olSource.getFeatures(); };
+        _self.getSource = function () { return _olSource; };
 
         var getBaseCapabilities = this.getBaseCapabilities;
         _self.getBaseCapabilities = function () {

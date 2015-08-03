@@ -37,12 +37,13 @@ function ($rootScope, catMgr, Category, WidgetDef) {
 'stealth.timelapse.geo.ol3.layers.LiveWmsLayer',
 'tlLayerManager',
 'summaryExploreMgr',
+'pollingManager',
 'stealth.timelapse.stores.BinStore',
 'liveWizard',
 'tlWizard',
 'CONFIG',
 function ($log, $timeout, cqlHelper, owsLayers, ol3Map, LiveWmsLayer, tlLayerManager,
-          summaryExploreMgr, BinStore, liveWizard, tlWizard, CONFIG) {
+          summaryExploreMgr, pollingManager, BinStore, liveWizard, tlWizard, CONFIG) {
     var tag = 'stealth.core.geo.context.stTimelapseGeoCategory: ';
     $log.debug(tag + 'directive defined');
     return {
@@ -323,7 +324,6 @@ function ($log, $timeout, cqlHelper, owsLayers, ol3Map, LiveWmsLayer, tlLayerMan
                     };
                     var LiveConstructor = $scope.LiveConstructor || LiveWmsLayer;
                     var pollingLayer = new LiveConstructor(layer.Title, requestParams, layer.layerThisBelongsTo, true);
-                    pollingLayer.setPollingInterval($scope.liveRefresh.value * 1000);
                     var ol3Layer = pollingLayer.getOl3Layer();
                     layer.mapLayerId = pollingLayer.id;
                     layer.viewState.isOnMap = true;
@@ -400,19 +400,7 @@ function ($log, $timeout, cqlHelper, owsLayers, ol3Map, LiveWmsLayer, tlLayerMan
             };
 
             $scope.refreshValChanged = function (refreshInSecs) {
-                _.each($scope.workspaces.live, function (ws) {
-                    _.each(ws, function (layer) {
-                        _.each(layer.filterLayers, function (filterLayer) {
-                            var id = filterLayer.mapLayerId;
-                            if (!_.isUndefined(id) && !_.isNull(id)) {
-                                var l = ol3Map.getLayerById(id);
-                                if (!_.isUndefined(l)) {
-                                    l.setPollingInterval(refreshInSecs * 1000);
-                                }
-                            }
-                        });
-                    });
-                });
+                pollingManager.setPollingInterval(refreshInSecs * 1000);
             };
 
             $scope.refreshNow = function () {

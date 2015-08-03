@@ -210,9 +210,9 @@ function () {
             name: '=',
             capabilities: '=',
             record: '=',
-            highlight: '=',
-            following: '=',
-            trackended: '='
+            highlight: '=?',
+            following: '=?',
+            trackended: '=?'
         },
         controller: 'liveAirPopupController',
         controllerAs: 'liveAirPopCtrl',

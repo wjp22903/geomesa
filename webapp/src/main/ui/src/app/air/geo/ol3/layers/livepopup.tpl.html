@@ -11,6 +11,7 @@
         </span>
         <strong>{{record.label}}</strong>&nbsp;{{(record.subLabel | lodash:'isEmpty') ? '' : '/&nbsp;' + record.subLabel}}
         <span class="btn btn-default fa-stack toggleButton pull-right"
+              ng-if="$parent.$parent.removeTab"
               ng-click="$parent.$parent.removeTab($parent.tab)">
             <i class="fa fa-fw fa-remove fa-stack-1x text-danger"></i>
         </span>
