@@ -250,7 +250,7 @@
             <dependency>
                 <groupId>com.ccri.spring</groupId>
                 <artifactId>external-auth</artifactId>
-                <version>1.0.2-SNAPSHOT</version>
+                <version>1.0.2</version>
             </dependency>
             <dependency>
                 <groupId>com.ccri.stealth</groupId>
