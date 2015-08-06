@@ -228,10 +228,21 @@ function ($log, $q, $filter, toastr, colors, clickSearchHelper, sorter) {
             return $q.when({
                 name: _name,
                 isError: false,
-                layerFill: {
-                    color: _fillColorHexString
+                getLayerLegendStyle: function () {
+                    if (_viewState.colorById) {
+                        return {display: 'none'};
+                    } else {
+                        return {color: _fillColorHexString};
+                    }
                 },
                 records: this.searchPointAndTimeForRecords(coord, res, startMillis, endMillis),
+                getRecordLegendStyle: function (r) {
+                    if (_viewState.colorById) {
+                        return {color: colors.getColor(r.id)};
+                    } else {
+                        return {display: 'none'};
+                    }
+                },
                 fieldTypes: [
                     {name: 'lat', localType: 'number'},
                     {name: 'lon', localType: 'number'},

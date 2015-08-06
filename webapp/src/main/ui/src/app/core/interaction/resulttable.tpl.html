@@ -3,7 +3,11 @@
          ng-class="'result' + result.id + 'Header'">
         <div class="searchResultTableHeaderCaption">
             <st-pager class="pull-left searchResultTablePager" records='result.records' paging='result.paging'></st-pager>
-            <i class="fa fa-fw fa-square" ng-style="result.layerFill"></i>
+            <!-- if getLayerLegendStyle is a function, call to apply style otherwise skip -->
+            <span ng-if="(result.getLayerLegendStyle | lodash:'isFunction')"
+                  class="fa fa-fw fa-square colorBox"
+                  ng-style="result.getLayerLegendStyle()">
+            </span>
             <span>{{ ::result.name }}</span>
             <span class="pull-right" style="font-weight:normal;">
                 <span class="btn btn-default fa-stack toggleButton"
@@ -18,9 +22,14 @@
             <div ng-repeat="record in result.records | startFrom:(result.paging.currentPage-1)*result.paging.pageSize | limitTo:result.paging.pageSize"
                  class="searchResultTableRowCell" ng-class="'result' + result.id + 'Col' + $index">
                 <span class="btn btn-default fa-stack toggleButton"
-                      style="vertical-align:top;"
+                      style="vertical-align:text-top;"
                       ng-click="resultTableCtrl.removeRecord(result, record)">
                     <i class="fa fa-fw fa-remove fa-stack-1x text-danger"></i>
+                </span>
+                <!-- Draw the color box by the record's color if present -->
+                <span ng-if="(result.getRecordLegendStyle | lodash:'isFunction')"
+                      class="fa fa-lg fa-fw fa-square colorBox"
+                      ng-style="result.getRecordLegendStyle(record)">
                 </span>
                 <span ng-repeat="capa in result.capabilities"
                       class="btn btn-default fa-stack toggleButton"

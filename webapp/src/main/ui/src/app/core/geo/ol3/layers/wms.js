@@ -192,8 +192,8 @@ function ($log, $q, toastr, wfs, clickSearchHelper, cqlHelper, MapLayer, CONFIG)
                             records: _.map(_.pluck(trimmedFeatures, 'properties'), function (record) {
                                 return _.omit(record, _omitSearchProps);
                             }),
-                            layerFill: {
-                                display: 'none'
+                            getLayerLegendStyle: function () {
+                                return {display: 'none'};
                             }
                         });
                     }, function () {

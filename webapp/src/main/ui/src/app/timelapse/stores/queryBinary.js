@@ -105,8 +105,8 @@ function ($log, $rootScope, $q, $filter, $window, toastr, cqlHelper, clickSearch
                 deferred.resolve({
                     name: _thisStore.getName(),
                     isError: false,
-                    layerFill: {
-                        color: _thisStore.getFillColorHexString()
+                    getLayerLegendStyle: function () {
+                        return {color: _thisStore.getFillColorHexString()};
                     },
                     records: records,
                     capabilities: capabilities,

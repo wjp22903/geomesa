@@ -54,8 +54,10 @@ function () {
         }
         if (index >= _colors.length) {
             _currentColorIndex = index % _colors.length;
+            index = _currentColorIndex;
         } else if (index < 0) {
             _currentColorIndex = 0;
+            index = _currentColorIndex;
         }
         return _colors[index];
     };

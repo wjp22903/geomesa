@@ -82,7 +82,7 @@ function ($log, $rootScope, $q, $timeout, coreCapabilitiesExtender, WidgetDef) {
              * @property {string} [reason]
              * @property {object} capabilities
              * @property {object[]} [records] - the search results
-             * @property {object} [layerFill]
+             * @property {function} [getLayerLegendStyle]
              * @property {object[]} [featureTypes]
              * @property {boolean} [isFilterable]
              * @property {function} [filterHandler]

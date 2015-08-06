@@ -170,8 +170,8 @@ function ($log, $q, wfs, colors, ol3Styles, clickSearchHelper, MapLayer, GeoJson
 
         _self.searchPoint = function (coord, resolution) {
             var baseResponse = _.merge(this.getEmptySearchPointResult(), {
-                layerFill: {
-                    color: _viewState.fillColor
+                getLayerLegendStyle: function () {
+                    return {color: _viewState.fillColor};
                 }
             });
             var clickOverrides = clickSearchHelper.getLayerOverrides(_layerThisBelongsTo.KeywordConfig);
