@@ -182,6 +182,7 @@ function ($log, $rootScope, $timeout,
                         var tempLayerIdx = scope.layers.indexOf(tempLayer[0]);
                         scope.layers.splice(tempLayerIdx, tempLayerIdx + 1);
                         scope.layers.push(layer);
+                        $rootScope.$emit('updateRouteAnalysisLayers');
                     });
             }, function (reason) {
                 scope.layers.pop();

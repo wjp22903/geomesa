@@ -203,27 +203,45 @@ function ($log, $rootScope, $timeout,
         );
     };
 
-    var keywordPrefix = 'routeanalysis';
-    owsLayers.getLayers(keywordPrefix)
-        .then(function (layers) {
-            $log.debug('owsLayers.getLayers()');
-            _.each(layers, function (l) {
-                var gsLayer = _.cloneDeep(l);
-                gsLayer.derivedLayers = [];
-                getFeatureTypeDescription(gsLayer);
+    $rootScope.$on('updateRouteAnalysisLayers', function(event) {
+        updateRouteAnalysisLayers();
+    });
 
-                _.each(_.get(gsLayer.KeywordConfig, keywordPrefix), function (conf, role, keywordObj) {
-                    var workspaceObj = keywordObj[role];
-                    _.forOwn(workspaceObj, function (value, workspace) {
-                        if (_.isArray(scope.workspaces[workspace])) {
-                            scope.workspaces[workspace].push(gsLayer);
-                        } else {
-                            scope.workspaces[workspace] = [gsLayer];
-                        }
+    var updateRouteAnalysisLayers = function() {
+        getRouteAnalysisLayers(true);
+    };
+
+    var getRouteAnalysisLayers = function(checkForDuplicates) {
+        var keywordPrefix = 'routeanalysis';
+        owsLayers.getLayers(keywordPrefix, true)
+            .then(function (layers) {
+                $log.debug('owsLayers.getLayers()');
+                _.each(layers, function (l) {
+                    var gsLayer = _.cloneDeep(l);
+                    gsLayer.derivedLayers = [];
+                    getFeatureTypeDescription(gsLayer);
+
+                    _.each(_.get(gsLayer.KeywordConfig, keywordPrefix), function (conf, role, keywordObj) {
+                        var workspaceObj = keywordObj[role];
+                        _.forOwn(workspaceObj, function (value, workspace) {
+                            if (_.isArray(scope.workspaces[workspace])) {
+                                if (checkForDuplicates) {
+                                    if (!_.any(scope.workspaces[workspace], {Name: gsLayer.Name})) {
+                                        scope.workspaces[workspace].push(gsLayer);
+                                    }
+                                } else {
+                                    scope.workspaces[workspace].push(gsLayer);
+                                }
+                            } else {
+                                scope.workspaces[workspace] = [gsLayer];
+                            }
+                        });
                     });
                 });
             });
-        });
+    };
+
+    getRouteAnalysisLayers(false);
 
     routeAnalysisWizard.setCategoryScope(scope);
 
