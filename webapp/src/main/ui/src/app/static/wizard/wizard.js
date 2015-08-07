@@ -4,6 +4,7 @@ angular.module('stealth.static.wizard')
 '$log',
 '$rootScope',
 '$filter',
+'toastr',
 'wizardManager',
 'ol3Map',
 'ol3Styles',
@@ -14,10 +15,12 @@ angular.module('stealth.static.wizard')
 'stealth.static.wizard.Query',
 'stealth.core.utils.WidgetDef',
 'staticWorkspaceManager',
+'wps',
+'boundsHelper',
 'CONFIG',
-function ($log, $rootScope, $filter,
+function ($log, $rootScope, $filter, toastr,
           wizardManager, ol3Map, ol3Styles, colors, cqlHelper,
-          Step, Wizard, Query, WidgetDef, staticWorkspaceManager, CONFIG) {
+          Step, Wizard, Query, WidgetDef, staticWorkspaceManager, wps, boundsHelper, CONFIG) {
     var tag = 'stealth.static.wizard.staticLayerWizard: ';
     $log.debug(tag + 'service started');
 
@@ -84,6 +87,22 @@ function ($log, $rootScope, $filter,
                             wizScope.query.params.minLat = -90;
                             wizScope.query.params.maxLon = 180;
                             wizScope.query.params.maxLat = 90;
+                        },
+                        setEventBounds: function () {
+                            var templateFn = stealth.jst['wps/bounds.xml'];
+                            var req = templateFn({
+                                layerName: wizScope.layer.Name
+                            });
+                            wps.submit(CONFIG.geoserver.defaultUrl, req, CONFIG.geoserver.omitProxy)
+                                .then(function (result) {
+                                    var bounds = boundsHelper.boundsFromXMLString(result);
+                                    wizScope.query.params.minLon = bounds[0];
+                                    wizScope.query.params.minLat = bounds[1];
+                                    wizScope.query.params.maxLon = bounds[2];
+                                    wizScope.query.params.maxLat = bounds[3];
+                                }, function (reason) {
+                                    toastr.error('Could not get events bounds. More details: ' + reason);
+                                });
                         },
                         setMapExtent: function () {
                             var bounds = parseBounds(ol3Map.getExtent());

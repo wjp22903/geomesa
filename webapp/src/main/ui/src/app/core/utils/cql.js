@@ -119,5 +119,15 @@ function () {
             params.cql
         );
     };
+
+    /**
+     * Creates a polygon from a bounds array
+     * @param {bounds[]} extent - Array representing bbox extent [minX, minY, maxX, maxY]
+     *
+     * @returns {string}
+     */
+    this.bboxToPolygon = function (bounds) {
+        return 'POLYGON((' + bounds[0] + ' ' + bounds[1] + ',' + bounds[0] + ' ' + bounds[3] + ',' + bounds[2] + ' ' + bounds[3] + ',' + bounds[2] + ' ' + bounds[1] + ',' + bounds[0] + ' ' + bounds[1] + '))';
+    };
 }])
 ;

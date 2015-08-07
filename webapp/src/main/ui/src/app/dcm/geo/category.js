@@ -26,14 +26,17 @@ function ($log, $rootScope,
 
     scope.layers = [];
     scope.workspaces = {};
-    scope.threatSurfaces = [];
 
     scope.removeLayer = function (layer) {
-        if (layer.viewState.isOnMap) {
+        if (layer.viewState.toggledOn) {
             scope.toggleVisibility(layer);
         }
         _.pull(scope.layers, layer);
-        _.pull(scope.threatSurfaces, layer);
+        ol3Map.removeLayerById(layer.mapLayerId);
+    };
+
+    scope.zoomToLayer = function (layer) {
+        ol3Map.fit(layer.EX_GeographicBoundingBox);
     };
 
     scope.toggleVisibility = function (layer) {
@@ -55,40 +58,48 @@ function ($log, $rootScope,
 
     scope.addThreatSurfaces = function (threatSurfaces) {
         threatSurfaces.forEach(function (threatSurface) {
-            var layer = _.cloneDeep(threatSurface);
-            layer.viewState = {
-                isOnMap: false,
-                toggledOn: false,
-                isLoading: false,
-                lastOpacity: 1
-            };
+            var match = _.find(scope.layers, function (l) {
+                return l.Name === threatSurface.Name;
+            });
+            if (!match) {
+                var layer = _.cloneDeep(threatSurface);
+                layer.viewState = {
+                    isOnMap: false,
+                    toggledOn: false,
+                    isLoading: false,
+                    lastOpacity: 1
+                };
 
-            var requestParams = {
-                LAYERS: layer.Name,
-                cql_filter: null
-            };
+                var requestParams = {
+                    LAYERS: layer.Name,
+                    cql_filter: null
+                };
 
-            var options = {
-                name: layer.Name,
-                layerThisBelongsTo: layer,
-                requestParams: requestParams,
-                queryable: true,
-                opacity: 1,
-                zIndexHint: 10,
-                isTiled: false
-            };
+                var options = {
+                    name: layer.Name,
+                    layerThisBelongsTo: layer,
+                    requestParams: requestParams,
+                    queryable: true,
+                    opacity: 1,
+                    zIndexHint: -5,
+                    isTiled: false
+                };
 
-            var wmsLayer = new WmsLayer(options);
-            var ol3Layer = wmsLayer.getOl3Layer();
+                var wmsLayer = new WmsLayer(options);
+                var ol3Layer = wmsLayer.getOl3Layer();
 
-            layer.mapLayerId = wmsLayer.id;
-            layer.viewState.isOnMap = true;
-            layer.viewState.toggledOn = ol3Layer.getVisible();
-            layer.OriginalTitle = angular.copy(layer.Title);
-            layer.editTitle = false;
+                layer.mapLayerId = wmsLayer.id;
+                layer.viewState.isOnMap = true;
+                layer.viewState.toggledOn = ol3Layer.getVisible();
+                layer.OriginalTitle = angular.copy(layer.Title);
+                layer.editTitle = false;
+                layer.metadata.date = moment.utc(layer.metadata.date._d);
 
-            ol3Map.addLayer(wmsLayer);
-            scope.threatSurfaces.push(layer);
+                ol3Map.addLayer(wmsLayer);
+                scope.layers.push(layer);
+            } else {
+                toastr.error("Spatial Prediction already added to map.");
+            }
         });
     };
 
@@ -102,14 +113,16 @@ function ($log, $rootScope,
     };
 
     scope.runDcmQuery = function (prediction) {
-        var storeTitle = prediction.name ? prediction.name : dcmQueryService.getStoreName(prediction.predictiveFeatures, prediction.predictiveCoverages, prediction.events);
+        var storeTitle = prediction.name;
         var tempLayer = {
+            Name: prediction.workspace.name + ":" + storeTitle,
             Title: storeTitle,
             viewState: {
                 isLoading: true
             }
         };
         scope.layers.push(tempLayer);
+        scope.tempLayer = tempLayer;
         dcmQueryService.doDcmQuery({
             geometry: prediction.geometry,
             predictiveFeatures: prediction.predictiveFeatures,
@@ -128,7 +141,6 @@ function ($log, $rootScope,
             description: prediction.description,
             bounds: prediction.bounds
         }).then(function (output) {
-            console.log(output);
             owsLayers.getLayers(['dcm', 'prediction'], true)
                 .then(function (layers) {
                     $log.debug('owsLayers.getLayers()');
@@ -166,10 +178,14 @@ function ($log, $rootScope,
                     layer.viewState.toggledOn = ol3Layer.getVisible();
                     layer.editTitle = false;
                     layer.OriginalTitle = angular.copy(layer.Title);
+                    layer.metadata = angular.fromJson(layer.Abstract);
+                    layer.Abstract = angular.fromJson(layer.Abstract).description;
+                    layer.metadata.date = moment.utc(layer.metadata.date);
+                    layer.showMetadata = false;
 
                     ol3Map.addLayer(wmsLayer);
                     var tempLayer = scope.layers.filter(function (l) {
-                        return layer.Title.startsWith(l.Title);
+                        return layer.Name === l.Name;
                     });
                     var tempLayerIdx = scope.layers.indexOf(tempLayer[0]);
                     scope.layers.splice(tempLayerIdx, tempLayerIdx + 1);
@@ -177,7 +193,8 @@ function ($log, $rootScope,
                     $rootScope.$emit('updateRouteAnalysisLayers');
                 });
         }, function (reason) {
-            scope.layers.pop();
+            var removeLayerIdx = scope.layers.indexOf(scope.tempLayer);
+            scope.layers.splice(removeLayerIdx, removeLayerIdx + 1);
             toastr.error(reason);
         });
     };

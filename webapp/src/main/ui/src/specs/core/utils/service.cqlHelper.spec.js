@@ -118,6 +118,12 @@ describe('Service', function () {
             result = cqlHelper.buildBboxFilter('mygeom', [1, 2, 3, 4]);
             expect(result).to.equal('BBOX(mygeom,1,2,3,4)');
         });
+
+        it('should build a polygon from a bbox bounds array', function () {
+            var bboxBounds = [-180, -90, 180, 90];
+            var result = cqlHelper.bboxToPolygon(bboxBounds);
+            expect(result).to.equal('POLYGON((-180 -90,-180 90,180 90,180 -90,-180 -90))');
+        });
     });
 })
 ;

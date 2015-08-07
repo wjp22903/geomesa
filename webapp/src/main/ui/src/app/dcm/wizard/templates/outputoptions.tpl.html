@@ -46,7 +46,7 @@
             <tr>
                 <td style="padding-top:2px"><label>Prediction Name<span ng-show="prediction.predictiveFeatures.length + prediction.predictiveCoverages.length > 4">*</span>: </label></td>
                 <td>
-                    <input type="text" class="form-control" ng-model="prediction.name" ng-required="prediction.predictiveFeatures.length + prediction.predictiveCoverages.length > 4">
+                    <input type="text" class="form-control" ng-model="prediction.name" ng-required="prediction.predictiveFeatures.length + prediction.predictiveCoverages.length > 4" ng-blur="checkDuplicateName(prediction.name)">
                 </td>
             </tr>
             <tr>

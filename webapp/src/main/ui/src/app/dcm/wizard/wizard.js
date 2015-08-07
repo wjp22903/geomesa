@@ -16,6 +16,7 @@ function (startMenuManager, dcmWizard) {
 'ol3Map',
 'wizardManager',
 'colors',
+'cqlHelper',
 'stealth.core.geo.ol3.layers.MapLayer',
 'stealth.core.wizard.Step',
 'stealth.core.wizard.Wizard',
@@ -23,10 +24,12 @@ function (startMenuManager, dcmWizard) {
 'owsLayers',
 'wfs',
 'wps',
+'toastr',
+'boundsHelper',
 'CONFIG',
 function ($log, $rootScope, $filter,
-          ol3Map, wizardManager, colors,
-          MapLayer, Step, Wizard, WidgetDef, owsLayers, wfs, wps, CONFIG) {
+          ol3Map, wizardManager, colors, cqlHelper,
+          MapLayer, Step, Wizard, WidgetDef, owsLayers, wfs, wps, toastr, boundsHelper, CONFIG) {
     var tag = 'stealth.dcm.wizard.dcmWizard: ';
     $log.debug(tag + 'service started');
 
@@ -36,6 +39,7 @@ function ($log, $rootScope, $filter,
 
     var vectorPrefix = ['dcm', 'vector'];
     var rasterPrefix = ['dcm', 'raster'];
+    var idSeq = 1;
 
     var getFeatureTypeDescription = function (gsLayer) {
         wfs.getFeatureTypeDescription(CONFIG.geoserver.defaultUrl,
@@ -113,7 +117,8 @@ function ($log, $rootScope, $filter,
                       [params.minLon, params.maxLat],
                       [params.minLon, params.minLat]]]
                 )
-            })]
+            })],
+            wrapX: false
         });
     }
 
@@ -125,6 +130,11 @@ function ($log, $rootScope, $filter,
         wizScope.rasterLayers = [];
         wizScope.eventLayers = [];
         wizScope.workspaces = [];
+        wizScope.allLayerNames = [];
+
+        if (CONFIG.userCn && CONFIG.userCn !== 'Anonymous') {
+            workspace = CONFIG.userCn;
+        }
 
         owsLayers.getLayers(vectorPrefix, true)
             .then(function (layers) {
@@ -170,6 +180,7 @@ function ($log, $rootScope, $filter,
                     if (!match && (!gsLayer.serverUrl || gsLayer.serverUrl === CONFIG.geoserver.defaultUrl)) {
                         wizScope.workspaces.push(workspace);
                     }
+                    wizScope.allLayerNames.push(l.Name.substring(l.Name.indexOf(':') + 1, l.Name.length));
                 });
                 if (CONFIG.userCn && CONFIG.userCn !== 'Anonymous') {
                     var match = _.find(wizScope.workspaces, function (workspace) {
@@ -227,7 +238,18 @@ function ($log, $rootScope, $filter,
         };
 
         wizScope.updateEventCql = function (event) {
-            wizScope.eventLayers.filter(function (ev) { return ev.Title === event.Title; })[0].cql_filter = event.cql_filter;
+            if (event) {
+                wizScope.eventLayers.filter(function (ev) { return ev.Title === event.Title; })[0].cql_filter = event.cql_filter;
+            }
+        };
+
+        wizScope.checkDuplicateName = function (name) {
+            var matchFound = _.find(wizScope.allLayerNames, function (layerName) {
+                return layerName === name;
+            });
+            if (matchFound) {
+                toastr.error("A layer with the name '" + name + "' already exists. Please choose another name.");
+            }
         };
 
         wizScope.prediction = {
@@ -249,7 +271,8 @@ function ($log, $rootScope, $filter,
                 minLat: -90,
                 maxLon: 180,
                 maxLat: 90
-            }
+            },
+            name: "Prediction " + idSeq++
         };
 
         steps.push(new Step('Choose predictive features',
@@ -290,12 +313,23 @@ function ($log, $rootScope, $filter,
                 if (!wizScope.boundWiz) {
                     wizScope.boundWiz = {
                         drawing: false,
-                        setWholeEarth: function () {
-                            wizScope.prediction.bounds.minLon = -180;
-                            wizScope.prediction.bounds.minLat = -90;
-                            wizScope.prediction.bounds.maxLon = 180;
-                            wizScope.prediction.bounds.maxLat = 90;
-                            ol3Layer.setSource(getBoxSource(wizScope.prediction.bounds));
+                        setEventBounds: function () {
+                            var templateFn = stealth.jst['wps/bounds.xml'];
+                            var req = templateFn({
+                                layerName: wizScope.prediction.events[0].Name
+                            });
+                            wps.submit(CONFIG.geoserver.defaultUrl, req, CONFIG.geoserver.omitProxy)
+                                .then(function (result) {
+                                    var bounds = boundsHelper.boundsFromXMLString(result);
+                                    wizScope.prediction.bounds.minLon = bounds[0];
+                                    wizScope.prediction.bounds.minLat = bounds[1];
+                                    wizScope.prediction.bounds.maxLon = bounds[2];
+                                    wizScope.prediction.bounds.maxLat = bounds[3];
+                                    wizScope.prediction.geometry = cqlHelper.bboxToPolygon(bounds);
+                                    ol3Layer.setSource(getBoxSource(wizScope.prediction.bounds));
+                                }, function (reason) {
+                                    toastr.error('Could not get events bounds. More details: ' + reason);
+                                });
                         },
                         setMapExtent: function () {
                             var bounds = parseBounds(ol3Map.getExtent());
@@ -303,6 +337,7 @@ function ($log, $rootScope, $filter,
                             wizScope.prediction.bounds.minLat = bounds[1];
                             wizScope.prediction.bounds.maxLon = bounds[2];
                             wizScope.prediction.bounds.maxLat = bounds[3];
+                            wizScope.prediction.geometry = cqlHelper.bboxToPolygon(bounds);
                             ol3Layer.setSource(getBoxSource(wizScope.prediction.bounds));
                         },
                         drawExtent: function () {
@@ -320,6 +355,7 @@ function ($log, $rootScope, $filter,
                         wizScope.prediction.bounds.minLat = bounds[1];
                         wizScope.prediction.bounds.maxLon = bounds[2];
                         wizScope.prediction.bounds.maxLat = bounds[3];
+                        wizScope.prediction.geometry = cqlHelper.bboxToPolygon(bounds);
                         ol3Layer.setSource(getBoxSource(wizScope.prediction.bounds));
                         ol3Map.removeInteraction(dragBox);
                         wizScope.boundWiz.drawing = false;
@@ -410,9 +446,16 @@ function ($log, $rootScope,
                 $log.debug('owsLayers.getLayers()');
                 _.each(layers, function (l) {
                     var gsLayer = _.cloneDeep(l);
-                    gsLayer.derivedLayers = [];
                     gsLayer.cql_filter = null;
                     gsLayer.showAttributes = false;
+                    try {
+                        gsLayer.metadata = angular.fromJson(gsLayer.Abstract);
+                        gsLayer.Abstract = gsLayer.metadata.description;
+                        gsLayer.metadata.date = moment.utc(gsLayer.metadata.date);
+                    } catch (e) {
+                        gsLayer.metadata = {};
+                    }
+                    gsLayer.showMetadata = false;
                     wizScope.threatSurfaces.push(gsLayer);
                 });
             });
@@ -422,7 +465,7 @@ function ($log, $rootScope,
             catScope.addThreatSurfaces([threatSurface]);
         };
 
-        steps.push(new Step('Choose Threat Surface',
+        steps.push(new Step('Choose Spatial Prediction',
             new WidgetDef('st-dcm-wiz-threat-surfaces', wizScope),
             null,
             false,
@@ -442,7 +485,7 @@ function ($log, $rootScope,
             }
         });
 
-        var wiz = new Wizard('Add Threat Surface', 'fa-bar-chart', 'fa-check text-success', steps, wizScope);
+        var wiz = new Wizard('Add Spatial Prediction', 'fa-bar-chart', 'fa-check text-success', steps, wizScope);
         wizardManager.launchWizard(wiz);
     };
 }])

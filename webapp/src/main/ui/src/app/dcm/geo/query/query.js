@@ -15,7 +15,7 @@ function (wps, CONFIG, wfs, cqlHelper) {
     };
 
     this.doDcmQuery = function (arg) {
-        var templateFn = stealth.jst['wps/importRaster.xml'];
+        var templateFn = stealth.jst['wps/spatialPrediction.xml'];
         var boundsArr = [arg.bounds.minLon, arg.bounds.minLat, arg.bounds.maxLon, arg.bounds.maxLat];
         var eventsFilterXml = this.cqlToFilterXml(
             cqlHelper.combine(cqlHelper.operator.AND, arg.events.cql_filter,
@@ -115,7 +115,7 @@ function (wps, CONFIG, wfs, cqlHelper) {
             aoWpsInput += '<wps:Input>' +
                 '<ows:Identifier>ao</ows:Identifier>' +
                 '<wps:Data>' +
-                    '<wps:ComplexData mimeType="text/xml; subtype=gml/3.1.1"><![CDATA[' + geometry + ']]></wps:ComplexData>' +
+                    '<wps:ComplexData mimeType="application/wkt"><![CDATA[' + geometry + ']]></wps:ComplexData>' +
                 '</wps:Data>' +
             '</wps:Input>';
         }
