@@ -15,11 +15,12 @@ angular.module('stealth.alerts.manager', [
 'ol3Styles',
 'ol3Map',
 'owsLayers',
+'stealth.core.utils.WidgetDef',
 'stealth.core.geo.ol3.format.GeoJson',
 'stealth.core.geo.ol3.layers.PollingGeoJsonVectorLayer',
 'stealth.core.geo.ol3.overlays.HighlightLayer',
 function ($rootScope, $timeout, colors, ol3Styles, ol3Map, owsLayers,
-          GeoJson, PollingGeoJsonVectorLayer, HighlightLayer) {
+          WidgetDef, GeoJson, PollingGeoJsonVectorLayer, HighlightLayer) {
     var _self = this;
     var _parser = new GeoJson();
     var _alertsIcon = 'fa fa-fw fa-lg fa-exclamation-triangle';
@@ -30,6 +31,11 @@ function ($rootScope, $timeout, colors, ol3Styles, ol3Map, owsLayers,
         layer: undefined,
         record: undefined,
         trackEnded: false
+    };
+    var _findAlert = function (layer, feature) {
+        return _.find(_alerts, function (a) {
+            return (a.layer === layer && a.feature === feature);
+        });
     };
     var _highlightLayer = new HighlightLayer({
         colors: ['#ff0000'],
@@ -57,7 +63,8 @@ function ($rootScope, $timeout, colors, ol3Styles, ol3Map, owsLayers,
                 var pollingOptions = {
                     name: layer.Title,
                     layerThisBelongsTo: layer,
-                    queryable: false,
+                    zIndexHint: 6,
+                    queryable: true,
                     preventInitialPolling: true
                 };
                 if (_.has(layer.KeywordConfig, [keywordPrefix, workspace, 'field', 'history'])) {
@@ -96,9 +103,42 @@ function ($rootScope, $timeout, colors, ol3Styles, ol3Map, owsLayers,
                     return 'Add to map';
                 };
                 layer.pollingLayer = new PollingGeoJsonVectorLayer(pollingOptions);
+                layer.pollingLayer.buildSearchPointWidgetsForResponse = function (response, parentScope) {
+                    if (response.isError ||
+                        !_.isArray(response.records) ||
+                        _.isEmpty(response.records)) {
+                        return null;
+                    } else {
+                        return _.map(response.records, function (record, index) {
+                            var s = (parentScope || $rootScope).$new();
+                            var feature = response.features[index];
+                            var alert = _findAlert(layer, feature);
+                            s.name = response.name;
+                            s.capabilities = response.capabilities;
+                            s.record = alert.record;
+                            s.trackended = alert.trackEnded;
+                            return {
+                                level: _.padLeft(layer.pollingLayer.reverseZIndex, 4, '0') + '_' + _.padLeft(index, 4, '0'),
+                                iconClass: layer.pollingLayer.styleDirectiveScope.styleVars.iconClass,
+                                tooltipText: s.name,
+                                widgetDef: new WidgetDef('st-live-air-wms-layer-popup', s,
+                                    "name='name' capabilities='capabilities' record='record' trackended=trackended"),
+                                onTabFocus: function () {
+                                    var alert = _findAlert(layer, feature);
+                                    if (alert) {
+                                        $rootScope.$applyAsync(function () {
+                                            _self.selectAlert(alert);
+                                        });
+                                    }
+                                }
+                            };
+                        });
+                    }
+                };
                 layer.pollingLayer.getSource().on('addfeature', function (event) {
                     var alert = {
                         feature: event.feature,
+                        record: event.feature.getProperties(),
                         layer: layer,
                         isNew: true,
                         trackEnded: false
@@ -107,9 +147,7 @@ function ($rootScope, $timeout, colors, ol3Styles, ol3Map, owsLayers,
                     $timeout(function () { alert.isNew = false; }, 10000);
                 });
                 layer.pollingLayer.getSource().on('removefeature', function (event) {
-                    var alert = _.find(_alerts, function (a) {
-                        return (a.layer === layer && a.feature === event.feature);
-                    });
+                    var alert = _findAlert(layer, event.feature);
                     alert.trackEnded = true;
                     if (_self.isSelected(alert)) {
                         _selectedAlert.trackEnded = true;
@@ -117,11 +155,10 @@ function ($rootScope, $timeout, colors, ol3Styles, ol3Map, owsLayers,
                     _.pull(_alerts, alert);
                 });
                 layer.pollingLayer.getSource().on('changefeature', function (event) {
-                    if (layer === _selectedAlert.layer && event.feature === _selectedAlert.feature) {
-                        $rootScope.$applyAsync(function () {
-                            _.merge(_selectedAlert.record, event.feature.getProperties());
-                        });
-                    }
+                    var alert = _findAlert(layer, event.feature);
+                    $rootScope.$applyAsync(function () {
+                        _.merge(alert.record, event.feature.getProperties());
+                    });
                 });
                 layer.pollingLayer.getOl3Layer().on('change:visible', function () {
                     layer.alertState.isVisible = layer.pollingLayer.getOl3Layer().getVisible();
@@ -176,7 +213,7 @@ function ($rootScope, $timeout, colors, ol3Styles, ol3Map, owsLayers,
         }
         _selectedAlert.feature = alert.feature;
         _selectedAlert.layer = alert.layer;
-        _selectedAlert.record = alert.feature.getProperties();
+        _selectedAlert.record = alert.record;
         _selectedAlert.trackEnded = alert.trackEnded;
     };
 

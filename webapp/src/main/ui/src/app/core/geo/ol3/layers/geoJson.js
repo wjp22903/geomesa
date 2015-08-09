@@ -195,7 +195,8 @@ function ($log, $q, wfs, colors, ol3Styles, clickSearchHelper, MapLayer, GeoJson
                 isError: false,
                 records: _.map(trimmedFeatures, function (feat, i) {
                     return _.omit(feat.getProperties(), _omitSearchProps.concat([feat.getGeometryName()]));
-                })
+                }),
+                features: trimmedFeatures
             }));
         };
 

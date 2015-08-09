@@ -23,7 +23,7 @@ function ($log, tlLayerManager) {
 'elementAppender',
 function ($log, $rootScope, ol3Map, controlsMgr, TimeLapseLayer, elementAppender) {
     $log.debug('stealth.timelapse.tlLayerManager: service started');
-    var live, historical;
+    var historical;
     function registerLayers () {
         historical = new TimeLapseLayer('Historical');
         ol3Map.addLayer(historical);
