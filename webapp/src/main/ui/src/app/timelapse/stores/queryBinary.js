@@ -50,9 +50,6 @@ function ($log, $rootScope, $q, $filter, $window, toastr, cqlHelper, clickSearch
                     (query.params.sortOnServer ? ';sort=true' : ''),
                 cql_filter: cqlHelper.buildSpaceTimeFilter(query.params)
             };
-            if (query.params.sortOnServer) {
-                overrides.sortBy = dtg;
-            }
 
             wfs.getFeature(CONFIG.geoserver.defaultUrl, typeName, CONFIG.geoserver.omitProxy, overrides, responseType)
             .success(function (data, status, headers, config, statusText) {
