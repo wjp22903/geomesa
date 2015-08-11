@@ -93,10 +93,10 @@ function ($interpolate, ol3Map, owsLayers, WmsLayer) {
         };
 
         this.zoomToCoverage = function () {
-            ol3Map.fitExtent(_self.coverageLayer.ol3Layer.getSource().getExtent());
+            ol3Map.fit(_self.coverageLayer.ol3Layer.getSource().getExtent());
         };
         this.zoomToImage = function (image) {
-            ol3Map.fitExtent(image.getGeometry().getExtent());
+            ol3Map.fit(image.getGeometry());
         };
 
         this.restart = function () {

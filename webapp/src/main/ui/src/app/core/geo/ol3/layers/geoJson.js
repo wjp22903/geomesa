@@ -15,7 +15,7 @@ angular.module('stealth.core.geo.ol3.layers', [
 'stealth.core.geo.ol3.format.GeoJson',
 'CONFIG',
 function ($log, $q, wfs, colors, ol3Styles, clickSearchHelper, MapLayer, GeoJson, CONFIG) {
-    var parser = new GeoJson();
+    var parser = new GeoJson(); // stealth GeoJson, extending OL3 for STEALTH-319
     var tag = 'stealth.core.geo.ol3.layers.GeoJsonVectorLayer: ';
     $log.debug(tag + 'factory started');
 

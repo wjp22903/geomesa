@@ -1,5 +1,6 @@
 angular.module('stealth.routeanalysis.wizard', [
-'stealth.core.geo.ol3.utils'
+    'stealth.core.geo.ol3.overlays',
+    'stealth.core.geo.ol3.utils'
 ])
 
 .service('routeAnalysisWizard', [
@@ -13,6 +14,7 @@ angular.module('stealth.routeanalysis.wizard', [
 'colors',
 'elementAppender',
 'routeDrawHelper',
+'stealth.core.geo.ol3.overlays.Vector',
 'stealth.core.wizard.Step',
 'stealth.core.wizard.Wizard',
 'stealth.core.utils.WidgetDef',
@@ -20,7 +22,7 @@ function ($log, $rootScope, $filter, $interval,
           ol3Map, ol3Styles,
           wizardManager, colors,
           elementAppender, routeDrawHelper,
-          Step, Wizard, WidgetDef) {
+          VectorOverlay, Step, Wizard, WidgetDef) {
     var tag = 'stealth.routeanalysis.wizard.routeAnalysisWizard: ';
     $log.debug(tag + 'service started');
 
@@ -29,10 +31,13 @@ function ($log, $rootScope, $filter, $interval,
     this.setCategoryScope = function (scope) { catScope = scope; };
 
     var createDrawWiz = function (wizardScope) {
-        var featureOverlay = new ol.FeatureOverlay({
-            features: wizardScope.geoFeature ? [wizardScope.geoFeature] : [],
-            style: ol3Styles.getLineStyle(3, '#CC0099')
+        var featureOverlay = new VectorOverlay({
+            colors: ['#CC0099'],
+            styleBuilder: _.curry(ol3Styles.getLineStyle)(3)
         });
+        if (wizardScope.geoFeature) {
+            featureOverlay.addFeature(wizardScope.geoFeature);
+        }
         var modify = new ol.interaction.Modify({
             features: featureOverlay.getFeatures(),
             //require ALT key to delete vertices
@@ -84,8 +89,7 @@ function ($log, $rootScope, $filter, $interval,
                     if (wizardScope.geoFeature) {
                         routeDrawHelper.initFeature(wizardScope.geoFeature, wizardScope);
                     }
-
-                    ol3Map.addOverlay(featureOverlay);
+                    featureOverlay.addToMap();
                     ol3Map.addInteraction(modify);
                     ol3Map.addInteraction(draw);
                     elementAppender.append('.primaryDisplay',
@@ -97,7 +101,7 @@ function ($log, $rootScope, $filter, $interval,
                         routeInfoPanel.remove();
                     }
                     ol3Map.removeInteraction(draw);
-                    ol3Map.removeOverlay(featureOverlay);
+                    featureOverlay.removeFromMap();
                     if (wizardScope.geoFeature) {
                         routeDrawHelper.detachFeature(wizardScope.geoFeature);
                     }
@@ -245,7 +249,8 @@ function () {
 'ol3Map',
 'csvFormat',
 'routeDrawHelper',
-function ($timeout, ol3Map, csvFormat, routeDrawHelper) {
+'stealth.core.geo.ol3.format.GeoJson',
+function ($timeout, ol3Map, csvFormat, routeDrawHelper, GeoJson) {
     return {
         restrict:'E',
         scope:{
@@ -256,7 +261,7 @@ function ($timeout, ol3Map, csvFormat, routeDrawHelper) {
         },
         templateUrl:'routeanalysis/wizard/templates/drawTools.tpl.html',
         link:function (scope, element, attrs) {
-            var geoJsonFormat = new ol.format.GeoJSON();
+            var geoJsonFormat = new GeoJson(); // stealth GeoJson, extending OL3 for STEALTH-319
             var fileInput = element.append('<input type="file" class="hidden">')[0].lastChild;
 
             //Couple FileReader to the hidden file input created above.
@@ -280,7 +285,7 @@ function ($timeout, ol3Map, csvFormat, routeDrawHelper) {
                             routeDrawHelper.initFeature(feature, scope, function () {
                                 scope.featureOverlay.getFeatures().clear();
                                 scope.featureOverlay.addFeature(feature);
-                                ol3Map.fitExtent(feature.getGeometry().getExtent());
+                                ol3Map.fit(feature.getGeometry());
                             });
                         }
                     }

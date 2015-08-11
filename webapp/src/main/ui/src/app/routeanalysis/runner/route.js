@@ -12,8 +12,9 @@ function ($rootScope, routeAnalysisRunner) {
 .service('routeAnalysisRunner', [
 'toastr',
 'analysisService',
-function (toastr, analysisService) {
-    var geoJsonFormat = new ol.format.GeoJSON();
+'stealth.core.geo.ol3.format.GeoJson',
+function (toastr, analysisService, GeoJson) {
+    var geoJsonFormat = new GeoJson(); // stealth GeoJson, extending OL3 for STEALTH-319
     this.run = function (req, catScope, layer) {
 
         var routeName = 'Route for [' + req.name + ']';

@@ -1,10 +1,12 @@
 angular.module('stealth.targetpri.wizard.route', [
     'stealth.core.geo.ol3.format',
+    'stealth.core.geo.ol3.overlays',
     'stealth.core.geo.ol3.utils'
 ])
 
 .factory('routeTpWizFactory', [
-'$rootScope', 
+'$rootScope',
+'stealth.core.geo.ol3.overlays.Vector',
 'stealth.core.wizard.Wizard',
 'stealth.core.wizard.Step',
 'stealth.core.utils.WidgetDef',
@@ -12,7 +14,7 @@ angular.module('stealth.targetpri.wizard.route', [
 'ol3Styles',
 'elementAppender',
 'routeDrawHelper',
-function ($rootScope, Wizard, Step, WidgetDef, ol3Map, ol3Styles, elementAppender, routeDrawHelper) {
+function ($rootScope, VectorOverlay, Wizard, Step, WidgetDef, ol3Map, ol3Styles, elementAppender, routeDrawHelper) {
     var self = {
         createSourceWiz: function (wizardScope) {
             return new Wizard(null, null, 'fa-ellipsis-h', [
@@ -40,10 +42,13 @@ function ($rootScope, Wizard, Step, WidgetDef, ol3Map, ol3Styles, elementAppende
             ]);
         },
         createDrawWiz: function (wizardScope) {
-            var featureOverlay = new ol.FeatureOverlay({
-                features: wizardScope.geoFeature ? [wizardScope.geoFeature] : [],
-                style: ol3Styles.getLineStyle(3, '#CC0099')
+            var featureOverlay = new VectorOverlay({
+                colors: ['#CC0099'],
+                styleBuilder: _.curry(ol3Styles.getLineStyle)(3)
             });
+            if (wizardScope.geoFeature) {
+                featureOverlay.addFeature(wizardScope.geoFeature);
+            }
             var modify = new ol.interaction.Modify({
                 features: featureOverlay.getFeatures(),
                 //require ALT key to delete vertices
@@ -75,7 +80,7 @@ function ($rootScope, Wizard, Step, WidgetDef, ol3Map, ol3Styles, elementAppende
                     if (wizardScope.geoFeature) {
                         routeDrawHelper.initFeature(wizardScope.geoFeature, wizardScope);
                     }
-                    ol3Map.addOverlay(featureOverlay);
+                    featureOverlay.addToMap();
                     ol3Map.addInteraction(modify);
                     ol3Map.addInteraction(draw);
                     elementAppender.append('.primaryDisplay',
@@ -88,7 +93,7 @@ function ($rootScope, Wizard, Step, WidgetDef, ol3Map, ol3Styles, elementAppende
                     }
                     ol3Map.removeInteraction(draw);
                     ol3Map.removeInteraction(modify);
-                    ol3Map.removeOverlay(featureOverlay);
+                    featureOverlay.removeFromMap();
                     if (wizardScope.geoFeature) {
                         routeDrawHelper.detachFeature(wizardScope.geoFeature);
                     }
@@ -186,7 +191,7 @@ function ($timeout, ol3Map, GeoJson, csvFormat, routeDrawHelper) {
                             routeDrawHelper.initFeature(feature, scope, function () {
                                 scope.featureOverlay.getFeatures().clear();
                                 scope.featureOverlay.addFeature(feature);
-                                ol3Map.fitExtent(feature.getGeometry().getExtent());
+                                ol3Map.fit(feature.getGeometry());
                             });
                         }
                     }

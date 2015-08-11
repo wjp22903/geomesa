@@ -5,12 +5,13 @@ angular.module('stealth.timelapse.geo.ol3.layers', [
 
 .factory('stealth.timelapse.geo.ol3.layers.LiveWmsLayer', [
 'stealth.core.geo.ol3.layers.PollingImageWmsLayer',
-'stealth.core.geo.ol3.overlays.HighlightLayer',
+'stealth.core.geo.ol3.overlays.Vector',
 'tlWizard',
 'summaryExploreMgr',
-function (PollingImageWmsLayer, HighlightLayer, tlWizard, summaryExploreMgr) {
+function (PollingImageWmsLayer, VectorOverlay, tlWizard, summaryExploreMgr) {
     var LiveWmsLayer = function (name, requestParams, layerThisBelongsTo, queryable, wmsUrl) {
-        var _highlightLayer = new HighlightLayer();
+        var _highlightLayer = new VectorOverlay();
+        _highlightLayer.addToMap();
 
         PollingImageWmsLayer.call(this, {
             name: name,

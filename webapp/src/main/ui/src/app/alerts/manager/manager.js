@@ -18,11 +18,12 @@ angular.module('stealth.alerts.manager', [
 'stealth.core.utils.WidgetDef',
 'stealth.core.geo.ol3.format.GeoJson',
 'stealth.core.geo.ol3.layers.PollingGeoJsonVectorLayer',
-'stealth.core.geo.ol3.overlays.HighlightLayer',
+'stealth.core.geo.ol3.overlays.Vector',
 function ($rootScope, $timeout, colors, ol3Styles, ol3Map, owsLayers,
-          WidgetDef, GeoJson, PollingGeoJsonVectorLayer, HighlightLayer) {
+          WidgetDef, GeoJson, PollingGeoJsonVectorLayer, VectorOverlay) {
     var _self = this;
-    var _parser = new GeoJson();
+    var _keywordPrefix = 'alerts';
+    var _parser = new GeoJson(); // stealth GeoJson, extending OL3 for STEALTH-319
     var _alertsIcon = 'fa fa-fw fa-lg fa-exclamation-triangle';
     var _workspaces = {};
     var _alerts = [];
@@ -37,7 +38,7 @@ function ($rootScope, $timeout, colors, ol3Styles, ol3Map, owsLayers,
             return (a.layer === layer && a.feature === feature);
         });
     };
-    var _highlightLayer = new HighlightLayer({
+    var _highlightLayer = new VectorOverlay({
         colors: ['#ff0000'],
         styleBuilder: function (color) {
             var rgbColor = 'rgba(' + colors.hexStringToRgbArray(color).join(',') + ',0.5)';
@@ -53,12 +54,12 @@ function ($rootScope, $timeout, colors, ol3Styles, ol3Map, owsLayers,
             });
         }
     });
+    _highlightLayer.addToMap();
 
-    var keywordPrefix = 'alerts';
-    owsLayers.getLayers(keywordPrefix)
+    owsLayers.getLayers(_keywordPrefix)
     .then(function (layers) {
         _.each(layers, function (l) {
-            _.each(_.get(l.KeywordConfig, keywordPrefix), function (conf, workspace) {
+            _.each(_.get(l.KeywordConfig, _keywordPrefix), function (conf, workspace) {
                 var layer = _.cloneDeep(l);
                 var pollingOptions = {
                     name: layer.Title,
@@ -67,8 +68,8 @@ function ($rootScope, $timeout, colors, ol3Styles, ol3Map, owsLayers,
                     queryable: true,
                     preventInitialPolling: true
                 };
-                if (_.has(layer.KeywordConfig, [keywordPrefix, workspace, 'field', 'history'])) {
-                    var historyField = _.get(layer.KeywordConfig, [keywordPrefix, workspace, 'field', 'history']);
+                if (_.has(layer.KeywordConfig, [_keywordPrefix, workspace, 'field', 'history'])) {
+                    var historyField = _.get(layer.KeywordConfig, [_keywordPrefix, workspace, 'field', 'history']);
                     pollingOptions.extraStyleBuilder = function (size, color) {
                         var lineStyle = ol3Styles.getLineStyle(size, color);
                         lineStyle.setGeometry(function (feature) {

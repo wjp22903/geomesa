@@ -43,7 +43,7 @@ function ($rootScope, $q, toastr, colors, wfs, mapFollowManager, WidgetDef, GeoJ
                 if (_.has(_layerThisBelongsTo.KeywordConfig, 'air.live')) {
                     var _idField = _.get(_layerThisBelongsTo.KeywordConfig, ['air', 'live', _layerThisBelongsTo.stealthWorkspace, 'idField']);
                     var _omitSearchProps = _.keys(_.get(_layerThisBelongsTo.KeywordConfig, 'field.hide'));
-                    var _parser = new GeoJson();
+                    var _parser = new GeoJson(); // stealth GeoJson, extending OL3 for STEALTH-319
                     var _highlightLayer = _self.getHighlightLayer();
                     var _refreshRecordFeature = function (record) {
                         var queryResponse;

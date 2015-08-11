@@ -1,4 +1,5 @@
 angular.module('stealth.timelapse.wizard.live', [
+    'stealth.core.geo.ol3.overlays',
     'stealth.core.startmenu',
     'stealth.core.wizard',
     'stealth.timelapse.wizard.options'
@@ -16,20 +17,24 @@ function (startMenuManager, liveWizard) {
 'wizardManager',
 'ol3Map',
 'ol3Styles',
+'stealth.core.geo.ol3.overlays.Vector',
 'stealth.core.wizard.Wizard',
 'stealth.core.wizard.Step',
 'stealth.core.utils.WidgetDef',
 'stealth.timelapse.wizard.live.Query',
-function ($rootScope, wizardManager, ol3Map, ol3Styles, Wizard, Step, WidgetDef, Query) {
+function ($rootScope, wizardManager, ol3Map, ol3Styles, VectorOverlay, Wizard, Step, WidgetDef, Query) {
     var _self = this;
     this.launchWizard = function (queryOverrides, onSuccess) {
         var wizardScope = $rootScope.$new();
         wizardScope.query = new Query(queryOverrides);
 
-        var _overlay = new ol.FeatureOverlay({
-            features: wizardScope.query.params.geoFeature ? [wizardScope.query.params.geoFeature] : [],
-            style: ol3Styles.getPolyStyle(1, '#CC0099')
+        var _overlay = new VectorOverlay({
+            colors: ['#CC0099'],
+            styleBuilder: _.curry(ol3Styles.getPolyStyle)(1)
         });
+        if (wizardScope.query.params.geoFeature) {
+            _overlay.addFeature(wizardScope.query.params.geoFeature);
+        }
 
         var _draw = new ol.interaction.Draw({
             features: _overlay.getFeatures(),
@@ -59,14 +64,14 @@ function ($rootScope, wizardManager, ol3Map, ol3Styles, Wizard, Step, WidgetDef,
             new Step('Select data source and search area', new WidgetDef('st-live-wiz-source-and-area', wizardScope),
                      new WidgetDef('st-live-draw-tools', wizardScope, "feature-overlay='featureOverlay' geo-feature='query.params.geoFeature'"),
                      false, function () {
-                ol3Map.addOverlay(_overlay);
+                _overlay.addToMap();
                 ol3Map.addInteraction(_draw);
                 ol3Map.addInteraction(_modify);
             }, function () {
                 wizardScope.query.saveSearchAreaCookie();
                 ol3Map.removeInteraction(_modify);
                 ol3Map.removeInteraction(_draw);
-                ol3Map.removeOverlay(_overlay);
+                _overlay.removeFromMap();
             }),
             new Step('Set Options', new WidgetDef('st-tl-wiz-options', wizardScope), null, true, null, function (success) {
                 if (success && _.isFunction(onSuccess)) {

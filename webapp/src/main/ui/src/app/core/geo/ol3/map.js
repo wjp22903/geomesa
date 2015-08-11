@@ -24,7 +24,7 @@ function ($log, $interval, ol3Map, CONFIG) {
                 if (display !== 'none') {
                     $interval.cancel(checkDisplay); //cancel further checks
                     ol3Map.setTarget(attrs.id);
-                    ol3Map.fitExtent(ol.extent.containsExtent(CONFIG.map.initExtent, CONFIG.map.extent) ?
+                    ol3Map.fit(ol.extent.containsExtent(CONFIG.map.initExtent, CONFIG.map.extent) ?
                             CONFIG.map.extent : CONFIG.map.initExtent);
                 }
             }, 100);
@@ -40,10 +40,11 @@ function ($log, $interval, ol3Map, CONFIG) {
 '$filter',
 '$q',
 'mapClickSearchService',
+'stealth.core.geo.ol3.format.GeoJson',
 'stealth.core.geo.ol3.layers.MapLayer',
 'stealth.core.geo.ol3.layers.TintLayer',
 'CONFIG',
-function ($log, $filter, $q, mapClickSearchService, MapLayer, TintLayer, CONFIG) {
+function ($log, $filter, $q, mapClickSearchService, GeoJson, MapLayer, TintLayer, CONFIG) {
     $log.debug('stealth.core.geo.ol3.map.ol3Map: service started');
     var _projection = CONFIG.map.projection;
     var _wmsOpts = {
@@ -112,11 +113,11 @@ function ($log, $filter, $q, mapClickSearchService, MapLayer, TintLayer, CONFIG)
         _map.setTarget(targetId);
     };
     /**
-     * Zoom map to specified extent.
-     * @param {number[]} extent - [minLon, minLat, maxLon, maxLat]
+     * Zoom map to specified geometry or extent.
+     * @param {ol.geom.SimpleGeometry|ol.Extent} geometry - Geometry or Extent to fit
      */
-    this.fitExtent = function (extent) {
-        _map.getView().fitExtent(extent, _map.getSize());
+    this.fit = function (geometry) {
+        _map.getView().fit(geometry, _map.getSize());
     };
     /**
      * Get current map extent.
@@ -257,12 +258,19 @@ function ($log, $filter, $q, mapClickSearchService, MapLayer, TintLayer, CONFIG)
         _map.removeOverlay(overlay);
     };
     /**
-     * Get a {ol.FeatureOverlay} with no features and default styling
-     * for use with this map.
-     * @returns {ol.FeatureOverlay} FeatureOverlay for use with this map
+     * Adds a layer as an overlay to the map. The layer will not be
+     * managed by the map in its layer collection.
+     * @param {ol.layer.Layer} layer
      */
-    this.getFeatureOverlay = function () {
-        return new ol.FeatureOverlay({map: _map});
+    this.addLayerOverlay = function (layer) {
+        layer.setMap(_map);
+    };
+    /**
+     * Remove a layer overlay from the map.
+     * @param {ol.layer.Layer} layer
+     */
+    this.removeLayerOverlay = function (layer) {
+        layer.setMap(null);
     };
     /**
      * Adds a listener to the map.
@@ -309,7 +317,7 @@ function ($log, $filter, $q, mapClickSearchService, MapLayer, TintLayer, CONFIG)
     // ***** Initialization *****
     //Built-in layers
     var countrySource = new ol.source.Vector({
-        format: new ol.format.GeoJSON(),
+        format: new GeoJson(), // stealth GeoJson, extending OL3 for STEALTH-319
         url: CONFIG.assets.path + 'countries.geo.json',
         wrapX: false
     });

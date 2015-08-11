@@ -1,5 +1,6 @@
 angular.module('stealth.imagery.omar.runner', [
     'stealth.core.geo.ol3.map',
+    'stealth.core.geo.ol3.overlays',
     'stealth.core.geo.ol3.utils',
     'stealth.core.sidebar',
     'stealth.core.utils',
@@ -20,18 +21,20 @@ function ($rootScope, imagerySearchRunner) {
 
 .service('stealth.imagery.omar.runner.SearchRunner', [
 '$rootScope',
+'toastr',
 'categoryManager',
 'ol3Map',
 'sidebarManager',
-'stealth.core.geo.ol3.format.GML2',
+'stealth.core.geo.ol3.format.GeoJson',
 'stealth.core.geo.ol3.layers.MapLayer',
+'stealth.core.geo.ol3.overlays.Vector',
 'stealth.core.geo.ol3.utils.geomHelper',
 'stealth.core.utils.WidgetDef',
 'stealth.imagery.omar.results.category.Category',
 'stealth.imagery.omar.results.selection.ImagerySelection',
 'stealth.imagery.omar.wizard',
-function ($rootScope, catMgr, ol3Map, sidebarManager, StealthGML2, MapLayer, geomHelper, WidgetDef, Category, ImagerySelection, omarWizard) {
-    var geoJsonFormat = new ol.format.GeoJSON();
+function ($rootScope, toastr, catMgr, ol3Map, sidebarManager, GeoJson, MapLayer, VectorOverlay, geomHelper, WidgetDef, Category, ImagerySelection, omarWizard) {
+    var geoJsonFormat = new GeoJson(); // stealth GeoJson, extending OL3 for STEALTH-319
     this.run = function (query) {
         var category = catMgr.addCategory(2, new Category(query.params.storeName, function () {
             sidebarManager.removeButton(buttonId);
@@ -71,7 +74,7 @@ function ($rootScope, catMgr, ol3Map, sidebarManager, StealthGML2, MapLayer, geo
 
         query.findImagery()
             .then(function (response) {
-                var parser = ((query.params.server.parser == 'GML') ? new StealthGML2() : new ol.format.GeoJSON());
+                var parser = ((query.params.server.parser == 'GML') ? new ol.format.GML2() : new GeoJson()); // stealth GeoJson, extending OL3 for STEALTH-319
                 updateProgress("Parsing results...");
                 var results = parser.readFeatures(response.data);
                 if (query.params.server.requiresFlip) {
@@ -95,7 +98,6 @@ function ($rootScope, catMgr, ol3Map, sidebarManager, StealthGML2, MapLayer, geo
                 }
 
                 var normalStyle = overlayStyle('rgba(255,255,255,0.1)', '#3399CC');
-                var highlightedStyle = overlayStyle('rgba(255,30,30,0.1)', '#CC0033');
                 var layer = new ol.layer.Vector({
                     source: new ol.source.Vector({ features: results }),
                     style: normalStyle
@@ -103,10 +105,12 @@ function ($rootScope, catMgr, ol3Map, sidebarManager, StealthGML2, MapLayer, geo
                 updateProgress("Adding Layer...");
                 var mapLayer = category.addLayer(new MapLayer('Locations', layer, false, 10));
                 scope.select.coverageLayer = mapLayer;
-                var featureOverlay = new ol.FeatureOverlay({
-                    style: highlightedStyle
+                var featureOverlay = new VectorOverlay({
+                    colors: ['#CC0033'],
+                    styleBuilder: _.curry(overlayStyle)('rgba(255,30,30,0.1)')
                 });
-                scope.select.featureOverlay = ol3Map.addOverlay(featureOverlay);
+                featureOverlay.addToMap();
+                scope.select.featureOverlay = featureOverlay;
                 updateProgress("Ready!");
             }, function () {
                 toastr.error('Error: image search failed');
