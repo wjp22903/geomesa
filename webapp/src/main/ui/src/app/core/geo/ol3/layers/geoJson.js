@@ -40,18 +40,18 @@ function ($log, $q, wfs, colors, ol3Styles, clickSearchHelper, MapLayer, GeoJson
         var _styleFunction = function (feature) {
             var style = [];
             switch (feature.getGeometry().getType()) {
-                case ol.geom.GeometryType.MULTI_LINE_STRING:
-                case ol.geom.GeometryType.LINEAR_RING:
-                case ol.geom.GeometryType.LINE_STRING:
+                case 'MultiLineString':
+                case 'LinearRing':
+                case 'LineString':
                     style.push(ol3Styles.getLineStyle(_viewState.size, _viewState.fillColor));
                     break;
-                case ol.geom.GeometryType.MULTI_POLYGON:
-                case ol.geom.GeometryType.CIRCLE:
-                case ol.geom.GeometryType.POLYGON:
+                case 'MultiPolygon':
+                case 'Circle':
+                case 'Polygon':
                     style.push(ol3Styles.getPolyStyle(_viewState.size, _viewState.fillColor));
                     break;
-                case ol.geom.GeometryType.MULTI_POINT:
-                case ol.geom.GeometryType.POINT:
+                case 'MultiPoint':
+                case 'Point':
                     style.push(ol3Styles.getPointStyle(_viewState.size, _viewState.fillColor));
                     break;
             }
