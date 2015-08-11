@@ -1,0 +1,11 @@
+<div>
+    <div class="activityAlert"
+         ng-repeat="alert in mapLayer.getOl3Layer().getSource().getFeatures() | orderBy:alertSort:true"
+         ng-mouseenter="highlight(alert)" ng-mouseleave="unhighlight(alert)"
+         ng-click="showTimeseries(alert)">
+        <label>Site:&nbsp;</label><span>{{::alert.get('site_name')}}</span><br>
+        <label>Date:&nbsp;</label><span>{{::alert.get('dtg')}}</span><br>
+        <label>Obs Count:&nbsp;</label><span>{{::alert.get('observation_count')}}</span>
+        <label class="alertSigmas">Sigmas:&nbsp;</label><span>{{::alert.get('alert_sigmas') | numberTrim}}</span>
+    </div>
+</div>

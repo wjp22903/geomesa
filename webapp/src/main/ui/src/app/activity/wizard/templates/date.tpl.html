@@ -1,0 +1,28 @@
+<ng-form name="wizardForm">
+    <p>
+        Select sites and define time bounds.
+    </p>
+    <select class="form-control input-sm"
+            ng-model="params.layer"
+            ng-options="layer.Title for layer in layers | orderBy:'Title'"
+            required>
+    </select>
+    <table class="actwiz-table">
+        <tr>
+            <td><label>Start: </label></td>
+            <td>
+                <input type="text" ng-model="params.startDtg" ui-jq="datetimepicker"
+                       ui-options="{todayButton: false, yearStart: 1990, yearEnd: 2030, step: 15, format: 'Y-m-d H:i'}"
+                       st-utc-moment-format="YYYY-MM-DD HH:mm" class="actwiz-datefield" required> Z
+            </td>
+        </tr>
+        <tr>
+            <td><label>End: </label></td>
+            <td>
+                <input type="text" ng-model="params.endDtg" ui-jq="datetimepicker"
+                       ui-options="{todayButton: false, yearStart: 1990, yearEnd: 2030, step: 15, format: 'Y-m-d H:i'}"
+                       st-utc-moment-format="YYYY-MM-DD HH:mm" class="actwiz-datefield" required> Z
+            </td>
+        </tr>
+    </table>
+</ng-form>

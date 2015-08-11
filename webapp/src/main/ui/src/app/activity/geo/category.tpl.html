@@ -1,0 +1,51 @@
+<div ng-if="workspaces | lodash:'isEmpty'" >
+    <i>None</i>
+</div>
+<div ng-repeat="(workspace, layers) in workspaces" class="categoryGrouping">
+    <b>{{::workspace}}</b>
+    <div ng-repeat="layer in layers" class="categoryGrouping categoryIndent">
+        <i>{{::layer.Title || layer.Name | characters:40:true}}</i>
+        <span class="btn btn-default fa-stack toggleButton"
+              ng-click="launchLayerFilterWizard(layer)">
+            <i class="fa fa-fw fa-plus fa-stack-1x text-primary"></i>
+        </span>
+        <div class="categoryGrouping">
+            <div class="categoryCell">
+                <div class="legendIconContainer">
+                    <img ng-src="{{::siteIconUrl(layer)}}"/>
+                </div>
+            </div>
+            <div class="categoryCell">
+                <st-toggle-map-layer visible="layer.siteInfo.viewState.isOnMap"
+                                     loading="layer.siteInfo.viewState.isLoading"
+                                     toggle="toggleMonitoredSiteLayer(layer)"></st-toggle-map-layer>
+            </div>
+            <div class="categoryCell">
+                <st-toggle-visibility ng-if="layer.siteInfo.viewState.isOnMap"
+                                      visible="layer.siteInfo.viewState.toggledOn"
+                                      toggle="toggleMonitoredSiteVisibility(layer)"></st-toggle-visibility>
+            </div>
+            <div class="categoryCell">{{::layer.siteInfo.title}}</div>
+        </div>
+        <div ng-repeat="filterLayer in layer.filterLayers" class="categoryGrouping">
+            <span class="btn btn-default fa-stack toggleButton pull-right"
+                  ng-if="filterLayer.removeable" ng-click="removeLayer(layer, filterLayer)">
+                <i class="fa fa-fw fa-close fa-stack-1x text-danger"></i>
+            </span>
+            <div class="categoryCell">
+                <div class="legendIconContainer">
+                    <img ng-src="{{::alertIconUrl(layer)}}"/>
+                </div>
+            </div>
+            <!-- Add alerts layer visibility toggle here! -->
+            <div class="categoryCell">
+                <st-toggle-visibility visible="filterLayer.visible"
+                                      toggle="toggleFilterLayerVisibility(filterLayer)"></st-toggle-visibility>
+            </div>
+            <div class="categoryCell">{{::filterLayer.name}}</div>
+            <div class="categoryIndent filterDescription">
+                {{::filterLayer.description}}
+            </div>
+        </div>
+    </div>
+</div>

@@ -121,6 +121,7 @@
         <app.plugins>
             [
                 'stealth.air',
+                'stealth.activity',
                 'stealth.alerts',
                 'stealth.crawl',
                 'stealth.dcm',

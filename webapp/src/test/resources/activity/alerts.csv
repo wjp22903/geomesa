@@ -1,0 +1,4 @@
+site_name,observation_count,alert_sigmas,dtg,lat,lon
+Africa,100,3,2015-02-04T12:00:00Z,10,20
+South America,3,-2.5,2015-02-05T12:00:00Z,-10,-60
+North America,30,2.6,2015-02-03T12:00:00Z,50,-100
