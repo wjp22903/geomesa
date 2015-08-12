@@ -23,10 +23,11 @@ function (startMenuManager, dcmWizard) {
 'stealth.core.utils.WidgetDef',
 'owsLayers',
 'wfs',
+'wps',
 'CONFIG',
 function ($log, $rootScope, $filter,
           ol3Map, wizardManager, colors, cqlHelper,
-          MapLayer, Step, Wizard, WidgetDef, owsLayers, wfs, CONFIG) {
+          MapLayer, Step, Wizard, WidgetDef, owsLayers, wfs, wps, CONFIG) {
     var tag = 'stealth.dcm.wizard.dcmWizard: ';
     $log.debug(tag + 'service started');
 
@@ -238,8 +239,8 @@ function ($log, $rootScope, $filter,
             predictiveCoverages: [],
             events: [],
             geometry: null,
-            width: 800,
-            height: 600,
+            width: null,
+            height: null,
             sampleRatio: 100,
             CRS: "EPSG:4326",
             featureSelection: true,
@@ -338,6 +339,22 @@ function ($log, $rootScope, $filter,
                 }
 
                 ol3Map.removeLayer(boxLayer);
+
+                var templateFn = stealth.jst['wps/resolutionRecommendation.xml'];
+
+                var req = templateFn({
+                    crs: wizScope.prediction.CRS,
+                    minX: wizScope.prediction.bounds.minLon,
+                    minY: wizScope.prediction.bounds.minLat,
+                    maxX: wizScope.prediction.bounds.maxLon,
+                    maxY: wizScope.prediction.bounds.maxLat
+                });
+                return wps.submit(CONFIG.geoserver.defaultUrl, req, CONFIG.geoserver.omitProxy)
+                    .then(function(result) {
+                        var arr = result.split(',');
+                        wizScope.prediction.width = arr[0].trim();
+                        wizScope.prediction.height = arr[1].trim();
+                    });
             })
         );
 
