@@ -211,9 +211,9 @@ function ($log, $rootScope, $timeout,
         getRouteAnalysisLayers(true);
     };
 
-    var getRouteAnalysisLayers = function(checkForDuplicates) {
+    var getRouteAnalysisLayers = function(checkForDuplicates, skipRefresh) {
         var keywordPrefix = 'routeanalysis';
-        owsLayers.getLayers(keywordPrefix, true)
+        owsLayers.getLayers(keywordPrefix, !skipRefresh)
             .then(function (layers) {
                 $log.debug('owsLayers.getLayers()');
                 _.each(layers, function (l) {
@@ -241,7 +241,7 @@ function ($log, $rootScope, $timeout,
             });
     };
 
-    getRouteAnalysisLayers(false);
+    getRouteAnalysisLayers(false, true);
 
     routeAnalysisWizard.setCategoryScope(scope);
 
