@@ -125,6 +125,11 @@ function ($log, $rootScope, $filter,
         wizScope.vectorLayers = [];
         wizScope.rasterLayers = [];
         wizScope.eventLayers = [];
+        var workspace = '';
+
+        if (CONFIG.userCn && CONFIG.userCn !== 'Anonymous') {
+            workspace = CONFIG.userCn;
+        }
 
         owsLayers.getLayers(vectorPrefix, true)
             .then(function (layers) {
@@ -219,7 +224,7 @@ function ($log, $rootScope, $filter,
             CRS: "EPSG:4326",
             featureSelection: true,
             outputType: wizScope.outputTypes[0],
-            workspace: null,
+            workspace: workspace,
             srsHandling: wizScope.srsHandlingOptions[2],
             keywords: CONFIG.app.context + ".dcm.prediction, " + CONFIG.app.context + ".routeanalysis.data.Spatial Predictions",
             bounds: {

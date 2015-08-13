@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+
+    This is an example spring-security.xml that has three users, rod, dianne, and scott, explicitly
+    specified to allow testing GS-Ext's User Workspaces and User Roles in Stealth. Use the certificates
+    found in this GeoServer tutorial:
+    http://docs.geoserver.org/latest/en/user/security/tutorials/cert/#download-sample-certificate-files
+
+    Additionally:
+    1. Setup Tomcat's config as per http://docs.geoserver.org/latest/en/user/security/tutorials/cert/#configure-tomcat-for-ssl
+    2. Register the certs in the browser
+    3. Build stealth with `mvn clean install -Ppki-auth and deploy to Tomcat
+    4. Make sure to use https and port 8443 when trying to hit stealth, as well as in the GeoServer setup in the Stealth pom.
+
+-->
+
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+             xmlns:beans="http://www.springframework.org/schema/beans"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://www.springframework.org/schema/beans
+               http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+               http://www.springframework.org/schema/security
+               http://www.springframework.org/schema/security/spring-security-3.2.xsd">
+
+    <http>
+        <intercept-url pattern="/**" access="ROLE_USER" />
+        <x509/>
+    </http>
+
+    <authentication-manager>
+        <authentication-provider>
+            <user-service>
+                <user name="rod" password="password"
+                      authorities="ROLE_USER" />
+                <user name="dianne" password="password"
+                      authorities="ROLE_USER" />
+                <user name="scott" password="password"
+                      authorities="ROLE_USER" />
+            </user-service>
+        </authentication-provider>
+    </authentication-manager>
+
+</beans:beans>

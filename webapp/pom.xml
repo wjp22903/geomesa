@@ -556,6 +556,18 @@
             </dependencies>
         </profile>
 
+        <profile>
+            <id>pki-auth</id>
+            <build>
+                <resources>
+                    <resource>
+                        <directory>src/main/resources-pki-filter</directory>
+                        <filtering>true</filtering>
+                    </resource>
+                </resources>
+            </build>
+        </profile>
+
         <!-- Deployment-specific profiles for production systems -->
         <profile>
             <id>ds</id>
