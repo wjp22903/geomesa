@@ -1,0 +1,27 @@
+<ng-form name="wizardForm">
+  <div ng-class="{'ng-hide': !loadError}" class="ui-state-error upload-error">
+    {{loadError}}
+  </div>
+  <div class="upload-table-header">
+    <div>Enter a unique name for the feature type:</div>
+    <label>Feature Name</label><br/>
+    <input type="text" ng-model="file.feature" class="upload-wide-input" required/>
+  </div>
+  <div>
+    <div>Enter the names and types of the feature attributes:</div>
+    <div class="upload-type-wrapper">
+      <table>
+        <tr>
+          <th></th>
+          <th>Attribute Name</th>
+          <th>Type</th>
+        </tr>
+        <tr ng-repeat="attr in file.schema">
+          <td class="upload-attr-label">{{$index+1}}</td>
+          <td><input type="text" ng-model="attr.name" required/></td>
+          <td><select ng-model="attr.binding" ng-options="typ for typ in attributeTypes.all" required/></td>
+        </tr>
+      </table>
+    </div>
+  </div>
+</ng-form>

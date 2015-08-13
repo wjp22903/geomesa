@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wps:Execute version="1.0.0" service="WPS"
+    xmlns="http://www.opengis.net/wps/1.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:wps="http://www.opengis.net/wps/1.0.0"
+    xmlns:ows="http://www.opengis.net/ows/1.1"
+    xmlns:xlink="http://www.w3.org/1999/xlink"
+    xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd">
+  <ows:Identifier>{{processIdentifier}}</ows:Identifier>
+  <wps:DataInputs>
+    <wps:Input>
+      <ows:Identifier>csvId</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>{{csvId}}</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    <wps:Input>
+        <ows:Identifier>keywords</ows:Identifier>
+        <wps:Data>
+            <wps:LiteralData>{{context}}.timelapse.historical.Uploads,{{context}}.static.Uploads,volatile.layer.epoch:{{Date.now()}},volatile.layer.sft:{{sftName}}</wps:LiteralData>
+        </wps:Data>
+    </wps:Input>
+  </wps:DataInputs>
+  <wps:ResponseForm>
+    <wps:RawDataOutput>
+      <ows:Identifier>layerName</ows:Identifier>
+    </wps:RawDataOutput>
+  </wps:ResponseForm>
+</wps:Execute>

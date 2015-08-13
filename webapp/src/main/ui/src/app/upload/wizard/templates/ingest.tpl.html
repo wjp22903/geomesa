@@ -1,0 +1,15 @@
+<ng-form name="wizardForm">
+  <div ng-class="{'ng-hide': !loadError}" class="ui-state-error upload-error">
+    {{loadError}}
+  </div>
+  <div ng-class="{'ng-hide': !file.ingest.complete}" class="upload-message">
+    {{file.ingest.message}}
+  </div>
+  <div class="upload-form" ng-class="{'ng-hide': file.ingest.complete || loadError}">
+    <!-- hidden input to keep the form invalid until request is done -->
+    <input type="hidden" ng-model="file.ingest.complete" required/>
+    <a class="btn btn-default" ng-disabled="file.ingest.started" ng-click="file.updateType()">Submit</a>
+    <!-- can't ng-show on the spinner, otherwise animation kicks in -->
+    <span ng-class="{'ng-hide': !file.ingest.started || file.ingest.complete}"><i class="fa fa-spinner fa-spin fa-lg"/></span>
+  </div>
+</ng-form>

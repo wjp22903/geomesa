@@ -14,6 +14,7 @@
     "angular-ui-utils": "0.1.1",
     "angular-toastr": "1.5.0",
     "animate.css": "3.4.0",
+    "blueimp-file-upload": "9.11.2",
     "bootstrap": "3.3.5",
     "bowser": "1.0.0",
     "ccri.angular-utils": "http://art.ccri.com:8081/artifactory/libs-release-local/com/ccri/commons-ui/ccri.angular-utils/0.2.1/ccri.angular-utils-0.2.1.zip",

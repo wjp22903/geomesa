@@ -169,7 +169,7 @@ function ($filter, cookies, wfs, ol3Map, owsLayers, CONFIG) {
         };
 
         var keywordPrefix = ['timelapse', 'historical'];
-        owsLayers.getLayers(keywordPrefix)
+        owsLayers.getLayers(keywordPrefix, true)
             .then(function (layers) {
                 _self.layerData.layers = _.sortBy(layers, 'Title');
                 _.each(_self.layerData.layers, function (layer) {

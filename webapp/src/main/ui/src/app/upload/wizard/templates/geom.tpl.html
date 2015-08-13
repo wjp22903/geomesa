@@ -1,0 +1,27 @@
+<ng-form name="wizardForm">
+  <div ng-class="{'ng-hide': !loadError}" class="ui-state-error upload-error">
+    {{loadError}}
+  </div>
+  <div ng-if="file.geoms.length > 0">
+    <div class="upload-table-header">Select the default geometry:</div>
+    <table class="upload-table">
+      <tr>
+        <th>Geometry</th>
+        <td><select ng-model="file.geom" ng-options="typ.name for typ in file.geoms" required/></td>
+      </tr>
+    </table>
+  </div>
+  <div ng-if="file.geoms.length == 0">
+    <div class="upload-table-header">Select latitude/longitude:</div>
+    <table class="upload-wide-input">
+      <tr>
+        <th>Latitude</th>
+        <td><select ng-model="file.lat" ng-options="typ.name for typ in file.latlons" required/></td>
+      </tr>
+      <tr>
+        <th>Longitude</th>
+        <td><select ng-model="file.lon" ng-options="typ.name for typ in file.latlons" required/></td>
+      </tr>
+    </table>
+  </div>
+</ng-form>

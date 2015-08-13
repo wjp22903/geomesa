@@ -4,6 +4,17 @@ angular.module('stealth.static.geo', [
     'stealth.static.wizard'
 ])
 
+.run([
+'$rootScope',
+'staticWorkspaceManager',
+function ($rootScope, staticWorkspaceManager) {
+    $rootScope.$on('owsLayers:update', function (evt, req) { // eslint-disable-line no-unused-vars
+        if (_.contains(req.keywordPrefixes, 'static')) {
+            staticWorkspaceManager.refreshLayers();
+        }
+    });
+}])
+
 .service('staticWorkspaceManager', [
 '$timeout',
 'owsLayers',
@@ -198,20 +209,68 @@ function ($timeout, owsLayers, ol3Map, WmsLayer, CONFIG) {
     };
 
     var keywordPrefix = 'static';
-    owsLayers.getLayers(keywordPrefix)
-        .then(function (layers) {
-            _.each(layers, function (l) {
-                var layer = _.cloneDeep(l);
-                layer.filterLayers = [];
-                _.each(_.keys(_.get(layer.KeywordConfig, keywordPrefix)), function (workspace) {
-                    if (_.isArray(_self.workspaces[workspace])) {
-                        _self.workspaces[workspace].push(layer);
-                    } else {
-                        _self.workspaces[workspace] = [layer];
-                    }
-                });
+
+    /**
+     * When we want to refreshLayers, we should keep track of all layers at the time we called refresh, in case any
+     * of those layers are still showing on the map. Also, we can't assume that refreshing will only be called when
+     * new layers are present, and must account for the fact that layers may have been deleted. Finally, overwriting
+     * the workspaces object seems to break the binding to catScope.workspace below, so we do everything in place.
+     */
+    var markLayersForDeletion = function () {
+        _.each(_self.workspaces, function (workspace) {
+            _.each(workspace, function (layer) {
+                layer.DELETABLE = true;
             });
         });
+    };
+    var removeDeletionMarker = function (layer) {
+        delete layer.DELETABLE;
+    };
+    var removeDeletableLayers = function () {
+        var emptyWorkspaces = [];
+        _.each(_.keys(_self.workspaces), function (workspaceName) {
+            var ws = _.reject(_self.workspaces[workspaceName], 'DELETABLE');
+            _.each(_.filter(_self.workspaces[workspaceName], 'DELETABLE'), function (layer) {
+                _.each(layer.filterLayers, function (filterLayer) {
+                    _self.toggleLayer(layer, filterLayer);
+                });
+            });
+            _.each(ws, function (layer) {
+                removeDeletionMarker(layer);
+            });
+            _self.workspaces[workspaceName] = ws;
+            if (ws.length === 0) {
+                emptyWorkspaces.push(workspaceName);
+            }
+        });
+        _.each(emptyWorkspaces, function (workspaceName) {
+            delete _self.workspaces[workspaceName];
+        });
+    };
+    this.refreshLayers = function () {
+        owsLayers.getLayers(keywordPrefix, true)
+            .then(function (layers) {
+                markLayersForDeletion(); // assume everything can be deleted
+                _.each(layers, function (l) {
+                    var layer = _.cloneDeep(l);
+                    layer.filterLayers = [];
+                    _.each(_.keys(_.get(layer.KeywordConfig, keywordPrefix)), function (workspace) {
+                        if (!_.isArray(_self.workspaces[workspace])) {
+                            _self.workspaces[workspace] = [];
+                        }
+                        var priorLayer = _.find(_self.workspaces[workspace], {Name: layer.Name});
+                        if (!priorLayer) {
+                            _self.workspaces[workspace].push(layer);
+                        } else {
+                            removeDeletionMarker(priorLayer);
+                        }
+                    });
+                });
+                // anything that still has a deletion flag actually can be removed
+                removeDeletableLayers();
+            });
+    };
+    this.refreshLayers();
 }])
 
 .run([

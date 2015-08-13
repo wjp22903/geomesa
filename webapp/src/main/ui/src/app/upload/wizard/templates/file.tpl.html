@@ -1,0 +1,13 @@
+<ng-form name="wizardForm">
+  <div ng-class="{'ng-hide': !loadError}" class="ui-state-error upload-error">
+    {{loadError}}
+  </div>
+  <div class="upload-table-header">Select a CSV file containing features to ingest:</div>
+  <div ng-hide="file.upload.started" class="upload-fileupload">
+    <input id="fileupload" type="file" name="csvfile" ng-model="file.upload.finished" asyncupload>
+  </div>
+  <div id="upload-wiz-progress" ng-hide="!file.upload.started">
+    <div class="upload-progress" ng-style="{ width:'{ file.upload.percent }%' }"></div>
+  </div>
+  <div ng-hide="!file.upload.started">{{file.status}}</div>
+</ng-form>
