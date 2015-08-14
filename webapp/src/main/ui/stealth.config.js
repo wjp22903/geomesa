@@ -32,6 +32,7 @@ module.exports = {
             'vendor/bower/angular-animate/angular-animate.js',
             'vendor/bower/angular-bootstrap-colorpicker/js/bootstrap-colorpicker-module.js',
             'vendor/bower/angular-cookies/angular-cookies.js',
+            'vendor/bower/angular-sanitize/angular-sanitize.js',
             'vendor/bower/angular-toastr/dist/angular-toastr.tpls.js',
             'vendor/bower/angular-truncate/src/truncate.js',
             'vendor/bower/angular-ui-bootstrap-bower/ui-bootstrap-tpls.js',
@@ -83,6 +84,7 @@ module.exports = {
             'vendor/bower/angular/angular.min.js.map',
             'vendor/bower/angular-animate/angular-animate.min.js.map',
             'vendor/bower/angular-cookies/angular-cookies.min.js.map',
+            'vendor/bower/angular-sanitize/angular-sanitize.min.js.map',
             'vendor/bower/mathjs/dist/math.map'
         ]
     }

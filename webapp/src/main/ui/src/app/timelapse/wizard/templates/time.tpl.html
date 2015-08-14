@@ -1,7 +1,10 @@
 <ng-form name="wizardForm">
-    <p>
-        Select search time range.
-    </p>
+
+    <div>Time range available for this data:
+        <p ng-bind-html="query.timeData.availMsg"></p>
+    </div>
+
+
     <div style="margin-bottom: 10px;width: 100%; text-align: center;">
         <div class="btn btn-default btn-xs" ng-click="query.updateTimeRange(1)">1 H</div>
         <div class="btn btn-default btn-xs" ng-click="query.updateTimeRange(3)">3 H</div>
@@ -28,6 +31,7 @@
             </td>
         </tr>
     </table>
+
     <input type="hidden" ng-model="query.timeData.valid" required></input>
     <div class="alert alert-danger ng-hide" ng-class="{'ng-hide': query.timeData.valid}">
         <span class="fa fa-lg fa-fw fa-exclamation-triangle"></span>

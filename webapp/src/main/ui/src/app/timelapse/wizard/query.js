@@ -1,4 +1,5 @@
 angular.module('stealth.timelapse.wizard.query', [
+    'ngSanitize',
     'stealth.core.utils',
     'stealth.core.utils.cookies',
     'stealth.timelapse',
@@ -87,7 +88,7 @@ function ($filter, cookies, wfs, ol3Map, owsLayers, CONFIG) {
                 cookies.put('timelapse.wizard.time', 0, range, moment.utc().add(1, 'y'));
             }
 
-            //Let's check if this range is valid
+            // Let's check if this range is valid
             delete this.timeData.valid;
             if (!moment.isMoment(start)) {
                 this.timeData.errorMsg = 'Invalid start time';
@@ -107,9 +108,31 @@ function ($filter, cookies, wfs, ol3Map, owsLayers, CONFIG) {
                     $filter('millisToDHMS')(this.timeData.maxTimeRangeMillis, true);
                 return;
             }
-            //If we're here, range is valid.
+            // If we're here, range is valid.
             this.timeData.valid = true;
             delete this.timeData.errorMsg;
+        };
+
+
+        // Format min or max time range
+        var availMsgDateString = function (m) {
+            var format = 'YYYY MMM DD HH:mm:ss';
+            return m.format(format);
+        };
+        var isValidMsgTime = function (t) {
+            return t.isValid();
+        };
+        // Compute time range, alert user if the data layer has a corresponding min/max keyword (or UNKNOWN min/max)
+        this.computeAvailMsg = function (minTime, maxTime) {
+            if (isValidMsgTime(minTime) && isValidMsgTime(maxTime)) {
+                return availMsgDateString(minTime) +' to '+ availMsgDateString(maxTime) + '.';
+            } else if (isValidMsgTime(minTime) && !isValidMsgTime(maxTime)) {
+                return availMsgDateString(minTime) + ' to UNKNOWN.';
+            } else if (!isValidMsgTime(minTime) && isValidMsgTime(maxTime)) {
+                return 'UNKNOWN to ' + availMsgDateString(maxTime) + '.';
+            } else {
+                return 'UNKNOWN time range.';
+            }
         };
 
         this.checkAndSetBounds = function (extent, skipCookie) {
@@ -126,7 +149,7 @@ function ($filter, cookies, wfs, ol3Map, owsLayers, CONFIG) {
             _.merge(this.params, bbox);
 
             if (!skipCookie) {
-                //Save cookie - expires in a year
+                // Save cookie - expires in a year
                 cookies.put('timelapse.wizard.bbox', 0, bbox, moment.utc().add(1, 'y'));
             }
         };
@@ -185,8 +208,11 @@ function ($filter, cookies, wfs, ol3Map, owsLayers, CONFIG) {
                 }
             );
 
-            //Set time range limit, if this layer has one
+            // Set time range limit, if this layer has one. Set time range message.
             this.timeData.maxTimeRangeMillis = _self.layerData.currentLayer.maxTimeRangeMillis;
+            this.timeData.maxTime = _self.layerData.currentLayer.maxTime;
+            this.timeData.minTime = _self.layerData.currentLayer.minTime;
+            this.timeData.availMsg = this.computeAvailMsg(this.timeData.minTime, this.timeData.maxTime);
             this.checkAndSetTimeRange(_self.params.startDtg, _self.params.endDtg, true);
         };
 
@@ -219,6 +245,9 @@ function ($filter, cookies, wfs, ol3Map, owsLayers, CONFIG) {
                         layer.maxTimeRangeMillis =
                             parseInt(_.get(layer.KeywordConfig, keywordPrefix.concat([workspace, 'maxTimeRangeMillis'])), 10) ||
                             Number.POSITIVE_INFINITY;
+                        // Min and max data availability alert
+                        layer.minTime = moment.utc(_.get(layer.KeywordConfig, keywordPrefix.concat([workspace, 'minTime']), null));
+                        layer.maxTime = moment.utc(_.get(layer.KeywordConfig, keywordPrefix.concat([workspace, 'maxTime']), null));
                     });
                 });
                 if (!_.isEmpty(_self.layerData.layers)) {
@@ -229,7 +258,7 @@ function ($filter, cookies, wfs, ol3Map, owsLayers, CONFIG) {
                     _self.getFeatureTypeDescription();
                 }
 
-                //Initialize values
+                // Initialize values
                 _self.checkAndSetBounds(ol3Map.getExtent(), true);
                 _.merge(
                     _self.params,
