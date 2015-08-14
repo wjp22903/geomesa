@@ -13,10 +13,11 @@ angular.module('stealth.static.wizard')
 'stealth.core.wizard.Wizard',
 'stealth.static.wizard.Query',
 'stealth.core.utils.WidgetDef',
+'staticWorkspaceManager',
 'CONFIG',
 function ($log, $rootScope, $filter,
           wizardManager, ol3Map, ol3Styles, colors, cqlHelper,
-          Step, Wizard, Query, WidgetDef, CONFIG) {
+          Step, Wizard, Query, WidgetDef, staticWorkspaceManager, CONFIG) {
     var tag = 'stealth.static.wizard.staticLayerWizard: ';
     $log.debug(tag + 'service started');
 
@@ -37,15 +38,20 @@ function ($log, $rootScope, $filter,
         return bounds;
     }
 
-    var markerShapes = ['circle', 'square', 'triangle', 'star', 'cross', 'x'];
-    var counter = 0;
+    var markerShapes = staticWorkspaceManager.markerShapes;
+    var shapeCounter = 0;
     function getShape () {
-        var shape = markerShapes[counter++ % 6];
-        if (counter % 6 === 0) {
-            counter = 0;
-        }
-        return shape;
+        shapeCounter = shapeCounter % markerShapes.length;
+        return markerShapes[shapeCounter++];
     }
+
+    var colorRamps = staticWorkspaceManager.colorRamps;
+    var colorRampCounter = 0;
+    function getColorRamp () {
+        colorRampCounter = colorRampCounter % colorRamps.length;
+        return colorRamps[colorRampCounter++];
+    }
+
 
     this.launch = function (layer, toggleLayer, overrides) {
         var wizScope = $rootScope.$new();
@@ -122,28 +128,29 @@ function ($log, $rootScope, $filter,
             useMask)
         );
 
+        var allStyles = staticWorkspaceManager.getLayerStyles(layer);
+
         angular.extend(wizScope, {
             style: {
                 'background-color': colors.getColor()
             },
-            markerStyles: ['point', 'heatmap'],
-            sld: {
-                'point': 'stealth_dataPoints',
-                'heatmap': 'stealth_heatmap'
-            },
-            markerShapes: markerShapes
+            markerStyles: _.keys(allStyles),
+            sld: allStyles,
+            markerShapes: markerShapes,
+            colorRamps: colorRamps
         });
         wizScope.query.params.markerShape = getShape();
         wizScope.query.params.fillColor = wizScope.style['background-color'];
+        wizScope.query.params.colorRamp = getColorRamp();
         wizScope.getIconImgSrc = function (layer) {
             var url = wizScope.layer.wmsUrl || CONFIG.geoserver.defaultUrl + '/wms';
             var iconImgSrc = url +
                              "?REQUEST=GetLegendGraphic&FORMAT=image/png&WIDTH=24&HEIGHT=24&TRANSPARENT=true&LAYER=" +
                              wizScope.layer.Name +
-                             "&ENV=" + 'color:' + wizScope.query.params.fillColor.slice(1) +
-                                       ';size:' + wizScope.query.params.size +
-                                       ';shape:' + wizScope.query.params.markerShape +
-                                       ';radiusPixels:' + wizScope.query.params.radiusPixels +
+                             "&ENV=" + staticWorkspaceManager.getRequestEnv(wizScope.query.params.fillColor,
+                                 wizScope.query.params.size, wizScope.query.params.markerShape,
+                                 wizScope.query.params.radiusPixels, wizScope.query.params.colorRamp,
+                                 wizScope.query.params.geomField.name) +
                              "&STYLE=" + wizScope.sld[wizScope.query.params.markerStyle];
             return iconImgSrc;
         };
@@ -172,7 +179,9 @@ function ($log, $rootScope, $filter,
                             markerShape: wizScope.query.params.markerShape,
                             size: wizScope.query.params.size,
                             fillColor: wizScope.style['background-color'],
-                            radiusPixels: wizScope.query.params.radiusPixels
+                            radiusPixels: wizScope.query.params.radiusPixels,
+                            colorRamp: wizScope.query.params.colorRamp,
+                            geom: wizScope.query.params.geomField.name
                         },
                         cqlFilter: _.isEmpty(cql) ? null : cql,
                         style: 'stealth_dataPoints',
@@ -220,5 +229,4 @@ function () {
         templateUrl: 'static/wizard/templates/options.tpl.html'
     };
 })
-
 ;

@@ -64,6 +64,11 @@
                 ng-options="n for n in 10 | lodash:'range':101:10"
                 ng-model="query.params.radiusPixels">
         </select>
+        <label>Color Ramp:</label>
+        <select class="form-control input-sm"
+                style="width:92px;display:inline"
+                ng-model="query.params.colorRamp"
+                ng-options="ramp for ramp in colorRamps"></select>
     </span>
     <p style="margin-top:20px;">
         Give this Data Layer a meaningful name.<br>

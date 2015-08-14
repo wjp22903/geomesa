@@ -51,5 +51,12 @@
                     ng-change="heatmapRadiusChanged(filterLayer, filterLayer.viewState.radiusPixels)">
             </select>
         </div>
+
+        <div class="cell" ng-if="filterLayer.viewState.markerStyle === 'heatmap'">
+            <select style="outline:none;margin-bottom:5px;margin-top:5px"
+                    ng-model="filterLayer.viewState.colorRamp"
+                    ng-options="ramp for ramp in colorRamps"
+                    ng-change="colorRampChanged(filterLayer)"></select>
+        </div>
     </div>
 </div>

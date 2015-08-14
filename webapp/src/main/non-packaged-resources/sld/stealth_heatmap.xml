@@ -12,7 +12,7 @@
             <Abstract>Heatmap</Abstract>
             <FeatureTypeStyle>
                 <Transformation>
-                    <ogc:Function name="gs:Heatmap">
+                    <ogc:Function name="geomesa:Density">
                         <ogc:Function name="parameter">
                             <ogc:Literal>data</ogc:Literal>
                         </ogc:Function>
@@ -22,10 +22,6 @@
                                 <ogc:Literal>radiusPixels</ogc:Literal>
                                 <ogc:Literal>10</ogc:Literal>
                             </ogc:Function>
-                        </ogc:Function>
-                        <ogc:Function name="parameter">
-                            <ogc:Literal>pixelsPerCell</ogc:Literal>
-                            <ogc:Literal>1</ogc:Literal>
                         </ogc:Function>
                         <ogc:Function name="parameter">
                             <ogc:Literal>outputBBOX</ogc:Literal>
@@ -48,23 +44,163 @@
                     </ogc:Function>
                 </Transformation>
                 <Rule>
+                    <ogc:Filter>
+                        <ogc:PropertyIsEqualTo>
+                            <ogc:Function name="env">
+                                <ogc:Literal>colorRamp</ogc:Literal>
+                            </ogc:Function>
+                            <ogc:Literal>green</ogc:Literal>
+                        </ogc:PropertyIsEqualTo>
+                    </ogc:Filter>
                     <RasterSymbolizer>
                         <Geometry>
-                            <ogc:PropertyName>geom</ogc:PropertyName>
+                            <ogc:PropertyName>
+                                <ogc:Function name="env">
+                                    <ogc:Literal>geom</ogc:Literal>
+                                    <ogc:Literal>geom</ogc:Literal>
+                                </ogc:Function>
+                            </ogc:PropertyName>
                         </Geometry>
                         <Opacity>0.75</Opacity>
                         <ColorMap type="ramp">
-                            <ColorMapEntry color="#FFF5F0" quantity="0" label="No Data" opacity="0"/>
-                            <ColorMapEntry color="#FEE0D2" quantity="0.001" label="1"/>
-                            <ColorMapEntry color="#FCBBA1" quantity="0.01" label="2"/>
-                            <ColorMapEntry color="#FC9272" quantity="0.1" label="3"/>
-                            <ColorMapEntry color="#FB6A4A" quantity="0.25" label="4"/>
-                            <ColorMapEntry color="#EF3B2C" quantity="0.4" label="5"/>
-                            <ColorMapEntry color="#CB181D" quantity="0.5" label="6"/>
-                            <ColorMapEntry color="#A50F15" quantity="0.6" label="7"/>
-                            <ColorMapEntry color="#67000D" quantity="0.7" label="8"/>
-                            <ColorMapEntry color="#550000" quantity="0.8" label="9"/>
-                            <ColorMapEntry color="#1B0505" quantity="0.9" label="10"/>
+                            <ColorMapEntry color="#f7fcfd"  quantity="0.0001"  label="No Data" opacity="0"    />
+                            <ColorMapEntry color="#e5f5f9"  quantity="0.001"   label="1"       opacity="0.50" />
+                            <ColorMapEntry color="#ccece6"  quantity="0.01"    label="2"       opacity="0.75" />
+                            <ColorMapEntry color="#99d8c9"  quantity="0.1"     label="3"                      />
+                            <ColorMapEntry color="#66c2a4"  quantity="0.2"     label="4"                      />
+                            <ColorMapEntry color="#41ae76"  quantity="0.3"     label="5"                      />
+                            <ColorMapEntry color="#238b45"  quantity="0.4"     label="6"                      />
+                            <ColorMapEntry color="#006d2c"  quantity="0.5"     label="7"                      />
+                            <ColorMapEntry color="#00441b"  quantity="0.99"    label="8"                      />
+                        </ColorMap>
+                    </RasterSymbolizer>
+                </Rule>
+                <Rule>
+                    <ogc:Filter>
+                        <ogc:PropertyIsEqualTo>
+                            <ogc:Function name="env">
+                                <ogc:Literal>colorRamp</ogc:Literal>
+                            </ogc:Function>
+                            <ogc:Literal>blue</ogc:Literal>
+                        </ogc:PropertyIsEqualTo>
+                    </ogc:Filter>
+                    <RasterSymbolizer>
+                        <Geometry>
+                            <ogc:PropertyName>
+                                <ogc:Function name="env">
+                                    <ogc:Literal>geom</ogc:Literal>
+                                    <ogc:Literal>geom</ogc:Literal>
+                                </ogc:Function>
+                            </ogc:PropertyName>
+                        </Geometry>
+                        <Opacity>0.75</Opacity>
+                        <ColorMap>
+                            <ColorMapEntry color="#f7fbff"   quantity="0.0001" label="No Data" opacity="0"    />
+                            <ColorMapEntry color="#deebf7"   quantity="0.001"  label="1"       opacity="0.50" />
+                            <ColorMapEntry color="#c6dbef"   quantity="0.01"   label="2"       opacity="0.75" />
+                            <ColorMapEntry color="#9ecae1"   quantity="0.1"    label="3"                      />
+                            <ColorMapEntry color="#6baed6"   quantity="0.2"    label="4"                      />
+                            <ColorMapEntry color="#4292c6"   quantity="0.5"    label="5"                      />
+                            <ColorMapEntry color="#2171b5"   quantity="0.75"   label="6"                      />
+                            <ColorMapEntry color="#08519c"   quantity="0.9"    label="7"                      />
+                            <ColorMapEntry color="#08306b"   quantity="0.99"   label="8"                      />
+                        </ColorMap>
+                    </RasterSymbolizer>
+                </Rule>
+                <Rule>
+                    <ogc:Filter>
+                        <ogc:PropertyIsEqualTo>
+                            <ogc:Function name="env">
+                                <ogc:Literal>colorRamp</ogc:Literal>
+                                <ogc:Literal>orange</ogc:Literal>
+                            </ogc:Function>
+                            <ogc:Literal>orange</ogc:Literal>
+                        </ogc:PropertyIsEqualTo>
+                    </ogc:Filter>
+                    <RasterSymbolizer>
+                        <Geometry>
+                            <ogc:PropertyName>
+                                <ogc:Function name="env">
+                                    <ogc:Literal>geom</ogc:Literal>
+                                    <ogc:Literal>geom</ogc:Literal>
+                                </ogc:Function>
+                            </ogc:PropertyName>
+                        </Geometry>
+                        <Opacity>0.75</Opacity>
+                        <ColorMap type="ramp">
+                            <ColorMapEntry color="#fff5eb"   quantity="0.0001" label="No Data" opacity="0"    />
+                            <ColorMapEntry color="#fee6ce"   quantity="0.001"  label="1"       opacity="0.50" />
+                            <ColorMapEntry color="#fdd0a2"   quantity="0.01"   label="2"       opacity="0.75" />
+                            <ColorMapEntry color="#fdae6b"   quantity="0.1"    label="3"                      />
+                            <ColorMapEntry color="#fd8d3c"   quantity="0.2"    label="4"                      />
+                            <ColorMapEntry color="#f16913"   quantity="0.5"    label="5"                      />
+                            <ColorMapEntry color="#d94801"   quantity="0.75"   label="6"                      />
+                            <ColorMapEntry color="#a63603"   quantity="0.9"    label="7"                      />
+                            <ColorMapEntry color="#7f2704"   quantity="0.99"   label="8"                      />
+                        </ColorMap>
+                    </RasterSymbolizer>
+                </Rule>
+                <Rule>
+                    <ogc:Filter>
+                        <ogc:PropertyIsEqualTo>
+                            <ogc:Function name="env">
+                                <ogc:Literal>colorRamp</ogc:Literal>
+                            </ogc:Function>
+                            <ogc:Literal>purple</ogc:Literal>
+                        </ogc:PropertyIsEqualTo>
+                    </ogc:Filter>
+                    <RasterSymbolizer>
+                        <Geometry>
+                            <ogc:PropertyName>
+                                <ogc:Function name="env">
+                                    <ogc:Literal>geom</ogc:Literal>
+                                    <ogc:Literal>geom</ogc:Literal>
+                                </ogc:Function>
+                            </ogc:PropertyName>
+                        </Geometry>
+                        <Opacity>0.75</Opacity>
+                        <ColorMap type="ramp">
+                            <ColorMapEntry color="#fcfbfd"  quantity="0.0001" label="No Data" opacity="0"    />
+                            <ColorMapEntry color="#efedf5"  quantity="0.001"  label="1"       opacity="0.50" />
+                            <ColorMapEntry color="#dadaeb"  quantity="0.01"   label="2"       opacity="0.75" />
+                            <ColorMapEntry color="#bcbddc"  quantity="0.1"    label="3"                      />
+                            <ColorMapEntry color="#9e9ac8"  quantity="0.2"    label="4"                      />
+                            <ColorMapEntry color="#807dba"  quantity="0.5"    label="5"                      />
+                            <ColorMapEntry color="#6a51a3"  quantity="0.75"   label="6"                      />
+                            <ColorMapEntry color="#54278f"  quantity="0.9"    label="7"                      />
+                            <ColorMapEntry color="#3f007d"  quantity="0.99"   label="8"                      />
+                        </ColorMap>
+                    </RasterSymbolizer>
+                </Rule>
+                <Rule>
+                    <ogc:Filter>
+                        <ogc:PropertyIsEqualTo>
+                            <ogc:Function name="env">
+                                <ogc:Literal>colorRamp</ogc:Literal>
+                            </ogc:Function>
+                            <ogc:Literal>red</ogc:Literal>
+                        </ogc:PropertyIsEqualTo>
+                    </ogc:Filter>
+                    <RasterSymbolizer>
+                        <Geometry>
+                            <ogc:PropertyName>
+                                <ogc:Function name="env">
+                                    <ogc:Literal>geom</ogc:Literal>
+                                    <ogc:Literal>geom</ogc:Literal>
+                                </ogc:Function>
+                            </ogc:PropertyName>
+                        </Geometry>
+                        <Opacity>0.75</Opacity>
+                        <ColorMap type="ramp">
+                            <ColorMapEntry color="#fff5f0"  quantity="0.01"   label="No Data" opacity="0"    />
+                            <ColorMapEntry color="#fee0d2"  quantity="0.1"    label="1"       opacity="0.50" />
+                            <ColorMapEntry color="#fcbba1"  quantity="0.2"    label="2"       opacity="0.75" />
+                            <ColorMapEntry color="#fc9272"  quantity="0.3"    label="3"                      />
+                            <ColorMapEntry color="#fb6a4a"  quantity="0.4"    label="4"                      />
+                            <ColorMapEntry color="#ef3b2c"  quantity="0.5"    label="5"                      />
+                            <ColorMapEntry color="#cb181d"  quantity="0.75"   label="6"                      />
+                            <ColorMapEntry color="#a50f15"  quantity="0.9"    label="7"                      />
+                            <ColorMapEntry color="#67000d"  quantity="0.99"   label="8"                      />
                         </ColorMap>
                     </RasterSymbolizer>
                 </Rule>

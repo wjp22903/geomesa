@@ -13,42 +13,47 @@ angular.module('stealth.static.geo', [
 function ($timeout, owsLayers, colors, ol3Map, WmsLayer, CONFIG) {
     var _self = this;
     var iconImgSrc = '';
-    var markerStyles = ['point', 'heatmap'];
-    var stealthMarkerStyles = {
+
+    var baseStyles = {
         'point': 'stealth_dataPoints',
         'heatmap': 'stealth_heatmap'
     };
-    var markerShapes = ['circle', 'square', 'triangle', 'star', 'cross', 'x'];
-    var counter = 0;
 
-    var getShape = function () {
-        var shape = markerShapes[counter++ % 6];
-        if (counter % 6 === 0) {
-            counter = 0;
-        }
-        return shape;
-    };
+    this.markerShapes = ['circle', 'square', 'triangle', 'star', 'cross', 'x'];
+    this.colorRamps = ['green', 'blue', 'orange', 'purple', 'red'];
+
     var updateIconImgSrc = function (filterLayer) {
         var url = filterLayer.wmsUrl || CONFIG.geoserver.defaultUrl + '/wms';
         iconImgSrc = url +
                      "?REQUEST=GetLegendGraphic&FORMAT=image/png&WIDTH=16&HEIGHT=16&TRANSPARENT=true&LAYER=" +
                      filterLayer.layerName +
-                     "&ENV=" + getRequestEnv(filterLayer.viewState.fillColor,
+                     "&ENV=" + _self.getRequestEnv(filterLayer.viewState.fillColor,
                                              filterLayer.viewState.size,
                                              filterLayer.viewState.markerShape,
-                                             filterLayer.viewState.radiusPixels);
+                                             filterLayer.viewState.radiusPixels,
+                                             filterLayer.viewState.colorRamp,
+                                             filterLayer.viewState.geom);
         if (!_.isUndefined(filterLayer.style)) {
             iconImgSrc += "&STYLE=" + filterLayer.style;
         }
     };
-    var getRequestEnv = function (fillColor, size, shape, radiusPixels) {
+    this.getRequestEnv = function (fillColor, size, shape, radiusPixels, colorRamp, geom) {
         var env = 'color:' + fillColor.slice(1) +
                   ';size:' + size +
-                  ';shape:' + shape;
+                  ';shape:' + shape +
+                  ';colorRamp:' + colorRamp +
+                  ';geom:' + geom;
         if (_.isNumber(radiusPixels)) {
             env += ';radiusPixels:' + radiusPixels;
         }
         return env;
+    };
+
+    this.getLayerStyles = function (layer) {
+        var configuredStyles =
+            _.object(_.map(layer.Style, function (s) {return [s.Title, s.Name];}));
+
+        return _.merge(_.clone(baseStyles), configuredStyles);
     };
 
     this.workspaces = {};
@@ -65,6 +70,8 @@ function ($timeout, owsLayers, colors, ol3Map, WmsLayer, CONFIG) {
     };
     this.toggleLayer = function (layer, filterLayer) {
         if (_.isUndefined(filterLayer.mapLayerId) || _.isNull(filterLayer.mapLayerId)) {
+            var allStyles = _self.getLayerStyles(layer);
+            var markerStyles = _.keys(allStyles);
 
             var requestParams = {
                 LAYERS: filterLayer.layerName,
@@ -84,12 +91,14 @@ function ($timeout, owsLayers, colors, ol3Map, WmsLayer, CONFIG) {
 
             var updateRequestParams = function (filterLayer) {
                 var markerStyle = filterLayer.viewState.markerStyle;
-                filterLayer.style = stealthMarkerStyles[markerStyle];
+                filterLayer.style = allStyles[markerStyle];
                 requestParams.STYLES = filterLayer.style;
-                requestParams.ENV = getRequestEnv(filterLayer.viewState.fillColor,
+                requestParams.ENV = _self.getRequestEnv(filterLayer.viewState.fillColor,
                                                   filterLayer.viewState.size,
                                                   filterLayer.viewState.markerShape,
-                                                  filterLayer.viewState.radiusPixels);
+                                                  filterLayer.viewState.radiusPixels,
+                                                  filterLayer.viewState.colorRamp,
+                                                  filterLayer.viewState.geom);
                 mapLayer.updateRequestParams(requestParams);
             };
 
@@ -104,7 +113,8 @@ function ($timeout, owsLayers, colors, ol3Map, WmsLayer, CONFIG) {
             mapLayer.styleDirectiveScope.filterLayer = filterLayer;
             mapLayer.styleDirectiveScope.getIconImgSrc = _self.getIconImgSrc;
             mapLayer.styleDirectiveScope.markerStyles = markerStyles;
-            mapLayer.styleDirectiveScope.markerShapes = markerShapes;
+            mapLayer.styleDirectiveScope.markerShapes = _self.markerShapes;
+            mapLayer.styleDirectiveScope.colorRamps = _self.colorRamps;
             ol3Map.addLayer(mapLayer);
 
             mapLayer.styleDirectiveScope.setFillColor = function (filterLayer) {
@@ -139,6 +149,11 @@ function ($timeout, owsLayers, colors, ol3Map, WmsLayer, CONFIG) {
                 updateRequestParams(filterLayer);
             };
 
+            mapLayer.styleDirectiveScope.colorRampChanged = function (filterLayer) {
+                updateIconImgSrc(filterLayer);
+                updateRequestParams(filterLayer);
+            };
+
             // Update viewState on layer visibility change.
             ol3Layer.on('change:visible', function () {
                 $timeout(function () {
@@ -162,10 +177,12 @@ function ($timeout, owsLayers, colors, ol3Map, WmsLayer, CONFIG) {
             delete filterLayer.mapLayerId;
             filterLayer.viewState.isOnMap = false;
             filterLayer.viewState.toggledOn = false;
-            filterLayer.env = getRequestEnv(filterLayer.viewState.fillColor,
+            filterLayer.env = _self.getRequestEnv(filterLayer.viewState.fillColor,
                                             filterLayer.viewState.size,
                                             filterLayer.viewState.markerShape,
-                                            filterLayer.viewState.radiusPixels);
+                                            filterLayer.viewState.radiusPixels,
+                                            filterLayer.viewState.colorRamp,
+                                            filterLayer.viewState.geom);
         }
     };
 

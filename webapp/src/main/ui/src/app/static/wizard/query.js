@@ -31,7 +31,8 @@ function ($log, wfs, CONFIG) {
             markerShape: 'circle',
             size: 9,
             fillColor: '#000000',
-            radiusPixels: 10
+            radiusPixels: 10,
+            colorRamp: null
         };
 
         this.getFeatureTypeDescription = function (layer) {
