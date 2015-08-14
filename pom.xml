@@ -137,7 +137,7 @@
         <geoserver.url>http://dgeo.ccri.com:8080/geoserver</geoserver.url>
         <geoserver.omitProxy>false</geoserver.omitProxy>
 
-        <grunt.target>--target=dev</grunt.target>
+        <grunt.target>--target=develop</grunt.target>
 
         <map.extent>[-180,-90,180,90]</map.extent>
         <map.initExtent>[-180,-90,180,90]</map.initExtent>

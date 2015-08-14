@@ -10,9 +10,9 @@ module.exports = function (grunt) {
         grunt.loadNpmTasks(dep);
     });
 
-    var target = grunt.option('target') || 'dev';
+    var target = grunt.option('target') || 'develop';
     var stealthConfig = require('./stealth.config.js');
-    if (target === 'prod') {
+    if (target === 'production' || target === 'develop') {
         stealthConfig.vendorFiles.js = stealthConfig.vendorFiles.js.map( function ( file ) {
             var minFile;
             if (file.search(/[\.\-]debug/) !== -1) {
@@ -39,7 +39,8 @@ module.exports = function (grunt) {
                 src: [
                     '<%= html2js.app.dest %>',
                     '<%= buildDir %>/templates-jst.js',
-                    '<%= buildDir %>/plugins.js'
+                    '<%= buildDir %>/plugins.js',
+                    '<%= buildDir %>/src/'
                 ]
             }
         }
@@ -133,7 +134,7 @@ module.exports = function (grunt) {
     });
 
     // INDEX
-    if (target === 'prod') {
+    if (target === 'production') {
         grunt.config('appJs', '<%= buildDir %>/app.min.js');
     } else {
         grunt.config('appJs', [
@@ -418,7 +419,7 @@ module.exports = function (grunt) {
     grunt.renameTask('watch', 'delta');
 
     //Copy or uglify?
-    if (target === 'prod') {
+    if (target === 'production') {
         grunt.registerTask('build_appjs', [
             'uglify:build_appjs',
             'clean:nonprod_app_js'

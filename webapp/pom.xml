@@ -475,7 +475,14 @@
         <profile>
             <id>production</id>
             <properties>
-                <grunt.target>--target=prod</grunt.target>
+                <grunt.target>--target=production</grunt.target>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>debug</id>
+            <properties>
+                <grunt.target>--target=debug</grunt.target>
             </properties>
         </profile>
 
