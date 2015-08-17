@@ -15,7 +15,7 @@ function ($rootScope, sidebarManager, headerManager) {
         if (_wizard && !_.isEmpty(_wizard.getSteps())) {
             if (_.isNumber(_currentStepNum) && !skipTeardown) {
                 _wizard.getSteps()[_currentStepNum].getTeardown()
-                    .call(_wizard, _currentStepNum, stepNum > _currentStepNum);
+                    .call(_wizard, stepNum > _currentStepNum, _currentStepNum);
             }
             var step = _wizard.getSteps()[stepNum];
             if (step) {
@@ -83,7 +83,7 @@ function ($rootScope, sidebarManager, headerManager) {
         if (_wizard) {
             if (_.isNumber(_currentStepNum)) {
                 _wizard.getSteps()[_currentStepNum].getTeardown()
-                    .call(_wizard, _currentStepNum, success);
+                    .call(_wizard, success, _currentStepNum);
                 if (success && !this.isLastStep()) {
                     return _updateCurrentStep(_currentStepNum + 1, true); //not done yet!
                 }

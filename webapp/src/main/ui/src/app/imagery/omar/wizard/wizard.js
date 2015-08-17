@@ -20,7 +20,7 @@ function ($rootScope, CONFIG, wizardManager, Wizard, Step, WidgetDef, Query) {
         var wizardScope = $rootScope.$new();
         wizardScope.OMAR = CONFIG.imagery.omar;
         wizardScope.query = new Query(wizardScope.OMAR);
-        var completion = function (stepNum, success) {
+        var completion = function (success) {
             if (success) {
                 $rootScope.$emit('imagery:search', wizardScope.query); // runner picks this up
             }
@@ -28,9 +28,9 @@ function ($rootScope, CONFIG, wizardManager, Wizard, Step, WidgetDef, Query) {
         wizardManager.launchWizard(
             new Wizard('Imagery Search', 'fa-image', 'fa-check text-success', [
                 new Step('Select data source', new WidgetDef('st-im-omar-wiz-source', wizardScope), null, true),
-                new Step('Define search area', new WidgetDef('st-tl-wiz-bounds', wizardScope), null, false),
+                new Step('Define search area', new WidgetDef('st-tl-wiz-bounds', wizardScope)),
                 new Step('Define time range', new WidgetDef('st-tl-wiz-time', wizardScope), null, true),
-                new Step('Choose options', new WidgetDef('st-im-omar-wiz-opts', wizardScope), null, true, _.noop, completion)
+                new Step('Choose options', new WidgetDef('st-im-omar-wiz-opts', wizardScope), null, true, null, completion)
             ], wizardScope)
         );
     };

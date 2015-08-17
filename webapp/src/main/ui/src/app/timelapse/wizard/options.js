@@ -17,7 +17,7 @@ function (queryService, WidgetDef, Step, Wizard, Query) {
                 wizardScope.query = new Query();
             }
 
-            var submitQuery = function (stepNum, success) {
+            var submitQuery = function (success) {
                 if (success) {
                     queryService.launchBinQuery(this.getWizardScope().query);
                 }

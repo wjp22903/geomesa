@@ -92,7 +92,7 @@ function ($log, $rootScope, $filter, $interval,
                         'routeanalysis/wizard/templates/routePoints.tpl.html', wizardScope,
                         function (val) { routeInfoPanel = val; }
                     );
-                }, function (stepNum, success) {
+                }, function () {
                     if (routeInfoPanel) {
                         routeInfoPanel.remove();
                     }
@@ -106,10 +106,8 @@ function ($log, $rootScope, $filter, $interval,
     };
     var createEndWiz =  function (wizardScope) {
         return new Wizard(null, null, 'fa-check text-success', [
-            new Step('Set options', new WidgetDef('st-ra-route-options-wiz', wizardScope), null, true, null, function (stepNum, success) {
-
+            new Step('Set options', new WidgetDef('st-ra-route-options-wiz', wizardScope), null, true, null, function (success) {
                 if (success) {
-
                     wizardScope.query.derivedLayer.title = wizardScope.name;
                     wizardScope.query.derivedLayer.params.arrowColor = wizardScope.query.params.fillColor;
                     wizardScope.query.derivedLayer.params.fillColor = wizardScope.query.params.fillColor;
@@ -160,9 +158,8 @@ function ($log, $rootScope, $filter, $interval,
                         this.setEndIconClass('fa-ellipsis-h');
                         this.truncateSteps(stepNum);
                     },
-                    function (stepNum, success) {
+                    function (success) {
                         if (success) {
-
                             var derivedLayer = {
                                 title: "Route Analysis on " + wizardScope.name,
                                 name: wizardScope.name,

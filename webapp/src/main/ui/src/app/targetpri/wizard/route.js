@@ -21,7 +21,7 @@ function ($rootScope, Wizard, Step, WidgetDef, ol3Map, ol3Styles, elementAppende
                         this.setEndIconClass('fa-ellipsis-h');
                         this.truncateSteps(stepNum);
                     },
-                    function (stepNum, success) {
+                    function (success) {
                         if (success) {
                             switch (wizardScope.source) {
                                 case 'server':
@@ -82,7 +82,7 @@ function ($rootScope, Wizard, Step, WidgetDef, ol3Map, ol3Styles, elementAppende
                         'targetpri/wizard/templates/routePoints.tpl.html', wizardScope,
                         function (val) { routeInfoPanel = val; }
                     );
-                }, function (stepNum, success) {
+                }, function () {
                     if (routeInfoPanel) {
                         routeInfoPanel.remove();
                     }
@@ -112,7 +112,7 @@ function ($rootScope, Wizard, Step, WidgetDef, ol3Map, ol3Styles, elementAppende
                         null,
                         true,
                         null,
-                        function (stepNum, success) {
+                        function (success) {
                             if (success) {
                                 $rootScope.$emit('targetpri:request:route',
                                     //TODO - package these settings into an obj within wizardScope

@@ -100,7 +100,7 @@ function ($log, $rootScope, $filter,
             null,
             !useMask,
             // Setup function
-            function (stepNum) {
+            function () {
                 ol3Layer.setSource(getBoxSource(wizScope.query.params));
                 ol3Map.addLayer(boxLayer);
 
@@ -149,7 +149,7 @@ function ($log, $rootScope, $filter,
                 });
             },
             // Teardown function
-            function (stepNum, success) {
+            function () {
                 if (!_.isUndefined(wizScope.dragBoxListenerKey)) {
                     dragBox.unByKey(wizScope.dragBoxListenerKey);
                     delete wizScope.dragBoxListenerKey;
@@ -177,14 +177,14 @@ function ($log, $rootScope, $filter,
             null,
             useMask,
             // Setup function
-            function (stepNum) {
+            function () {
                 ol3Map.addLayer(boxLayer);
                 wizScope.query.params.title =
                     "Histogram of '" + wizScope.query.params.attribute.name +
                     "' for '" + wizScope.query.params.fromName + "'";
             },
             // Teardown function submits query.
-            function (stepNum, success) {
+            function (success) {
                 ol3Map.removeLayer(boxLayer);
 
                 if (success) {

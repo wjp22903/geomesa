@@ -75,7 +75,7 @@ function ($log, $rootScope, $filter,
             null,
             !useMask,
             // Setup function
-            function (stepNum) {
+            function () {
                 if (!wizScope.boundWiz) {
                     wizScope.boundWiz = {
                         drawing: false,
@@ -114,7 +114,7 @@ function ($log, $rootScope, $filter,
                 });
             },
             // Teardown function
-            function (stepNum, success) {
+            function () {
                 if (!_.isUndefined(wizScope.dragBoxListenerKey)) {
                     dragBox.unByKey(wizScope.dragBoxListenerKey);
                     delete wizScope.dragBoxListenerKey;
@@ -159,9 +159,9 @@ function ($log, $rootScope, $filter,
             new WidgetDef('st-static-wiz-options', wizScope),
             null,
             useMask,
-            _.noop(),
+            null,
             // Teardown function submits query.
-            function (stepNum, success) {
+            function (success) {
                 if (success) {
                     var cql = cqlHelper.buildSpaceTimeFilter(wizScope.query.params);
                     var filterLayer = {

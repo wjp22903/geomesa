@@ -68,7 +68,7 @@ function ($rootScope, wizardManager, ol3Map, ol3Styles, Wizard, Step, WidgetDef,
                 ol3Map.removeInteraction(_draw);
                 ol3Map.removeOverlay(_overlay);
             }),
-            new Step('Set Options', new WidgetDef('st-tl-wiz-options', wizardScope), null, true, null, function (stepNum, success) {
+            new Step('Set Options', new WidgetDef('st-tl-wiz-options', wizardScope), null, true, null, function (success) {
                 if (success && _.isFunction(onSuccess)) {
                     onSuccess.call(this, wizardScope.query.layerData.currentLayer, wizardScope.query.buildCql(), wizardScope.query.params.storeName);
                 }

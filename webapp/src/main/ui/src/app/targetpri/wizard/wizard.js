@@ -34,7 +34,7 @@ function ($rootScope, startMenuManager, wizardManager, Wizard, Step,
                         this.setEndIconClass('fa-ellipsis-h');
                         this.truncateSteps(stepNum);
                     },
-                    function (stepNum, success) {
+                    function (success) {
                         if (success) {
                             switch (wizardScope.type) {
                                 case 'site':

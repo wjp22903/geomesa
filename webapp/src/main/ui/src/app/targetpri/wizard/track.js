@@ -16,7 +16,7 @@ function (Wizard, Step, WidgetDef, sidebarManager, ol3Map) {
                         this.setEndIconClass('fa-ellipsis-h');
                         this.truncateSteps(stepNum);
                     },
-                    function (stepNum, success) {
+                    function (success) {
                         if (success) {
                             this.appendWizard(new Wizard(null, null, 'fa-ban text-danger', [
                                 new Step('Under Construction', new WidgetDef('st-placeholder'), null, true)

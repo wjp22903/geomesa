@@ -246,8 +246,8 @@ function ($log, $rootScope, $filter,
             new WidgetDef('st-dcm-wiz-events', wizScope),
             null,
             true,
-            function(stepNum) {},
-            function(stepNumd, success) {
+            null,
+            function () {
                 wizScope.updateEventCql(wizScope.prediction.events[0]);
             })
         );
@@ -257,7 +257,7 @@ function ($log, $rootScope, $filter,
             null,
             false,
             // Setup function
-            function (stepNum) {
+            function () {
                 ol3Layer.setSource(getBoxSource(wizScope.prediction.bounds));
                 ol3Map.addLayer(boxLayer);
 
@@ -306,7 +306,7 @@ function ($log, $rootScope, $filter,
                 });
             },
             // Teardown function
-            function (stepNum, success) {
+            function () {
                 if (!_.isUndefined(wizScope.dragBoxListenerKey)) {
                     dragBox.unByKey(wizScope.dragBoxListenerKey);
                     delete wizScope.dragBoxListenerKey;
@@ -321,9 +321,9 @@ function ($log, $rootScope, $filter,
             null,
             true,
             // Setup function
-            function (stepNum) {},
+            null,
             // Teardown function submits query.
-            function (stepNum, success) {
+            function (success) {
                 if (success) {
                     catScope.runDcmQuery(wizScope.prediction);
                 }
@@ -397,9 +397,9 @@ function ($log, $rootScope, $filter,
             null,
             false,
             // Setup function
-            function (stepNum) {},
+            null,
             // Teardown function submits query.
-            function (stepNum, success) {
+            function (success) {
                 if (success) {
                     catScope.addThreatSurfaces(wizScope.threatSurfacesSelected);
                 }

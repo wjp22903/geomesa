@@ -54,7 +54,7 @@ function () {
         var _title = title;
         var _formDef = formDef;
         var _toolDef = toolDef;
-        var _mask = mask;
+        var _mask = !!mask;
         var _setup = setup || _.noop;
         var _teardown = teardown || _.noop;
         var _addsStep = !!addsStep;
