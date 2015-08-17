@@ -216,6 +216,7 @@
         <!-- supported levels: unclassified, confidential, secret, topSecret, sci -->
         <classification.level>unclassified</classification.level>
 
+        <static.category.name>Data</static.category.name>
         <timelapse.hideBinSortOption>true</timelapse.hideBinSortOption>
 
         <security.keystore.path>${basedir}/src/test/resources/certs/server.p12</security.keystore.path>

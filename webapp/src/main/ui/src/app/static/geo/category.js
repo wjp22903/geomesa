@@ -175,32 +175,6 @@ function ($timeout, owsLayers, colors, ol3Map, WmsLayer, CONFIG) {
             _.each(layers, function (l) {
                 var layer = _.cloneDeep(l);
                 layer.filterLayers = [];
-                var filterLayer = {
-                    title: 'All',
-                    layerName: layer.Name,
-                    layerTitle: layer.Title,
-                    wmsUrl: layer.wmsUrl,
-                    queryable: layer.queryable,
-                    viewState: {
-                        isOnMap: false,
-                        toggledOn: false,
-                        isLoading: false,
-                        isRemovable: false,
-                        markerStyle: 'point',
-                        markerShape: getShape(),
-                        size: 9,
-                        fillColor: colors.getColor(),
-                        radiusPixels: 10
-                    }
-                };
-                filterLayer.env = getRequestEnv(filterLayer.viewState.fillColor,
-                                                filterLayer.viewState.size,
-                                                filterLayer.viewState.markerShape,
-                                                filterLayer.viewState.radiusPixels);
-                filterLayer.style = stealthMarkerStyles[filterLayer.viewState.markerStyle];
-                updateIconImgSrc(filterLayer);
-                layer.filterLayers.push(filterLayer);
-
                 _.each(_.get(layer.KeywordConfig, keywordPrefix), function (conf, workspace) {
                     if (_.isArray(_self.workspaces[workspace])) {
                         _self.workspaces[workspace].push(layer);
@@ -220,8 +194,9 @@ function ($timeout, owsLayers, colors, ol3Map, WmsLayer, CONFIG) {
 'ol3Map',
 'stealth.core.geo.ol3.manager.Category',
 'stealth.core.utils.WidgetDef',
+'CONFIG',
 function ($rootScope, staticWorkspaceMgr, catMgr, wizard, ol3Map,
-          Category, WidgetDef) {
+          Category, WidgetDef, CONFIG) {
     var catScope = $rootScope.$new();
     catScope.workspaces = staticWorkspaceMgr.workspaces;
     catScope.getIconImgSrc = staticWorkspaceMgr.getIconImgSrc;
@@ -245,7 +220,7 @@ function ($rootScope, staticWorkspaceMgr, catMgr, wizard, ol3Map,
     };
 
     var widgetDef = new WidgetDef('st-static-geo-category', catScope);
-    var category = new Category(1, 'Data', 'fa-database', widgetDef, null, true);
+    var category = new Category(1, _.get(CONFIG, 'static.categoryName') || 'Data', 'fa-database', widgetDef, null, true);
     category.height = 500; // Expand to this (max) height before scrolling.
     catMgr.addCategory(0, category);
 }])
@@ -268,5 +243,4 @@ function ($log) {
         templateUrl: 'static/geo/staticstyleview.tpl.html'
     };
 }])
-
 ;
