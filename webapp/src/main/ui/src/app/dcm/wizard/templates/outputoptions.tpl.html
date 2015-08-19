@@ -34,7 +34,7 @@
             <tr>
                 <td style="padding-top:2px"><label>Workspace to import into*: </label></td>
                 <td>
-                    <input type="text" class="form-control" ng-model="prediction.workspace" required>
+                    <select class="form-control" ng-options="workspace.name for workspace in workspaces | orderBy: 'name'" ng-model="prediction.workspace" required ></select>
                 </td>
             </tr>
             <tr>

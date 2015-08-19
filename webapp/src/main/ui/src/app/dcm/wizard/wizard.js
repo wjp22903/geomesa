@@ -122,14 +122,11 @@ function ($log, $rootScope, $filter,
         var wizScope = $rootScope.$new();
         var steps = [];
         var predictiveFeaturesSelected = [];
+        var workspace = '';
         wizScope.vectorLayers = [];
         wizScope.rasterLayers = [];
         wizScope.eventLayers = [];
-        var workspace = '';
-
-        if (CONFIG.userCn && CONFIG.userCn !== 'Anonymous') {
-            workspace = CONFIG.userCn;
-        }
+        wizScope.workspaces = [];
 
         owsLayers.getLayers(vectorPrefix, true)
             .then(function (layers) {
@@ -159,16 +156,39 @@ function ($log, $rootScope, $filter,
             .then(function (layers) {
                 $log.debug('owsLayers.getLayers()');
                 _.each(layers, function (l) {
-                    if (l.queryable) {
-                        var gsLayer = _.cloneDeep(l);
-                        gsLayer.derivedLayers = [];
-                        gsLayer.cql_filter = null;
-                        if (gsLayer.queryable) {
-                            getFeatureTypeDescription(gsLayer);
-                        }
+                    var gsLayer = _.cloneDeep(l);
+                    var workspace = {
+                        name: gsLayer.Name.substring(0, gsLayer.Name.indexOf(':'))
+                    };
+                    gsLayer.derivedLayers = [];
+                    gsLayer.cql_filter = null;
+                    if (gsLayer.queryable) {
+                        getFeatureTypeDescription(gsLayer);
                         wizScope.eventLayers.push(gsLayer);
                     }
+                    var match = _.find(wizScope.workspaces, function(ws) {
+                        return ws.name === workspace.name;
+                    });
+                    if (!match && (!gsLayer.serverUrl || gsLayer.serverUrl === CONFIG.geoserver.defaultUrl)) {
+                        wizScope.workspaces.push(workspace);
+                    }
                 });
+                if (CONFIG.userCn && CONFIG.userCn !== 'Anonymous') {
+                    var match = _.find(wizScope.workspaces, function(workspace) {
+                        workspace.name === CONFIG.userCn;
+                    });
+                    if (!match) {
+                        wizScope.workspaces.push({
+                            name: CONFIG.userCn
+                        });
+                        wizScope.prediction.workspace = wizScope.workspaces[wizScope.workspaces.length - 1 ];
+                    } else {
+                        wizScope.prediction.workspace = wizScope.workspaces[wizScope.workspaces.indexOf(match)];
+                    }
+
+                } else {
+                    wizScope.prediction.workspace = wizScope.workspaces[0];
+                }
             });
 
         wizScope.vectorLayersSelected = [];

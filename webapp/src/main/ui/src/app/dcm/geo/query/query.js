@@ -35,7 +35,7 @@ function ($log, wps, CONFIG, wfs, cqlHelper) {
             CRS: arg.CRS,
             featureSelection: arg.featureSelection,
             outputType: arg.outputType.output,
-            workspace: arg.workspace,
+            workspace: arg.workspace.name,
             store: arg.title,
             name: arg.title,
             srsHandling: arg.srsHandling,
@@ -71,7 +71,7 @@ function ($log, wps, CONFIG, wfs, cqlHelper) {
             predictiveFeatures.forEach(function(predFeature, index) {
                 predictiveFeaturesWpsInput +=
                     '<wps:Input>' +
-                        '<ows:Identifier>predictiveFeatures</ows:Identifier>' +
+                        '<ows:Identifier>predictiveVectors</ows:Identifier>' +
                         '<wps:Reference mimeType="text/xml" xlink:href="http://geoserver/wfs" method="POST">' +
                             '<wps:Body>' +
                                 '<wfs:GetFeature service="WFS" version="1.0.0" outputFormat="GML2">' +
@@ -93,7 +93,7 @@ function ($log, wps, CONFIG, wfs, cqlHelper) {
             predictiveCoverages.forEach(function(predCoverage) {
                 predictiveCoveragesWpsInput +=
                     '<wps:Input>'+
-                        '<ows:Identifier>predictiveCoverages</ows:Identifier>' +
+                        '<ows:Identifier>predictiveRasters</ows:Identifier>' +
                         '<wps:Reference mimeType="image/tiff" xlink:href="http://geoserver/wcs" method="POST">' +
                             '<wps:Body>' +
                                 '<wcs:GetCoverage service="WCS" version="1.1.1">' +
