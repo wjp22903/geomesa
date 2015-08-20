@@ -96,7 +96,7 @@ function ($log, $rootScope, $q, $timeout, coreCapabilitiesExtender, WidgetDef) {
              *
              * @returns {Promise}
              */
-            this.searchPoint = function (coord, res) {
+            this.searchPoint = function () {
                 return $q.when(this.getEmptySearchPointResult());
             };
             /**

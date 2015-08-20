@@ -3,8 +3,9 @@ angular.module('stealth.air.geo.ol3.layers', [
 ])
 
 .factory('stealth.air.geo.ol3.layers.TimeLapseLayerConstructorFactory', [
+'$rootScope',
 'stealth.core.utils.WidgetDef',
-function (WidgetDef) {
+function ($rootScope, WidgetDef) {
     return {
         getConstructor: function (TimeLapseLayer) {
             var AirTimeLapseLayer = function (/* inherited */) {

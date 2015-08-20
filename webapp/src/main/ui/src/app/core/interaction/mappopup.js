@@ -34,7 +34,6 @@ function ($log, $rootScope) {
     var tag = 'stealth.core.interaction.mappopup: ';
     var _idSeq = 0;
     var _searchables = {};
-    var _searchResults = [];
 
     /**
      * Call all registered searchables.
@@ -104,13 +103,11 @@ function ($log, $rootScope) {
 
 .controller('ol3MapPopupController', [
 '$element',
-'$filter',
 '$scope',
 '$rootScope',
 'mapClickSearchService',
 'ol3Map',
-'stealth.core.utils.WidgetDef',
-function ($element, $filter, $scope, $rootScope, mapClickSearchService, ol3Map, WidgetDef) {
+function ($element, $scope, $rootScope, mapClickSearchService, ol3Map) {
     /**
      * Private members.
      */
@@ -169,7 +166,7 @@ function ($element, $filter, $scope, $rootScope, mapClickSearchService, ol3Map, 
      * Initiate search and receive results.
      */
     this.launchSearch = function () {
-        mapClickSearchService.search([this.lon, this.lat], ol3Map.getResolution(), function(responses) {
+        mapClickSearchService.search([this.lon, this.lat], ol3Map.getResolution(), function (responses) {
             _.forEach(responses, function (response) {
                 if (response) {
                     _.each(_.flattenDeep([response]), function (singleResponse) {
@@ -200,19 +197,16 @@ function ($element, $filter, $scope, $rootScope, mapClickSearchService, ol3Map, 
             } else {
                 return 'top-left';
             }
-        } else {
-            if (lat < center[1]) {
-                return 'bottom-right';
-            } else {
-                return 'top-right';
-            }
+        } else if (lat < center[1]) {
+            return 'bottom-right';
         }
+        return 'top-right';
     };
     overlay.setPosition([_self.lon, _self.lat]);
     ol3Map.addOverlay(overlay);
 
     // Register map listeners.
-    var closeUnpinned = function (event) {
+    var closeUnpinned = function () {
         if (!isPinned) {
             ol3Map.un('click', closeUnpinned);
             _self.closePopup();
@@ -221,7 +215,7 @@ function ($element, $filter, $scope, $rootScope, mapClickSearchService, ol3Map, 
     ol3Map.on('click', closeUnpinned);
 
     // Register scope listeners.
-    var unbindFocus = $rootScope.$on('Popup Focus Change', function (event, popupId) {
+    var unbindFocus = $rootScope.$on('Popup Focus Change', function (event, popupId) { //eslint-disable-line no-unused-vars
         if (popupId !== id && $element.zIndex() > 85) {
             $element.css('z-index', $element.zIndex() - 1);
         }
@@ -249,9 +243,9 @@ function () {
         controller: 'ol3MapPopupController',
         controllerAs: 'mapPopCtrl',
         templateUrl: 'core/interaction/mappopup.tpl.html',
-        link: function (scope, element, attrs) {
+        link: function (scope, element) {
             element.draggable({
-                stop: function (event, ui) {
+                stop: function () {
                     scope.$apply(function () {
                         element.css('width', '');
                         element.parent().css('height', 0);

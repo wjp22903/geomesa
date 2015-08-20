@@ -7,7 +7,7 @@ function () {
     return {
         restrict: 'EA',
         replace: true,
-        scope: { title: '@', content: '@', placement: '@', animation: '&', isOpen: '&' },
+        scope: {title: '@', content: '@', placement: '@', animation: '&', isOpen: '&'},
         templateUrl: 'template/popover/popover.html'
     };
 })
@@ -18,19 +18,19 @@ function ($tooltip, $timeout) {
     var tooltip = $tooltip('stStartPop', 'stStartPop', 'event');
     var compile = angular.copy(tooltip.compile);
     tooltip.compile = function (element, attrs) {
-      var parentCompile = compile(element, attrs);
-      return function(scope, element, attrs ) {
-        var first = true;
-        attrs.$observe('stStartPopShow', function (val) {
-          if (JSON.parse(!first || val || false)) {
-            $timeout(function () {
-              element.triggerHandler('event');
+        var parentCompile = compile(element, attrs);
+        return function (scope, element, attrs) {
+            var first = true;
+            attrs.$observe('stStartPopShow', function (val) {
+                if (JSON.parse(!first || val || false)) {
+                    $timeout(function () {
+                        element.triggerHandler('event');
+                    });
+                }
+                first = false;
             });
-          }
-          first = false;
-        });
-        parentCompile(scope, element, attrs);
-      };
+            parentCompile(scope, element, attrs);
+        };
     };
     return tooltip;
 }])

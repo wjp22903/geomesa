@@ -1,12 +1,10 @@
-angular.module('stealth.timelapse.controls', [
-])
+angular.module('stealth.timelapse.controls')
 
 .service('tlControlsManager', [
 '$log',
 '$interval',
-'$timeout',
 '$rootScope',
-function ($log, $interval, $timeout, $rootScope) {
+function ($log, $interval, $rootScope) {
     var tag = 'stealth.timelapse.controls.tlControlsManager: ';
     $log.debug(tag + 'service started');
 
@@ -123,11 +121,9 @@ function ($log, $interval, $timeout, $rootScope) {
             playing = $interval(function () {
                 display.stepForward();
             }, display.frameIntervalMillis);
-        } else {
-            if (playing) {
-                $interval.cancel(playing);
-                playing = null;
-            }
+        } else if (playing) {
+            $interval.cancel(playing);
+            playing = null;
         }
     };
 
@@ -138,7 +134,7 @@ function ($log, $interval, $timeout, $rootScope) {
     };
 
     // Responses to events emitted by BinStores.
-    $rootScope.$on('timelapse:setDtgBounds', function (event, data) {
+    $rootScope.$on('timelapse:setDtgBounds', function (event, data) { //eslint-disable-line no-unused-vars
         $log.debug(tag + 'received "timelapse:setDtgBounds" message');
 
         if (!display.toggledOn) {
@@ -252,15 +248,13 @@ function ($log, $timeout) {
     var tag = 'stealth.timelapse.controls.stTimeLapseSlider: ';
     $log.debug(tag + 'directive defined');
 
-    var link = function (scope, el, attrs, controller) {
-
+    var link = function (scope) {
         var isReady = true;
 
         var model = angular.copy(scope.model);
         scope.model.changed = function () {
             if (scope.model.max === undefined ||
-                !angular.isNumber(scope.model.max))
-            {
+                !angular.isNumber(scope.model.max)) {
                 scope.model.max = 1;
             } else if (scope.model.max < 1) {
                 scope.model.max = 1;
@@ -280,24 +274,23 @@ function ($log, $timeout) {
                     isReady = true;
                 }, 100);
             }
-
         };
 
         scope.model.changed();
     };
 
     function getTemplate () {
-      var tpl = '<input type="range" st-int-input';
-      if (bowser.chrome) {
-          tpl += ' style="display:inline-block;"';
-      }
-      tpl += ' ng-model="model.value" \
+        var tpl = '<input type="range" st-int-input';
+        if (bowser.chrome) {
+            tpl += ' style="display:inline-block;"';
+        }
+        tpl += ' ng-model="model.value" \
                ng-attr-min="{{model.min}}" \
                ng-attr-max="{{model.max}}" \
                ng-attr-step="{{model.step}}" \
                ng-change="model.changed()">';
 
-      return tpl;
+        return tpl;
     }
 
     return {

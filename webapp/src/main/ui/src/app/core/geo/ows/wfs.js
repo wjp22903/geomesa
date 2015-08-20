@@ -8,7 +8,7 @@ function ($q, $http, $filter) {
     var _descriptionsCache = {};
     var _geomFieldsCache = {};
     var cqlFormat = new OpenLayers.Format.CQL_fixed();
-    var filter_1_1 = new OpenLayers.Format.Filter({ version: '1.1.0', srsName: 'EPSG:4326' }); // 1.1.0 spec filter
+    var filter_1_1 = new OpenLayers.Format.Filter({version: '1.1.0', srsName: 'EPSG:4326'}); // 1.1.0 spec filter
     var xmlFormat = new OpenLayers.Format.XML();
 
     var _requestFeatureTypeDescription = function (url, typeName) {
@@ -35,7 +35,7 @@ function ($q, $http, $filter) {
         };
 
         return $http.get(url, {
-            params:  _.merge(paramDefaults, paramOverrides),
+            params: _.merge(paramDefaults, paramOverrides),
             responseType: responseType || 'text'
         });
     };

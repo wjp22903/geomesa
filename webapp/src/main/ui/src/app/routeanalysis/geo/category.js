@@ -14,14 +14,13 @@ angular.module('stealth.routeanalysis.geo', [
 'categoryManager',
 'routeAnalysisWizard',
 'routeAnalysisBuilder',
-'analysisService',
 'stealth.core.geo.ol3.manager.Category',
 'stealth.core.utils.WidgetDef',
 'stealth.core.geo.ol3.layers.MapLayer',
 'CONFIG',
 function ($log, $rootScope, $timeout,
           ol3Map, wfs, owsLayers, catMgr,
-          routeAnalysisWizard, routeBuilder, analysisService,
+          routeAnalysisWizard, routeBuilder,
           Category, WidgetDef, MapLayer,
           CONFIG) {
     var tag = 'stealth.routeanalysis.geo: ';
@@ -30,12 +29,11 @@ function ($log, $rootScope, $timeout,
     var scope = $rootScope.$new();
     scope.workspaces = {};
 
-    scope.toggleLayer = function (gsLayer, derivedLayer, route) {
+    scope.toggleLayer = function (derivedLayer, route) {
         if (_.isUndefined(derivedLayer.mapLayerId) || _.isNull(derivedLayer.mapLayerId)) {
-
             var ol3Source = new ol.source.Vector({
                 features: [new ol.Feature({
-                   geometry: route.values_.geometry
+                    geometry: route.values_.geometry
                 })]
             });
 
@@ -71,7 +69,7 @@ function ($log, $rootScope, $timeout,
                 viewState: {
                     toggledOn: false,
                     isLoading: false,
-                    isWizardInProgress: (scope.isWizardInProgress) ? true : false
+                    isWizardInProgress: !!scope.isWizardInProgress
                 },
                 layerId: derivedLayer.mapLayerId,
                 fillColor: derivedLayer.viewState.fillColor
@@ -79,7 +77,6 @@ function ($log, $rootScope, $timeout,
 
             scope.updateRouteAnalysis(derivedLayer.mapLayerId);
         } else {
-            var l = ol3Map.getLayerById(derivedLayer.mapLayerId);
             ol3Map.removeLayerById(derivedLayer.mapLayerId);
             delete derivedLayer.mapLayerId;
             derivedLayer.viewState.isOnMap = false;
@@ -95,7 +92,7 @@ function ($log, $rootScope, $timeout,
             delete derivedLayer.routeanalysis;
         }
         if (derivedLayer.viewState.isOnMap) {
-            scope.toggleLayer(gsLayer, derivedLayer);
+            scope.toggleLayer(derivedLayer);
         }
         _.pull(gsLayer.derivedLayers, derivedLayer);
     };
@@ -126,13 +123,13 @@ function ($log, $rootScope, $timeout,
     };
 
     scope.updateRouteAnalysis = function (id) {
-        var derivedLayers = _.flattenDeep(_.reduce(scope.workspaces, function (previous, value, key) {
-            previous.push(_.pluck (value, 'derivedLayers'));
-            return previous; },
-        []));
+        var derivedLayers = _.flattenDeep(_.reduce(scope.workspaces, function (previous, value) {
+            previous.push(_.pluck(value, 'derivedLayers'));
+            return previous;
+        }, []));
 
         var derivedLayer = _.find(derivedLayers, function (lyr) {
-            return lyr.mapLayerId == id;
+            return lyr.mapLayerId === id;
         });
 
         if (_.isUndefined(derivedLayer) || derivedLayer.routeanalysis.viewState.isLoading) {
@@ -151,7 +148,7 @@ function ($log, $rootScope, $timeout,
         derivedLayer.viewState.isLoading = false;
         derivedLayer.routeanalysis.viewState.isLoading = true;
         derivedLayer.routeanalysis.title = derivedLayer.title;
-        if (_.isUndefined(derivedLayer.routeanalysis.arrowColor)){
+        if (_.isUndefined(derivedLayer.routeanalysis.arrowColor)) {
             derivedLayer.routeanalysis.arrowColor = derivedLayer.params.arrowColor;
         }
 
@@ -186,7 +183,6 @@ function ($log, $rootScope, $timeout,
                         // incomplete run, remove
                         scope.removeLayer(gsLayer, derivedLayer);
                     }
-
                 });
             });
         });
@@ -203,15 +199,15 @@ function ($log, $rootScope, $timeout,
         );
     };
 
-    $rootScope.$on('updateRouteAnalysisLayers', function(event) {
+    $rootScope.$on('updateRouteAnalysisLayers', function () {
         updateRouteAnalysisLayers();
     });
 
-    var updateRouteAnalysisLayers = function() {
+    var updateRouteAnalysisLayers = function () {
         getRouteAnalysisLayers(true);
     };
 
-    var getRouteAnalysisLayers = function(checkForDuplicates, skipRefresh) {
+    var getRouteAnalysisLayers = function (checkForDuplicates, skipRefresh) {
         var keywordPrefix = 'routeanalysis';
         owsLayers.getLayers(keywordPrefix, !skipRefresh)
             .then(function (layers) {
@@ -221,9 +217,8 @@ function ($log, $rootScope, $timeout,
                     gsLayer.derivedLayers = [];
                     getFeatureTypeDescription(gsLayer);
 
-                    _.each(_.get(gsLayer.KeywordConfig, keywordPrefix), function (conf, role, keywordObj) {
-                        var workspaceObj = keywordObj[role];
-                        _.forOwn(workspaceObj, function (value, workspace) {
+                    _.each(_.get(gsLayer.KeywordConfig, keywordPrefix), function (workspaceObj) {
+                        _.each(_.keys(workspaceObj), function (workspace) {
                             if (_.isArray(scope.workspaces[workspace])) {
                                 if (checkForDuplicates) {
                                     if (!_.any(scope.workspaces[workspace], {Name: gsLayer.Name})) {

@@ -8,7 +8,6 @@ angular.module('stealth.histogram.geo', [
 '$rootScope',
 '$timeout',
 'ol3Map',
-'wms',
 'wfs',
 'owsLayers',
 'cqlHelper',
@@ -22,7 +21,7 @@ angular.module('stealth.histogram.geo', [
 'stealth.core.geo.ol3.layers.MapLayer',
 'CONFIG',
 function ($log, $rootScope, $timeout,
-          ol3Map, wms, wfs, owsLayers, cqlHelper, catMgr, controlsMgr,
+          ol3Map, wfs, owsLayers, cqlHelper, catMgr, controlsMgr,
           histQueryService, histWizard, histBuilder,
           Category, WidgetDef, MapLayer,
           CONFIG) {
@@ -48,7 +47,7 @@ function ($log, $rootScope, $timeout,
         }
     }
 
-    scope.toggleLayer = function (gsLayer, derivedLayer) {
+    scope.toggleLayer = function (derivedLayer) {
         if (_.isUndefined(derivedLayer.mapLayerId) || _.isNull(derivedLayer.mapLayerId)) {
             var ol3Source = new ol.source.Vector({
                 features: [new ol.Feature({
@@ -84,7 +83,6 @@ function ($log, $rootScope, $timeout,
                     coords[0][0][0] > derivedLayer.query.params.minLon ||
                     coords[0][0][1] > derivedLayer.query.params.minLat ||
                     coords[0][0][1] > derivedLayer.query.params.minLat) {
-
                     derivedLayer.query.params.minLon = coords[0][0][0];
                     derivedLayer.query.params.maxLon = coords[0][1][0];
                     derivedLayer.query.params.minLat = coords[0][0][1];
@@ -93,7 +91,7 @@ function ($log, $rootScope, $timeout,
                     scope.updateHistogram(ol3Layer.mapLayerId);
                 }
             };
-            ol3Layer.onMouseOver = function (ol3Feature, ol3Layer) {
+            ol3Layer.onMouseOver = function (ol3Feature, ol3Layer) { //eslint-disable-line no-unused-vars
                 scope.highlightLayer(ol3Layer.mapLayerId);
                 scope.highlightPopup(ol3Layer.mapLayerId);
             };
@@ -129,7 +127,7 @@ function ($log, $rootScope, $timeout,
                 viewState: {
                     toggledOn: false,
                     isLoading: false,
-                    isWizardInProgress: (scope.isWizardInProgress) ? true : false
+                    isWizardInProgress: !!scope.isWizardInProgress
                 },
                 layerId: derivedLayer.mapLayerId
             };
@@ -148,7 +146,6 @@ function ($log, $rootScope, $timeout,
 
             scope.updateHistogram(derivedLayer.mapLayerId);
         } else {
-            var l = ol3Map.getLayerById(derivedLayer.mapLayerId);
             ol3Map.removeLayerById(derivedLayer.mapLayerId);
             delete derivedLayer.mapLayerId;
             derivedLayer.viewState.isOnMap = false;
@@ -164,7 +161,7 @@ function ($log, $rootScope, $timeout,
             delete derivedLayer.histogram;
         }
         if (derivedLayer.viewState.isOnMap) {
-            scope.toggleLayer(gsLayer, derivedLayer);
+            scope.toggleLayer(derivedLayer);
         }
         controlsMgr.unregisterListener(controlsListener);
         _.pull(gsLayer.derivedLayers, derivedLayer);
@@ -225,7 +222,7 @@ function ($log, $rootScope, $timeout,
 
         derivedLayer.viewState.isLoading = true;
         derivedLayer.histogram.viewState.isLoading = true;
-        var promise = histQueryService.doHistogramQuery({
+        histQueryService.doHistogramQuery({
             layer: derivedLayer.query.layerData.currentLayer.Name,
             filter: cqlHelper.buildSpaceTimeFilter(derivedLayer.query.params),
             attribute: derivedLayer.query.params.attribute.name
@@ -238,7 +235,7 @@ function ($log, $rootScope, $timeout,
             derivedLayer.histogram.title = derivedLayer.title;
             derivedLayer.histogram.type = derivedLayer.query.params.attribute.localType;
             derivedLayer.histogram.xLabel = derivedLayer.query.params.attribute.name;
-            if (_.isUndefined(derivedLayer.histogram.fillColor)){
+            if (_.isUndefined(derivedLayer.histogram.fillColor)) {
                 derivedLayer.histogram.fillColor = derivedLayer.query.params.fillColor;
             }
 
@@ -344,26 +341,24 @@ function ($log, $rootScope, $timeout,
         }
     };
 
-    scope.unhighlightLayer = function (id) {
+    scope.unhighlightLayer = function () {
         if (!_.isUndefined(scope.hiLiteLyr)) {
             ol3Map.removeLayer(scope.hiLiteLyr);
             delete scope.hiLiteLyr;
         }
     };
 
-    scope.highlightPopup = function (id) {
-        var gsLayers = _.reduce(scope.workspaces, function (result, workspaceLayers, key) {
-            return workspaceLayers;
-        }, []);
-
-        var derivedLayers = _.reduce(gsLayers, function (result, gsLayer, key) {
-            return gsLayer.derivedLayers;
-        }, []);
-
+    var findDerivedLayer = function (id) {
+        var gsLayers = _.flatten(_.values(scope.workspaces));
+        var derivedLayers = _.flatten(_.pluck(gsLayers, 'derivedLayers'));
         var derivedLayer = _.find(derivedLayers, function (lyr) {
-            return lyr.mapLayerId == id;
+            return lyr.mapLayerId === id;
         });
+        return derivedLayer;
+    };
 
+    scope.highlightPopup = function (id) {
+        var derivedLayer = findDerivedLayer(id);
         if (!_.isUndefined(derivedLayer)) {
             var popupId = derivedLayer.histogram.histId + '-popup';
             $rootScope.$emit('histogram:focus', popupId);
@@ -371,18 +366,7 @@ function ($log, $rootScope, $timeout,
     };
 
     scope.unhighlightPopup = function (id) {
-        var gsLayers = _.reduce(scope.workspaces, function (result, workspaceLayers, key) {
-            return workspaceLayers;
-        }, []);
-
-        var derivedLayers = _.reduce(gsLayers, function (result, gsLayer, key) {
-            return gsLayer.derivedLayers;
-        }, []);
-
-        var derivedLayer = _.find(derivedLayers, function (lyr) {
-            return lyr.mapLayerId == id;
-        });
-
+        var derivedLayer = findDerivedLayer(id);
         if (!_.isUndefined(derivedLayer)) {
             var popupId = derivedLayer.histogram.histId + '-popup';
             $rootScope.$emit('histogram:unhighlight', popupId);
@@ -448,7 +432,7 @@ function ($log, $rootScope, $timeout,
                     scope.isWizardInProgress = false;
                     derivedLayer.histogram.viewState.isWizardInProgress = false;
                     var wasDraggable = _.find(draggableIds, function (id) {
-                        return id == derivedLayer.mapLayerId;
+                        return id === derivedLayer.mapLayerId;
                     });
                     if (wasDraggable) {
                         var ol3Layer = ol3Map.getLayerById(derivedLayer.mapLayerId).getOl3Layer();
@@ -480,9 +464,8 @@ function ($log, $rootScope, $timeout,
                 gsLayer.derivedLayers = [];
                 getFeatureTypeDescription(gsLayer);
 
-                _.each(_.get(gsLayer.KeywordConfig, keywordPrefix), function (conf, role, keywordObj) {
-                    var workspaceObj = keywordObj[role];
-                    _.forOwn(workspaceObj, function (value, workspace) {
+                _.each(_.get(gsLayer.KeywordConfig, keywordPrefix), function (workspaceObj) {
+                    _.each(_.keys(workspaceObj), function (workspace) {
                         if (_.isArray(scope.workspaces[workspace])) {
                             scope.workspaces[workspace].push(gsLayer);
                         } else {

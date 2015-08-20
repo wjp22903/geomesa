@@ -23,9 +23,8 @@ function (startMenuManager, tlWizard) {
 'stealth.core.wizard.Step',
 'stealth.core.utils.WidgetDef',
 'stealth.timelapse.wizard.Query',
-'CONFIG',
 function ($rootScope, wizardManager, boundTlWizFactory,
-          optionTlWizFactory, Wizard, Step, WidgetDef, Query, CONFIG) {
+          optionTlWizFactory, Wizard, Step, WidgetDef, Query) {
     var _self = this;
     this.launchWizard = function (queryOverrides) {
         var wizardScope = $rootScope.$new();
@@ -37,7 +36,7 @@ function ($rootScope, wizardManager, boundTlWizFactory,
         baseWizard.appendWizard(optionTlWizFactory.createQueryOptionWiz(wizardScope));
         wizardManager.launchWizard(baseWizard);
     };
-    $rootScope.$on('Launch Timelapse Wizard', function (event, queryOverrides) {
+    $rootScope.$on('Launch Timelapse Wizard', function (event, queryOverrides) { //eslint-disable-line no-unused-vars
         _self.launchWizard(queryOverrides);
     });
 }])

@@ -173,7 +173,7 @@ function ($filter, cookies, wfs, ol3Map, owsLayers, CONFIG) {
             .then(function (layers) {
                 _self.layerData.layers = _.sortBy(layers, 'Title');
                 _.each(_self.layerData.layers, function (layer) {
-                    _.each(_.get(layer.KeywordConfig, keywordPrefix), function (conf, workspace) {
+                    _.each(_.keys(_.get(layer.KeywordConfig, keywordPrefix)), function (workspace) {
                         layer.fieldNames = _.merge({
                             trkId: 'trkId',
                             geom: 'geom',

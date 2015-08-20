@@ -54,7 +54,7 @@ function ($http, $filter, $q, toastr) {
                              'Capabilities Error', errOptions);
                 return $q.reject('Failed to get capabilities from server.');
             }
-        }, function (reason) {
+        }, function () {
             capabilitiesLoaded = true;
             if (waitingToastr.isOpened) {
                 toastr.clear(waitingToastr);

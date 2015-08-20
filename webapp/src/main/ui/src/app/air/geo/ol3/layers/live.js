@@ -77,7 +77,7 @@ function ($rootScope, $q, toastr, colors, wfs, mapFollowManager, WidgetDef, GeoJ
                     if (_.isUndefined(_idField)) {
                         toastr.error('No ID field specified for ' + _layerThisBelongsTo.Name + '. Track highlighting will not work.',
                                      'Highlight Error',
-                                     { timeOut: 15000 });
+                                     {timeOut: 15000});
                     }
 
                     //Live Air has its own style panel
@@ -104,6 +104,7 @@ function ($rootScope, $q, toastr, colors, wfs, mapFollowManager, WidgetDef, GeoJ
                                 var highlightFeature;
                                 var inOverlay = false;
                                 var tabFocused = false;
+                                var s = (parentScope || $rootScope).$new();
                                 var refreshListener = function () {
                                     _refreshRecordFeature(record).then(
                                         function (geom) {
@@ -133,7 +134,7 @@ function ($rootScope, $q, toastr, colors, wfs, mapFollowManager, WidgetDef, GeoJ
                                         }
                                     );
                                 };
-                                var toggleFollowing = function() {
+                                var toggleFollowing = function () {
                                     if (s.following) {
                                         mapFollowManager.stopFollowingFeature(highlightFeature);
                                         s.capabilities.follow.toolTipText = 'Keep current track in center of map';
@@ -147,7 +148,6 @@ function ($rootScope, $q, toastr, colors, wfs, mapFollowManager, WidgetDef, GeoJ
                                     }
                                     s.following = !s.following;
                                 };
-                                var s = (parentScope || $rootScope).$new();
                                 s.name = response.name + ' (' + record[_.get(_layerThisBelongsTo.KeywordConfig, 'capability.live.field.displayId', 'label')] + ')';
                                 s.capabilities = response.capabilities;
                                 s.record = record;

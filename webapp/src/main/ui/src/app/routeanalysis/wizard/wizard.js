@@ -6,7 +6,6 @@ angular.module('stealth.routeanalysis.wizard', [
 .service('routeAnalysisWizard', [
 '$log',
 '$rootScope',
-'$filter',
 '$interval',
 'ol3Map',
 'ol3Styles',
@@ -18,7 +17,7 @@ angular.module('stealth.routeanalysis.wizard', [
 'stealth.core.wizard.Step',
 'stealth.core.wizard.Wizard',
 'stealth.core.utils.WidgetDef',
-function ($log, $rootScope, $filter, $interval,
+function ($log, $rootScope, $interval,
           ol3Map, ol3Styles,
           wizardManager, colors,
           elementAppender, routeDrawHelper,
@@ -61,22 +60,15 @@ function ($log, $rootScope, $filter, $interval,
             });
         });
 
-        var waiting;
-        var stopWaiting = function () {
-            $interval.cancel(waiting);
-            waiting = undefined;
-        };
-
-        draw.on('drawend', function (evt) {
+        draw.on('drawend', function () {
             // disabling draw here prevents it from swallowing the double-click later
             // so I wait just a little bit
             // think anything that executes after this works
-            waiting = $interval(function () {
+            $interval(function () {
                 draw.setActive(false);
                 modify.setActive(false);
                 ol3Map.removeInteraction(modify);
             }, 1);
-
             return false;
         });
 
@@ -108,7 +100,7 @@ function ($log, $rootScope, $filter, $interval,
                 })
         ]);
     };
-    var createEndWiz =  function (wizardScope) {
+    var createEndWiz = function (wizardScope) {
         return new Wizard(null, null, 'fa-check text-success', [
             new Step('Set options', new WidgetDef('st-ra-route-options-wiz', wizardScope), null, true, null, function (success) {
                 if (success) {
@@ -128,16 +120,12 @@ function ($log, $rootScope, $filter, $interval,
                         catScope,
                         wizardScope.query.derivedLayer
                     );
-                    catScope.toggleLayer(wizardScope.query.foundLayer, wizardScope.query.derivedLayer,
-                                         wizardScope.geoFeature);
+                    catScope.toggleLayer(wizardScope.query.derivedLayer, wizardScope.geoFeature);
                     catScope.setYAxisLabel(wizardScope.query.derivedLayer, wizardScope.yAxis);
                 }
-
             })
         ]);
     };
-
-    var _idSeq = 1;
 
     this.launch = function (gsLayer) {
         var wizardScope = $rootScope.$new();
@@ -179,10 +167,9 @@ function ($log, $rootScope, $filter, $interval,
                             };
 
                             if (!_.isUndefined(catScope)) {
-                                var workspaces = catScope.workspaces;
                                 _.each(catScope.workspaces, function (ws) {
                                     var foundLayer = _.find(ws, function (lyr) {
-                                        return lyr.Name == wizardScope.datasource.Name;
+                                        return lyr.Name === wizardScope.datasource.Name;
                                     });
                                     if (!_.isUndefined(foundLayer)) {
                                         foundLayer.derivedLayers.push(derivedLayer);
@@ -213,9 +200,6 @@ function ($log, $rootScope, $filter, $interval,
             ])
         );
     };
-
-
-
 }])
 
 .directive('stRaWizSource', [
@@ -234,7 +218,6 @@ function () {
         replace: true,
         templateUrl: 'routeanalysis/wizard/templates/draw.tpl.html'
     };
-
 }])
 
 .directive('stRaRouteOptionsWiz',
@@ -244,6 +227,7 @@ function () {
         templateUrl: 'routeanalysis/wizard/templates/routeOptions.tpl.html'
     };
 })
+
 .directive('stRaRouteDrawTools', [
 '$timeout',
 'ol3Map',
@@ -252,23 +236,23 @@ function () {
 'stealth.core.geo.ol3.format.GeoJson',
 function ($timeout, ol3Map, csvFormat, routeDrawHelper, GeoJson) {
     return {
-        restrict:'E',
-        scope:{
-            featureOverlay:'=',
-            geoFeature:'=',
-            routeInfo:'=',
-            source:'='
+        restrict: 'E',
+        scope: {
+            featureOverlay: '=',
+            geoFeature: '=',
+            routeInfo: '=',
+            source: '='
         },
-        templateUrl:'routeanalysis/wizard/templates/drawTools.tpl.html',
-        link:function (scope, element, attrs) {
+        templateUrl: 'routeanalysis/wizard/templates/drawTools.tpl.html',
+        link: function (scope, element) {
             var geoJsonFormat = new GeoJson(); // stealth GeoJson, extending OL3 for STEALTH-319
             var fileInput = element.append('<input type="file" class="hidden">')[0].lastChild;
 
             //Couple FileReader to the hidden file input created above.
             FileReaderJS.setupInput(fileInput, {
-                readAsDefault:'Text',
-                on:{
-                    load:function (e, file) {
+                readAsDefault: 'Text',
+                on: {
+                    load: function (e, file) {
                         fileInput.value = null;
                         var feature = null;
                         switch (file.extra.extension.toLowerCase()) {
@@ -305,10 +289,11 @@ function ($timeout, ol3Map, csvFormat, routeDrawHelper, GeoJson) {
                     fileInput.click();
                 });
             };
+
             scope.save = function (format) {
                 if (scope.geoFeature && scope.geoFeature.getGeometry().getType() === 'LineString') {
                     var output = null,
-                    type = 'text/plain';
+                        type = 'text/plain';
                     switch (format) {
                         case 'json':
                             output = geoJsonFormat.writeFeature(scope.geoFeature);
@@ -320,7 +305,7 @@ function ($timeout, ol3Map, csvFormat, routeDrawHelper, GeoJson) {
                             type = 'text/csv';
                             break;
                     }
-                    var blob = new Blob([output], {type:type});
+                    var blob = new Blob([output], {type: type});
                     saveAs(blob, 'route.' + format);
                 }
             };
@@ -331,5 +316,4 @@ function ($timeout, ol3Map, csvFormat, routeDrawHelper, GeoJson) {
         }
     };
 }])
-
 ;

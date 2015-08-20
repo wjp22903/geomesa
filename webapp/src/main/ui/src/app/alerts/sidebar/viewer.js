@@ -4,11 +4,10 @@ angular.module('stealth.alerts.sidebar', [
 ])
 
 .run([
-'$log',
 '$rootScope',
 'sidebarManager',
 'stealth.core.utils.WidgetDef',
-function ($log, $rootScope, sidebarManager, WidgetDef) {
+function ($rootScope, sidebarManager, WidgetDef) {
     sidebarManager.addButton('Alerts', 'fa-exclamation-triangle', 400,
                              new WidgetDef('st-alerts-viewer', $rootScope.$new()),
                              undefined,
@@ -29,7 +28,7 @@ function ($log, alertsManager) {
             $scope.alerts = alertsManager.getAlerts();
             $scope.selectedAlert = alertsManager.getSelectedAlert();
 
-            $scope.selectAlert = function (event, alert) {
+            $scope.selectAlert = function (alert) {
                 if (!alertsManager.isSelected(alert)) {
                     alertsManager.selectAlert(alert);
                 } else {
@@ -56,7 +55,7 @@ function ($timeout, $window) {
             var resizeContainer = function () {
                 $timeout(function () {
                     var sidebarHeight = element.parent().height();
-                    var workspaceHeight = element.siblings(':first').children().map(function (i, e) {
+                    var workspaceHeight = element.siblings(':first').children().map(function (i, e) { //eslint-disable-line no-unused-vars
                         return angular.element(e).outerHeight(true);
                     }).get().reduce(function (a, b) { return a + b; });
                     var detailsHeight = detailsElement.outerHeight(true);

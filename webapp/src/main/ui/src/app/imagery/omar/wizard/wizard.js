@@ -5,7 +5,6 @@ angular.module('stealth.imagery.omar.wizard', [
     'stealth.imagery.omar.wizard.query'
 ])
 
-
 .service('stealth.imagery.omar.wizard', [
 '$rootScope',
 'CONFIG',
@@ -15,7 +14,6 @@ angular.module('stealth.imagery.omar.wizard', [
 'stealth.core.utils.WidgetDef',
 'stealth.imagery.omar.wizard.Query',
 function ($rootScope, CONFIG, wizardManager, Wizard, Step, WidgetDef, Query) {
-    var _self = this;
     this.launchWizard = function () {
         var wizardScope = $rootScope.$new();
         wizardScope.OMAR = CONFIG.imagery.omar;

@@ -60,6 +60,9 @@ function ($log, $q, wfs, colors, ol3Styles, clickSearchHelper, MapLayer, GeoJson
             }
             return style;
         };
+        var _olSource = new ol.source.Vector({
+            features: []
+        });
         var _loadFeatures = function (features) {
             var parsedFeatures = parser.readFeatures(features);
             var existingFeatures = _olSource.getFeatures();
@@ -98,32 +101,27 @@ function ($log, $q, wfs, colors, ol3Styles, clickSearchHelper, MapLayer, GeoJson
         var _query = function () {
             _loadStart();
             wfs.getFeature(_geoserverUrl, _typeName, CONFIG.geoserver.omitProxy, _requestParams)
-            .success(function (data, status, headers, config, statusText) {
+            .success(function (data, status, headers) { //eslint-disable-line no-unused-vars
                 var contentType = headers('content-type');
                 if (contentType.indexOf('xml') > -1) {
                     $log.error(tag + '(' + _name + '): ' + data);
                     _viewState.isError = true;
                     _viewState.errorMsg = 'ows.ExceptionReport returned';
+                } else if (data.totalFeatures < 1) {
+                    $log.error(tag + '(' + _name + ') No results');
+                    _viewState.isError = true;
+                    _viewState.errorMsg = 'No results';
                 } else {
-                    if (data.totalFeatures < 1) {
-                        $log.error(tag + '(' + _name + ') No results');
-                        _viewState.isError = true;
-                        _viewState.errorMsg = 'No results';
-                    } else {
-                        _loadFeatures(data);
-                    }
+                    _loadFeatures(data);
                 }
             })
-            .error(function (data, status, headers, config, statusText) {
+            .error(function (data, status, headers, config, statusText) { //eslint-disable-line no-unused-vars
                 var msg = 'HTTP status ' + status + ': ' + statusText;
                 $log.error(tag + '(' + _name + ') ' + msg);
                 _viewState.isError = true;
                 _viewState.errorMsg = statusText;
             })['finally'](_loadEnd());
         };
-        var _olSource = new ol.source.Vector({
-            features: []
-        });
         var _olLayer = new ol.layer.Vector({
             source: _olSource,
             style: _styleFunction
@@ -133,13 +131,13 @@ function ($log, $q, wfs, colors, ol3Styles, clickSearchHelper, MapLayer, GeoJson
         MapLayer.apply(_self, [_name, _olLayer, _options.queryable, _options.zIndexHint]);
         _self.styleDirective = 'st-geo-json-vector-layer-style';
         _self.styleDirectiveScope.layer = _self;
-        _self.styleDirectiveScope.sizeChanged = function (layer, size) {
+        _self.styleDirectiveScope.sizeChanged = function (size) {
             if (!angular.isNumber(size)) { // Prevents deleting number in input field.
                 size = 1;
             }
             _olLayer.changed();
         };
-        _self.styleDirectiveScope.fillColorChanged = function (layer, fillColor) {
+        _self.styleDirectiveScope.fillColorChanged = function () {
             _olLayer.changed();
         };
 
@@ -193,7 +191,7 @@ function ($log, $q, wfs, colors, ol3Styles, clickSearchHelper, MapLayer, GeoJson
             trimmedFeatures = clickSearchHelper.sortAndTrimFeatures(coord, nearbyFeatures, clickOverrides);
             return $q.when(_.merge(baseResponse, {
                 isError: false,
-                records: _.map(trimmedFeatures, function (feat, i) {
+                records: _.map(trimmedFeatures, function (feat) {
                     return _.omit(feat.getProperties(), _omitSearchProps.concat([feat.getGeometryName()]));
                 }),
                 features: trimmedFeatures

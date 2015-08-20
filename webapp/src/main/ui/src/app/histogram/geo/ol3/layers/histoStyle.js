@@ -6,5 +6,4 @@ function () {
         templateUrl: 'histogram/geo/ol3/layers/histostyleview.tpl.html'
     };
 }])
-
 ;

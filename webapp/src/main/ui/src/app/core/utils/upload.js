@@ -6,7 +6,7 @@ angular.module('stealth.core.utils')
 //    assumes that you want to do something with the file once it has been loaded.
 //
 //  <st-upload-file id="upload1" process-file="callback(file)"></st-upload-file>
-.directive('stUploadFile',[
+.directive('stUploadFile', [
 '$log',
 '$rootScope',
 function ($log, $rootScope) {
@@ -19,7 +19,7 @@ function ($log, $rootScope) {
             process: '&processFile',
             tooltip: '@?tooltipText'
         },
-        link: function (scope, el, attrs) {
+        link: function (scope, el, attrs) { //eslint-disable-line no-unused-vars
             var uploadId = _.uniqueId();
             scope.fileInputId = function () {
                 return ('hidden-input-id-' + (attrs.id || uploadId));

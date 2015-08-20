@@ -6,12 +6,11 @@ angular.module('stealth.core.geo.ol3.manager', [
 ])
 
 .run([
-'$log',
 '$rootScope',
 'sidebarManager',
 'startMenuManager',
 'stealth.core.utils.WidgetDef',
-function ($log, $rootScope, sidebarManager, startMenuManager, WidgetDef) {
+function ($rootScope, sidebarManager, startMenuManager, WidgetDef) {
     var panelScope = $rootScope.$new();
     panelScope.view = 'explore'; //default view
     var sidebarId = sidebarManager.toggleButton(sidebarManager.addButton('Map Manager', 'fa-globe', 400,
@@ -30,7 +29,7 @@ function ($log) {
     return {
         restrict: 'E',
         replace: true,
-        scope:{
+        scope: {
             view: "="
         },
         template: '<div class="btn-group ol3ManagerViewSwitcher">\
@@ -59,11 +58,11 @@ function ($log, ol3Map, catMgr) {
             $scope.layers = ol3Map.getLayersReversed();
             $scope.sortableOptions = {
                 handle: '.dragHandle',
-                stop: function (evt, ui) {
+                stop: function (evt, ui) { //eslint-disable-line no-unused-vars
                     var sortable = ui.item.sortable;
                     if (sortable && _.isNumber(sortable.dropindex) &&
                             _.isNumber(sortable.index) &&
-                            sortable.index != sortable.dropindex) {
+                            sortable.index !== sortable.dropindex) {
                         var lastIndex = $scope.layers.length - 1;
                         ol3Map.moveOl3Layer(lastIndex - sortable.index,
                                             lastIndex - sortable.dropindex);
@@ -85,11 +84,11 @@ function () {
             element.children().css('max-height', (scope.category.height || 250) + 'px');
             element.resizable({
                 handles: 's',
-                start: function (event, ui) {
+                start: function () {
                     element.css('max-height', '');
                     element.children().css('max-height', '');
                 },
-                stop: function (event, ui) {
+                stop: function (event, ui) { //eslint-disable-line no-unused-vars
                     scope.$evalAsync(function () {
                         scope.category.height = ui.size.height;
                     });

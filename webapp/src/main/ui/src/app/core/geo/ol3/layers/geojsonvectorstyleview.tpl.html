@@ -22,7 +22,7 @@
         <div class="cell">
             <input type="number" ui-jq="spinner"
                    ng-model="layer.getViewState().size"
-                   ng-change="sizeChanged(layer, layer.getViewState().size)"
+                   ng-change="sizeChanged(layer.getViewState().size)"
                    min="1" max="100">
         </div>
         <div class="cell" style="padding-left:5px">Fill:</div>
@@ -31,7 +31,7 @@
                   ng-style="{'background-color': layer.getViewState().fillColor}"
                   colorpicker colorpicker-position="bottom"
                   ng-model="layer.getViewState().fillColor"
-                  ng-change="fillColorChanged(layer, layer.getViewState().fillColor)"
+                  ng-change="fillColorChanged()"
                   tooltip-html-unsafe="<span style='white-space:nowrap'>Change fill color</span>"
                   tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
                   tooltip-trigger="mouseenter">

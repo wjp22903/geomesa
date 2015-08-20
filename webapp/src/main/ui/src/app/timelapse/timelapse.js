@@ -29,7 +29,7 @@ function ($log, $rootScope, ol3Map, controlsMgr, TimeLapseLayer, elementAppender
         ol3Map.addLayer(historical);
     }
 
-    function registerControlsListener() {
+    function registerControlsListener () {
         controlsMgr.registerListener(function (startMillis, endMillis, windowMillis) {
             historical.redraw(startMillis, endMillis, windowMillis);
         });

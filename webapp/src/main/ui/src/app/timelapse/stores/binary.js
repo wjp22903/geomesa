@@ -9,7 +9,8 @@ angular.module('stealth.timelapse.stores', [
 'toastr',
 'colors',
 'clickSearchHelper',
-function ($log, $q, $filter, toastr, colors, clickSearchHelper) {
+'stealth.timelapse.stores.sorter',
+function ($log, $q, $filter, toastr, colors, clickSearchHelper, sorter) {
     var tag = 'stealth.timelapse.stores.BinStore: ';
     $log.debug(tag + 'factory started');
 
@@ -115,7 +116,7 @@ function ($log, $q, $filter, toastr, colors, clickSearchHelper) {
         this.getMaxTimeInMillis = function () { return _maxTimeMillis; };
         this.getNumRecords = function () { return _numRecords; };
 
-        this.setLayerBelongsTo = function (layer) { _layerThisBelongsTo = layer;};
+        this.setLayerBelongsTo = function (layer) { _layerThisBelongsTo = layer; };
 
         this.toggleVisibility = function () {
             _viewState.toggledOn = !_viewState.toggledOn;
@@ -153,14 +154,14 @@ function ($log, $q, $filter, toastr, colors, clickSearchHelper) {
                     };
                     var vi32 = new Int32Array(buf);
                     if (!_.isBoolean(sorted)) {
-                        sorted = sortedBinRec(vi32, 0, _numRecords, 1, _stride/2);
+                        sorted = sorter.sortedBinRec(vi32, 0, _numRecords, 1, _stride/2);
                     }
                     if (!sorted) {
                         var vf64 = new Float64Array(buf);
                         var si32 = new Int32Array(64);
                         si32[0] = 0;
                         si32[1] = _numRecords;
-                        sortBinRec(vi32, vf64, si32, 2, 1, _stride/2, _.bind(finish, this));
+                        sorter.sortBinRec(vi32, vf64, si32, 2, 1, _stride/2, _.bind(finish, this));
                     } else {
                         finish.call(this);
                     }
@@ -207,8 +208,7 @@ function ($log, $q, $filter, toastr, colors, clickSearchHelper) {
                 var lon = _lonView[i * _stride];
                 var millis = _secondsView[i * _stride] * 1000;
                 if (ol.extent.containsXY(extent, lon, lat) &&
-                    millis <= endMillis && millis >= startMillis)
-                {
+                    millis <= endMillis && millis >= startMillis) {
                     features.push(new ol.Feature({
                         geometry: new ol.geom.Point([lon, lat]),
                         lat: lat,
@@ -233,17 +233,17 @@ function ($log, $q, $filter, toastr, colors, clickSearchHelper) {
                 },
                 records: this.searchPointAndTimeForRecords(coord, res, startMillis, endMillis),
                 fieldTypes: [
-                    { name: 'lat', localType: 'number' },
-                    { name: 'lon', localType: 'number' },
-                    { name: 'dtg', localType: 'date-time' },
-                    { name: 'id', localType: 'string' },
-                    { name: 'label', localType: 'string'}
+                    {name: 'lat', localType: 'number'},
+                    {name: 'lon', localType: 'number'},
+                    {name: 'dtg', localType: 'date-time'},
+                    {name: 'id', localType: 'string'},
+                    {name: 'label', localType: 'string'}
                 ]
             });
         };
     };
 
-    function _determineRecordSize(latView, lonView) {
+    function _determineRecordSize (latView, lonView) {
         var MAX_POINTS = 100;
         var NERRORS_THRESHOLD = 1;
 
@@ -253,10 +253,10 @@ function ($log, $q, $filter, toastr, colors, clickSearchHelper) {
             var errorCount = 0;
             for (var i=0; i<MAX_POINTS; i++) {
                 var z = i * (testBytesPerRecord / 4);
-                if (latView[z] > 90) {errorCount++;}
-                if (latView[z] < -90) {errorCount++;}
-                if (lonView[z] > 360) {errorCount++;}
-                if (lonView[z] < -360) {errorCount++;}
+                if (latView[z] > 90) { errorCount++; }
+                if (latView[z] < -90) { errorCount++; }
+                if (lonView[z] > 360) { errorCount++; }
+                if (lonView[z] < -360) { errorCount++; }
                 if (errorCount >= NERRORS_THRESHOLD) {
                     return true;
                 }
@@ -297,7 +297,7 @@ function ($log, $q, $filter, toastr, colors, clickSearchHelper) {
             middleTimeSecs = this.getTimeInSeconds(middle * this.getStride());
             if (middleTimeSecs < timeSeconds) {
                 first = middle;
-                len = len - half;
+                len -= half;
             } else {
                 len = half;
             }
@@ -327,7 +327,7 @@ function ($log, $q, $filter, toastr, colors, clickSearchHelper) {
             middleTimeSecs = this.getTimeInSeconds(middle * this.getStride());
             if (timeSeconds < middleTimeSecs) {
                 first = middle;
-                len = len - half;
+                len -= half;
             } else {
                 len = half;
             }

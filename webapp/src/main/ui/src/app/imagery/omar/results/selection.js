@@ -5,9 +5,8 @@ angular.module('stealth.imagery.omar.results.selection', [
 .factory('stealth.imagery.omar.results.selection.ImagerySelection', [
 '$interpolate',
 'ol3Map',
-'owsLayers',
 'stealth.core.geo.ol3.layers.WmsLayer',
-function ($interpolate, ol3Map, owsLayers, WmsLayer) {
+function ($interpolate, ol3Map, WmsLayer) {
     var selection = function (searchScope, restartFunction) {
         var _self = this;
 
@@ -21,7 +20,7 @@ function ($interpolate, ol3Map, owsLayers, WmsLayer) {
         this.wmsLayers = {}; // shame: using object as key/value map
 
         this.imageUrl = function (image) {
-            return $interpolate(searchScope.params.server.imgUrl)({im:image});
+            return $interpolate(searchScope.params.server.imgUrl)({im: image});
         };
         this.imageName = function (image) {
             return this.getAttribute(image, nameAttribute);
@@ -29,7 +28,7 @@ function ($interpolate, ol3Map, owsLayers, WmsLayer) {
 
         // Used to be image.attribute[key], is now image.get(key), but who knows when it'll change again
         this.getAttribute = function (image, key) {
-            if (key == image.getGeometryName()) {
+            if (key === image.getGeometryName()) {
                 // angular $interpolate doesn't like image.get(geom), for whatever reason
                 return wkt.writeFeature(image);
             } else {

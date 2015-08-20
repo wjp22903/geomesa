@@ -15,7 +15,7 @@
         <div ng-repeat="alert in alerts"
              ng-if="alert.layer.alertState.toggledOn"
              class="alertListItem"
-             ng-click="selectAlert($event, alert)"
+             ng-click="selectAlert(alert)"
              ng-class="{selected: isSelected(alert), new: alert.isNew}">
             {{::alert.feature.getProperties().label}}
         </div>

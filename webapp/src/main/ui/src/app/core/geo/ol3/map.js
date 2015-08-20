@@ -17,7 +17,7 @@ function ($log, $interval, ol3Map, CONFIG) {
         restrict: 'E',
         replace: true,
         templateUrl: 'core/geo/ol3/map.tpl.html',
-        link: function (scope, element, attrs) {
+        link: function (scope, element, attrs) { //eslint-disable-line no-unused-vars
             // Wait until element is displayed, then render map.
             var checkDisplay = $interval(function () {
                 var display = element.css('display');
@@ -38,31 +38,14 @@ function ($log, $interval, ol3Map, CONFIG) {
 .service('ol3Map', [
 '$log',
 '$filter',
-'$q',
 'mapClickSearchService',
 'stealth.core.geo.ol3.format.GeoJson',
 'stealth.core.geo.ol3.layers.MapLayer',
 'stealth.core.geo.ol3.layers.TintLayer',
 'CONFIG',
-function ($log, $filter, $q, mapClickSearchService, GeoJson, MapLayer, TintLayer, CONFIG) {
+function ($log, $filter, mapClickSearchService, GeoJson, MapLayer, TintLayer, CONFIG) {
     $log.debug('stealth.core.geo.ol3.map.ol3Map: service started');
     var _projection = CONFIG.map.projection;
-    var _wmsOpts = {
-        // Geomesa layers currently perform better without tiling.
-        // Difficult to distinguish Geomesa requests from other requests.
-        // So singleTile everything.
-        singleTile: true,
-        format: 'image/png',
-        buffer: 6, //reduce tiling effects
-        time: '2000/2050',
-        transparent: true
-    };
-    var _state = {
-        zoomedToDataLayer: false,
-        loading: {
-            count: 0
-        }
-    };
     var _map = new ol.Map({
         logo: false,
         renderer: 'canvas',
@@ -215,7 +198,7 @@ function ($log, $filter, $q, mapClickSearchService, GeoJson, MapLayer, TintLayer
      * @param {number} newIndex - new index
      */
     this.moveOl3Layer = function (index, newIndex) {
-        if (index != newIndex) {
+        if (index !== newIndex) {
             var layers = _map.getLayers();
             layers.insertAt(newIndex, layers.removeAt(index));
             updateLayerZIndices();

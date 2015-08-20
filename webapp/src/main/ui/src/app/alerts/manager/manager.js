@@ -59,7 +59,7 @@ function ($rootScope, $timeout, colors, ol3Styles, ol3Map, owsLayers,
     owsLayers.getLayers(_keywordPrefix)
     .then(function (layers) {
         _.each(layers, function (l) {
-            _.each(_.get(l.KeywordConfig, _keywordPrefix), function (conf, workspace) {
+            _.each(_.keys(_.get(l.KeywordConfig, _keywordPrefix)), function (workspace) {
                 var layer = _.cloneDeep(l);
                 var pollingOptions = {
                     name: layer.Title,
@@ -110,7 +110,7 @@ function ($rootScope, $timeout, colors, ol3Styles, ol3Map, owsLayers,
                         _.isEmpty(response.records)) {
                         return null;
                     } else {
-                        return _.map(response.records, function (record, index) {
+                        return _.map(response.records, function (record, index) { //eslint-disable-line no-unused-vars
                             var s = (parentScope || $rootScope).$new();
                             var feature = response.features[index];
                             var alert = _findAlert(layer, feature);
@@ -125,10 +125,10 @@ function ($rootScope, $timeout, colors, ol3Styles, ol3Map, owsLayers,
                                 widgetDef: new WidgetDef('st-live-air-wms-layer-popup', s,
                                     "name='name' capabilities='capabilities' record='record' trackended=trackended"),
                                 onTabFocus: function () {
-                                    var alert = _findAlert(layer, feature);
-                                    if (alert) {
+                                    var found = _findAlert(layer, feature);
+                                    if (found) {
                                         $rootScope.$applyAsync(function () {
-                                            _self.selectAlert(alert);
+                                            _self.selectAlert(found);
                                         });
                                     }
                                 }

@@ -51,7 +51,7 @@ function ($log, $timeout, cqlHelper, owsLayers, ol3Map, LiveWmsLayer, tlLayerMan
         controller: ['$scope', function ($scope) {
             var currentStore;
             var fileReader = new FileReader();
-            fileReader.onload = function (e) {
+            fileReader.onload = function () {
                 $timeout(function () { // Prevents '$apply already in progress' error
                     var arrayBuffer = fileReader.result;
                     if (arrayBuffer.byteLength > 0) {
@@ -232,7 +232,7 @@ function ($log, $timeout, cqlHelper, owsLayers, ol3Map, LiveWmsLayer, tlLayerMan
                         if (filterLayer.cqlFilter !== '') {
                             filterLayer.cqlFilter += ' AND ' + filterLayer.options.cql.value;
                         } else {
-                            filterLayer.cqlFilter  = filterLayer.options.cql.value;
+                            filterLayer.cqlFilter = filterLayer.options.cql.value;
                         }
                     }
                 }
@@ -267,9 +267,9 @@ function ($log, $timeout, cqlHelper, owsLayers, ol3Map, LiveWmsLayer, tlLayerMan
                     .then(function (layers) {
                         _.each(layers, function (l) {
                             _.each(['live', 'historical', 'summary'], function (role) {
-                                _.forOwn(l.KeywordConfig[keywordPrefix][role], function (value, workspace, obj) {
+                                _.each(_.keys(l.KeywordConfig[keywordPrefix][role]), function (workspace) {
                                     var layer = _.cloneDeep(l);
-                                    layer.hasViewables = function (list) {return !_.isEmpty(list);};
+                                    layer.hasViewables = function (list) { return !_.isEmpty(list); };
                                     layer.stealthWorkspace = workspace;
                                     if (layer.KeywordConfig[keywordPrefix].live) {
                                         layer.filterLayers = [];
@@ -283,12 +283,12 @@ function ($log, $timeout, cqlHelper, owsLayers, ol3Map, LiveWmsLayer, tlLayerMan
                                         $scope.workspaces[role][workspace] = [layer];
                                     }
                                     // Configured live filter layers
-                                    if (role == 'live') {
+                                    if (role === 'live') {
                                         var found = _.find(CONFIG.map.liveOptions, {KeywordWorkspace: workspace});
                                         if (found) {
                                             var options = CONFIG.map.liveOptions;
                                             _.each(options, function (theOptions) {
-                                                if (theOptions.KeywordWorkspace == workspace) {
+                                                if (theOptions.KeywordWorkspace === workspace) {
                                                     var filterLayer = newLiveFilterLayer(layer.Name, theOptions.Title, angular.copy(theOptions), layer);
                                                     if (filterLayer.cnt === 1) {
                                                         filterLayer.viewState.isExpanded = true;
@@ -374,11 +374,7 @@ function ($log, $timeout, cqlHelper, owsLayers, ol3Map, LiveWmsLayer, tlLayerMan
                     });
                     if (layerThisBelongsTo) {
                         var filterLayer = newLiveFilterLayer(layerThisBelongsTo.Name,
-                                                             title,
-                                                             {
-                                                                showCql: true
-                                                             },
-                                                             layerThisBelongsTo);
+                           title, {showCql: true}, layerThisBelongsTo);
                         filterLayer.options.cql.value = cql === 'INCLUDE' ? null : cql;
                         filterLayer.options.cql.isSelected = true;
                         filterLayer.viewState.isExpanded = true;
@@ -491,8 +487,8 @@ function ($log, $timeout, cqlHelper, owsLayers, ol3Map, LiveWmsLayer, tlLayerMan
                 var menu = $($event.delegateTarget).parent().prev();
                 var visible = menu.is(':visible');
                 if (!visible) {
-                    $(document).one('click', function() {
-                        $(document).one('click', function() {
+                    $(document).one('click', function () {
+                        $(document).one('click', function () {
                             menu.hide();
                         });
                         menu.show().position({

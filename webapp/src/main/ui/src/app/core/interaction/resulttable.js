@@ -28,7 +28,7 @@ function ($element, $scope, $filter, $timeout, $interval) {
         var rowElements = body.children().add(header.children('.searchResultTableHeaderRow'));
         _.forEach(columns, function (column) {
             var colElements = rowElements.children('.result' + result.id + column);
-            var colWidths = colElements.map(function (i, colElement) {
+            var colWidths = colElements.map(function (i, colElement) { //eslint-disable-line no-unused-vars
                 var wrapped = angular.element(colElement);
                 wrapped.css('width', '');
                 wrapped.css('height', '');
@@ -38,7 +38,7 @@ function ($element, $scope, $filter, $timeout, $interval) {
                 colElements.width(Math.min(maxColWidth, Math.max.apply(Math, colWidths)));
             }
         });
-        rowElements.map(function (i, rowElement) {
+        rowElements.map(function (i, rowElement) { //eslint-disable-line no-unused-vars
             var wrapped = angular.element(rowElement);
             wrapped.children().height(wrapped.height());
         });
@@ -140,10 +140,8 @@ function ($element, $scope, $filter, $timeout, $interval) {
                         return $filter('numberTrim')(value, 4);
                 }
             }
-        } else {
-            if (_.isNumber(value)) {
-                return $filter('numberTrim')(value, 4);
-            }
+        } else if (_.isNumber(value)) {
+            return $filter('numberTrim')(value, 4);
         }
         return value;
     };
@@ -216,7 +214,7 @@ function () {
         },
         templateUrl: 'core/interaction/resulttable.tpl.html',
         require: '^stOl3MapPopup',
-        link: function (scope, element, attrs, mapPopCtrl) {
+        link: function (scope, element, attrs, mapPopCtrl) { //eslint-disable-line no-unused-vars
             scope.onRemoveAll = function () {
                 scope.$parent.$parent.removeTab(scope.$parent.tab);
             };
@@ -230,10 +228,10 @@ function () {
 function () {
     return {
         restrict: 'A',
-        link: function (scope, element, attrs) {
+        link: function (scope, element) {
             if (scope.resizable) {
                 element.resizable({
-                    resize: function (event, ui) {
+                    resize: function (event, ui) { //eslint-disable-line no-unused-vars
                         element.siblings().width(ui.size.width);
                     }
                 });
@@ -251,7 +249,7 @@ function () {
 function () {
     return {
         restrict: 'A',
-        link: function (scope, element) {
+        link: function (scope, element) { //eslint-disable-line no-unused-vars
             element.scroll(function () {
                 element.parent().siblings().children(':first-child').css('margin-left', -1 * element.scrollLeft());
             });

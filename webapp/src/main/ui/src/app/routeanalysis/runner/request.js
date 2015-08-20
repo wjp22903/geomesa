@@ -1,12 +1,11 @@
 angular.module('stealth.routeanalysis.runner')
 
 .service('analysisService', [
-'$http',
 '$q',
 'wps',
 'wms',
 'CONFIG',
-function ($http, $q, wps, wms, CONFIG) {
+function ($q, wps, wms, CONFIG) {
     //arg contains inputGeoJson, bufferMeters
     this.doGeoJsonLineQuery = function (dataSourcesAndPromises, arg) {
         var deferred = $q.defer(),
@@ -21,9 +20,8 @@ function ($http, $q, wps, wms, CONFIG) {
                 // get some information about the raster
 
                 //(url, omitProxy, forceRefresh, omitWms)
-                var response = wms.getCapabilities(CONFIG.geoserver.defaultUrl, CONFIG.geoserver.omitProxy, true, false)
-                .then(function(response) {
-
+                wms.getCapabilities(CONFIG.geoserver.defaultUrl, CONFIG.geoserver.omitProxy, true, false)
+                .then(function (response) {
                     var coverageList = response.Capability.Layer.Layer;
                     var wantedCoverage;
                     for (var i = 0; i < coverageList.length; i++) {
@@ -38,17 +36,17 @@ function ($http, $q, wps, wms, CONFIG) {
                     // information could come from dataSource as well, depending on future source of data
                     // TODO: worry about other CRS
                     var lowercorner = wantedCoverage.EX_GeographicBoundingBox[0] + " " + wantedCoverage.EX_GeographicBoundingBox[1],
-                    uppercorner = wantedCoverage.EX_GeographicBoundingBox[2] + " " + wantedCoverage.EX_GeographicBoundingBox[3];
+                        uppercorner = wantedCoverage.EX_GeographicBoundingBox[2] + " " + wantedCoverage.EX_GeographicBoundingBox[3];
                     // no MIME type, assume tiff, need DescribeCoverage call for more info besides crs/bbox
 
                     // make linestring from the inputGeoJson
                     // sorry gross
                     var lineStr = "LINESTRING(",
-                    coords = arg.inputGeoJson.values_.geometry.flatCoordinates;
+                        coords = arg.inputGeoJson.values_.geometry.flatCoordinates;
 
                     // doesn't handle 3D points
-                    for (i = 0; i < coords.length; i += 2) {
-                        lineStr += coords[i] + " " + coords[i+1] + ", ";
+                    for (var j = 0; j < coords.length; j += 2) {
+                        lineStr += coords[j] + " " + coords[j+1] + ", ";
                     }
                     lineStr = lineStr.slice(0, -2) + ")";
 
@@ -70,9 +68,7 @@ function ($http, $q, wps, wms, CONFIG) {
                             deferred.resolve(results);
                         }
                     });
-
                 });
-
             }, function (reason) {
                 deferred.reject(reason);
             });
@@ -87,7 +83,6 @@ function ($http, $q, wps, wms, CONFIG) {
     // so far only planning on one set of results
     // this function will extract the relevant values for later graphing
     function extractRelevantValues (results, dataSources, color) {
-
         if (_.isEmpty(results)) {
             return {
                 combined: {
@@ -104,7 +99,7 @@ function ($http, $q, wps, wms, CONFIG) {
                 count = 0;
 
             _.each(results, function (i) {
-                _.each (i.features, function (indResult) {
+                _.each(i.features, function (indResult) {
                     response[count++] = {
                         id: count,
                         x: indResult.properties.dist,

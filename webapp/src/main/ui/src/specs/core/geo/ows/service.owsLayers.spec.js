@@ -27,7 +27,7 @@ describe('Service', function () {
             function ($provide) {
                 $provide.service('wms', ['$q', function ($q) {
                     var _layers = null;
-                    this.getCapabilities = function (url, omitProxy, forceRefresh, omitWms) {
+                    this.getCapabilities = function (url, omitProxy, forceRefresh) { //eslint-disable-line no-unused-vars
                         if (forceRefresh) {
                             _layers = null;
                         }
@@ -93,6 +93,7 @@ describe('Service', function () {
 
         //This test alters the layer list and does not clean up after itself.
         it('should allow forced refresh', function () {
+            var result;
             //List layers
             owsLayers.getLayers('good').then(function (layers) {
                 result = layers;

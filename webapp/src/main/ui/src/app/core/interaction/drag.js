@@ -3,9 +3,8 @@ angular.module('stealth.core.interaction.drag', [
 ])
 
 .run([
-'$log',
 'ol3Map',
-function ($log, ol3Map) {
+function (ol3Map) {
     var DragInteraction = function () {
         ol.interaction.Pointer.call(this, {
             // Events are of type ol.MapBrowserEvent
@@ -72,7 +71,7 @@ function ($log, ol3Map) {
             var a = this.getDraggableFeatureAndLayer(evt);
             var element = evt.map.getTargetElement();
             if (!_.isUndefined(a[0])) {
-                if (element.style.cursor != this._cursor) {
+                if (element.style.cursor !== this._cursor) {
                     this._previousCursor = element.style.cursor;
                     element.style.cursor = this._cursor;
                 }
@@ -83,7 +82,7 @@ function ($log, ol3Map) {
         }
     };
 
-    DragInteraction.prototype.endDrag = function (evt) {
+    DragInteraction.prototype.endDrag = function () {
         if (!_.isNull(this._layer) && _.isFunction(this._layer.onDragEnd)) {
             this._layer.onDragEnd(this._feature, this._layer);
         }

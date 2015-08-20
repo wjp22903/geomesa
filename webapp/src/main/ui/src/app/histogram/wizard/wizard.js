@@ -104,7 +104,7 @@ function ($log, $rootScope, $filter,
                 ol3Layer.setSource(getBoxSource(wizScope.query.params));
                 ol3Map.addLayer(boxLayer);
 
-                wizScope.$watchCollection('query.params', function (newParams, oldParams) {
+                wizScope.$watchCollection('query.params', function (newParams) {
                     ol3Layer.setSource(getBoxSource(newParams));
                 });
 
@@ -202,14 +202,13 @@ function ($log, $rootScope, $filter,
                     };
 
                     if (!_.isUndefined(catScope)) {
-                        var workspaces = catScope.workspaces;
                         _.each(catScope.workspaces, function (ws) {
                             var gsLayer = _.find(ws, function (lyr) {
-                                return lyr.Name == wizScope.query.layerData.currentLayer.Name;
+                                return lyr.Name === wizScope.query.layerData.currentLayer.Name;
                             });
                             if (!_.isUndefined(gsLayer)) {
                                 gsLayer.derivedLayers.push(derivedLayer);
-                                catScope.toggleLayer(gsLayer, derivedLayer);
+                                catScope.toggleLayer(derivedLayer);
                             }
                         });
                     }
@@ -220,7 +219,6 @@ function ($log, $rootScope, $filter,
         var wiz = new Wizard('Make Histogram', 'fa-bar-chart', 'fa-check text-success', steps, wizScope);
         wizardManager.launchWizard(wiz);
     };
-
 }])
 
 .directive('stHistogramWizSource',

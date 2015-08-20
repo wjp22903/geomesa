@@ -16,7 +16,6 @@ describe('Factory', function () {
         var lat = 37.7749300;
         var lon = -122.4194200;
 
-        var BinStore;
         var NUM_RECORDS = 10000;
         var store16;
         var store24;
@@ -162,7 +161,7 @@ describe('Factory', function () {
             // Check a time after end of buffer:
             expect(store16.getUpperBoundIdx((nowInSecs + i + 3600) * 1000)).to.equal(i + 1);
             expect(store24.getUpperBoundIdx((nowInSecs + i + 3600) * 1000)).to.equal(i + 1);
-         });
+        });
 
         it('should know the number of records', function () {
             expect(store16.getNumRecords()).to.equal(NUM_RECORDS);

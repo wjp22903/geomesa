@@ -13,7 +13,7 @@ angular.module('stealth.imagery.omar.runner', [
 '$rootScope',
 'stealth.imagery.omar.runner.SearchRunner',
 function ($rootScope, imagerySearchRunner) {
-    $rootScope.$on('imagery:search', function (evt, req) {
+    $rootScope.$on('imagery:search', function (evt, req) { //eslint-disable-line no-unused-vars
         // we expect req to be an imagery.Query
         imagerySearchRunner.run(req);
     });
@@ -23,7 +23,6 @@ function ($rootScope, imagerySearchRunner) {
 '$rootScope',
 'toastr',
 'categoryManager',
-'ol3Map',
 'sidebarManager',
 'stealth.core.geo.ol3.format.GeoJson',
 'stealth.core.geo.ol3.layers.MapLayer',
@@ -33,8 +32,7 @@ function ($rootScope, imagerySearchRunner) {
 'stealth.imagery.omar.results.category.Category',
 'stealth.imagery.omar.results.selection.ImagerySelection',
 'stealth.imagery.omar.wizard',
-function ($rootScope, toastr, catMgr, ol3Map, sidebarManager, GeoJson, MapLayer, VectorOverlay, geomHelper, WidgetDef, Category, ImagerySelection, omarWizard) {
-    var geoJsonFormat = new GeoJson(); // stealth GeoJson, extending OL3 for STEALTH-319
+function ($rootScope, toastr, catMgr, sidebarManager, GeoJson, MapLayer, VectorOverlay, geomHelper, WidgetDef, Category, ImagerySelection, omarWizard) {
     this.run = function (query) {
         var category = catMgr.addCategory(2, new Category(query.params.storeName, function () {
             sidebarManager.removeButton(buttonId);
@@ -54,7 +52,7 @@ function ($rootScope, toastr, catMgr, ol3Map, sidebarManager, GeoJson, MapLayer,
             omarWizard.launchWizard();
         };
         scope.select = new ImagerySelection(scope.query, restart);
-        scope.paging = { pageSize: 10 };
+        scope.paging = {pageSize: 10};
 
         scope.progressText = "Searching...";
 
@@ -67,14 +65,14 @@ function ($rootScope, toastr, catMgr, ol3Map, sidebarManager, GeoJson, MapLayer,
 
         var overlayStyle = function (fillColor, strokeColor) {
             return new ol.style.Style({
-                fill: new ol.style.Fill({ color: fillColor }),
-                stroke: new ol.style.Stroke({ color: strokeColor, width: 1.5 })
+                fill: new ol.style.Fill({color: fillColor}),
+                stroke: new ol.style.Stroke({color: strokeColor, width: 1.5})
             });
         };
 
         query.findImagery()
             .then(function (response) {
-                var parser = ((query.params.server.parser == 'GML') ? new ol.format.GML2() : new GeoJson()); // stealth GeoJson, extending OL3 for STEALTH-319
+                var parser = ((query.params.server.parser === 'GML') ? new ol.format.GML2() : new GeoJson()); // stealth GeoJson, extending OL3 for STEALTH-319
                 updateProgress("Parsing results...");
                 var results = parser.readFeatures(response.data);
                 if (query.params.server.requiresFlip) {
@@ -99,7 +97,7 @@ function ($rootScope, toastr, catMgr, ol3Map, sidebarManager, GeoJson, MapLayer,
 
                 var normalStyle = overlayStyle('rgba(255,255,255,0.1)', '#3399CC');
                 var layer = new ol.layer.Vector({
-                    source: new ol.source.Vector({ features: results }),
+                    source: new ol.source.Vector({features: results}),
                     style: normalStyle
                 });
                 updateProgress("Adding Layer...");

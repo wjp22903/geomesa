@@ -1,21 +1,19 @@
-angular.module('stealth.routeanalysis.popup', [])
+angular.module('stealth.routeanalysis.popup')
 
 .service('routeAnalysisBuilder', [
-'$log',
 '$rootScope',
 '$interval',
 'elementAppender',
-function ($log, $rootScope, $interval, elementAppender) {
+function ($rootScope, $interval, elementAppender) {
     var scopes = [];
 
     var getScope = function (routeId) {
         return _.find(scopes, function (scope) {
-            return scope.routeanalysis.routeId == routeId;
+            return scope.routeanalysis.routeId === routeId;
         });
     };
 
     var buildRouteAnalysis = function (routeanalysis) {
-
         var scope = getScope(routeanalysis.routeId);
         scope.routeanalysis.updateBars = function (routeanalysis) {
             scope.viz.updateBars({}, {
@@ -31,10 +29,6 @@ function ($log, $rootScope, $interval, elementAppender) {
             waiting = undefined;
         };
 
-        var editTooltip = function (pointArray, mousePosition) {
-          console.log(pointArray);
-        };
-
         waiting = $interval(function () {
             if ($(elId)[0].getBoundingClientRect().width !== 0) {
                 scope.viz = sonic.viz(elId, [routeanalysis.response.results])
@@ -45,13 +39,13 @@ function ($log, $rootScope, $interval, elementAppender) {
                     label: {text: routeanalysis.yAxis},
                     pad: {
                         top: 0.10,
-                        bottom:0.10
+                        bottom: 0.10
                     }
                 }).addLines({
                     seriesIndexes: [0],
                     sort: true,
                     tooltip: {
-                        renderFn: function (pointArray, mousePosition) {
+                        renderFn: function (pointArray) {
                             // TODO: account for multiple lines on same graph
                             return "<p>x: " + pointArray[0].point.x.toFixed(0) + "<br>" +
                                    "y: " + pointArray[0].point.y.toPrecision(3) + "</p>";
@@ -85,7 +79,6 @@ function ($log, $rootScope, $interval, elementAppender) {
     };
 
     this.build = function (routeanalysis, isUpdate) {
-
         if (isUpdate) {
             updateRouteAnalysis(routeanalysis);
             return;
@@ -117,13 +110,11 @@ function ($log, $rootScope, $interval, elementAppender) {
             }
         }, 250);
     };
-
 }])
 
 .directive('stRouteAnalysisPopup', [
-'$log',
 '$rootScope',
-function ($log, $rootScope) {
+function ($rootScope) {
     return {
         restrict: 'E',
         templateUrl: 'routeanalysis/results/popup.tpl.html',
@@ -131,14 +122,14 @@ function ($log, $rootScope) {
             el.parent().css('height', 5);
 
             el.draggable({
-                stop: function (event, ui) {
+                stop: function () {
                     scope.$apply(function () {
                         el.css('width', '');
                     });
                 }
             });
 
-            var unregFocusListener = $rootScope.$on('Popup Focus Change', function (evt, popupId) {
+            var unregFocusListener = $rootScope.$on('Popup Focus Change', function (evt, popupId) { //eslint-disable-line no-unused-vars
                 if (popupId !== attrs.id && el.zIndex() > 85) {
                     el.css('z-index', el.zIndex() - 1);
                     el.children().css('box-shadow', 'none');
@@ -157,5 +148,4 @@ function ($log, $rootScope) {
         }
     };
 }])
-
 ;

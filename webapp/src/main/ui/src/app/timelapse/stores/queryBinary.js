@@ -22,9 +22,9 @@ function ($log, $rootScope, $q, $filter, $window, toastr, cqlHelper, clickSearch
     $log.debug(tag + 'factory started.');
 
     //TODO: Add streaming query capability
-    var QueryBinStore = function (name, fillColorHexString, pointRadius, colorBy, arrayBuffer) {
-        $log.debug(tag + 'new QueryBinStore(' + name + ')');
+    var QueryBinStore = function () {
         BinStore.apply(this, arguments);
+        $log.debug(tag + 'new QueryBinStore(' + this.getName() + ')');
 
         var _thisStore = this;
         var _viewState = this.getViewState();
@@ -38,7 +38,6 @@ function ($log, $rootScope, $q, $filter, $window, toastr, cqlHelper, clickSearch
             _featureTypeProperties = query.featureTypeData.featureTypes[0].properties;
             var typeName = query.layerData.currentLayer.Name;
             var responseType = 'arraybuffer';
-            var storeName = query.params.storeName;
             var geom = query.params.geomField.name;
             var dtg = query.params.dtgField.name;
             var id = query.params.idField.name;
@@ -52,7 +51,7 @@ function ($log, $rootScope, $q, $filter, $window, toastr, cqlHelper, clickSearch
             };
 
             wfs.getFeature(CONFIG.geoserver.defaultUrl, typeName, CONFIG.geoserver.omitProxy, overrides, responseType)
-            .success(function (data, status, headers, config, statusText) {
+            .success(function (data, status, headers, config, statusText) { //eslint-disable-line no-unused-vars
                 var contentType = headers('content-type');
                 if (contentType.indexOf('xml') > -1) {
                     $log.error(tag + '(' + _thisStore.getName() + ') ows:ExceptionReport returned');
@@ -60,21 +59,18 @@ function ($log, $rootScope, $q, $filter, $window, toastr, cqlHelper, clickSearch
                     _viewState.isError = true;
                     _viewState.errorMsg = 'ows:ExceptionReport returned';
                     toastr.error('Error: ' + _thisStore.getName(), _viewState.errorMsg);
+                } else if (data.byteLength === 0) {
+                    $log.error(tag + '(' + _thisStore.getName() + ') No results');
+                    _viewState.isError = true;
+                    _viewState.errorMsg = 'No results';
+                    toastr.error('Error: ' + _thisStore.getName(), _viewState.errorMsg);
                 } else {
-                    // 'data' expected to be of type ArrayBuffer.
-                    if (data.byteLength === 0) {
-                        $log.error(tag + '(' + _thisStore.getName() + ') No results');
-                        _viewState.isError = true;
-                        _viewState.errorMsg = 'No results';
-                        toastr.error('Error: ' + _thisStore.getName(), _viewState.errorMsg);
-                    } else {
-                        _thisStore.setArrayBuffer(data, query.params.sortOnServer, function () {
-                            $rootScope.$emit('timelapse:querySuccessful');
-                        });
-                    }
+                    _thisStore.setArrayBuffer(data, query.params.sortOnServer, function () {
+                        $rootScope.$emit('timelapse:querySuccessful');
+                    });
                 }
             })
-            .error(function(data, status, headers, config, statusText) {
+            .error(function (data, status, headers, config, statusText) { //eslint-disable-line no-unused-vars
                 var msg = 'HTTP status ' + status + ': ' + statusText;
                 $log.error(tag + '(' + _thisStore.getName() + ') ' + msg);
                 _viewState.isError = true;
@@ -100,7 +96,7 @@ function ($log, $rootScope, $q, $filter, $window, toastr, cqlHelper, clickSearch
 
             var typeName = _query.layerData.currentLayer.Name;
             wfs.getFeature(CONFIG.geoserver.defaultUrl, typeName, CONFIG.geoserver.omitProxy, overrides)
-            .success(function (data, status, headers, config, statusText) {
+            .success(function (data, status, headers, config, statusText) { //eslint-disable-line no-unused-vars
                 var trimmedFeatures = clickSearchHelper.sortAndTrimFeatures(coord, data.features, clickOverrides);
                 var omitKeys = _.keys(_.get(_query.layerData.currentLayer.KeywordConfig, 'field.hide'));
                 var records = _.map(_.pluck(trimmedFeatures, 'properties'), function (record) {
@@ -133,7 +129,7 @@ function ($log, $rootScope, $q, $filter, $window, toastr, cqlHelper, clickSearch
                     }
                 });
             })
-            .error(function (data, status, headers, config, statusText) {
+            .error(function (data, status, headers, config, statusText) { //eslint-disable-line no-unused-vars
                 deferred.reject({
                     name: _thisStore.getName(),
                     isError: true,
@@ -169,7 +165,6 @@ function ($log, $rootScope, $q, $filter, $window, toastr, cqlHelper, clickSearch
                     return $q.when({name: this.getName(), records: []}); //empty results
                 }
             } else {
-                var typeName = _query.layerData.currentLayer.Name;
                 var extent = clickSearchHelper.getSearchExtent(coord, res, clickOverrides);
                 var cqlParams = {
                     params: {
@@ -188,8 +183,7 @@ function ($log, $rootScope, $q, $filter, $window, toastr, cqlHelper, clickSearch
                 if (_thisStore.getMinTimeInMillis() > endMillis ||
                     _thisStore.getMaxTimeInMillis() < startMillis ||
                     cqlParams.params.minLat > cqlParams.params.maxLat ||
-                    cqlParams.params.minLon > cqlParams.params.maxLon)
-                {
+                    cqlParams.params.minLon > cqlParams.params.maxLon) {
                     deferred.resolve({
                         name: _thisStore.getName(),
                         isError: false,

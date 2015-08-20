@@ -8,16 +8,16 @@ angular.module('stealth.core.utils')
  */
 .filter('millisToDHMS', [
 function () {
-    return function(millis, trim) {
+    return function (millis, trim) {
         var remaining = (millis / 1000) | 0;
         var formatted = '';
 
         var days = Math.floor(remaining / 86400);
-        remaining  -= days * 86400;
+        remaining -= days * 86400;
         var hours = Math.floor(remaining / 3600);
-        remaining  -= hours * 3600;
+        remaining -= hours * 3600;
         var mins = Math.floor(remaining / 60);
-        remaining  -= mins * 60;
+        remaining -= mins * 60;
         var secs = Math.floor(remaining);
 
         if (0 < days && days < 10) {
@@ -108,7 +108,6 @@ function ($filter) {
         } else {
             return coord;
         }
-
     };
 })
 

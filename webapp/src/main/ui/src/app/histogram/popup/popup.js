@@ -1,16 +1,15 @@
 angular.module('stealth.histogram.popup')
 
 .service('histogramBuilder', [
-'$log',
 '$rootScope',
 '$interval',
 'elementAppender',
-function ($log, $rootScope, $interval, elementAppender) {
+function ($rootScope, $interval, elementAppender) {
     var scopes = [];
 
     var getScope = function (histId) {
         return _.find(scopes, function (scope) {
-            return scope.histogram.histId == histId;
+            return scope.histogram.histId === histId;
         });
     };
 
@@ -148,6 +147,7 @@ function ($log, $rootScope, $interval, elementAppender) {
     };
 
     var updateHistogram = function (histogram) {
+        var maxNBins;
         switch (histogram.type) {
             case 'number':
                 maxNBins = histogram.nBinsChoices[histogram.nBinsChoices.length - 1];
@@ -243,10 +243,10 @@ function ($log, $rootScope, $interval, elementAppender) {
                     }
                 });
             });
-            scope.viz.updateYAxis({},{label: {text: 'log(counts)'}});
+            scope.viz.updateYAxis({}, {label: {text: 'log(counts)'}});
         } else {
             histogram.currentBinned = fill(histogram.currentNBins, histogram.min, histogram.max, histogram.maxBinned);
-            scope.viz.updateYAxis({},{label: {text: 'counts'}});
+            scope.viz.updateYAxis({}, {label: {text: 'counts'}});
         }
     };
 
@@ -331,13 +331,11 @@ function ($log, $rootScope, $interval, elementAppender) {
             }
         }, 250);
     };
-
 }])
 
 .directive('stHistogramPopup', [
-'$log',
 '$rootScope',
-function ($log, $rootScope) {
+function ($rootScope) {
     return {
         restrict: 'E',
         templateUrl: 'histogram/popup/popup.tpl.html',
@@ -345,14 +343,14 @@ function ($log, $rootScope) {
             el.parent().css('height', 0);
 
             el.draggable({
-                stop: function (event, ui) {
+                stop: function () {
                     scope.$apply(function () {
                         el.css('width', '');
                     });
                 }
             });
 
-            var unregFocusListener = $rootScope.$on('Popup Focus Change', function (evt, popupId) {
+            var unregFocusListener = $rootScope.$on('Popup Focus Change', function (evt, popupId) { //eslint-disable-line no-unused-vars
                 if (popupId !== attrs.id && el.zIndex() > 85) {
                     el.css('z-index', el.zIndex() - 1);
                     el.children().css('box-shadow', 'none');
@@ -364,15 +362,15 @@ function ($log, $rootScope) {
                 $rootScope.$emit('Popup Focus Change', attrs.id);
             };
 
-            var unregHistoPopupFocusListener = $rootScope.$on('histogram:focus', function (evt, popupId) {
-                if (popupId == attrs.id) {
+            var unregHistoPopupFocusListener = $rootScope.$on('histogram:focus', function (evt, popupId) { //eslint-disable-line no-unused-vars
+                if (popupId === attrs.id) {
                     scope.focus();
                     el.children().css('box-shadow', '0px 0px 25px #00c7ff');
                 }
             });
 
-            var unregHistoPopupUnhighlightListener = $rootScope.$on('histogram:unhighlight', function (evt, popupId) {
-                if (popupId == attrs.id) {
+            var unregHistoPopupUnhighlightListener = $rootScope.$on('histogram:unhighlight', function (evt, popupId) { //eslint-disable-line no-unused-vars
+                if (popupId === attrs.id) {
                     el.children().css('box-shadow', 'none');
                 }
             });
@@ -386,5 +384,4 @@ function ($log, $rootScope) {
         }
     };
 }])
-
 ;

@@ -10,7 +10,7 @@ function (Ellipsoid) {
         var distance = 0;
         if (_.isArray(coords) && coords.length > 1) {
             for (var i = 1; i < coords.length; i++) {
-                distance += earth[fnName].call(earth, coords[i-1], coords[i]);
+                distance += earth[fnName](coords[i-1], coords[i]);
             }
         }
         return distance;
@@ -53,7 +53,7 @@ function () {
      * @param {number} flattening Flattening.
      * @class
      */
-    var Ellipsoid = function(a, flattening) {
+    var Ellipsoid = function (a, flattening) {
         this.a = a;
         this.flattening = flattening;
         this.b = this.a * (1 - this.flattening);
@@ -169,7 +169,7 @@ function () {
      * @param {number} [opt_maxIterations=100] Maximum iterations.
      * @returns {number} Final bearing.
      */
-    Ellipsoid.prototype.vincentyFinalBearing = function(c1, c2, opt_minDeltaLambda, opt_maxIterations) {
+    Ellipsoid.prototype.vincentyFinalBearing = function (c1, c2, opt_minDeltaLambda, opt_maxIterations) {
         var vincenty = this.vincenty(c1, c2, opt_minDeltaLambda, opt_maxIterations);
         return vincenty.finalBearing;
     };

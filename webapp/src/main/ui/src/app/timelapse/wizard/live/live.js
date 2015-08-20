@@ -62,17 +62,18 @@ function ($rootScope, wizardManager, ol3Map, ol3Styles, VectorOverlay, Wizard, S
         wizardScope.featureOverlay = _overlay;
         var baseWizard = new Wizard('Live Data Query', 'fa-clock-o', 'fa-check text-success', [
             new Step('Select data source and search area', new WidgetDef('st-live-wiz-source-and-area', wizardScope),
-                     new WidgetDef('st-live-draw-tools', wizardScope, "feature-overlay='featureOverlay' geo-feature='query.params.geoFeature'"),
-                     false, function () {
-                _overlay.addToMap();
-                ol3Map.addInteraction(_draw);
-                ol3Map.addInteraction(_modify);
-            }, function () {
-                wizardScope.query.saveSearchAreaCookie();
-                ol3Map.removeInteraction(_modify);
-                ol3Map.removeInteraction(_draw);
-                _overlay.removeFromMap();
-            }),
+                new WidgetDef('st-live-draw-tools', wizardScope, "feature-overlay='featureOverlay' geo-feature='query.params.geoFeature'"),
+                false, function () {
+                    _overlay.addToMap();
+                    ol3Map.addInteraction(_draw);
+                    ol3Map.addInteraction(_modify);
+                }, function () {
+                    wizardScope.query.saveSearchAreaCookie();
+                    ol3Map.removeInteraction(_modify);
+                    ol3Map.removeInteraction(_draw);
+                    _overlay.removeFromMap();
+                }
+            ),
             new Step('Set Options', new WidgetDef('st-tl-wiz-options', wizardScope), null, true, null, function (success) {
                 if (success && _.isFunction(onSuccess)) {
                     onSuccess.call(this, wizardScope.query.layerData.currentLayer, wizardScope.query.buildCql(), wizardScope.query.params.storeName);
@@ -81,7 +82,7 @@ function ($rootScope, wizardManager, ol3Map, ol3Styles, VectorOverlay, Wizard, S
         ], wizardScope);
         wizardManager.launchWizard(baseWizard);
     };
-    $rootScope.$on('Launch Live Wizard', function (event, queryOverrides) {
+    $rootScope.$on('Launch Live Wizard', function (event, queryOverrides) { //eslint-disable-line no-unused-vars
         _self.launchWizard(queryOverrides);
     });
 }])
@@ -105,7 +106,7 @@ function (GeoJson) {
             geoFeature: '='
         },
         templateUrl: 'timelapse/wizard/live/drawTools.tpl.html',
-        link: function (scope, element, attrs) {
+        link: function (scope, element) {
             var fileInput = element.append('<input type="file" class="hidden">')[0].lastChild;
 
             //Couple FileReader to the hidden file input created above.

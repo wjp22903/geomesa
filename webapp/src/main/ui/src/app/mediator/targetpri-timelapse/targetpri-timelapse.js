@@ -1,6 +1,4 @@
-angular.module('stealth.mediator.targetpri-timelapse', [
-
-])
+angular.module('stealth.mediator.targetpri-timelapse')
 
 .run([
 'targetPriResultLayerExtender',
@@ -10,7 +8,7 @@ function (tpExtender, tlWizard) {
         capabilities['timelapse'] = {
             toolTipText: 'Launch time-enabled query wizard',
             iconClass: 'fa-clock-o',
-            onClick: function (name, record, capability) {
+            onClick: function (name, record) { //eslint-disable-line no-unused-vars
                 var filter = opts.dataSource.fieldNames.id + "='" + record[opts.dataSource.fieldNames.id] + "'";
                 tlWizard.launchWizard({
                     startDtg: moment.utc(opts.request.startDtg),

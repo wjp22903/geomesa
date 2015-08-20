@@ -5,31 +5,24 @@ angular.module('stealth.dcm.geo', [
 .run([
 '$log',
 '$rootScope',
-'$timeout',
 'ol3Map',
-'wms',
-'wfs',
 'owsLayers',
-'cqlHelper',
 'categoryManager',
 'dcmQueryService',
 'dcmWizard',
 'threatSurfaceWizard',
 'stealth.core.geo.ol3.manager.Category',
 'stealth.core.utils.WidgetDef',
-'stealth.core.geo.ol3.layers.MapLayer',
 'stealth.core.geo.ol3.layers.WmsLayer',
-'CONFIG',
 'toastr',
-function ($log, $rootScope, $timeout,
-          ol3Map, wms, wfs, owsLayers, cqlHelper, catMgr,
+function ($log, $rootScope,
+          ol3Map, owsLayers, catMgr,
           dcmQueryService, dcmWizard, threatSurfaceWizard,
-          Category, WidgetDef, MapLayer, WmsLayer,
-          CONFIG, toastr) {
+          Category, WidgetDef, WmsLayer,
+          toastr) {
     var tag = 'stealth.dcm.geo: ';
     $log.debug(tag + 'run called');
     var scope = $rootScope.$new();
-    var predictionPrefix = ['dcm', 'prediction'];
 
     scope.layers = [];
     scope.workspaces = {};
@@ -60,8 +53,8 @@ function ($log, $rootScope, $timeout,
         threatSurfaceWizard.launch();
     };
 
-    scope.addThreatSurfaces = function(threatSurfaces) {
-        threatSurfaces.forEach(function(threatSurface) {
+    scope.addThreatSurfaces = function (threatSurfaces) {
+        threatSurfaces.forEach(function (threatSurface) {
             var layer = _.cloneDeep(threatSurface);
             layer.viewState = {
                 isOnMap: false,
@@ -97,10 +90,9 @@ function ($log, $rootScope, $timeout,
             ol3Map.addLayer(wmsLayer);
             scope.threatSurfaces.push(layer);
         });
-
     };
 
-    scope.editTitle = function(layer) {
+    scope.editTitle = function (layer) {
         if (!layer.viewState.isLoading) {
             layer.editTitle = !layer.editTitle;
             if (layer.Title.length === 0) {
@@ -109,7 +101,7 @@ function ($log, $rootScope, $timeout,
         }
     };
 
-    scope.runDcmQuery = function(prediction) {
+    scope.runDcmQuery = function (prediction) {
         var storeTitle = prediction.name ? prediction.name : dcmQueryService.getStoreName(prediction.predictiveFeatures, prediction.predictiveCoverages, prediction.events);
         var tempLayer = {
             Title: storeTitle,
@@ -118,76 +110,76 @@ function ($log, $rootScope, $timeout,
             }
         };
         scope.layers.push(tempLayer);
-        var promise = dcmQueryService.doDcmQuery({
-                geometry: prediction.geometry,
-                predictiveFeatures: prediction.predictiveFeatures,
-                predictiveCoverages: prediction.predictiveCoverages,
-                events: prediction.events[0],
-                width: prediction.width,
-                height: prediction.height,
-                sampleRatio: prediction.sampleRatio,
-                CRS: prediction.CRS,
-                featureSelection: prediction.featureSelection,
-                outputType: prediction.outputType,
-                workspace: prediction.workspace,
-                srsHandling: prediction.srsHandling,
-                keywords: prediction.keywords,
-                title: storeTitle,
-                description: prediction.description,
-                bounds: prediction.bounds
-            }).then(function (output) {
-                console.log(output);
-                owsLayers.getLayers(['dcm', 'prediction'], true)
-                    .then(function (layers) {
-                        $log.debug('owsLayers.getLayers()');
-                        var predictionLayer = _.find(layers, function (layer) {
-                            return layer.Name == output;
-                        });
-                        var layer = _.cloneDeep(predictionLayer);
-                        layer.viewState = {
-                            isOnMap: false,
-                            toggledOn: false,
-                            isLoading: false,
-                            lastOpacity: 1
-                        };
-
-                        var requestParams = {
-                            LAYERS: output,
-                            cql_filter: null
-                        };
-
-                        var options = {
-                            name: output,
-                            layerThisBelongsTo: layer,
-                            requestParams: requestParams,
-                            queryable: true,
-                            opacity: 1,
-                            zIndexHint: 10,
-                            isTiled: false
-                        };
-
-                        var wmsLayer = new WmsLayer(options);
-                        var ol3Layer = wmsLayer.getOl3Layer();
-
-                        layer.mapLayerId = wmsLayer.id;
-                        layer.viewState.isOnMap = true;
-                        layer.viewState.toggledOn = ol3Layer.getVisible();
-                        layer.editTitle = false;
-                        layer.OriginalTitle = angular.copy(layer.Title);
-
-                        ol3Map.addLayer(wmsLayer);
-                        var tempLayer = scope.layers.filter(function(l) {
-                            return layer.Title.startsWith(l.Title);
-                        });
-                        var tempLayerIdx = scope.layers.indexOf(tempLayer[0]);
-                        scope.layers.splice(tempLayerIdx, tempLayerIdx + 1);
-                        scope.layers.push(layer);
-                        $rootScope.$emit('updateRouteAnalysisLayers');
+        dcmQueryService.doDcmQuery({
+            geometry: prediction.geometry,
+            predictiveFeatures: prediction.predictiveFeatures,
+            predictiveCoverages: prediction.predictiveCoverages,
+            events: prediction.events[0],
+            width: prediction.width,
+            height: prediction.height,
+            sampleRatio: prediction.sampleRatio,
+            CRS: prediction.CRS,
+            featureSelection: prediction.featureSelection,
+            outputType: prediction.outputType,
+            workspace: prediction.workspace,
+            srsHandling: prediction.srsHandling,
+            keywords: prediction.keywords,
+            title: storeTitle,
+            description: prediction.description,
+            bounds: prediction.bounds
+        }).then(function (output) {
+            console.log(output);
+            owsLayers.getLayers(['dcm', 'prediction'], true)
+                .then(function (layers) {
+                    $log.debug('owsLayers.getLayers()');
+                    var predictionLayer = _.find(layers, function (layer) {
+                        return layer.Name === output;
                     });
-            }, function (reason) {
-                scope.layers.pop();
-                toastr.error(reason);
-            });
+                    var layer = _.cloneDeep(predictionLayer);
+                    layer.viewState = {
+                        isOnMap: false,
+                        toggledOn: false,
+                        isLoading: false,
+                        lastOpacity: 1
+                    };
+
+                    var requestParams = {
+                        LAYERS: output,
+                        cql_filter: null
+                    };
+
+                    var options = {
+                        name: output,
+                        layerThisBelongsTo: layer,
+                        requestParams: requestParams,
+                        queryable: true,
+                        opacity: 1,
+                        zIndexHint: 10,
+                        isTiled: false
+                    };
+
+                    var wmsLayer = new WmsLayer(options);
+                    var ol3Layer = wmsLayer.getOl3Layer();
+
+                    layer.mapLayerId = wmsLayer.id;
+                    layer.viewState.isOnMap = true;
+                    layer.viewState.toggledOn = ol3Layer.getVisible();
+                    layer.editTitle = false;
+                    layer.OriginalTitle = angular.copy(layer.Title);
+
+                    ol3Map.addLayer(wmsLayer);
+                    var tempLayer = scope.layers.filter(function (l) {
+                        return layer.Title.startsWith(l.Title);
+                    });
+                    var tempLayerIdx = scope.layers.indexOf(tempLayer[0]);
+                    scope.layers.splice(tempLayerIdx, tempLayerIdx + 1);
+                    scope.layers.push(layer);
+                    $rootScope.$emit('updateRouteAnalysisLayers');
+                });
+        }, function (reason) {
+            scope.layers.pop();
+            toastr.error(reason);
+        });
     };
 
     dcmWizard.setCategoryScope(scope);

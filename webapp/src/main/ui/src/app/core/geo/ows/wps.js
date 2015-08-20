@@ -9,8 +9,8 @@ function ($q, $http, $filter) {
         url = $filter('cors')(url, omitWps ? '' : 'wps', omitProxy);
         var deferred = $q.defer();
         $http.post(url, xmlRequest)
-            .success(function (data, status, headers, config) {
-                if (_.isString(data) && data.indexOf('ExceptionText') != -1) {
+            .success(function (data) {
+                if (_.isString(data) && data.indexOf('ExceptionText') !== -1) {
                     try {
                         var r = /<ows:ExceptionText>(.*)<\/ows:ExceptionText>/;
                         var ex = r.exec(data.replace(/(\r\n|\r|\n)/g, ' '));
@@ -24,7 +24,7 @@ function ($q, $http, $filter) {
                 }
                 deferred.resolve(data);
             })
-            .error(function (data, status, headers, config) {
+            .error(function (data, status) { //eslint-disable-line no-unused-vars
                 deferred.reject('Error: ' + status);
             });
         return deferred.promise;

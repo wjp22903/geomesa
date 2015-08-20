@@ -35,7 +35,7 @@ function ($log, $compile) {
         scope: {
             widgetDef: '='
         },
-        link: function(scope, element, attrs) {
+        link: function (scope, element) {
             scope.$watch('widgetDef', function (widget) {
                 if (widget) {
                     element.empty(); //remove any previous widget

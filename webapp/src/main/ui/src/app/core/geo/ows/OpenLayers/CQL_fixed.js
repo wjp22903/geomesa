@@ -2,93 +2,88 @@
  * Custom CQL formatter. Fixes issue with negative numbers not being parsed correctly when converting
  * from CQL to ogc:Filter XML.
  */
-OpenLayers.Format.CQL_fixed = (function() {
-
-    var tokens = [
-        "PROPERTY", "COMPARISON", "VALUE", "LOGICAL"
-    ],
-
-    patterns = {
-        PROPERTY: /^[_a-zA-Z]\w*/,
-        COMPARISON: /^(=|<>|<=|<|>=|>|LIKE)/i,
-        IS_NULL: /^IS NULL/i,
-        COMMA: /^,/,
-        LOGICAL: /^(AND|OR)/i,
-        //Added ability to parse negative values here.
-        VALUE: /^('([^']|'')*'|-?\d+(\.\d*)?|\.\d+)/,
-        LPAREN: /^\(/,
-        RPAREN: /^\)/,
-        SPATIAL: /^(BBOX|INTERSECTS|DWITHIN|WITHIN|CONTAINS)/i,
-        NOT: /^NOT/i,
-        BETWEEN: /^BETWEEN/i,
-        GEOMETRY: function(text) {
-            var type = /^(POINT|LINESTRING|POLYGON|MULTIPOINT|MULTILINESTRING|MULTIPOLYGON|GEOMETRYCOLLECTION)/.exec(text);
-            if (type) {
-                var len = text.length;
-                var idx = text.indexOf("(", type[0].length);
-                if (idx > -1) {
-                    var depth = 1;
-                    while (idx < len && depth > 0) {
-                        idx++;
-                        switch(text.charAt(idx)) {
-                            case '(':
-                                depth++;
-                                break;
-                            case ')':
-                                depth--;
-                                break;
-                            default:
-                                // in default case, do nothing
+OpenLayers.Format.CQL_fixed = (function () {
+    var patterns = {
+            PROPERTY: /^[_a-zA-Z]\w*/,
+            COMPARISON: /^(=|<>|<=|<|>=|>|LIKE)/i,
+            IS_NULL: /^IS NULL/i,
+            COMMA: /^,/,
+            LOGICAL: /^(AND|OR)/i,
+            //Added ability to parse negative values here.
+            VALUE: /^('([^']|'')*'|-?\d+(\.\d*)?|\.\d+)/,
+            LPAREN: /^\(/,
+            RPAREN: /^\)/,
+            SPATIAL: /^(BBOX|INTERSECTS|DWITHIN|WITHIN|CONTAINS)/i,
+            NOT: /^NOT/i,
+            BETWEEN: /^BETWEEN/i,
+            GEOMETRY: function (text) {
+                var type = /^(POINT|LINESTRING|POLYGON|MULTIPOINT|MULTILINESTRING|MULTIPOLYGON|GEOMETRYCOLLECTION)/.exec(text);
+                if (type) {
+                    var len = text.length;
+                    var idx = text.indexOf("(", type[0].length);
+                    if (idx > -1) {
+                        var depth = 1;
+                        while (idx < len && depth > 0) {
+                            idx++;
+                            switch (text.charAt(idx)) {
+                                case '(':
+                                    depth++;
+                                    break;
+                                case ')':
+                                    depth--;
+                                    break;
+                                default:
+                                    // in default case, do nothing
+                            }
                         }
                     }
+                    return [text.substr(0, idx+1)];
                 }
-                return [text.substr(0, idx+1)];
-            }
+            },
+            END: /^$/
         },
-        END: /^$/
-    },
 
-    follows = {
-        LPAREN: ['GEOMETRY', 'SPATIAL', 'PROPERTY', 'VALUE', 'LPAREN'],
-        RPAREN: ['NOT', 'LOGICAL', 'END', 'RPAREN'],
-        PROPERTY: ['COMPARISON', 'BETWEEN', 'COMMA', 'IS_NULL'],
-        BETWEEN: ['VALUE'],
-        IS_NULL: ['END'],
-        COMPARISON: ['VALUE'],
-        COMMA: ['GEOMETRY', 'VALUE', 'PROPERTY'],
-        VALUE: ['LOGICAL', 'COMMA', 'RPAREN', 'END'],
-        SPATIAL: ['LPAREN'],
-        LOGICAL: ['NOT', 'VALUE', 'SPATIAL', 'PROPERTY', 'LPAREN'],
-        NOT: ['PROPERTY', 'LPAREN'],
-        GEOMETRY: ['COMMA', 'RPAREN']
-    },
+        follows = {
+            LPAREN: ['GEOMETRY', 'SPATIAL', 'PROPERTY', 'VALUE', 'LPAREN'],
+            RPAREN: ['NOT', 'LOGICAL', 'END', 'RPAREN'],
+            PROPERTY: ['COMPARISON', 'BETWEEN', 'COMMA', 'IS_NULL'],
+            BETWEEN: ['VALUE'],
+            IS_NULL: ['END'],
+            COMPARISON: ['VALUE'],
+            COMMA: ['GEOMETRY', 'VALUE', 'PROPERTY'],
+            VALUE: ['LOGICAL', 'COMMA', 'RPAREN', 'END'],
+            SPATIAL: ['LPAREN'],
+            LOGICAL: ['NOT', 'VALUE', 'SPATIAL', 'PROPERTY', 'LPAREN'],
+            NOT: ['PROPERTY', 'LPAREN'],
+            GEOMETRY: ['COMMA', 'RPAREN']
+        },
 
-    operators = {
-        '=': OpenLayers.Filter.Comparison.EQUAL_TO,
-        '<>': OpenLayers.Filter.Comparison.NOT_EQUAL_TO,
-        '<': OpenLayers.Filter.Comparison.LESS_THAN,
-        '<=': OpenLayers.Filter.Comparison.LESS_THAN_OR_EQUAL_TO,
-        '>': OpenLayers.Filter.Comparison.GREATER_THAN,
-        '>=': OpenLayers.Filter.Comparison.GREATER_THAN_OR_EQUAL_TO,
-        'LIKE': OpenLayers.Filter.Comparison.LIKE,
-        'BETWEEN': OpenLayers.Filter.Comparison.BETWEEN,
-        'IS NULL': OpenLayers.Filter.Comparison.IS_NULL
-    },
+        operators = {
+            '=': OpenLayers.Filter.Comparison.EQUAL_TO,
+            '<>': OpenLayers.Filter.Comparison.NOT_EQUAL_TO,
+            '<': OpenLayers.Filter.Comparison.LESS_THAN,
+            '<=': OpenLayers.Filter.Comparison.LESS_THAN_OR_EQUAL_TO,
+            '>': OpenLayers.Filter.Comparison.GREATER_THAN,
+            '>=': OpenLayers.Filter.Comparison.GREATER_THAN_OR_EQUAL_TO,
+            'LIKE': OpenLayers.Filter.Comparison.LIKE,
+            'BETWEEN': OpenLayers.Filter.Comparison.BETWEEN,
+            'IS NULL': OpenLayers.Filter.Comparison.IS_NULL
+        },
 
-    operatorReverse = {},
+        operatorReverse = {},
 
-    logicals = {
-        'AND': OpenLayers.Filter.Logical.AND,
-        'OR': OpenLayers.Filter.Logical.OR
-    },
+        logicals = {
+            'AND': OpenLayers.Filter.Logical.AND,
+            'OR': OpenLayers.Filter.Logical.OR
+        },
 
-    logicalReverse = {},
+        logicalReverse = {},
 
-    precedence = {
-        'RPAREN': 3,
-        'LOGICAL': 2,
-        'COMPARISON': 1
-    };
+        precedence = {
+            'RPAREN': 3,
+            'LOGICAL': 2,
+            'COMPARISON': 1
+        };
 
     var i;
     for (i in operators) {
@@ -103,7 +98,7 @@ OpenLayers.Format.CQL_fixed = (function() {
         }
     }
 
-    function tryToken(text, pattern) {
+    function tryToken (text, pattern) {
         if (pattern instanceof RegExp) {
             return pattern.exec(text);
         } else {
@@ -111,7 +106,7 @@ OpenLayers.Format.CQL_fixed = (function() {
         }
     }
 
-    function nextToken(text, tokens) {
+    function nextToken (text, tokens) {
         var i, token, len = tokens.length;
         for (i=0; i<len; i++) {
             token = tokens[i];
@@ -137,7 +132,7 @@ OpenLayers.Format.CQL_fixed = (function() {
         throw new Error(msg);
     }
 
-    function tokenize(text) {
+    function tokenize (text) {
         var results = [];
         var token, expect = ["NOT", "GEOMETRY", "SPATIAL", "PROPERTY", "LPAREN"];
 
@@ -145,16 +140,16 @@ OpenLayers.Format.CQL_fixed = (function() {
             token = nextToken(text, expect);
             text = token.remainder;
             expect = follows[token.type];
-            if (token.type != "END" && !expect) {
+            if (token.type !== "END" && !expect) {
                 throw new Error("No follows list for " + token.type);
             }
             results.push(token);
-        } while (token.type != "END");
+        } while (token.type !== "END");
 
         return results;
     }
 
-    function buildAst(tokens) {
+    function buildAst (tokens) {
         var operatorStack = [],
             postfix = [];
 
@@ -187,14 +182,14 @@ OpenLayers.Format.CQL_fixed = (function() {
                     break;
                 case "RPAREN":
                     while (operatorStack.length > 0 &&
-                        (operatorStack[operatorStack.length - 1].type != "LPAREN")
+                        (operatorStack[operatorStack.length - 1].type !== "LPAREN")
                     ) {
                         postfix.push(operatorStack.pop());
                     }
                     operatorStack.pop(); // toss out the LPAREN
 
                     if (operatorStack.length > 0 &&
-                        operatorStack[operatorStack.length-1].type == "SPATIAL") {
+                        operatorStack[operatorStack.length-1].type === "SPATIAL") {
                         postfix.push(operatorStack.pop());
                     }
                     break;
@@ -210,7 +205,7 @@ OpenLayers.Format.CQL_fixed = (function() {
             postfix.push(operatorStack.pop());
         }
 
-        function buildTree() {
+        function buildTree () {
             var tok = postfix.pop();
             switch (tok.type) {
                 case "LOGICAL":
@@ -259,7 +254,7 @@ OpenLayers.Format.CQL_fixed = (function() {
                     }
                     break;
                 case "SPATIAL":
-                    switch(tok.text.toUpperCase()) {
+                    switch (tok.text.toUpperCase()) {
                         case "BBOX":
                             var maxy = buildTree(),
                                 maxx = buildTree(),
@@ -321,8 +316,8 @@ OpenLayers.Format.CQL_fixed = (function() {
         return result;
     }
 
-    return OpenLayers.Class(OpenLayers.Format.CQL, {
-        read: function(text) { 
+    return OpenLayers.Class(OpenLayers.Format.CQL, { //eslint-disable-line new-cap
+        read: function (text) {
             var result = buildAst(tokenize(text));
             if (this.keepData) {
                 this.data = result;
@@ -330,7 +325,6 @@ OpenLayers.Format.CQL_fixed = (function() {
             return result;
         },
         CLASS_NAME: "OpenLayers.Format.CQL_fixed"
-
     });
 })();
 

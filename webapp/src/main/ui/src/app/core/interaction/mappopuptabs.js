@@ -4,14 +4,12 @@ angular.module('stealth.core.interaction.mappopup')
  * Tabbed display within map popup container.
  */
 .directive('stOl3MapPopupTabs', [
-'$rootScope',
-'stealth.core.utils.WidgetDef',
-function ($rootScope, WidgetDef) {
+function () {
     return {
         restrict: 'A',
         require: '^stOl3MapPopup',
         templateUrl: 'core/interaction/mappopuptabs.tpl.html',
-        link: function (scope, element, attrs, mapPopCtrl) {
+        link: function (scope, element, attrs, mapPopCtrl) { //eslint-disable-line no-unused-vars
             mapPopCtrl.launchSearch();
             scope.$on('Results Loaded', function () {
                 _.each(mapPopCtrl.results, function (tab) {

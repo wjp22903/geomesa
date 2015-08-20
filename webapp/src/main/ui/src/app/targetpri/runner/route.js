@@ -7,19 +7,17 @@ angular.module('stealth.targetpri.runner', [
 '$rootScope',
 'routeRankRunner',
 function ($rootScope, routeRankRunner) {
-    $rootScope.$on('targetpri:request:route', function (evt, req) {
+    $rootScope.$on('targetpri:request:route', function (evt, req) { //eslint-disable-line no-unused-vars
         routeRankRunner.run(req);
     });
 }])
 
 .service('routeRankRunner', [
 '$rootScope',
-'$q',
 'sidebarManager',
 'stealth.core.utils.WidgetDef',
 'proximityService',
 'rankService',
-'ol3Map',
 'ol3Styles',
 'stealth.core.geo.ol3.format.GeoJson',
 'stealth.core.geo.ol3.layers.MapLayer',
@@ -28,8 +26,8 @@ function ($rootScope, routeRankRunner) {
 'categoryManager',
 'colors',
 'cqlHelper',
-function ($rootScope, $q, sidebarManager, WidgetDef, proximityService,
-          rankService, ol3Map, ol3Styles, GeoJson, MapLayer, TargetPriResultLayer, Category, catMgr, colors, cqlHelper) {
+function ($rootScope, sidebarManager, WidgetDef, proximityService,
+          rankService, ol3Styles, GeoJson, MapLayer, TargetPriResultLayer, Category, catMgr, colors, cqlHelper) {
     var geoJsonFormat = new GeoJson(); // stealth GeoJson, extending OL3 for STEALTH-319
     this.run = function (req) {
         var category = catMgr.addCategory(2, new Category(req.name, function () {

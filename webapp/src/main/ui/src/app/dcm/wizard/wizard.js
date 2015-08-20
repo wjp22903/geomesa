@@ -16,7 +16,6 @@ function (startMenuManager, dcmWizard) {
 'ol3Map',
 'wizardManager',
 'colors',
-'cqlHelper',
 'stealth.core.geo.ol3.layers.MapLayer',
 'stealth.core.wizard.Step',
 'stealth.core.wizard.Wizard',
@@ -26,7 +25,7 @@ function (startMenuManager, dcmWizard) {
 'wps',
 'CONFIG',
 function ($log, $rootScope, $filter,
-          ol3Map, wizardManager, colors, cqlHelper,
+          ol3Map, wizardManager, colors,
           MapLayer, Step, Wizard, WidgetDef, owsLayers, wfs, wps, CONFIG) {
     var tag = 'stealth.dcm.wizard.dcmWizard: ';
     $log.debug(tag + 'service started');
@@ -37,7 +36,6 @@ function ($log, $rootScope, $filter,
 
     var vectorPrefix = ['dcm', 'vector'];
     var rasterPrefix = ['dcm', 'raster'];
-    var eventsPrefix = ['dcm', 'events'];
 
     var getFeatureTypeDescription = function (gsLayer) {
         wfs.getFeatureTypeDescription(CONFIG.geoserver.defaultUrl,
@@ -55,7 +53,7 @@ function ($log, $rootScope, $filter,
 
         wfs.getDefaultGeometryFieldName(CONFIG.geoserver.defaultUrl, gsLayer.Name, CONFIG.geoserver.omitProxy, true).
         then(
-            function(defaultGeomFieldName) {
+            function (defaultGeomFieldName) {
                 if (angular.isString(defaultGeomFieldName) && defaultGeomFieldName.indexOf('Exception') !== -1) {
                     gsLayer.defaultGeomFieldName = "Unavailable";
                 } else {
@@ -122,7 +120,6 @@ function ($log, $rootScope, $filter,
     this.launch = function () {
         var wizScope = $rootScope.$new();
         var steps = [];
-        var predictiveFeaturesSelected = [];
         var workspace = '';
         wizScope.vectorLayers = [];
         wizScope.rasterLayers = [];
@@ -167,7 +164,7 @@ function ($log, $rootScope, $filter,
                         getFeatureTypeDescription(gsLayer);
                         wizScope.eventLayers.push(gsLayer);
                     }
-                    var match = _.find(wizScope.workspaces, function(ws) {
+                    var match = _.find(wizScope.workspaces, function (ws) {
                         return ws.name === workspace.name;
                     });
                     if (!match && (!gsLayer.serverUrl || gsLayer.serverUrl === CONFIG.geoserver.defaultUrl)) {
@@ -175,18 +172,17 @@ function ($log, $rootScope, $filter,
                     }
                 });
                 if (CONFIG.userCn && CONFIG.userCn !== 'Anonymous') {
-                    var match = _.find(wizScope.workspaces, function(workspace) {
-                        workspace.name === CONFIG.userCn;
+                    var match = _.find(wizScope.workspaces, function (workspace) {
+                        return workspace.name === CONFIG.userCn;
                     });
                     if (!match) {
                         wizScope.workspaces.push({
                             name: CONFIG.userCn
                         });
-                        wizScope.prediction.workspace = wizScope.workspaces[wizScope.workspaces.length - 1 ];
+                        wizScope.prediction.workspace = wizScope.workspaces[wizScope.workspaces.length - 1];
                     } else {
                         wizScope.prediction.workspace = wizScope.workspaces[wizScope.workspaces.indexOf(match)];
                     }
-
                 } else {
                     wizScope.prediction.workspace = wizScope.workspaces[0];
                 }
@@ -204,9 +200,9 @@ function ($log, $rootScope, $filter,
             {name: "None", projectionPolicy: "NONE"}
         ];
 
-        wizScope.addToPredictiveFeatures = function(selectedLayers) {
+        wizScope.addToPredictiveFeatures = function (selectedLayers) {
             wizScope.prediction.predictiveFeatures = wizScope.prediction.predictiveFeatures.concat(angular.copy(selectedLayers));
-            wizScope.prediction.predictiveFeatures.sort(function(a, b) {
+            wizScope.prediction.predictiveFeatures.sort(function (a, b) {
                 if (a.Name > b.Name) {
                     return 1;
                 } else if (a.Name < b.Name) {
@@ -217,9 +213,9 @@ function ($log, $rootScope, $filter,
             });
         };
 
-        wizScope.removeFromPredictiveFeatures = function(index) {
+        wizScope.removeFromPredictiveFeatures = function (index) {
             wizScope.prediction.predictiveFeatures.splice(index, 1);
-            wizScope.vectorLayers.sort(function(a, b) {
+            wizScope.vectorLayers.sort(function (a, b) {
                 if (a.Name > b.Name) {
                     return 1;
                 } else if (a.Name < b.Name) {
@@ -230,8 +226,8 @@ function ($log, $rootScope, $filter,
             });
         };
 
-        wizScope.updateEventCql = function(event) {
-            wizScope.eventLayers.filter(function(ev) { return ev.Title == event.Title; })[0].cql_filter = event.cql_filter;
+        wizScope.updateEventCql = function (event) {
+            wizScope.eventLayers.filter(function (ev) { return ev.Title === event.Title; })[0].cql_filter = event.cql_filter;
         };
 
         wizScope.prediction = {
@@ -287,7 +283,7 @@ function ($log, $rootScope, $filter,
                 ol3Layer.setSource(getBoxSource(wizScope.prediction.bounds));
                 ol3Map.addLayer(boxLayer);
 
-                wizScope.$watchCollection('prediction.bounds', function (newParams, oldParams) {
+                wizScope.$watchCollection('prediction.bounds', function (newParams) {
                     ol3Layer.setSource(getBoxSource(newParams));
                 });
 
@@ -350,7 +346,7 @@ function ($log, $rootScope, $filter,
                     maxY: wizScope.prediction.bounds.maxLat
                 });
                 return wps.submit(CONFIG.geoserver.defaultUrl, req, CONFIG.geoserver.omitProxy)
-                    .then(function(result) {
+                    .then(function (result) {
                         var arr = result.split(',');
                         wizScope.prediction.width = arr[0].trim();
                         wizScope.prediction.height = arr[1].trim();
@@ -381,27 +377,20 @@ function ($log, $rootScope, $filter,
         var wiz = new Wizard('Spatial Prediction', 'fa-line-chart', 'fa-check text-success', steps, wizScope, 'dcmWizardForm');
         wizardManager.launchWizard(wiz);
     };
-
 }])
 
 .service('threatSurfaceWizard', [
 '$log',
 '$rootScope',
-'$filter',
-'ol3Map',
 'wizardManager',
 'colors',
-'cqlHelper',
-'stealth.core.geo.ol3.layers.MapLayer',
 'stealth.core.wizard.Step',
 'stealth.core.wizard.Wizard',
 'stealth.core.utils.WidgetDef',
 'owsLayers',
-'wfs',
-'CONFIG',
-function ($log, $rootScope, $filter,
-          ol3Map, wizardManager, colors, cqlHelper,
-          MapLayer, Step, Wizard, WidgetDef, owsLayers, wfs, CONFIG) {
+function ($log, $rootScope,
+          wizardManager, colors,
+          Step, Wizard, WidgetDef, owsLayers) {
     var tag = 'stealth.dcm.wizard.threatSurfaceWizard: ';
     $log.debug(tag + 'service started');
 
@@ -412,7 +401,6 @@ function ($log, $rootScope, $filter,
     this.launch = function () {
         var wizScope = $rootScope.$new();
         var steps = [];
-        var threatSurfacesSelected = [];
         var threatSurfacePrefix = ['dcm', 'prediction'];
 
         wizScope.threatSurfaces = [];
@@ -430,7 +418,7 @@ function ($log, $rootScope, $filter,
             });
 
         wizScope.threatSurfacesSelected = [];
-        wizScope.addThreatSurface = function(threatSurface) {
+        wizScope.addThreatSurface = function (threatSurface) {
             catScope.addThreatSurfaces([threatSurface]);
         };
 
@@ -457,7 +445,6 @@ function ($log, $rootScope, $filter,
         var wiz = new Wizard('Add Threat Surface', 'fa-bar-chart', 'fa-check text-success', steps, wizScope);
         wizardManager.launchWizard(wiz);
     };
-
 }])
 
 .directive('stDcmWizPredictiveFeatures',
@@ -507,5 +494,4 @@ function () {
         templateUrl: 'dcm/wizard/templates/outputoptions.tpl.html'
     };
 })
-
 ;

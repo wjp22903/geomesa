@@ -6,11 +6,10 @@ angular.module('stealth.static.geo', [
 .service('staticWorkspaceManager', [
 '$timeout',
 'owsLayers',
-'colors',
 'ol3Map',
 'stealth.core.geo.ol3.layers.WmsLayer',
 'CONFIG',
-function ($timeout, owsLayers, colors, ol3Map, WmsLayer, CONFIG) {
+function ($timeout, owsLayers, ol3Map, WmsLayer, CONFIG) {
     var _self = this;
     var iconImgSrc = '';
 
@@ -50,9 +49,9 @@ function ($timeout, owsLayers, colors, ol3Map, WmsLayer, CONFIG) {
     };
 
     this.getLayerStyles = function (layer) {
-        var configuredStyles =
-            _.object(_.map(layer.Style, function (s) {return [s.Title, s.Name];}));
-
+        var configuredStyles = _.object(_.map(layer.Style, function (s) {
+            return [s.Title, s.Name];
+        }));
         return _.merge(_.clone(baseStyles), configuredStyles);
     };
 
@@ -122,9 +121,8 @@ function ($timeout, owsLayers, colors, ol3Map, WmsLayer, CONFIG) {
                 updateRequestParams(filterLayer);
             };
 
-            mapLayer.styleDirectiveScope.sizeChanged = function (filterLayer, size) {
+            mapLayer.styleDirectiveScope.sizeChanged = function (filterLayer) {
                 if (!angular.isNumber(filterLayer.viewState.size)) {
-                    size = 1;
                     filterLayer.viewState.size = 1;
                 }
                 updateIconImgSrc(filterLayer);
@@ -141,9 +139,8 @@ function ($timeout, owsLayers, colors, ol3Map, WmsLayer, CONFIG) {
                 updateRequestParams(filterLayer);
             };
 
-            mapLayer.styleDirectiveScope.heatmapRadiusChanged = function (filterLayer, radius) {
+            mapLayer.styleDirectiveScope.heatmapRadiusChanged = function (filterLayer) {
                 if (!angular.isNumber(filterLayer.viewState.radiusPixels)) {
-                    radius = 10;
                     filterLayer.viewState.radiusPixels = 10;
                 }
                 updateRequestParams(filterLayer);
@@ -192,7 +189,7 @@ function ($timeout, owsLayers, colors, ol3Map, WmsLayer, CONFIG) {
             _.each(layers, function (l) {
                 var layer = _.cloneDeep(l);
                 layer.filterLayers = [];
-                _.each(_.get(layer.KeywordConfig, keywordPrefix), function (conf, workspace) {
+                _.each(_.keys(_.get(layer.KeywordConfig, keywordPrefix)), function (workspace) {
                     if (_.isArray(_self.workspaces[workspace])) {
                         _self.workspaces[workspace].push(layer);
                     } else {

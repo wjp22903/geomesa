@@ -1,13 +1,10 @@
-angular.module('stealth.targetpri.wizard.track', [
-])
+angular.module('stealth.targetpri.wizard.track')
 
 .factory('trackTpWizFactory', [
 'stealth.core.wizard.Wizard',
 'stealth.core.wizard.Step',
 'stealth.core.utils.WidgetDef',
-'sidebarManager',
-'ol3Map',
-function (Wizard, Step, WidgetDef, sidebarManager, ol3Map) {
+function (Wizard, Step, WidgetDef) {
     var self = {
         createSourceWiz: function (wizardScope) {
             return new Wizard(null, null, 'fa-ellipsis-h', [

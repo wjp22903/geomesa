@@ -78,7 +78,7 @@ function ($log, pollingManager) {
                         _self.refresh(_waitingParams);
                     }
                 }
-            }, options));
+            }, _options));
 
             _self.refresh = function (requestParams) {
                 requestParams = requestParams || {};
@@ -122,7 +122,7 @@ function ($log, pollingManager) {
                 ol3Map.unByKey(_mapListenerKey);
             };
 
-            if (!options.preventInitialPolling) {
+            if (!_options.preventInitialPolling) {
                 pollingManager.addPollingListener(_self.refresh);
             }
         };

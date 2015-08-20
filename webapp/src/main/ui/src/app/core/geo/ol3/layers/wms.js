@@ -4,7 +4,6 @@ angular.module('stealth.core.geo.ol3.layers', [
 
 .factory('stealth.core.geo.ol3.layers.WmsLayer', [
 '$log',
-'$timeout',
 '$q',
 'toastr',
 'wfs',
@@ -12,7 +11,7 @@ angular.module('stealth.core.geo.ol3.layers', [
 'cqlHelper',
 'stealth.core.geo.ol3.layers.MapLayer',
 'CONFIG',
-function ($log, $timeout, $q, toastr, wfs, clickSearchHelper, cqlHelper, MapLayer, CONFIG) {
+function ($log, $q, toastr, wfs, clickSearchHelper, cqlHelper, MapLayer, CONFIG) {
     var tag = 'stealth.core.geo.ol3.layers.WmsLayer: ';
     $log.debug(tag + 'factory started');
     /**
@@ -64,22 +63,20 @@ function ($log, $timeout, $q, toastr, wfs, clickSearchHelper, cqlHelper, MapLaye
         var _getGeomField = function () {
             if (_geomField) {
                 return $q.when(_geomField);
+            } else if (_.has(_layerThisBelongsTo.KeywordConfig, 'click.search.field.geom')) {
+                _geomField = _.get(_layerThisBelongsTo.KeywordConfig, 'click.search.field.geom');
+                return $q.when(_geomField);
             } else {
-                if (_.has(_layerThisBelongsTo.KeywordConfig, 'click.search.field.geom')) {
-                    _geomField = _.get(_layerThisBelongsTo.KeywordConfig, 'click.search.field.geom');
-                    return $q.when(_geomField);
-                } else {
-                    // No search geom field was specified so try falling back to the default geom field.
-                    return wfs.getDefaultGeometryFieldName(CONFIG.geoserver.defaultUrl,
-                                                           _olSource.getParams()['LAYERS'],
-                                                           CONFIG.geoserver.omitProxy)
-                    .then(
-                        function (geomField) {
-                            _geomField = geomField;
-                            return geomField;
-                        }
-                    );
-                }
+                // No search geom field was specified so try falling back to the default geom field.
+                return wfs.getDefaultGeometryFieldName(CONFIG.geoserver.defaultUrl,
+                                                       _olSource.getParams()['LAYERS'],
+                                                       CONFIG.geoserver.omitProxy)
+                .then(
+                    function (geomField) {
+                        _geomField = geomField;
+                        return geomField;
+                    }
+                );
             }
         };
 
@@ -199,7 +196,7 @@ function ($log, $timeout, $q, toastr, wfs, clickSearchHelper, cqlHelper, MapLaye
                                 display: 'none'
                             }
                         });
-                    }, function (response) {
+                    }, function () {
                         return _.merge(baseResponse, {
                             isError: true,
                             reason: 'Server error'
@@ -208,7 +205,7 @@ function ($log, $timeout, $q, toastr, wfs, clickSearchHelper, cqlHelper, MapLaye
                 },
                 function (reason) {
                     toastr.error('Failed to search ' + _options.name + '. ' + reason,
-                                 'Search Error', { timeOut: 15000 });
+                                 'Search Error', {timeOut: 15000});
                     return $q.when(_.merge(baseResponse, {
                         isError: true,
                         reason: reason

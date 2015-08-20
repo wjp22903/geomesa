@@ -15,7 +15,7 @@ describe('Directive', function () {
             unit: 'm'
         };
         testModel.millis = testModel.value * 60000; // convert from minutes
-        testModel.notifyListeners = function (millis) {};
+        testModel.notifyListeners = _.noop;
         testModel.toMillis = function (val, unit) {
             switch (unit) {
                 case 's':
@@ -34,8 +34,7 @@ describe('Directive', function () {
         beforeEach(inject([
             '$rootScope',
             '$compile',
-            '$templateCache',
-            function (_$rootScope_, $compile, $templateCache) {
+            function (_$rootScope_, $compile) {
                 $rootScope = _$rootScope_;
                 scope = $rootScope.$new();
                 scope.testModel = testModel;

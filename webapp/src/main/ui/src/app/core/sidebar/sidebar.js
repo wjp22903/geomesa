@@ -3,8 +3,7 @@ angular.module('stealth.core.sidebar', [
 
 .service('sidebarManager', [
 '$log',
-'$rootScope',
-function ($log, $rootScope) {
+function ($log) {
     $log.debug('stealth.core.sidebar.sidebarManager: service started');
     var _sidebarWidth = 36;
     var _idSeq = 0;
@@ -13,7 +12,7 @@ function ($log, $rootScope) {
     var _hideAll = false;
     var _sidebarText;
 
-    function _setLefts() {
+    function _setLefts () {
         var lefts = _sidebarWidth; //sidebar width
         _.each(_openPanelIds, function (openPanelId) {
             var button = _.find(_buttons, {id: openPanelId});

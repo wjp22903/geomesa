@@ -1,0 +1,14 @@
+{
+    "env": {
+        "mocha": true
+    },
+    "globals": {
+        "expect": false,
+        "inject": false,
+        "module": false,
+        "STEALTH": false
+    },
+    "rules": {
+        "no-unused-expressions": 0
+    }
+}

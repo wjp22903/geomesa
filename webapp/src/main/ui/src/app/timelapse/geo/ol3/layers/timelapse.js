@@ -41,7 +41,7 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
         return colors.hexStringToRgbArray(hex);
     });
 
-    var BSafeUint8ClampedArray = function (arg) {
+    var beSafeUint8ClampedArray = function (arg) {
         if (typeof Uint8ClampedArray !== "undefined") {
             return new Uint8ClampedArray(arg);
         } else {
@@ -54,7 +54,7 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
     if (window.CanvasPixelArray) {
         CanvasPixelArray.prototype.set = function (arr) {
             var l = this.length, i = 0;
-            for(; i < l; i++) {
+            for (; i < l; i++) {
                 this[i] = arr[i];
             }
         };
@@ -81,16 +81,16 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
         // Image buffer.
         var _imageLen = 32;
         var _imageBuf = new ArrayBuffer(_imageLen);
-        var _imageBuf8 = new BSafeUint8ClampedArray(_imageBuf);
+        var _imageBuf8 = beSafeUint8ClampedArray(_imageBuf);
         var _imageView = new Uint32Array(_imageBuf);
         var _imageData = null; // The data for the image that will be drawn.
 
         // Transient drawing parameters.
         var _iDiv = 0;
         var _x, _y, _idx, _center, _rgba, _rampFactor;
-        var _curSize = [0,0], _curExtent = [0,0,0,0];
+        var _curSize = [0, 0], _curExtent = [0, 0, 0, 0];
         var _startMillis = 0, _endMillis = 0, _windowMillis = 0, _windowSeconds = 0, _windowBeginSeconds = 0;
-        var zn, x, y, y2, pixel, rPlus1, yw, lat, lon;
+        var zn, x, y, y2, pixel, yw, lat, lon;
         var south, north, west, east;
         var color, iLower, iUpper, stride, iUpperStride;
         var radiusRamp, r2Plus1Ramp, alphaRamp, colorById, iCol, rMinus1;
@@ -99,14 +99,7 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
         var _stores = [];
 
         // Function called by OL3 to update canvas.
-        var _drawFn  = function (extent, // image extent (empirical investigation suggests
-                                         // that this is 1.5 times the map extent)
-                                 resolution,
-                                 pixelRatio,
-                                 size, // image size (empirical investigation suggests
-                                       // that this is 1.5 times the map size)
-                                 projection) {
-
+        var _drawFn = function (extent, resolution, pixelRatio, size, projection) { //eslint-disable-line no-unused-vars
             if (sizeChanged(_curSize, size) || extentChanged(_curExtent, extent)) {
                 // Update size parameters.
                 _curSize = angular.copy(size);
@@ -119,14 +112,14 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
                 // Change image buffer size
                 _imageLen = _w * _h * 4 | 0; // 4-bytes per pixel (RGBA)
                 _imageBuf = new ArrayBuffer(_imageLen);
-                _imageBuf8 = new BSafeUint8ClampedArray(_imageBuf);
+                _imageBuf8 = beSafeUint8ClampedArray(_imageBuf);
                 _imageView = new Uint32Array(_imageBuf);
                 _imageData = _context.createImageData(_w, _h);
 
                 // Update extent parameters.
-                _bounds.west  = _curExtent[0];
+                _bounds.west = _curExtent[0];
                 _bounds.south = _curExtent[1];
-                _bounds.east  = _curExtent[2];
+                _bounds.east = _curExtent[2];
                 _bounds.north = _curExtent[3];
 
                 _lonFactor = _w / (_bounds.east - _bounds.west);
@@ -180,19 +173,18 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
                 } else {
                     _iDiv = (store.getTimeInSeconds(_idx) - _windowBeginSeconds) * _rampFactor | 0;
                 }
-                if ( lat > south &&
-                     lat < north &&
-                     lon > west &&
-                     lon < east )
-                {
-                    _x = ((lon - west)  * _lonFactor) | 0;
+                if (lat > south &&
+                    lat < north &&
+                    lon > west &&
+                    lon < east) {
+                    _x = ((lon - west) * _lonFactor) | 0;
                     _y = ((north - lat) * _latFactor) | 0;
                     _center = _y*_w + _x | 0;
 
                     _rgba = (alphaRamp[_iDiv] << 24) | // alpha
-                            (color[2]     << 16) | // blue
-                            (color[1]     <<  8) | // green
-                             color[0];             // red
+                            (color[2] << 16) |         // blue
+                            (color[1] << 8) |         // green
+                             color[0];                 // red
 
                     // Fill circle at center with radius.
                     _fillCircle(_imageView, _imageLen, _w, _center, radiusRamp[_iDiv], r2Plus1Ramp[_iDiv], _rgba);
@@ -202,7 +194,7 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
 
         function _clear (z) {
             zn = z.length | 0;
-            while(zn--) {
+            while (zn--) {
                 z[zn] = 0;
             }
         }
@@ -351,7 +343,7 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
         this.styleDirectiveScopeAttrs += " stores='stores'";
         this.styleDirectiveScope.sortableOptions = {
             handle: '.dragHandle',
-            stop: function(evt, ui) {
+            stop: function () {
                 _self.redrawCurrent();
             }
         };
@@ -379,23 +371,21 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
 
     function hasChanged (p, n) {
         if (p[0] < n[0] || p[0] > n[0] ||
-            p[1] < n[1] || p[1] > n[1])
-        {
+            p[1] < n[1] || p[1] > n[1]) {
             return true;
         }
-
         return false;
     }
 
-    function sizeChanged(prevSize, newSize) {
+    function sizeChanged (prevSize, newSize) {
         return hasChanged(prevSize, newSize);
     }
 
-    function extentChanged(prevExtent, newExtent) {
+    function extentChanged (prevExtent, newExtent) {
         return hasChanged(prevExtent, newExtent);
     }
 
-    function getBounds(stores) {
+    function getBounds (stores) {
         var minStore = _.min(stores, function (store) {
             return store.getMinTimeInMillis();
         });

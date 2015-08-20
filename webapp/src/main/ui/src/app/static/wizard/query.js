@@ -3,12 +3,9 @@ angular.module('stealth.static.wizard', [
 ])
 
 .factory('stealth.static.wizard.Query', [
-'$log',
 'wfs',
 'CONFIG',
-function ($log, wfs, CONFIG) {
-    var tag = 'stealth.static.wizard.Query: ';
-
+function (wfs, CONFIG) {
     var idSeq = 1;
     var now = moment().utc();
     var oneWeekAgo = now.clone().subtract(7, 'days');
@@ -72,5 +69,4 @@ function ($log, wfs, CONFIG) {
 
     return Query;
 }])
-
 ;

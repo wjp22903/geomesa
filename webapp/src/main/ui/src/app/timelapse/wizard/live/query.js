@@ -12,7 +12,7 @@ angular.module('stealth.timelapse.wizard.live', [
 'CONFIG',
 function (cookies, cqlHelper, wfs, owsLayers, GeoJson, CONFIG) {
     var idSeq = 1;
-    var query = function (overrides) {
+    var query = function () {
         var _self = this;
         var id = idSeq++;
         var geoJsonFormat = new GeoJson(); // stealth GeoJson, extending OL3 for STEALTH-319

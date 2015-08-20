@@ -49,7 +49,7 @@ function ($q, wps, CONFIG) {
     //Combine them and return a single merged array.
     function combineWpsResults (results, dataSources) {
         // Helper function to combine stddev's, only when independent
-        function combineStddev(d1, d2) {
+        function combineStddev (d1, d2) {
             return Math.sqrt(d1 * d1 + d2 * d2);
         }
 

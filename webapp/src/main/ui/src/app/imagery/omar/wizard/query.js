@@ -82,7 +82,7 @@ function ($filter, wfs, cqlHelper) {
             delete this.timeData.errorMsg;
         };
 
-        this.checkAndSetBounds = function (extent, skipCookie) {
+        this.checkAndSetBounds = function (extent) {
             var filter = $filter('number');
             var trimmed = _.map(extent, function (val) {
                 return parseFloat(filter(val, 5));
@@ -104,7 +104,7 @@ function ($filter, wfs, cqlHelper) {
         this.buildCql = function (criteriaObj) {
             var arr = [];
 
-            criteriaObj.geomField = { name: criteriaObj.server.geomField };
+            criteriaObj.geomField = {name: criteriaObj.server.geomField};
             var dtgFormatter = null;
             if (_.isString(criteriaObj.server.dtgFieldFormat)) {
                 var utc = true;

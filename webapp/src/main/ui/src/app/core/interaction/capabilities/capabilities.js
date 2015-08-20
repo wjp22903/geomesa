@@ -32,14 +32,14 @@ function ($rootScope, $modal, Extender) {
     Extender.apply(this);
 
     //Let's add some built-in extenders
-    this.addCapabilitiesExtender(function (capabilities, opts) {
+    this.addCapabilitiesExtender(function (capabilities) {
         if (!_.isUndefined(capabilities['view'])) {
             _.forOwn(capabilities['view'], function (value, key) {
                 if (_.isString(value)) {
                     capabilities['view:' + value] = {
                         toolTipText: 'View ' + key,
                         iconClass: 'fa-file-text-o',
-                        onClick: function (name, record, capability) {
+                        onClick: function (name, record) { //eslint-disable-line no-unused-vars
                             var viewScope = $rootScope.$new();
                             viewScope.title = key;
                             viewScope.value = _.map(value.split(','), function (field) {

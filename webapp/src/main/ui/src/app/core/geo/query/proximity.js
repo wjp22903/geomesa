@@ -5,7 +5,7 @@ angular.module('stealth.core.geo.query.proximity')
 'user',
 'CONFIG',
 function (wps, user, CONFIG) {
-    function buildProxLayerName (dataLayer) {
+    function buildProxLayerName () {
         var timestamp = moment().utc().format('YYMMDDHHmmss');
         return 'prox_' + timestamp + '_' + user.getStrippedCn();
     }

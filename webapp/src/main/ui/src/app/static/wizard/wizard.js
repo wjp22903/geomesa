@@ -41,14 +41,14 @@ function ($log, $rootScope, $filter,
     var markerShapes = staticWorkspaceManager.markerShapes;
     var shapeCounter = 0;
     function getShape () {
-        shapeCounter = shapeCounter % markerShapes.length;
+        shapeCounter %= markerShapes.length;
         return markerShapes[shapeCounter++];
     }
 
     var colorRamps = staticWorkspaceManager.colorRamps;
     var colorRampCounter = 0;
     function getColorRamp () {
-        colorRampCounter = colorRampCounter % colorRamps.length;
+        colorRampCounter %= colorRamps.length;
         return colorRamps[colorRampCounter++];
     }
 
@@ -142,7 +142,7 @@ function ($log, $rootScope, $filter,
         wizScope.query.params.markerShape = getShape();
         wizScope.query.params.fillColor = wizScope.style['background-color'];
         wizScope.query.params.colorRamp = getColorRamp();
-        wizScope.getIconImgSrc = function (layer) {
+        wizScope.getIconImgSrc = function () {
             var url = wizScope.layer.wmsUrl || CONFIG.geoserver.defaultUrl + '/wms';
             var iconImgSrc = url +
                              "?REQUEST=GetLegendGraphic&FORMAT=image/png&WIDTH=24&HEIGHT=24&TRANSPARENT=true&LAYER=" +

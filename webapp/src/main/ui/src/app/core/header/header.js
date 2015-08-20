@@ -23,8 +23,8 @@ function (toastr, manager, CONFIG) {
             $scope.logoUrl = 'assets/logo.png?' + CONFIG.app.loadTime;
             $scope.title = CONFIG.app.title;
             $scope.manager = manager;
-            var noTimeout = { timeOut: 0 };
-            var currentBrowser = _.find(CONFIG.app.browsers, function (browserInfo, browserType) {
+            var noTimeout = {timeOut: 0};
+            var currentBrowser = _.find(_.keys(CONFIG.app.browsers), function (browserType) {
                 return bowser[browserType];
             });
             if (currentBrowser) {
@@ -38,7 +38,7 @@ function (toastr, manager, CONFIG) {
                                   $scope.title + ' may not function properly, please downgrade your browser.', 'Unsupported Version', noTimeout);
                 }
                 if (_.isArray(currentBrowser.preferred) && !_.isEmpty(currentBrowser.preferred)) {
-                    toastr.warning($scope.title + ' is best viewed with ' + currentBrowser.preferred.join(' or ') + '.', 'Browser Warning', { timeOut: 15000 });
+                    toastr.warning($scope.title + ' is best viewed with ' + currentBrowser.preferred.join(' or ') + '.', 'Browser Warning', {timeOut: 15000});
                 }
             } else {
                 toastr.error($scope.title + ' does not support ' + bowser.name.toUpperCase() +

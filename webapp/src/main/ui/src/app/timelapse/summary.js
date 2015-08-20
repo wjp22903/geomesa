@@ -6,8 +6,7 @@ angular.module('stealth.timelapse')
 'ol3Map',
 'stealth.core.geo.ol3.layers.GeoJsonVectorLayer',
 'coreCapabilitiesExtender',
-'CONFIG',
-function ($timeout, toastr, ol3Map, GeoJsonVectorLayer, coreCapabilitiesExtender, CONFIG) {
+function ($timeout, toastr, ol3Map, GeoJsonVectorLayer, coreCapabilitiesExtender) {
     var self = this;
     this.toggleSummaryLayer = function (layer) {
         if (_.isUndefined(layer.mapLayerId) || _.isNull(layer.mapLayerId)) {
@@ -37,7 +36,6 @@ function ($timeout, toastr, ol3Map, GeoJsonVectorLayer, coreCapabilitiesExtender
                 });
             });
         } else {
-            var l = ol3Map.getLayerById(layer.mapLayerId);
             ol3Map.removeLayerById(layer.mapLayerId);
             delete layer.mapLayerId;
             delete layer.summaryLayer;
@@ -57,8 +55,7 @@ function ($timeout, toastr, ol3Map, GeoJsonVectorLayer, coreCapabilitiesExtender
     this.summaryQuery = function (name, record, capability) {
         if (_.isEmpty(capability.layerName) ||
             _.isEmpty(capability.trkIdField) ||
-            _.isEmpty(record[capability.trkIdField]))
-        {
+            _.isEmpty(record[capability.trkIdField])) {
             toastr.error(name + ' is missing information required to perform summary search.', 'Summary Error');
             return;
         }
@@ -87,7 +84,7 @@ function ($timeout, toastr, ol3Map, GeoJsonVectorLayer, coreCapabilitiesExtender
         }
     };
 
-    coreCapabilitiesExtender.addCapabilitiesExtender(function (capabilities, opts) {
+    coreCapabilitiesExtender.addCapabilitiesExtender(function (capabilities) {
         if (!_.isUndefined(capabilities['summary'])) {
             capabilities['summary']['toolTipText'] = 'Get summary';
             capabilities['summary']['iconClass'] = 'fa-location-arrow';

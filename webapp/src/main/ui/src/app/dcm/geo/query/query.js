@@ -1,14 +1,12 @@
 angular.module('stealth.dcm.geo.query')
 
 .service('dcmQueryService', [
-'$log',
 'wps',
 'CONFIG',
 'wfs',
 'cqlHelper',
-function ($log, wps, CONFIG, wfs, cqlHelper) {
-
-    this.cqlToFilterXml = function(cql_filter) {
+function (wps, CONFIG, wfs, cqlHelper) {
+    this.cqlToFilterXml = function (cql_filter) {
         var filterXml = '';
         if (cql_filter) {
             filterXml += wfs.cqlToFilterXml(cql_filter);
@@ -19,12 +17,9 @@ function ($log, wps, CONFIG, wfs, cqlHelper) {
     this.doDcmQuery = function (arg) {
         var templateFn = stealth.jst['wps/importRaster.xml'];
         var boundsArr = [arg.bounds.minLon, arg.bounds.minLat, arg.bounds.maxLon, arg.bounds.maxLat];
-        var cql_filter = '';
-        cql_filter + arg.events.cql_filter;
-        if (cql_filter) {
-            cql_filter += " AND ";
-        }
-        eventsFilterXml = this.cqlToFilterXml(cql_filter + cqlHelper.buildBboxFilter(arg.events.defaultGeomFieldName, boundsArr));
+        var eventsFilterXml = this.cqlToFilterXml(
+            cqlHelper.combine(cqlHelper.operator.AND, arg.events.cql_filter,
+                cqlHelper.buildBboxFilter(arg.events.defaultGeomFieldName, boundsArr)));
         var req = templateFn({
             predictiveFeaturesWpsInput: this.getPredictiveFeaturesWpsInput(arg.predictiveFeatures),
             predictiveCoveragesWpsInput: this.getPredictiveCoveragesWpsInput(arg.predictiveCoverages),
@@ -47,15 +42,15 @@ function ($log, wps, CONFIG, wfs, cqlHelper) {
         return wps.submit(CONFIG.geoserver.defaultUrl, req, CONFIG.geoserver.omitProxy);
     };
 
-    this.getStoreName = function(predictiveFeatures, predictiveCoverages, events) {
+    this.getStoreName = function (predictiveFeatures, predictiveCoverages, events) {
         var storeName = "";
         if (predictiveFeatures) {
-            predictiveFeatures.forEach(function(predictiveFeature) {
-                storeName = storeName + predictiveFeature.Title;
+            predictiveFeatures.forEach(function (predictiveFeature) {
+                storeName += predictiveFeature.Title;
             });
         }
         if (predictiveCoverages) {
-            predictiveCoverages.forEach(function(predictiveCoverage) {
+            predictiveCoverages.forEach(function (predictiveCoverage) {
                 storeName = storeName + "-" + predictiveCoverage.Title;
             });
         }
@@ -65,10 +60,10 @@ function ($log, wps, CONFIG, wfs, cqlHelper) {
         return storeName + "-DCM";
     };
 
-    this.getPredictiveFeaturesWpsInput = function(predictiveFeatures) {
+    this.getPredictiveFeaturesWpsInput = function (predictiveFeatures) {
         var predictiveFeaturesWpsInput = '';
         if (predictiveFeatures) {
-            predictiveFeatures.forEach(function(predFeature, index) {
+            predictiveFeatures.forEach(function (predFeature) {
                 predictiveFeaturesWpsInput +=
                     '<wps:Input>' +
                         '<ows:Identifier>predictiveVectors</ows:Identifier>' +
@@ -87,10 +82,10 @@ function ($log, wps, CONFIG, wfs, cqlHelper) {
         return predictiveFeaturesWpsInput;
     };
 
-    this.getPredictiveCoveragesWpsInput = function(predictiveCoverages) {
+    this.getPredictiveCoveragesWpsInput = function (predictiveCoverages) {
         var predictiveCoveragesWpsInput = '';
         if (predictiveCoverages) {
-            predictiveCoverages.forEach(function(predCoverage) {
+            predictiveCoverages.forEach(function (predCoverage) {
                 predictiveCoveragesWpsInput +=
                     '<wps:Input>'+
                         '<ows:Identifier>predictiveRasters</ows:Identifier>' +
@@ -114,7 +109,7 @@ function ($log, wps, CONFIG, wfs, cqlHelper) {
         return predictiveCoveragesWpsInput;
     };
 
-    this.getAoWpsInput = function(geometry) {
+    this.getAoWpsInput = function (geometry) {
         var aoWpsInput = '';
         if (geometry && geometry.length > 0) {
             aoWpsInput += '<wps:Input>' +
@@ -127,5 +122,4 @@ function ($log, wps, CONFIG, wfs, cqlHelper) {
         return aoWpsInput;
     };
 }])
-
 ;

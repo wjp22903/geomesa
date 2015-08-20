@@ -99,7 +99,7 @@ function ($rootScope, $timeout, catMgr, Category, WidgetDef, owsLayers, ol3Map,
                     }
                     return 'Add to map';
                 };
-                _.each(_.get(layer.KeywordConfig, keywordPrefix), function (conf, workspace) {
+                _.each(_.keys(_.get(layer.KeywordConfig, keywordPrefix)), function (workspace) {
                     if (_.isArray(categoryScope.workspaces[workspace])) {
                         categoryScope.workspaces[workspace].push(layer);
                     } else {

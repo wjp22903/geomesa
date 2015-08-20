@@ -1,7 +1,9 @@
-var eyes    = require('eyes'),
-    _       = require('lodash'),
-    fs      = require('fs');
+/* global require:false */
+/* global module:false */
+var eyes = require('eyes'),
+    fs = require('fs');
 
+/* eslint-disable no-invalid-this */
 module.exports = function (grunt) {
     'use strict';
 
@@ -13,12 +15,12 @@ module.exports = function (grunt) {
     var target = grunt.option('target') || 'develop';
     var stealthConfig = require('./stealth.config.js');
     if (target === 'production' || target === 'develop') {
-        stealthConfig.vendorFiles.js = stealthConfig.vendorFiles.js.map( function ( file ) {
+        stealthConfig.vendorFiles.js = stealthConfig.vendorFiles.js.map(function (file) {
             var minFile;
             if (file.search(/[\.\-]debug/) !== -1) {
-                minFile = file.replace( /[\.\-]debug/, '' );
+                minFile = file.replace(/[\.\-]debug/, '');
             } else {
-                minFile = file.replace( /\.js$/, '.min.js' );
+                minFile = file.replace(/\.js$/, '.min.js');
             }
             return fs.existsSync(minFile) ? minFile : file;
         });
@@ -155,8 +157,8 @@ module.exports = function (grunt) {
         }
     });
 
-    // JSHINT
-    grunt.config('jshint', {
+    // ESLINT
+    grunt.config('eslint', {
         src: {
             files: [{
                 expand: true,
@@ -171,7 +173,8 @@ module.exports = function (grunt) {
             'Gruntfile.js'
         ],
         options: {
-            jshintrc: true
+            rulePaths: ['eslint_rules'],
+            reset: true
         }
     });
 
@@ -215,8 +218,8 @@ module.exports = function (grunt) {
                     return filepath.replace(/^src\/templates\//, '').replace(/\.jst/, '');
                 },
                 templateSettings: {
-                    interpolate : /\{\{(.+?)\}\}/g,
-                    evaluate : /\{%(.+?)%\}/g
+                    interpolate: /\{\{(.+?)\}\}/g,
+                    evaluate: /\{%(.+?)%\}/g
                 }
             },
             files: {
@@ -232,8 +235,8 @@ module.exports = function (grunt) {
         },
         gruntfile: {
             files: 'Gruntfile.js',
-            tasks: ['jshint:gruntfile'],
-            options: { livereload: false }
+            tasks: ['eslint:gruntfile'],
+            options: {livereload: false}
         },
         //build index.html when it changes.
         html: {
@@ -243,12 +246,12 @@ module.exports = function (grunt) {
         js: {
             options: {cwd: '.'},
             files: ['<%= appFiles.js %>'],
-            tasks: ['jshint:src', 'karma:spec:run', 'copy:build_appjs']
+            tasks: ['eslint:src', 'karma:spec:run', 'copy:build_appjs']
         },
         specs: {
             files: ['<%= appFiles.specs %>'],
-            tasks: ['jshint:specs', 'karma:spec:run'],
-            options: { livereload: false }
+            tasks: ['eslint:specs', 'karma:spec:run'],
+            options: {livereload: false}
         },
         stylus: {
             files: ['**/*.styl'],
@@ -299,7 +302,7 @@ module.exports = function (grunt) {
             }]
         },
         livereload: {
-            options : {
+            options: {
                 middleware: function (connect, options) {
                     var middlewares = [];
 
@@ -308,7 +311,7 @@ module.exports = function (grunt) {
                     }
 
                     // Enable CORS by setting response headers
-                    middlewares.unshift(function(req, res, next) {
+                    middlewares.unshift(function (req, res, next) { //eslint-disable-line no-unused-vars
                         res.setHeader('Access-Control-Allow-Origin', '*');
                         res.setHeader('Access-Control-Allow-Methods', '*');
                         res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -348,15 +351,15 @@ module.exports = function (grunt) {
         }
     });
 
-    function filterForJS ( files ) {
-        return files.filter( function ( file ) {
-            return file.match( /\.js$/ );
+    function filterForJS (files) {
+        return files.filter(function (file) {
+            return file.match(/\.js$/);
         });
     }
 
-    function filterForCSS ( files ) {
-        return files.filter( function ( file ) {
-            return file.match( /\.css$/ );
+    function filterForCSS (files) {
+        return files.filter(function (file) {
+            return file.match(/\.css$/);
         });
     }
 
@@ -364,19 +367,19 @@ module.exports = function (grunt) {
     // replace template delimiters: <% %> to [% %].
     grunt.template.addDelimiters('squareBrackets', '[%', '%]');
 
-    grunt.registerMultiTask( 'index', 'Process index.html template', function () {
+    grunt.registerMultiTask('index', 'Process index.html template', function () {
         var dirRE, jsFiles, cssFiles, templates;
 
-        dirRE = new RegExp( '^('+grunt.config('buildDir')+'|'+grunt.config('compileDir')+')\/', 'g' );
+        dirRE = new RegExp('^('+grunt.config('buildDir')+'|'+grunt.config('compileDir')+')\/', 'g');
 
-        jsFiles = filterForJS( this.filesSrc ).map( function ( file ) {
-            return file.replace( dirRE, '' );
+        jsFiles = filterForJS(this.filesSrc).map(function (file) {
+            return file.replace(dirRE, '');
         });
 
         console.log(eyes.inspect(jsFiles));
 
-        cssFiles = filterForCSS( this.filesSrc ).map( function ( file ) {
-            return file.replace( dirRE, '' );
+        cssFiles = filterForCSS(this.filesSrc).map(function (file) {
+            return file.replace(dirRE, '');
         });
 
         console.log(eyes.inspect(cssFiles));
@@ -386,8 +389,8 @@ module.exports = function (grunt) {
             var fileName = tpl.split('/').pop().split('.')[0];
 
             grunt.file.copy(tpl, grunt.config('buildDir') + '/WEB-INF/views/' + fileName + '.ssp', {
-                process: function ( contents, path ) {
-                    return grunt.template.process( contents, {
+                process: function (contents) {
+                    return grunt.template.process(contents, {
                         data: {
                             datetime: grunt.template.today('UTC:yyyymmddHHMM'),
                             scripts: jsFiles,
@@ -406,7 +409,7 @@ module.exports = function (grunt) {
         console.log(eyes.inspect(jsFiles));
 
         grunt.file.copy('karma/karma.conf.js.tpl', 'karma.conf.js', {
-            process: function(contents, path) {
+            process: function (contents) {
                 return grunt.template.process(contents, {
                     data: {
                         scripts: jsFiles
@@ -434,7 +437,7 @@ module.exports = function (grunt) {
     grunt.registerTask('build', [
         'html2js',
         'jst:compile',
-        'jshint',
+        'eslint',
         'karmaconfig',
         'karma:continuous',
         'stylus:build',
@@ -446,15 +449,16 @@ module.exports = function (grunt) {
         'index:build'
     ]);
 
-    grunt.registerTask('proxy-dgeo',[
+    grunt.registerTask('proxy-dgeo', [
         'configureProxies:dgeo',
         'connect:localTestFilesServer',
         'connect:livereload',
         'watch'
     ]);
 
-    grunt.registerTask('proxy-geo',[
+    grunt.registerTask('proxy-geo', [
         'configureProxies:geo',
         'connect:livereload'
     ]);
 };
+/* eslint-enable no-invalid-this */

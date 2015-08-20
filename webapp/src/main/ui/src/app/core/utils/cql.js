@@ -22,7 +22,7 @@ function () {
      *
      * @returns {string}
      */
-    this.combine = function (operator, clause) {
+    this.combine = function (operator) {
         //Create array of non-empty clauses
         var clauses = _.filter(_.flatten(_.rest(arguments)), function (c) {
             return _.isString(c) && !_.isEmpty(c.trim()) && !_.isEmpty(c.replace(/[()]|INCLUDE/gi, '').trim());

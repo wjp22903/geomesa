@@ -3,15 +3,12 @@ angular.module('stealth.core.interaction.mouseover', [
 ])
 
 .run([
-'$log',
 'ol3Map',
-function ($log, ol3Map) {
+function (ol3Map) {
     var MouseOverInteraction = function () {
         ol.interaction.Pointer.call(this, {
             handleMoveEvent: MouseOverInteraction.prototype.mouseover
         });
-
-        this._layer;
     };
     ol.inherits(MouseOverInteraction, ol.interaction.Pointer);
 
@@ -39,10 +36,8 @@ function ($log, ol3Map) {
             this._layer = l;
             this._layer.onMouseOver(f, l);
         }
-
     };
 
     ol3Map.addInteraction(new MouseOverInteraction());
 }])
-
 ;

@@ -75,29 +75,30 @@ function ($rootScope, VectorOverlay, Wizard, Step, WidgetDef, ol3Map, ol3Styles,
             wizardScope.featureOverlay = featureOverlay;
             return new Wizard(null, null, null, [
                 new Step('Define route', new WidgetDef('st-tp-wiz-draw', wizardScope),
-                         new WidgetDef('st-tp-route-draw-tools', wizardScope, "feature-overlay='featureOverlay' geo-feature='geoFeature' route-info='routeInfo' source='source'"),
-                         false, function () {
-                    if (wizardScope.geoFeature) {
-                        routeDrawHelper.initFeature(wizardScope.geoFeature, wizardScope);
+                    new WidgetDef('st-tp-route-draw-tools', wizardScope, "feature-overlay='featureOverlay' geo-feature='geoFeature' route-info='routeInfo' source='source'"),
+                    false, function () {
+                        if (wizardScope.geoFeature) {
+                            routeDrawHelper.initFeature(wizardScope.geoFeature, wizardScope);
+                        }
+                        featureOverlay.addToMap();
+                        ol3Map.addInteraction(modify);
+                        ol3Map.addInteraction(draw);
+                        elementAppender.append('.primaryDisplay',
+                            'targetpri/wizard/templates/routePoints.tpl.html', wizardScope,
+                            function (val) { routeInfoPanel = val; }
+                        );
+                    }, function () {
+                        if (routeInfoPanel) {
+                            routeInfoPanel.remove();
+                        }
+                        ol3Map.removeInteraction(draw);
+                        ol3Map.removeInteraction(modify);
+                        featureOverlay.removeFromMap();
+                        if (wizardScope.geoFeature) {
+                            routeDrawHelper.detachFeature(wizardScope.geoFeature);
+                        }
                     }
-                    featureOverlay.addToMap();
-                    ol3Map.addInteraction(modify);
-                    ol3Map.addInteraction(draw);
-                    elementAppender.append('.primaryDisplay',
-                        'targetpri/wizard/templates/routePoints.tpl.html', wizardScope,
-                        function (val) { routeInfoPanel = val; }
-                    );
-                }, function () {
-                    if (routeInfoPanel) {
-                        routeInfoPanel.remove();
-                    }
-                    ol3Map.removeInteraction(draw);
-                    ol3Map.removeInteraction(modify);
-                    featureOverlay.removeFromMap();
-                    if (wizardScope.geoFeature) {
-                        routeDrawHelper.detachFeature(wizardScope.geoFeature);
-                    }
-                })
+                )
             ]);
         },
         createEndWiz: function (wizardScope) {
@@ -166,7 +167,7 @@ function ($timeout, ol3Map, GeoJson, csvFormat, routeDrawHelper) {
             source: '='
         },
         templateUrl: 'targetpri/wizard/templates/drawTools.tpl.html',
-        link: function (scope, element, attrs) {
+        link: function (scope, element) {
             var geoJsonFormat = new GeoJson(); // stealth GeoJson, extending OL3 for STEALTH-319
             var fileInput = element.append('<input type="file" class="hidden">')[0].lastChild;
 
