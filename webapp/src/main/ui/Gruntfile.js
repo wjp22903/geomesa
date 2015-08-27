@@ -8,7 +8,9 @@ module.exports = function (grunt) {
 
     // Load npm tasks.
     require('matchdep').filterDev('grunt*').forEach(function (dep) {
-        grunt.loadNpmTasks(dep);
+        if (dep !== 'grunt-cli') {
+            grunt.loadNpmTasks(dep);
+        }
     });
 
     var target = grunt.option('target') || 'develop';
@@ -149,6 +151,7 @@ module.exports = function (grunt) {
         build: {
             dir: '<%= buildDir %>',
             src: [
+                '<%= appFiles.html %>',
                 '<%= vendorFiles.js %>',
                 '<%= appJs %>',
                 '<%= stylus.build.dest %>'
@@ -379,7 +382,9 @@ module.exports = function (grunt) {
             return file.replace(dirRE, '');
         });
 
-        templates = ['src/index.html.tpl', 'src/browser.html.tpl'];
+        templates = this.filesSrc.filter(function (file) {
+            return file.match(/\.html\.tpl$/);
+        });
         templates.forEach(function (tpl) {
             var fileName = tpl.split('/').pop().split('.')[0];
 

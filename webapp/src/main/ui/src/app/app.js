@@ -33,6 +33,7 @@ function ($provide, $httpProvider, $logProvider, toastrConfig) {
     }
 
     angular.extend(toastrConfig, {
+        target: '.primaryDisplay',
         positionClass: 'toast-bottom-right'
     });
 }])
@@ -49,8 +50,10 @@ function ($log, $rootScope, CONFIG) {
 .controller('AppController', [
 '$log',
 '$scope',
+'$timeout',
+'$document',
 'CONFIG',
-function ($log, $scope, CONFIG) {
+function ($log, $scope, $timeout, $document, CONFIG) {
     $log.debug('stealth.app.AppController: controller started');
     var classBannerHeight = ((_.isEmpty(CONFIG.classification)) ||
                              (_.isEmpty(CONFIG.classification.text) &&
@@ -68,5 +71,18 @@ function ($log, $scope, CONFIG) {
         },
         userCn: CONFIG.userCn
     };
+
+    if (CONFIG.app.showSplash) {
+        $scope.dismissSplash = function () {
+            $('#splash').remove();
+            $document.off('keydown', $scope.dismissSplash);
+        };
+        $timeout(function () {
+            $scope.splashDismissButton = {
+                opacity: 1
+            };
+        }, 2000);
+        $document.one('keydown', $scope.dismissSplash);
+    }
 }])
 ;

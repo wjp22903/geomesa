@@ -1,11 +1,6 @@
 // Project configuration.
 //
 module.exports = {
-
-    // The location of the html page that will be built.
-    // Change if needed...
-    indexDest: 'WEB-INF/views/index.ssp',
-
     // Where project is compiled for deployment.
     compileDir: 'deploy',
 

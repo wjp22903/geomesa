@@ -744,6 +744,9 @@
                 <stealth.classifier>thresher</stealth.classifier>
                 <app.context>thresher</app.context>
                 <app.title>Thresher</app.title>
+                <app.showSplash>true</app.showSplash>
+                <app.splashUrl>webjars/thresher/splash.html</app.splashUrl>
+                <app.accessDeniedUrl>/webjars/thresher/access.html</app.accessDeniedUrl>
                 <app.plugins>
                     [
                         'stealth.air',
@@ -762,6 +765,13 @@
                 <geoserver.url>/geoserver</geoserver.url>
                 <geoserver.omitProxy>true</geoserver.omitProxy>
             </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>com.ccri.thresher</groupId>
+                    <artifactId>thresher-webjar</artifactId>
+                    <version>1.0.0</version>
+                </dependency>
+            </dependencies>
         </profile>
         <profile>
             <id>skyquest</id>

@@ -22,6 +22,14 @@
             <st-header></st-header>
             <st-wizard></st-wizard>
         </div>
+        <div id="splash" class="splashPage"
+             ng-if="::CONFIG.app.showSplash">
+            <iframe ng-src="{{CONFIG.app.splashUrl}}"></iframe>
+            <div class="fa fa-fw fa-close fa-5x splashDismissButton"
+                 ng-style="splashDismissButton"
+                 ng-click="dismissSplash()">
+            </div>
+        </div>
     </div>
     <div class="anchorBottom shadowTop classBanner {{::app.classification.level}}"
          ng-bind="::app.classification.text" ng-style="::app.classBannerStyle"></div>

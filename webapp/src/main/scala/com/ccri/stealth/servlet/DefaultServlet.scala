@@ -1,6 +1,7 @@
 package com.ccri.stealth.servlet
 
 import com.typesafe.config.{ConfigRenderOptions, ConfigFactory}
+import org.fusesource.scalate.util.IOUtil
 import org.scalatra.ScalatraServlet
 import org.scalatra.scalate.ScalateSupport
 import org.slf4j.LoggerFactory
@@ -39,7 +40,14 @@ class DefaultServlet(appContext: String) extends ScalatraServlet with ScalateSup
       )
     }
     // if we have a user, build response, otherwise redirect
-    DefaultServlet.getUser.fold(redirect("/access.html"))(buildResponse)
+    DefaultServlet.getUser.fold(redirect(conf.getString("app.accessDeniedUrl")))(buildResponse)
+  }
+
+  get("/:file.html") {
+    findTemplate(requestPath) map { path =>
+      contentType = "text/html"
+      layoutTemplate(path)
+    } orElse serveStaticResource() getOrElse resourceNotFound()
   }
 
   get("/browser.html") {
@@ -55,12 +63,15 @@ class DefaultServlet(appContext: String) extends ScalatraServlet with ScalateSup
     )
   }
 
-  get("/access.html") {
-    <html>
-      <body>
-        <h2>User has insufficient privileges to access this page</h2>
-      </body>
-    </html>
+  get("/webjars/*") {
+    val resourcePath = "/META-INF/resources/webjars/" + params("splat")
+    Option(getClass.getResourceAsStream(resourcePath)) match {
+      case Some(inputStream) => {
+        contentType = servletContext.getMimeType(resourcePath)
+        IOUtil.loadBytes(inputStream)
+      }
+      case None => resourceNotFound()
+    }
   }
 }
 

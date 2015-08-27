@@ -87,6 +87,9 @@
         <app.context>stealth</app.context>
         <app.context.path>/${app.context}</app.context.path>
         <app.showStartPop>false</app.showStartPop>
+        <app.showSplash>false</app.showSplash>
+        <app.splashUrl>splash.html</app.splashUrl>
+        <app.accessDeniedUrl>/access.html</app.accessDeniedUrl>
         <app.supported.browsers>
             {
                 chrome: {
