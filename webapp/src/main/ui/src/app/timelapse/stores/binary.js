@@ -17,8 +17,8 @@ function ($log, $q, $filter, toastr, colors, clickSearchHelper, sorter) {
     var BinStore = function (name, fillColorHexString, pointRadius, colorBy, arrayBuffer, alreadySorted) {
         var _layerThisBelongsTo;
 
-        var _fillColorRgbArray = [0, 0, 0];
-        var _fillColorHexString = '#000000';
+        var _fillColorRgbArray;
+        var _fillColorHexString;
         var _setFillColorHexString = function (hexString) {
             _fillColorHexString = hexString;
             _fillColorRgbArray = colors.hexStringToRgbArray(hexString);
@@ -26,7 +26,9 @@ function ($log, $q, $filter, toastr, colors, clickSearchHelper, sorter) {
                 _layerThisBelongsTo.redrawCurrent();
             }
         };
-        var _pointRadius = 2;
+        _setFillColorHexString(fillColorHexString || colors.getColor());
+
+        var _pointRadius;
         var _setPointRadius = function (radius) {
             if (radius > 100) {
                 radius = 100;
@@ -36,10 +38,9 @@ function ($log, $q, $filter, toastr, colors, clickSearchHelper, sorter) {
                 _layerThisBelongsTo.redrawCurrent();
             }
         };
+        _setPointRadius(pointRadius || 4);
 
         var _name = name || 'unknown';
-        _setFillColorHexString(fillColorHexString || colors.getColor());
-        _setPointRadius(pointRadius || 2);
         var _colorBy = colorBy;
         var _opacity = 100;
 
