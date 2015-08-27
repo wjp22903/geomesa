@@ -37,10 +37,6 @@ function ($http, $filter, $q, toastr) {
             },
             timeout: 30000
         }).then(function (response) {
-            capabilitiesLoaded = true;
-            if (waitingToastr.isOpened) {
-                toastr.clear(waitingToastr);
-            }
             if (response && response.data) {
                 // Chrome will not throw a parsing error for malformed XML, so check for a server error explicitly.
                 if (response.data.indexOf('ServiceExceptionReport') !== -1) {
@@ -55,13 +51,12 @@ function ($http, $filter, $q, toastr) {
                 return $q.reject('Failed to get capabilities from server.');
             }
         }, function () {
-            capabilitiesLoaded = true;
-            if (waitingToastr.isOpened) {
-                toastr.clear(waitingToastr);
-            }
             toastr.error('Failed to get capabilities from server. Application will not function properly.',
                          'Capabilities Error', errOptions);
             return $q.reject('Failed to get capabilities from server.');
+        })['finally'](function () {
+            capabilitiesLoaded = true;
+            toastr.clear(waitingToastr);
         });
     };
 
