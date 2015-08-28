@@ -309,7 +309,8 @@ function ($log, $filter, mapClickSearchService, GeoJson, MapLayer, TintLayer, CO
         style: new ol.style.Style({
             stroke: new ol.style.Stroke({color: '#999'}),
             fill: new ol.style.Fill({color: '#202020'})
-        })
+        }),
+        visible: !CONFIG.map.countriesOff
     });
     this.addLayer(new MapLayer('Countries', countryLayer, false, -20));
     this.addLayer(new TintLayer(CONFIG.map.initTint || 0));

@@ -672,6 +672,7 @@
                         'stealth.mediator.air-timelapse'
                     ]
                 </app.plugins>
+                <map.countriesOff>true</map.countriesOff>
                 <geoserver.url>/geoserver</geoserver.url>
                 <geoserver.omitProxy>true</geoserver.omitProxy>
             </properties>
