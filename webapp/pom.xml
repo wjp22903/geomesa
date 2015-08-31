@@ -243,19 +243,28 @@
                     <plugin>
                         <artifactId>maven-clean-plugin</artifactId>
                         <version>2.5</version>
-                        <configuration>
-                            <filesets>
-                                <fileset>
-                                    <directory>${nodejs.local.dir}</directory>
-                                </fileset>
-                                <fileset>
-                                    <directory>${uidir.pathname}</directory>
-                                    <includes>
-                                        <include>node.exe</include>
-                                    </includes>
-                                </fileset>
-                            </filesets>
-                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>clean-nodejs</id>
+                                <phase>clean</phase>
+                                <goals>
+                                    <goal>clean</goal>
+                                </goals>
+                                <configuration>
+                                    <filesets>
+                                        <fileset>
+                                            <directory>${nodejs.local.dir}</directory>
+                                        </fileset>
+                                        <fileset>
+                                            <directory>${uidir.pathname}</directory>
+                                            <includes>
+                                                <include>node.exe</include>
+                                            </includes>
+                                        </fileset>
+                                    </filesets>
+                                </configuration>
+                            </execution>
+                        </executions>
                     </plugin>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
@@ -306,39 +315,44 @@
             </build>
         </profile>
         <profile>
-            <id>pack-ui</id>
+            <id>pack-npm</id>
             <build>
                 <plugins>
                     <plugin>
                         <artifactId>maven-clean-plugin</artifactId>
                         <version>2.5</version>
-                        <configuration>
-                            <filesets>
-                                <fileset>
-                                    <directory>src/main/ui/node_modules</directory>
-                                </fileset>
-                                <fileset>
-                                    <directory>src/main/ui/vendor/bower</directory>
-                                </fileset>
-                            </filesets>
-                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>clean-npm</id>
+                                <phase>clean</phase>
+                                <goals>
+                                    <goal>clean</goal>
+                                </goals>
+                                <configuration>
+                                    <filesets>
+                                        <fileset>
+                                            <directory>src/main/ui/node_modules</directory>
+                                        </fileset>
+                                    </filesets>
+                                </configuration>
+                            </execution>
+                        </executions>
                     </plugin>
                     <plugin>
                         <artifactId>maven-assembly-plugin</artifactId>
                         <version>2.4</version>
-                        <configuration>
-                            <descriptors>
-                                <descriptor>src/main/assembly/npm.xml</descriptor>
-                                <descriptor>src/main/assembly/bower.xml</descriptor>
-                            </descriptors>
-                        </configuration>
                         <executions>
                             <execution>
-                                <id>make-assembly</id>
+                                <id>make-assembly-npm</id>
                                 <phase>package</phase>
                                 <goals>
                                     <goal>single</goal>
                                 </goals>
+                                <configuration>
+                                    <descriptors>
+                                        <descriptor>src/main/assembly/npm.xml</descriptor>
+                                    </descriptors>
+                                </configuration>
                             </execution>
                         </executions>
                     </plugin>
@@ -347,7 +361,7 @@
                         <version>1.7</version>
                         <executions>
                             <execution>
-                                <id>npm-bower-install</id>
+                                <id>npm-install</id>
                                 <phase>generate-resources</phase>
                                 <configuration>
                                     <target>
@@ -367,6 +381,68 @@
                                         <exec executable="bash" dir="${uidir.pathname}" osfamily="unix" failonerror="true">
                                             <arg line="-c '${nodejs.local.dir}/bin/node ${nodejs.local.dir}/lib/node_modules/npm/bin/npm-cli.js install'" />
                                         </exec>
+                                    </target>
+                                </configuration>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>pack-bower</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-clean-plugin</artifactId>
+                        <version>2.5</version>
+                        <executions>
+                            <execution>
+                                <id>clean-bower</id>
+                                <phase>clean</phase>
+                                <goals>
+                                    <goal>clean</goal>
+                                </goals>
+                                <configuration>
+                                    <filesets>
+                                        <fileset>
+                                            <directory>src/main/ui/vendor/bower</directory>
+                                        </fileset>
+                                    </filesets>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                        <version>2.4</version>
+                        <executions>
+                            <execution>
+                                <id>make-assembly-bower</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>single</goal>
+                                </goals>
+                                <configuration>
+                                    <descriptors>
+                                        <descriptor>src/main/assembly/bower.xml</descriptor>
+                                    </descriptors>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <version>1.7</version>
+                        <executions>
+                            <execution>
+                                <id>bower-install</id>
+                                <phase>generate-resources</phase>
+                                <configuration>
+                                    <target>
                                         <!--echo>**** BOWER CACHE CLEAN ****</echo>
                                         <exec executable="cmd" dir="${uidir.pathname}" osfamily="windows" failonerror="true">
                                             <arg line="/c node.exe ${uidir.pathname}/node_modules/bower/bin/bower cache clean" />
@@ -393,29 +469,35 @@
             </build>
         </profile>
         <profile>
-            <id>unpack-ui</id>
+            <id>unpack-npm</id>
             <build>
                 <plugins>
                     <plugin>
                         <artifactId>maven-clean-plugin</artifactId>
                         <version>2.5</version>
-                        <configuration>
-                            <filesets>
-                                <fileset>
-                                    <directory>src/main/ui/node_modules</directory>
-                                </fileset>
-                                <fileset>
-                                    <directory>src/main/ui/vendor/bower</directory>
-                                </fileset>
-                            </filesets>
-                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>clean-npm</id>
+                                <phase>clean</phase>
+                                <goals>
+                                    <goal>clean</goal>
+                                </goals>
+                                <configuration>
+                                    <filesets>
+                                        <fileset>
+                                            <directory>src/main/ui/node_modules</directory>
+                                        </fileset>
+                                    </filesets>
+                                </configuration>
+                            </execution>
+                        </executions>
                     </plugin>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-dependency-plugin</artifactId>
                         <executions>
                             <execution>
-                                <id>extract-js-dependencies</id>
+                                <id>extract-npm-dependencies</id>
                                 <phase>generate-resources</phase>
                                 <goals>
                                     <goal>unpack</goal>
@@ -427,13 +509,6 @@
                                             <groupId>com.ccri.stealth</groupId>
                                             <artifactId>stealth-webapp</artifactId>
                                             <classifier>npm</classifier>
-                                            <type>zip</type>
-                                        </artifactItem>
-                                        <artifactItem>
-                                            <outputDirectory>src/main/ui/vendor</outputDirectory>
-                                            <groupId>com.ccri.stealth</groupId>
-                                            <artifactId>stealth-webapp</artifactId>
-                                            <classifier>bower</classifier>
                                             <type>zip</type>
                                         </artifactItem>
                                         <artifactItem>
@@ -465,6 +540,57 @@
                                 <goals>
                                     <goal>run</goal>
                                 </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>unpack-bower</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-clean-plugin</artifactId>
+                        <version>2.5</version>
+                        <executions>
+                            <execution>
+                                <id>clean-bower</id>
+                                <phase>clean</phase>
+                                <goals>
+                                    <goal>clean</goal>
+                                </goals>
+                                <configuration>
+                                    <filesets>
+                                        <fileset>
+                                            <directory>src/main/ui/vendor/bower</directory>
+                                        </fileset>
+                                    </filesets>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-dependency-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>extract-bower-dependencies</id>
+                                <phase>generate-resources</phase>
+                                <goals>
+                                    <goal>unpack</goal>
+                                </goals>
+                                <configuration>
+                                    <artifactItems>
+                                        <artifactItem>
+                                            <outputDirectory>src/main/ui/vendor</outputDirectory>
+                                            <groupId>com.ccri.stealth</groupId>
+                                            <artifactId>stealth-webapp</artifactId>
+                                            <classifier>bower</classifier>
+                                            <type>zip</type>
+                                        </artifactItem>
+                                    </artifactItems>
+                                </configuration>
                             </execution>
                         </executions>
                     </plugin>

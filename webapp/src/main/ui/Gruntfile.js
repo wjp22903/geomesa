@@ -1,14 +1,13 @@
 /* global require:false */
 /* global module:false */
-var eyes = require('eyes'),
-    fs = require('fs');
+var fs = require('fs');
 
 /* eslint-disable no-invalid-this */
 module.exports = function (grunt) {
     'use strict';
 
     // Load npm tasks.
-    require('matchdep').filterDev('grunt-*').forEach(function (dep) {
+    require('matchdep').filterDev('grunt*').forEach(function (dep) {
         grunt.loadNpmTasks(dep);
     });
 
@@ -174,7 +173,7 @@ module.exports = function (grunt) {
         ],
         options: {
             rulePaths: ['eslint_rules'],
-            reset: true
+            silent: target !== 'production'
         }
     });
 
@@ -376,13 +375,9 @@ module.exports = function (grunt) {
             return file.replace(dirRE, '');
         });
 
-        console.log(eyes.inspect(jsFiles));
-
         cssFiles = filterForCSS(this.filesSrc).map(function (file) {
             return file.replace(dirRE, '');
         });
-
-        console.log(eyes.inspect(cssFiles));
 
         templates = ['src/index.html.tpl', 'src/browser.html.tpl'];
         templates.forEach(function (tpl) {
@@ -405,8 +400,6 @@ module.exports = function (grunt) {
 
     grunt.registerMultiTask('karmaconfig', 'Process Karma config templates', function () {
         var jsFiles = filterForJS(this.filesSrc);
-
-        console.log(eyes.inspect(jsFiles));
 
         grunt.file.copy('karma/karma.conf.js.tpl', 'karma.conf.js', {
             process: function (contents) {
@@ -437,10 +430,10 @@ module.exports = function (grunt) {
     grunt.registerTask('build', [
         'html2js',
         'jst:compile',
+        'stylus:build',
         'eslint',
         'karmaconfig',
         'karma:continuous',
-        'stylus:build',
         'copy:build_app_assets',
         'copy:build_vendor_assets',
         'build_appjs',

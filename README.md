@@ -2,11 +2,12 @@
 Frontend for DragonSpell analytics
 
 ### Getting started
-1st build: `mvn clean install -Pinstall-nodejs,unpack-ui`
+1st build: `mvn clean install -Pinstall-nodejs,unpack-npm,unpack-bower`
 
 After a nodejs version change: `mvn clean install -Pinstall-nodejs`
 
-After a npm/bower dependency change (with internet): `mvn clean install -Ppack-ui`
+After an npm dependency change (with internet): `mvn clean install -Ppack-npm`
+After a bower dependency change (with internet): `mvn clean install -Ppack-bower`
 
 Regular development: `mvn clean prepare-package`
 
