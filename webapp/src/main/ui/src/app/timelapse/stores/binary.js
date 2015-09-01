@@ -135,10 +135,12 @@ function ($log, $q, $filter, toastr, colors, clickSearchHelper, sorter) {
                 _secondsView = new Uint32Array(buf, 4);
                 _latView = new Float32Array(buf, 8);
                 _lonView = new Float32Array(buf, 12);
-                _label1View = new Uint32Array(buf, 16);
-                _label2View = new Uint32Array(buf, 20);
                 _recordSizeBytes = _determineRecordSize(_latView, _lonView);
                 if (_recordSizeBytes) {
+                    _label1View = new Uint32Array(buf, 16);
+                    if (_recordSizeBytes > 16) {
+                        _label2View = new Uint32Array(buf, 20);
+                    }
                     _stride = _recordSizeBytes / 4;
                     _lastRecordIndex = _secondsView.length - (_stride - 1);
                     _numRecords = buf.byteLength / _recordSizeBytes;

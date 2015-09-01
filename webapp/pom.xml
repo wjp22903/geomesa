@@ -817,13 +817,13 @@
             <id>flashy</id>
             <properties>
                 <stealth.classifier>flashy</stealth.classifier>
- <app.plugins>
-            [
-                'stealth.histogram',
-                'stealth.static',
-                'stealth.timelapse'
-            ]
-        </app.plugins>
+                <app.plugins>
+                    [
+                        'stealth.histogram',
+                        'stealth.static',
+                        'stealth.timelapse'
+                    ]
+                </app.plugins>
                 <map.countriesOff>true</map.countriesOff>
                 <geoserver.url>http://pcloud.ccri.com:8080/geoserver</geoserver.url>
                 <geoserver.omitProxy>false</geoserver.omitProxy>
