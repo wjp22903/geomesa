@@ -25,7 +25,7 @@ function ($log, $interval, ol3Map, CONFIG) {
                     $interval.cancel(checkDisplay); //cancel further checks
                     ol3Map.setTarget(attrs.id);
                     ol3Map.fit(ol.extent.containsExtent(CONFIG.map.initExtent, CONFIG.map.extent) ?
-                            CONFIG.map.extent : CONFIG.map.initExtent);
+                        CONFIG.map.extent : CONFIG.map.initExtent);
                 }
             }, 100);
         }

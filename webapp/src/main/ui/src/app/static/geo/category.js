@@ -1,5 +1,6 @@
 angular.module('stealth.static.geo', [
     'colorpicker.module',
+    'stealth.core.geo.ows',
     'stealth.static.wizard'
 ])
 
@@ -15,6 +16,7 @@ function ($timeout, owsLayers, ol3Map, WmsLayer, CONFIG) {
 
     var baseStyles = {
         'point': 'stealth_dataPoints',
+        'attribute': 'stealth_attribute',
         'heatmap': 'stealth_heatmap'
     };
 
@@ -27,16 +29,18 @@ function ($timeout, owsLayers, ol3Map, WmsLayer, CONFIG) {
                      "?REQUEST=GetLegendGraphic&FORMAT=image/png&WIDTH=16&HEIGHT=16&TRANSPARENT=true&LAYER=" +
                      filterLayer.layerName +
                      "&ENV=" + _self.getRequestEnv(filterLayer.viewState.fillColor,
-                                             filterLayer.viewState.size,
-                                             filterLayer.viewState.markerShape,
-                                             filterLayer.viewState.radiusPixels,
-                                             filterLayer.viewState.colorRamp,
-                                             filterLayer.viewState.geom);
+                                                   filterLayer.viewState.size,
+                                                   filterLayer.viewState.markerShape,
+                                                   filterLayer.viewState.radiusPixels,
+                                                   filterLayer.viewState.colorRamp,
+                                                   filterLayer.viewState.geom,
+                                                   filterLayer.viewState.hashAttr);
         if (!_.isUndefined(filterLayer.style)) {
             iconImgSrc += "&STYLE=" + filterLayer.style;
         }
     };
-    this.getRequestEnv = function (fillColor, size, shape, radiusPixels, colorRamp, geom) {
+
+    this.getRequestEnv = function (fillColor, size, shape, radiusPixels, colorRamp, geom, hashAttr) {
         var env = 'color:' + fillColor.slice(1) +
                   ';size:' + size +
                   ';shape:' + shape +
@@ -44,6 +48,9 @@ function ($timeout, owsLayers, ol3Map, WmsLayer, CONFIG) {
                   ';geom:' + geom;
         if (_.isNumber(radiusPixels)) {
             env += ';radiusPixels:' + radiusPixels;
+        }
+        if (hashAttr && hashAttr.name) {
+            env += ';hashAttr:' + hashAttr.name;
         }
         return env;
     };
@@ -93,11 +100,12 @@ function ($timeout, owsLayers, ol3Map, WmsLayer, CONFIG) {
                 filterLayer.style = allStyles[markerStyle];
                 requestParams.STYLES = filterLayer.style;
                 requestParams.ENV = _self.getRequestEnv(filterLayer.viewState.fillColor,
-                                                  filterLayer.viewState.size,
-                                                  filterLayer.viewState.markerShape,
-                                                  filterLayer.viewState.radiusPixels,
-                                                  filterLayer.viewState.colorRamp,
-                                                  filterLayer.viewState.geom);
+                                                        filterLayer.viewState.size,
+                                                        filterLayer.viewState.markerShape,
+                                                        filterLayer.viewState.radiusPixels,
+                                                        filterLayer.viewState.colorRamp,
+                                                        filterLayer.viewState.geom,
+                                                        filterLayer.viewState.hashAttr);
                 mapLayer.updateRequestParams(requestParams);
             };
 
@@ -114,6 +122,7 @@ function ($timeout, owsLayers, ol3Map, WmsLayer, CONFIG) {
             mapLayer.styleDirectiveScope.markerStyles = markerStyles;
             mapLayer.styleDirectiveScope.markerShapes = _self.markerShapes;
             mapLayer.styleDirectiveScope.colorRamps = _self.colorRamps;
+            mapLayer.styleDirectiveScope.featureAttributes = filterLayer.query.featureTypeData.featureTypes[0].properties;
             ol3Map.addLayer(mapLayer);
 
             mapLayer.styleDirectiveScope.setFillColor = function (filterLayer) {
@@ -147,6 +156,11 @@ function ($timeout, owsLayers, ol3Map, WmsLayer, CONFIG) {
             };
 
             mapLayer.styleDirectiveScope.colorRampChanged = function (filterLayer) {
+                updateIconImgSrc(filterLayer);
+                updateRequestParams(filterLayer);
+            };
+
+            mapLayer.styleDirectiveScope.hashAttrChanged = function (filterLayer) {
                 updateIconImgSrc(filterLayer);
                 updateRequestParams(filterLayer);
             };

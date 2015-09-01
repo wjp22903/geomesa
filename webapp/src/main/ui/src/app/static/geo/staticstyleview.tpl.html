@@ -17,14 +17,20 @@
                     ng-options="style for style in markerStyles"
                     ng-change="markerStyleChanged(filterLayer)"></select>
         </div>
-        <div class="cell" ng-if="filterLayer.viewState.markerStyle === 'point'">
+        <div class="layerStyleRow" ng-if="filterLayer.viewState.markerStyle === 'attribute'">
+            <select style="outline:none;margin-bottom:5px;margin-top:5px"
+                    ng-model="filterLayer.viewState.hashAttr"
+                    ng-options="attribute.name for attribute in featureAttributes | filter:{'type':'xsd:string'}:true | orderBy:'name'"
+                    ng-change="hashAttrChanged(filterLayer)"></select>
+        </div>
+        <div class="cell" ng-if="filterLayer.viewState.markerStyle === 'point' || filterLayer.viewState.markerStyle === 'attribute'">
             <select style="outline:none;margin-bottom:5px;margin-top:5px"
                     ng-model="filterLayer.viewState.markerShape"
                     ng-options="shape for shape in markerShapes"
                     ng-change="markerShapeChanged(filterLayer)"></select>
         </div>
-        <div class="cell" ng-if="filterLayer.viewState.markerStyle === 'point'" style="padding-left:5px;">Size:</div>
-        <div class="cell" ng-if="filterLayer.viewState.markerStyle === 'point'">
+        <div class="cell" ng-if="filterLayer.viewState.markerStyle === 'point' || filterLayer.viewState.markerStyle === 'attribute'" style="padding-left:5px;">Size:</div>
+        <div class="cell" ng-if="filterLayer.viewState.markerStyle === 'point' || filterLayer.viewState.markerStyle === 'attribute'">
             <input type="number" ui-jq="spinner"
                    ng-model="filterLayer.viewState.size"
                    ng-change="sizeChanged(filterLayer, filterLayer.viewState.size)"

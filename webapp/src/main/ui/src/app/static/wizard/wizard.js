@@ -55,7 +55,6 @@ function ($log, $rootScope, $filter, toastr,
         return colorRamps[colorRampCounter++];
     }
 
-
     this.launch = function (layer, toggleLayer, overrides) {
         var wizScope = $rootScope.$new();
         var steps = [];
@@ -169,7 +168,7 @@ function ($log, $rootScope, $filter, toastr,
                              "&ENV=" + staticWorkspaceManager.getRequestEnv(wizScope.query.params.fillColor,
                                  wizScope.query.params.size, wizScope.query.params.markerShape,
                                  wizScope.query.params.radiusPixels, wizScope.query.params.colorRamp,
-                                 wizScope.query.params.geomField.name) +
+                                 wizScope.query.params.geomField.name, wizScope.query.params.hashAttr) +
                              "&STYLE=" + wizScope.sld[wizScope.query.params.markerStyle];
             return iconImgSrc;
         };
@@ -185,6 +184,7 @@ function ($log, $rootScope, $filter, toastr,
                     var cql = cqlHelper.buildSpaceTimeFilter(wizScope.query.params);
                     var filterLayer = {
                         title: wizScope.query.params.title,
+                        query: wizScope.query,
                         layerName: layer.Name,
                         layerTitle: layer.Title,
                         serverUrl: layer.serverUrl,
@@ -200,7 +200,8 @@ function ($log, $rootScope, $filter, toastr,
                             fillColor: wizScope.style['background-color'],
                             radiusPixels: wizScope.query.params.radiusPixels,
                             colorRamp: wizScope.query.params.colorRamp,
-                            geom: wizScope.query.params.geomField.name
+                            geom: wizScope.query.params.geomField.name,
+                            hashAttr: wizScope.query.params.hashAttr
                         },
                         cqlFilter: _.isEmpty(cql) ? null : cql,
                         style: 'stealth_dataPoints',

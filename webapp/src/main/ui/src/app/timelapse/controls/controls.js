@@ -130,7 +130,7 @@ function ($log, $interval, $rootScope) {
     display.windowBeginSecs = function () {
         var windowInSecs = window.millis / 1000;
         return (dtg.value - dtg.min < windowInSecs) ?
-               dtg.min : dtg.value - windowInSecs;
+            dtg.min : dtg.value - windowInSecs;
     };
 
     // Responses to events emitted by BinStores.

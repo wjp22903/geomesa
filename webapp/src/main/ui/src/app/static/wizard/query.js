@@ -29,7 +29,8 @@ function (wfs, CONFIG) {
             size: 9,
             fillColor: '#000000',
             radiusPixels: 10,
-            colorRamp: null
+            colorRamp: null,
+            hashAttr: null
         };
 
         this.getFeatureTypeDescription = function (layer) {
