@@ -6,7 +6,7 @@ angular.module('stealth.mediator.targetpri-timelapse')
 function (tpExtender, tlWizard) {
     tpExtender.addCapabilitiesExtender(function (capabilities, opts) {
         capabilities['timelapse'] = {
-            toolTipText: 'Launch time-enabled query wizard',
+            toolTipText: 'Launch time-lapse query wizard',
             iconClass: 'fa-clock-o',
             onClick: function (name, record) { //eslint-disable-line no-unused-vars
                 var filter = opts.dataSource.fieldNames.id + "='" + record[opts.dataSource.fieldNames.id] + "'";

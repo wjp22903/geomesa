@@ -11,7 +11,7 @@ angular.module('stealth.timelapse.wizard', [
 'startMenuManager',
 'tlWizard',
 function (startMenuManager, tlWizard) {
-    startMenuManager.addButton('Time-enabled Query', 'fa-clock-o', tlWizard.launchWizard);
+    startMenuManager.addButton('Time-lapse Query', 'fa-clock-o', tlWizard.launchWizard);
 }])
 
 .service('tlWizard', [
@@ -29,7 +29,7 @@ function ($rootScope, wizardManager, boundTlWizFactory,
     this.launchWizard = function (queryOverrides) {
         var wizardScope = $rootScope.$new();
         wizardScope.query = new Query(queryOverrides);
-        var baseWizard = new Wizard('Time-enabled Query', 'fa-clock-o', 'fa-check text-success', [
+        var baseWizard = new Wizard('Time-lapse Query', 'fa-clock-o', 'fa-check text-success', [
             new Step('Select data source', new WidgetDef('st-tl-wiz-source', wizardScope), null, true)
         ], wizardScope);
         baseWizard.appendWizard(boundTlWizFactory.createBoundWiz(wizardScope));

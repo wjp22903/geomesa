@@ -25,7 +25,7 @@ function (PollingImageWmsLayer, VectorOverlay, tlWizard) {
         this.getBaseCapabilities = function () {
             var capabilities = getBaseCapabilities();
             if (!_.isUndefined(capabilities['timelapse'])) {
-                capabilities['timelapse']['toolTipText'] = 'Launch time-enabled query wizard';
+                capabilities['timelapse']['toolTipText'] = 'Launch time-lapse query wizard';
                 capabilities['timelapse']['iconClass'] = 'fa-clock-o';
                 capabilities['timelapse']['onClick'] = function (name, record, capability) {
                     var idField = capability['trkIdField'] || 'id';
