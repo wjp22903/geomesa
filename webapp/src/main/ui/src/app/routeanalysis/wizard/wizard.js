@@ -13,6 +13,7 @@ angular.module('stealth.routeanalysis.wizard', [
 'colors',
 'elementAppender',
 'routeDrawHelper',
+'stealth.core.geo.ol3.interaction.standard',
 'stealth.core.geo.ol3.overlays.Vector',
 'stealth.core.wizard.Step',
 'stealth.core.wizard.Wizard',
@@ -20,7 +21,7 @@ angular.module('stealth.routeanalysis.wizard', [
 function ($log, $rootScope, $interval,
           ol3Map, ol3Styles,
           wizardManager, colors,
-          elementAppender, routeDrawHelper,
+          elementAppender, routeDrawHelper, ol3Interaction,
           VectorOverlay, Step, Wizard, WidgetDef) {
     var tag = 'stealth.routeanalysis.wizard.routeAnalysisWizard: ';
     $log.debug(tag + 'service started');
@@ -37,14 +38,7 @@ function ($log, $rootScope, $interval,
         if (wizardScope.geoFeature) {
             featureOverlay.addFeature(wizardScope.geoFeature);
         }
-        var modify = new ol.interaction.Modify({
-            features: featureOverlay.getFeatures(),
-            //require ALT key to delete vertices
-            deleteCondition: function (event) {
-                return ol.events.condition.altKeyOnly(event) &&
-                    ol.events.condition.singleClick(event);
-            }
-        });
+        var modify = ol3Interaction.getModify(featureOverlay.getFeatures());
         var draw = new ol.interaction.Draw({
             features: featureOverlay.getFeatures(),
             type: 'LineString'

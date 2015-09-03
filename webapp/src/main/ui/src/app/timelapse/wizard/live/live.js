@@ -17,12 +17,13 @@ function (startMenuManager, liveWizard) {
 'wizardManager',
 'ol3Map',
 'ol3Styles',
+'stealth.core.geo.ol3.interaction.standard',
 'stealth.core.geo.ol3.overlays.Vector',
 'stealth.core.wizard.Wizard',
 'stealth.core.wizard.Step',
 'stealth.core.utils.WidgetDef',
 'stealth.timelapse.wizard.live.Query',
-function ($rootScope, wizardManager, ol3Map, ol3Styles, VectorOverlay, Wizard, Step, WidgetDef, Query) {
+function ($rootScope, wizardManager, ol3Map, ol3Styles, ol3Interaction, VectorOverlay, Wizard, Step, WidgetDef, Query) {
     var _self = this;
     this.launchWizard = function (queryOverrides, onSuccess) {
         var wizardScope = $rootScope.$new();
@@ -50,14 +51,7 @@ function ($rootScope, wizardManager, ol3Map, ol3Styles, VectorOverlay, Wizard, S
             });
         });
 
-        var _modify = new ol.interaction.Modify({
-            features: _overlay.getFeatures(),
-            //require ALT key to delete vertices
-            deleteCondition: function (event) {
-                return ol.events.condition.altKeyOnly(event) &&
-                    ol.events.condition.singleClick(event);
-            }
-        });
+        var _modify = ol3Interaction.getModify(_overlay.getFeatures());
 
         wizardScope.featureOverlay = _overlay;
         var baseWizard = new Wizard('Live Data Query', 'fa-clock-o', 'fa-check text-success', [

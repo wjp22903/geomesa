@@ -1,11 +1,13 @@
 angular.module('stealth.targetpri.wizard.route', [
     'stealth.core.geo.ol3.format',
+    'stealth.core.geo.ol3.interaction',
     'stealth.core.geo.ol3.overlays',
     'stealth.core.geo.ol3.utils'
 ])
 
 .factory('routeTpWizFactory', [
 '$rootScope',
+'stealth.core.geo.ol3.interaction.standard',
 'stealth.core.geo.ol3.overlays.Vector',
 'stealth.core.wizard.Wizard',
 'stealth.core.wizard.Step',
@@ -14,7 +16,7 @@ angular.module('stealth.targetpri.wizard.route', [
 'ol3Styles',
 'elementAppender',
 'routeDrawHelper',
-function ($rootScope, VectorOverlay, Wizard, Step, WidgetDef, ol3Map, ol3Styles, elementAppender, routeDrawHelper) {
+function ($rootScope, ol3Interaction, VectorOverlay, Wizard, Step, WidgetDef, ol3Map, ol3Styles, elementAppender, routeDrawHelper) {
     var self = {
         createSourceWiz: function (wizardScope) {
             return new Wizard(null, null, 'fa-ellipsis-h', [
@@ -49,14 +51,7 @@ function ($rootScope, VectorOverlay, Wizard, Step, WidgetDef, ol3Map, ol3Styles,
             if (wizardScope.geoFeature) {
                 featureOverlay.addFeature(wizardScope.geoFeature);
             }
-            var modify = new ol.interaction.Modify({
-                features: featureOverlay.getFeatures(),
-                //require ALT key to delete vertices
-                deleteCondition: function (event) {
-                    return ol.events.condition.altKeyOnly(event) &&
-                        ol.events.condition.singleClick(event);
-                }
-            });
+            var modify = ol3Interaction.getModify(featureOverlay.getFeatures());
             var draw = new ol.interaction.Draw({
                 features: featureOverlay.getFeatures(),
                 type: 'LineString'

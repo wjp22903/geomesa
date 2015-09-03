@@ -216,6 +216,7 @@ function ($log, $filter, mapClickSearchService, GeoJson, MapLayer, TintLayer, CO
      * @param {ol.interaction.Interaction} interaction
      */
     this.addInteraction = function (interaction) {
+        interaction.setActive(true);
         _map.addInteraction(interaction);
     };
     /**
@@ -224,6 +225,7 @@ function ($log, $filter, mapClickSearchService, GeoJson, MapLayer, TintLayer, CO
      */
     this.removeInteraction = function (interaction) {
         _map.removeInteraction(interaction);
+        interaction.setActive(false);
     };
     /**
      * Adds an overlay to the map.
