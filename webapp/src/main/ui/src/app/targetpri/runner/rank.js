@@ -92,7 +92,7 @@ function ($q, wps, CONFIG) {
                         var percentageOfTubeCellsCovered = (nRouteGridCells > 0) ? tubeCellsCovered / nRouteGridCells : 0.0;
                         var routeCoverage = 1.0 - ((1.0 - res[r.key].routeCoverage) * (1.0 - r.routeCoverage));
                         var motionEvidenceTotal = res[r.key].motionEvidence.total + r.motionEvidence.total;
-                        var motionEvidenceMax = Math.max(res[r.key].motionEvidence.max + r.motionEvidence.max);
+                        var motionEvidenceMax = Math.max(res[r.key].motionEvidence.max, r.motionEvidence.max);
                         var motionEvidenceStddev = combineStddev(res[r.key].motionEvidence.stddev, r.motionEvidence.stddev);
                         var combinedScoreNoMotion = Math.pow(scaledTfIdf * routeCoverage * tubeCellDeviationScore, 1.0/3.0);
                         var combinedScore = (motionEvidenceTotal > 0) ? Math.pow(combinedScoreNoMotion * Math.log(motionEvidenceTotal + 1) * motionEvidenceMax, 1.0/3.0) : 0.0;
