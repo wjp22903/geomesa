@@ -75,7 +75,10 @@ function ($log, $filter, mapClickSearchService, GeoJson, MapLayer, TintLayer, CO
             new ol.control.ScaleLine(),
             new ol.control.Rotate(),
             new ol.control.Zoom()
-        ]
+        ],
+        interactions: ol.interaction.defaults({
+            doubleClickZoom: false
+        })
     });
     //Layer list stored in reverse. Bottom layer at end of list.
     var _layers = [];
