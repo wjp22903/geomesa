@@ -1,4 +1,6 @@
-angular.module('stealth.targetpri.geo.ol3.layers')
+angular.module('stealth.targetpri.geo.ol3.layers', [
+    'stealth.core.popup.capabilities'
+])
 
 .factory('stealth.targetpri.geo.ol3.layers.TargetPriResultLayer', [
 'stealth.core.geo.ol3.layers.WmsLayer',
@@ -24,7 +26,7 @@ function (WmsLayer, targetPriResultLayerExtender) {
 
 .service('targetPriResultLayerExtender', [
 'coreCapabilitiesExtender',
-'stealth.core.interaction.capabilities.Extender',
+'stealth.core.popup.capabilities.Extender',
 function (coreCapabilitiesExtender, Extender) {
     Extender.apply(this);
 

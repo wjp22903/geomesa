@@ -1,5 +1,5 @@
 angular.module('stealth.core.geo.ol3.layers', [
-    'stealth.core.interaction.capabilities',
+    'stealth.core.popup.capabilities',
     'stealth.core.utils'
 ])
 
@@ -119,7 +119,7 @@ function ($log, $rootScope, $q, $timeout, coreCapabilitiesExtender, WidgetDef) {
             };
             /**
              * Returns layer's capabilities extender.
-             * @returns {stealth.core.interaction.capabilities.Extender}
+             * @returns {stealth.core.popup.capabilities.Extender}
              */
             this.getCapabilitiesExtender = function () {
                 return coreCapabilitiesExtender;
@@ -158,7 +158,7 @@ function ($log, $rootScope, $q, $timeout, coreCapabilitiesExtender, WidgetDef) {
              * @returns {Promise[]} Each Promise returns a {@link MapLayer~SearchPointWidget}
              */
             this.buildSearchPointWidgets = function (coord, res, parentScope) {
-                if (!(this.queryable && this.ol3Layer.getVisible())) {
+                if (!this.ol3Layer.getVisible()) {
                     return $q.when({isError: true});
                 }
                 var promises = this.searchPoint(coord, res);
@@ -180,7 +180,8 @@ function ($log, $rootScope, $q, $timeout, coreCapabilitiesExtender, WidgetDef) {
              */
             this.buildSearchPointWidgetsForResponse = function (response, parentScope) {
                 var s = (parentScope || $rootScope).$new();
-                s.results = [response];
+                s.result = response;
+                s.onRemoveAll = _.noop;
                 return {
                     level: _.padLeft(_self.reverseZIndex, 4, '0') + (response.levelSuffix || ''),
                     iconClass: _self.styleDirectiveScope.styleVars.iconClass,
@@ -188,8 +189,7 @@ function ($log, $rootScope, $q, $timeout, coreCapabilitiesExtender, WidgetDef) {
                     widgetDef: (response.isError ||
                         !_.isArray(response.records) ||
                         _.isEmpty(response.records)) ?
-                            null : new WidgetDef('st-ol3-map-popup-search-result-table', s,
-                                "results='results' max-col-width='125' resizable='true'")
+                            null : new WidgetDef('st-popup-paged-table', s, "result='result' on-remove-all='onRemoveAll'")
                 };
             };
         }

@@ -1,4 +1,4 @@
-angular.module('stealth.core.interaction.mappopup')
+angular.module('stealth.core.popup.components')
 
 .controller('fieldViewController', [
 '$scope',

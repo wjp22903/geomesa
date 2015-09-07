@@ -1,0 +1,72 @@
+.popupContainer
+    border-radius 3px
+    min-width 200px
+    z-index 3
+    .popupHeader
+        border 2px solid #bbb
+        border-bottom none
+        background-color #ddd
+        border-top-left-radius 3px
+        border-top-right-radius 3px
+
+.popupTabStrip
+    display inline-block
+    position absolute
+    top 22px
+    bottom 0
+    left -26px
+    >div.btn-default
+        margin 1px 0
+        border-top-left-radius 4px
+        border-bottom-left-radius 4px
+        background-color #bbb
+        border 2px solid #bbb
+        color #666
+        &.popupActiveTab
+            color #333
+            background-color white
+            border-right 2px solid white
+
+.popupTabContentContainer
+    display inline-block
+    background white
+    border-bottom-left-radius 3px
+    border-bottom-right-radius 3px
+    border 2px solid #bbb
+    border-top none
+
+.pagedTable
+    .tableHeader
+        overflow-x hidden
+        min-width 200px
+        .tablePager
+            .btn
+                padding 0
+                line-height 1.2
+    .tableBody
+        min-width 200px
+        min-height 50px
+    .tableBodyViewport
+        height 100%
+        width 100%
+        overflow scroll
+    .tableRow
+        display flex
+        align-items flex-start
+        .valueColumn
+            flex 1 1 0
+            padding 0 5px
+            word-wrap break-word
+        .keyColumn
+            flex 0.5 0.5 0
+            min-width 75px
+            text-align right
+            padding 0 5px
+            font-weight bold
+            word-wrap break-word
+    .summary
+        width 100%
+        text-align center
+        border-bottom 1px solid #ddd
+    .rowAlt
+        background-color #f1f1f1

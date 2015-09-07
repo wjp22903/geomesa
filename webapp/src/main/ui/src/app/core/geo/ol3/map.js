@@ -1,6 +1,6 @@
 angular.module('stealth.core.geo.ol3.map', [
     'stealth.core.geo.ol3.layers',
-    'stealth.core.interaction.mappopup'
+    'stealth.core.interaction.mapclick'
 ])
 
 /**
@@ -38,12 +38,12 @@ function ($log, $interval, ol3Map, CONFIG) {
 .service('ol3Map', [
 '$log',
 '$filter',
-'mapClickSearchService',
+'stealth.core.interaction.mapclick.searchManager',
 'stealth.core.geo.ol3.format.GeoJson',
 'stealth.core.geo.ol3.layers.MapLayer',
 'stealth.core.geo.ol3.layers.TintLayer',
 'CONFIG',
-function ($log, $filter, mapClickSearchService, GeoJson, MapLayer, TintLayer, CONFIG) {
+function ($log, $filter, searchManager, GeoJson, MapLayer, TintLayer, CONFIG) {
     $log.debug('stealth.core.geo.ol3.map.ol3Map: service started');
     var _projection = CONFIG.map.projection;
     var _map = new ol.Map({
@@ -159,9 +159,11 @@ function ($log, $filter, mapClickSearchService, GeoJson, MapLayer, TintLayer, CO
         _layers.splice(index, 0, layer);
         updateLayerZIndices();
 
-        layer.searchId = mapClickSearchService.registerSearchable(function (coord, res, parentScope) {
-            return layer.buildSearchPointWidgets(coord, res, parentScope);
-        });
+        if (layer.queryable) {
+            layer.searchId = searchManager.registerSearchable(function (coord, res, parentScope) {
+                return layer.buildSearchPointWidgets(coord, res, parentScope);
+            });
+        }
         return layer;
     };
     /**
@@ -170,7 +172,7 @@ function ($log, $filter, mapClickSearchService, GeoJson, MapLayer, TintLayer, CO
      */
     this.removeLayer = function (layer) {
         if (_.isNumber(layer.searchId)) {
-            mapClickSearchService.unregisterSearchableById(layer.searchId);
+            searchManager.unregisterSearchableById(layer.searchId);
             delete layer.searchId;
         }
         _map.removeLayer(layer.getOl3Layer());
@@ -300,6 +302,14 @@ function ($log, $filter, mapClickSearchService, GeoJson, MapLayer, TintLayer, CO
      */
     this.getCenter = function () {
         return _map.getView().getCenter();
+    };
+    /**
+     * Returns the map pixel position for a browser event relative to the viewport.
+     * @param {Event} event
+     * @returns {ol.Pixel}
+     */
+    this.getEventPixel = function (event) {
+        return _map.getEventPixel(event);
     };
 
     // ***** Initialization *****

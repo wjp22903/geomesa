@@ -1,5 +1,6 @@
 angular.module('stealth.timelapse.stores', [
     'stealth.core.geo.ows',
+    'stealth.core.popup.capabilities',
     'stealth.core.utils'
 ])
 
@@ -223,7 +224,7 @@ function ($log, $rootScope, $q, $filter, $window, toastr, cqlHelper, clickSearch
 
 .service('queryBinStoreExtender', [
 'coreCapabilitiesExtender',
-'stealth.core.interaction.capabilities.Extender',
+'stealth.core.popup.capabilities.Extender',
 function (coreCapabilitiesExtender, Extender) {
     Extender.apply(this);
 

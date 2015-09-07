@@ -1,8 +1,8 @@
-angular.module('stealth.core.interaction.capabilities', [
+angular.module('stealth.core.popup.capabilities', [
     'ui.bootstrap'
 ])
 
-.factory('stealth.core.interaction.capabilities.Extender', [
+.factory('stealth.core.popup.capabilities.Extender', [
 function () {
     var Extender = function () {
         var _capabilitiesExtenders = [];
@@ -29,7 +29,7 @@ function () {
 '$modal',
 '$interpolate',
 '$window',
-'stealth.core.interaction.capabilities.Extender',
+'stealth.core.popup.capabilities.Extender',
 function ($rootScope, $modal, $interpolate, $window, Extender) {
     Extender.apply(this);
 
@@ -50,7 +50,7 @@ function ($rootScope, $modal, $interpolate, $window, Extender) {
                             $modal.open({
                                 size: 'lg',
                                 scope: viewScope,
-                                templateUrl: 'core/interaction/fieldview.tpl.html',
+                                templateUrl: 'core/popup/components/fieldview.tpl.html',
                                 controller: 'fieldViewController',
                                 backdrop: 'static',
                                 backdropClass: 'wizardMask'

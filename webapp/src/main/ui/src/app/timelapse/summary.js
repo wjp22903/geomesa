@@ -1,4 +1,6 @@
-angular.module('stealth.timelapse')
+angular.module('stealth.timelapse', [
+    'stealth.core.popup.capabilities'
+])
 
 .service('summaryExploreMgr', [
 '$timeout',

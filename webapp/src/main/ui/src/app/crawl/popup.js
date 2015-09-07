@@ -1,4 +1,6 @@
-angular.module('stealth.crawl')
+angular.module('stealth.crawl', [
+    'stealth.core.popup.capabilities'
+])
 
 .run([
 'coreCapabilitiesExtender',

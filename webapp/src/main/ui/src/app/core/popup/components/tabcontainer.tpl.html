@@ -1,15 +1,15 @@
 <div ng-mousedown="$event.stopPropagation();">
-    <div class="mapPopupTabStrip"
+    <div class="popupTabStrip"
          ng-class="{'ng-hide': tabs.length < 2}">
         <div ng-repeat="tab in tabs" ng-click="setActiveTabIdx($index)" class="btn-default"
-             ng-class="{mapPopupActiveTab: activeTabIdx===$index}"
+             ng-class="{popupActiveTab: activeTabIdx===$index}"
              tooltip-html-unsafe="{{::tab.tooltipText}}"
              tooltip-placement="top" tooltip-animation="false" tooltip-popup-delay="500"
              tooltip-trigger="mouseenter">
             <i class="fa fa-fw fa-lg" ng-class="::tab.iconClass"></i>
         </div>
     </div>
-    <div class="mapPopupTabContentContainer">
+    <div class="popupTabContentContainer">
         <st-widget-compiler ng-repeat="tab in tabs"
                             widget-def="::tab.widgetDef"
                             ng-class="{'ng-hide': activeTabIdx!==$index}">

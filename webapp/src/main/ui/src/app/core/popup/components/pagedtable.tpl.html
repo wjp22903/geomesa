@@ -1,0 +1,68 @@
+<div class="pagedTable">
+    <div class="tableHeader">
+        <div class="summary">
+            <st-pager class="pull-left tablePager"
+                      records="result.records"
+                      paging="paging"></st-pager>
+            <!-- if getLayerLegendStyle is a function, call to apply style otherwise skip -->
+            <span ng-if="(result.getLayerLegendStyle | lodash:'isFunction')"
+                  class="fa fa-fw fa-square colorBox"
+                  ng-style="result.getLayerLegendStyle()">
+            </span>
+            <span>{{ ::result.name }}</span>
+            <span class="pull-right" style="font-weight:normal;">
+                <span class="btn btn-default fa-stack toggleButton"
+                      style="vertical-align:text-top;"
+                      ng-click="removeTable()">
+                    <i class="fa fa-fw fa-remove fa-stack-1x text-danger"></i>
+                </span>
+            </span>
+        </div>
+        <div class="tableRow" ng-style="rowStyle">
+            <div class="keyColumn"></div>
+            <div ng-repeat="col in columns" class="valueColumn" ng-style="getColumnStyle(col)">
+                <div ng-if="recordExists(col)">
+                    <span class="btn btn-default fa-stack toggleButton"
+                          style="vertical-align:text-top;"
+                          ng-click="removeRecord(col)">
+                        <i class="fa fa-fw fa-remove fa-stack-1x text-danger"></i>
+                    </span>
+                    <!-- Draw the color box by the record's color if present -->
+                    <span ng-if="(result.getRecordLegendStyle | lodash:'isFunction')"
+                          class="fa fa-lg fa-fw fa-square colorBox"
+                          ng-style="result.getRecordLegendStyle(getRecord(col))">
+                    </span>
+                    <span ng-repeat="capa in result.capabilities"
+                          class="btn btn-default fa-stack toggleButton"
+                          style="vertical-align:text-top;"
+                          tooltip-html-unsafe="<span style='white-space:nowrap;'>{{::capa.toolTipText}}</span>"
+                          tooltip-placement="top" tooltip-animation="false" tooltip-popup-delay="500"
+                          tooltip-trigger="mouseenter"
+                          ng-if="capa.onClick"
+                          ng-click="capa.onClick(result.name, getRecord(col), capa)">
+                        <i class="fa fa-fw fa-stack-1x text-primary" ng-class="capa.iconClass"></i>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div st-paged-table-resizable class="tableBody">
+        <div  st-paged-table-scroll-link class="tableBodyViewport">
+            <div ng-repeat="key in keys"
+                 class="tableRow" ng-class-odd="'rowAlt'" ng-style="rowStyle">
+                <div class="keyColumn">{{ ::key }}</div>
+                <div ng-repeat="col in columns" class="valueColumn" ng-style="getColumnStyle(col)">
+                    <div ng-if="recordExists(col)">
+                        <a href="" ng-if="result.isFilterable"
+                           ng-click="result.filterHandler(key, getRecord(col)[key])">
+                            {{ formatValue(key, getRecord(col)[key]) }}
+                        </a>
+                        <span ng-if="!result.isFilterable">
+                            {{ formatValue(key, getRecord(col)[key]) }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
