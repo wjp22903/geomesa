@@ -57,7 +57,7 @@
                    ui-jq="spinner"
                    style="width:27px"
                    ng-model="histogram.minBin"
-                   ng-change="histogram.rebin(histogram)">
+                   st-change="histogram.rebin(histogram)">
         </span>
         <span>
             <span>Max:</span>
@@ -65,7 +65,7 @@
                    ui-jq="spinner"
                    style="width:27px"
                    ng-model="histogram.maxBin"
-                   ng-change="histogram.rebin(histogram)">
+                   st-change="histogram.rebin(histogram)">
         </span>
         <span ng-if="histogram.type === 'number' || histogram.type === 'date-time'" class="cell">
             <span>Bins:</span>

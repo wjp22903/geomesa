@@ -33,7 +33,7 @@
                         <div class="cell" style="width:100%">
                             <input type="range" ng-model="store.getViewState().opacity"
                                    min="0" max="100" step="1"
-                                   ng-change="store.setOpacity(store.getViewState().opacity)"
+                                   st-change="store.setOpacity(store.getViewState().opacity)"
                                    st-float-input>
                         </div>
                         <div class="cell">{{store.getViewState().opacity}}%</div>
@@ -43,7 +43,7 @@
                         <div class="cell">
                             <input type="number" ui-jq="spinner"
                                    ng-model="store.getViewState().size"
-                                   ng-change="sizeChanged(store, store.getViewState().size)"
+                                   st-change="sizeChanged(store, store.getViewState().size)"
                                    min="1" max="100">
                         </div>
                         <div class="cell" style="padding-left:5px">Fill:</div>
@@ -52,7 +52,7 @@
                                  ng-style="{'background-color': store.getFillColorHexString()}"
                                  colorpicker colorpicker-position="bottom"
                                  ng-model="store.getViewState().fillColor"
-                                 ng-change="store.setFillColorHexString(store.getViewState().fillColor)"
+                                 st-change="store.setFillColorHexString(store.getViewState().fillColor)"
                                  tooltip-html-unsafe="<span style='white-space:nowrap'>Change fill color</span>"
                                  tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
                                  tooltip-trigger="mouseenter">

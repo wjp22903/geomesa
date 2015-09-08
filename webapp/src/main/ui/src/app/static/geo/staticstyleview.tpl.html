@@ -33,7 +33,7 @@
         <div class="cell" ng-if="filterLayer.viewState.markerStyle === 'point' || filterLayer.viewState.markerStyle === 'attribute'">
             <input type="number" ui-jq="spinner"
                    ng-model="filterLayer.viewState.size"
-                   ng-change="sizeChanged(filterLayer, filterLayer.viewState.size)"
+                   st-change="sizeChanged(filterLayer, filterLayer.viewState.size)"
                    min="1" max="100">
         </div>
         <div class="cell" ng-if="filterLayer.viewState.markerStyle === 'point'" style="padding-left:5px;">Fill:</div>
