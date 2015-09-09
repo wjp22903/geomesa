@@ -123,6 +123,21 @@ describe('Service', function () {
             $rootScope.$digest();
             expect(result.length).to.equal(2);
         });
+
+        //This test alters the layer list and does not clean up after itself.
+        it('should handle undefined server layers', function () {
+            var result;
+
+            //Simulate a server with no layers
+            serverLayers = undefined;
+
+            owsLayers.getLayers().then(function (layers) {
+                result = layers;
+            });
+            $rootScope.$digest();
+            expect(result).to.be.an('array');
+            expect(result.length).to.equal(0);
+        });
     });
 })
 ;

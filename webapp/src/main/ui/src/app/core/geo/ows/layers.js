@@ -25,7 +25,7 @@ function ($filter, wms, KeywordExtender, CONFIG) {
         if (_.isNull(_layersPromise)) {
             _layersPromise = wms.getCapabilities(CONFIG.geoserver.defaultUrl, CONFIG.geoserver.omitProxy, forceRefresh)
                 .then(function (wmsCap) {
-                    var layers = wmsCap.Capability.Layer.Layer;
+                    var layers = wmsCap.Capability.Layer.Layer || [];
                     _.each(CONFIG.map.extraLayers, function (layer) {
                         layers.push(layer);
                     });
