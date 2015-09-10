@@ -1,0 +1,26 @@
+<ng-form name="wizardForm">
+    <table style="width:500px">
+        <tr><td><select class="form-control input-sm"
+                ng-model="query.classifier"
+                ng-init="classifiers[0]"
+                ng-options="classifier.name for classifier in classifiers | orderBy: 'name'"
+                required>
+        </select></td></tr>
+        <tr><td><select class="form-control input-sm"
+                ng-model="query.classifierLabel"
+                ng-init="query.classifier.labels[0]"
+                ng-options="label for label in query.classifier.labels"
+                required>
+        </select></td></tr>
+
+        <!-- Only one of these should be chosen. Geometry should be via drawing. No inline styles -->
+        <tr><td><input type="text" placeholder="Enter Geometry" ng-model="query.geom" style="width:300px"><br />
+        <input type="text" placeholder="Enter Image ID" ng-model="query.imageId" style="width:300px"></td></tr>
+
+        <!-- Only an input when not using an image id. Otherwise the time is the time of the image -->
+        <tr><td><input type="text" placeholder="CQL filter" ng-model="query.time" style="width:300px"></td></tr>
+
+        <!-- Only visible for imagery classifiers. Defaults to false -->
+        <tr><td><label><input type="checkbox" ng-model="query.slidingWindow"> Use sliding window</label></td></tr>
+    </table>
+</ng-form>

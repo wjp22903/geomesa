@@ -124,6 +124,7 @@
                 'stealth.alerts',
                 'stealth.crawl',
                 'stealth.dcm',
+                'stealth.dragonfish',
                 'stealth.histogram',
                 'stealth.routeanalysis',
                 'stealth.static',

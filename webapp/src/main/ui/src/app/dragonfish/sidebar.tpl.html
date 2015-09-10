@@ -1,0 +1,27 @@
+<div class="df-class-sidebar">
+    <!-- Longer-term, this sidebar header is probably a pluggable directive, with classifier results using one
+         directive and similarity results using another.
+
+         The goal in either case is to show the query parameters in a way that might let the user change them
+         and issue another query. -->
+    <div ng-class="{'ng-hide': !(request.classifier)}">
+        <h3 ng-when="true">{{request.classifierLabel}} from {{request.classifier.name}}</h3>
+    </div>
+    <div ng-class="{'ng-hide': !!(request.classifier)}">
+        <h3 ng-when="false">{{request.name}}</h3>
+    </div>
+    <hr />
+    <div> <!-- paged results. each li seems like the sort of thing that's supposed to be a directive -->
+        <ul class="list-unstyled">
+            <li class="df-class-result"
+                ng-repeat="result in results | startFrom:(paging.currentPage-1)*paging.pageSize | limitTo:paging.pageSize">
+                <h4>{{result.name}}</h4>
+                <h5>{{result.score}}</h5>
+                <p>{{result.desc}}</p>
+                <button class="btn btn-primary btn-xs" ng-click="searchSimilar(result)">
+                    More Like This
+                </button>
+            </li>
+        </ul>
+    </div>
+</div>
