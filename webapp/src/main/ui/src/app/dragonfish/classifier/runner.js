@@ -5,11 +5,20 @@ angular.module('stealth.dragonfish.classifier.runner', [
 ])
 
 /**
+ * Create constants for the wizard scope
+ */
+.constant('stealth.dragonfish.classifier.runner.Constant', {
+    byid: 'byid',
+    geom: 'geom'
+})
+
+/**
  * These parameters should be presented to the user to fill in (i.e., in the wizard), and used to form the correct
  * request to the backend.
  */
 .factory('stealth.dragonfish.classifier.runner.QueryParams', [
-function () {
+'stealth.dragonfish.classifier.runner.Constant',
+function (runnerConstant) {
     return function (name) {
         this.name = name;
         this.classifier = null;
@@ -17,6 +26,7 @@ function () {
         this.imageId = null;
         this.geom = null;
         this.time = null;
+        this.geomSource = runnerConstant.byid;
         this.slidingWindow = false;
     };
 }])

@@ -12,12 +12,14 @@ angular.module('stealth.dragonfish.classifier.wizard', [
 .service('stealth.dragonfish.classifier.wizard.scope', [
 '$rootScope',
 'stealth.dragonfish.classifier.service',
+'stealth.dragonfish.classifier.runner.Constant',
 'stealth.dragonfish.classifier.runner.QueryParams',
-function ($rootScope, classifierService, QueryParams) {
+function ($rootScope, classifierService, runnerConstant, QueryParams) {
     var _creations = 0;
 
     this.create = function () {
         var wizardScope = $rootScope.$new();
+        wizardScope.constant = runnerConstant;
         wizardScope.query = new QueryParams('Classifier Application ' + (_creations + 1));
         classifierService.getClassifiers()
             .then(function (classifiers) {

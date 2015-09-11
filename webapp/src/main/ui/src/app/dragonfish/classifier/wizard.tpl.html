@@ -16,13 +16,47 @@
         </select></td></tr>
 
         <!-- Only one of these should be chosen. Geometry should be via drawing. No inline styles -->
-        <tr><td><input type="text" placeholder="Enter Geometry" ng-model="query.geom" style="width:300px"><br />
-        <input type="text" placeholder="Enter Image ID" ng-model="query.imageId" style="width:300px"></td></tr>
+        <table>
+            <tr ng-click="query.geomSource = constant.geom">
+                <td>
+                    <input type="radio"
+                        aria-label="by geometry"
+                        name="geomSource"
+                        ng-model="query.geomSource"
+                        ng-value="constant.geom" />
+                </td>
+                <td>
+                    <input type="text"
+                        placeholder="Enter Geometry"
+                        ng-disabled="query.geomSource !== constant.geom"
+                        ng-model="query.geom"
+                        ng-required="query.geomSource === constant.geom"
+                        class="form-control input-sm df-wizard-text-input" />
+                </td>
+            </tr>
+            <tr ng-click="query.geomSource = constant.byid">
+                <td>
+                    <input type="radio"
+                        aria-label="by image id"
+                        name="geomSource"
+                        ng-model="query.geomSource"
+                        ng-value="constant.byid" />
+                </td>
+                <td>
+                    <input type="text"
+                        placeholder="Enter Image ID"
+                        ng-disabled="query.geomSource !== constant.byid"
+                        ng-model="query.imageId"
+                        ng-required="query.geomSource === constant.byid"
+                        class="form-control input-sm df-wizard-text-input" />
+                </td>
+            </tr>
+        </table>
 
         <!-- Only an input when not using an image id. Otherwise the time is the time of the image -->
-        <tr><td><input type="text" placeholder="CQL filter" ng-model="query.time" style="width:300px"></td></tr>
+        <tr><td><input type="text" placeholder="CQL filter" ng-model="query.time" class="df-wizard-text-input" /></td></tr>
 
         <!-- Only visible for imagery classifiers. Defaults to false -->
-        <tr><td><label><input type="checkbox" ng-model="query.slidingWindow"> Use sliding window</label></td></tr>
+        <tr><td><label><input type="checkbox" ng-model="query.slidingWindow" /> Use sliding window</label></td></tr>
     </table>
 </ng-form>
