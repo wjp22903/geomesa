@@ -65,20 +65,22 @@ function ($rootScope, $modal, $interpolate, $window, Extender) {
 
     // add external links if needed.
     this.addCapabilitiesExtender(function (capabilities) {
-        if (_.isEmpty(capabilities['link']['url'])) {
-            delete capabilities['link'];
-        } else {
-            capabilities['link']['toolTipText'] = capabilities['link']['toolTipText'] || 'Link';
-            capabilities['link']['url']         = capabilities['link']['url'] || '';
-            capabilities['link']['iconClass']   = capabilities['link']['iconClass'] || 'fa-external-link';
-            capabilities['link']['onClick']     = function (name, record, capability) { //eslint-disable-line no-unused-vars
-                var searchTemplate = capability['url'];
-                if (_.size(searchTemplate) > 0) {
-                    var interpExp = $interpolate(searchTemplate);
-                    var url = interpExp(record);
-                    $window.open(url);
-                }
-            };
+        if (_.isObject(capabilities['link'])) {
+            if (_.isEmpty(capabilities['link']['url'])) {
+                delete capabilities['link'];
+            } else {
+                capabilities['link']['toolTipText'] = capabilities['link']['toolTipText'] || 'Link';
+                capabilities['link']['url']         = capabilities['link']['url'] || '';
+                capabilities['link']['iconClass']   = capabilities['link']['iconClass'] || 'fa-external-link';
+                capabilities['link']['onClick']     = function (name, record, capability) { //eslint-disable-line no-unused-vars
+                    var searchTemplate = capability['url'];
+                    if (_.size(searchTemplate) > 0) {
+                        var interpExp = $interpolate(searchTemplate);
+                        var url = interpExp(record);
+                        $window.open(url);
+                    }
+                };
+            }
         }
         return capabilities;
     });
