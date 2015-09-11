@@ -16,6 +16,7 @@ function ($http, $filter, $q, toastr) {
 
     var _requestCapabilities = function (url) {
         var capabilitiesLoaded = false;
+        var toastrShown = false;
         var waitOptions = {
             timeOut: 0,
             extendedTimeOut: 0,
@@ -23,6 +24,7 @@ function ($http, $filter, $q, toastr) {
             toastClass: 'waitingToast',
             iconClass: 'waitingToastIcon',
             onShown: function () {
+                toastrShown = true;
                 if (capabilitiesLoaded) {
                     toastr.clear(waitingToastr);
                 }
@@ -56,7 +58,9 @@ function ($http, $filter, $q, toastr) {
             return $q.reject('Failed to get capabilities from server.');
         })['finally'](function () {
             capabilitiesLoaded = true;
-            toastr.clear(waitingToastr);
+            if (toastrShown) {
+                toastr.clear(waitingToastr);
+            }
         });
     };
 
