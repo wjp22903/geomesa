@@ -1,4 +1,5 @@
 angular.module('stealth.timelapse.wizard.live', [
+    'stealth.core.geo.ol3.interaction',
     'stealth.core.geo.ol3.overlays',
     'stealth.core.startmenu',
     'stealth.core.wizard',

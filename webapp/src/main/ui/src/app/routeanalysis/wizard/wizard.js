@@ -1,4 +1,5 @@
 angular.module('stealth.routeanalysis.wizard', [
+    'stealth.core.geo.ol3.interaction',
     'stealth.core.geo.ol3.overlays',
     'stealth.core.geo.ol3.utils'
 ])
