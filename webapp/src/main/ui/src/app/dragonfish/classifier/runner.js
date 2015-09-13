@@ -10,7 +10,11 @@ angular.module('stealth.dragonfish.classifier.runner', [
  */
 .constant('stealth.dragonfish.classifier.runner.Constant', {
     byid: 'byid',
-    geom: 'geom'
+    geom: 'geom',
+    cookies: {
+        geom: 'dragonfish.wizard.bbox',
+        time: 'dragonfish.wizard.time'
+    }
 })
 
 /**
@@ -20,19 +24,38 @@ angular.module('stealth.dragonfish.classifier.runner', [
 .factory('stealth.dragonfish.classifier.runner.QueryParams', [
 'stealth.dragonfish.Constant',
 'stealth.dragonfish.classifier.runner.Constant',
-'stealth.dragonfish.classifier.runner.queryParamsGeomService',
-function (DF, runnerConstant, geomService) {
+'stealth.dragonfish.classifier.runner.queryParamsService',
+function (DF, runnerConstant, paramService) {
     return function (name) {
         this.name = name;
         this.classifier = null;
         this.classifierLabel = null;
         this.imageId = null;
-        this.time = null;
+        this.timeData = {
+            // when the query timeData is valid, we should have a `valid:true
+            // but _not_ until the data is valid. see the wizard template
+            startDtg: null,
+            endDtg: null,
+            maxTimeRangeMillis: Number.POSITIVE_INFINITY
+        };
+        _.merge(this.timeData, paramService.initialTimerange());
         this.geomSource = null;
         this.slidingWindow = false;
-        this.geom = geomService.initialGeom();
+        this.geom = paramService.initialGeom();
         this.checkAndSetBounds = function (extent, skipCookie) {
-            _.merge(this.geom, geomService.checkAndSetBounds(extent, skipCookie));
+            _.merge(this.geom, paramService.checkAndSetBounds(extent, skipCookie));
+        };
+        this.checkAndSetTimeRange = function (start, end, skipCookie) {
+            /**
+             * The logic here is a little delicate, as we require that `valid` is only set when valid,
+             * and not set to `false` (or anything else!) when invalid.
+             */
+            delete this.timeData.valid;
+            delete this.timeData.errorMsg;
+            _.merge(this.timeData,
+                paramService.checkAndSetTimeRange(
+                    start, end, this.timeData.maxTimeRangeMillis, skipCookie)
+            );
         };
         this.isNonImageSpace = function () {
             if (this.classifier) {
@@ -56,18 +79,23 @@ function (DF, runnerConstant, geomService) {
   * A service to grab cached extents from cookies,
   * consider further refactoring to make this a common util
   */
-.service('stealth.dragonfish.classifier.runner.queryParamsGeomService', [
+.service('stealth.dragonfish.classifier.runner.queryParamsService', [
 '$filter',
 'cookies',
-function ($filter, cookies) {
+'stealth.dragonfish.classifier.runner.Constant',
+function ($filter, cookies, RUN) {
     var _geom = {
         maxLat: 90,
         minLat: -90,
         maxLon: 180,
         minLon: -180
     };
+    var _time = {
+        startDtg: moment.utc().subtract(1, 'week'),
+        endDtg: moment.utc()
+    };
     this.initialGeom = function () {
-        return _.merge(_geom, cookies.get('dragonfish.wizard.bbox', 0));
+        return _.merge(_geom, cookies.get(RUN.cookies.geom, 0));
     };
     this.checkAndSetBounds = function (extent, skipCookie) {
         var filter = $filter('number');
@@ -82,9 +110,49 @@ function ($filter, cookies) {
         };
         if (!skipCookie && !_.contains(trimmed, NaN)) {
             //Save cookie - expires in a year
-            cookies.put('dragonfish.wizard.bbox', 0, bbox, moment.utc().add(1, 'y'));
+            cookies.put(RUN.cookies.geom, 0, bbox, moment.utc().add(1, 'y'));
         }
         return bbox;
+    };
+    this.initialTimerange = function () {
+        _.merge(
+            _time,
+            cookies.get(RUN.cookies.time, 0),
+            _.mapValues(cookies.get(RUN.cookies.time, 0), function (time) {
+                return time ? moment.utc(time) : null;
+            })
+        );
+        return _time;
+    };
+    var timeRangeError = function (msg) {
+        return {
+            errorMsg: msg
+        };
+    };
+    /**
+     * If you try to set the time to something bad (start after end, or something),
+     * We return an object literal with an `errorMsg` (string). Otherwise, we return
+     * an object literal with `valid: true`.
+     * In the non-error case, we also set the associated cookie (depending on skipCookie)
+     */
+    this.checkAndSetTimeRange = function (start, end, maxTimeRangeMillis, skipCookie) {
+        if (!moment.isMoment(start)) {
+            return timeRangeError('Invalid start time');
+        } else if (!moment.isMoment(end)) {
+            return timeRangeError('Invalid end time');
+        } else {
+            var diffMillis = end.diff(start);
+            if (diffMillis < 1) {
+                return timeRangeError('End time must be after start time');
+            } else if (_.isNumber(maxTimeRangeMillis) && diffMillis > maxTimeRangeMillis) {
+                return timeRangeError('Range must be less than ' + $filter('millisToDHMS')(maxTimeRangeMillis, true));
+            }
+        }
+        if (!skipCookie) {
+            //Save cookie - expires in a year
+            cookies.put('dragonfish.wizard.time', 0, {startDtg: start, endDtg: end}, moment.utc().add(1, 'y'));
+        }
+        return {valid: true};
     };
 }])
 
