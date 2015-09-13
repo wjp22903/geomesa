@@ -821,7 +821,8 @@
                     [
                         'stealth.histogram',
                         'stealth.static',
-                        'stealth.timelapse'
+                        'stealth.timelapse',
+                        'stealth.p2p'
                     ]
                 </app.plugins>
                 <map.countriesOff>true</map.countriesOff>

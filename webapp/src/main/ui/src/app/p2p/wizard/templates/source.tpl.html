@@ -1,0 +1,67 @@
+<ng-form name="wizardForm">
+    <p>Select data source and identify important fields.</p>
+    <select class="form-control input-sm"
+            ng-model="p2pquery.layerData.currentLayer"
+            ng-init="p2pquery.layerData.currentLayer"
+            ng-change="p2pquery.getFeatureTypeDescription()"
+            ng-options="layer.Title for layer in p2pquery.layerData.layers | orderBy: 'Name'"
+            ng-disabled="!p2pquery.layerData.layers"
+            required>
+    </select>
+    <br>
+    <table>
+        <tr>
+            <td>
+                <label>Grouping Field</label>
+            </td>
+            <td>
+                <select class="form-control input-sm"
+                        ng-model="p2pquery.params.groupingField"
+                        ng-options="property.name for property in p2pquery.featureTypeData.featureTypes[0].properties | orderBy:'name'"
+                        ng-disabled="!p2pquery.featureTypeData.featureTypes[0].properties"
+                        required>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding-top:2px;">
+                <label>Sort field</label>
+            </td>
+            <td style="padding-top:2px;">
+                <select class="form-control input-sm"
+                        ng-model="p2pquery.params.sortField"
+                        ng-options="property.name for property in p2pquery.featureTypeData.featureTypes[0].properties | filter:{'localType':'date-time'}:true | orderBy:'name'"
+                        ng-disabled="!p2pquery.featureTypeData.featureTypes[0].properties"
+                        required>
+                </select>
+            </td>
+       </tr>
+       <tr>
+            <td style="padding-top:2px;">
+                <label>Time field</label>
+            </td>
+            <td style="padding-top:2px;">
+                <select class="form-control input-sm"
+                        ng-model="p2pquery.params.dtgField"
+                        ng-options="property.name for property in p2pquery.featureTypeData.featureTypes[0].properties | filter:{'localType':'date-time'}:true | orderBy:'name'"
+                        ng-disabled="!p2pquery.featureTypeData.featureTypes[0].properties"
+                        required>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding-top:2px;">
+                <label>Geometry field&nbsp;</label>
+            </td>
+            <td style="padding-top:2px;">
+                <select class="form-control input-sm"
+                        ng-model="p2pquery.params.geomField"
+                        ng-options="property.name for property in p2pquery.featureTypeData.featureTypes[0].properties | filter:{'localType':'Point'}:true | orderBy:'name'"
+                        ng-disabled="!p2pquery.featureTypeData.featureTypes[0].properties"
+                        required>
+                </select>
+            </td>
+        </tr>
+    </table>
+</ng-form>
+

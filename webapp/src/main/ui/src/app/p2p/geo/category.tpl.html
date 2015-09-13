@@ -1,0 +1,53 @@
+<div class="categoryGrouping">
+    <div class="categoryCell"><b>P2P</b></div>
+    <div class="categoryCell">
+        <span class="btn btn-default fa-stack toggleButton"
+              ng-click="launchP2pWizard()"
+              tooltip-html-unsafe="<span style='white-space:nowrap'>Run new P2P</span>"
+              tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
+              tooltip-trigger="mouseenter">
+            <i class="fa fa-fw fa-plus fa-stack-1x text-primary"></i>
+        </span>
+        </div>
+    </div>
+    <div ng-repeat="layer in layers" class="layerGrouping categoryIndent">
+        <div class="categoryCell" ng-if="layer.viewState.isLoading">
+            <i class="fa fa-circle-o-notch fa-spin"></i>
+        </div>
+        <div class="categoryCell">
+            <st-toggle-visibility ng-if="layer.viewState.isOnMap"
+                                  visible="layer.viewState.toggledOn"
+                                  toggle="toggleVisibility(layer)"></st-toggle-visibility>
+        </div>
+        <div class="categoryCell">
+            <span ng-show="!layer.editTitle" ng-dblclick="editTitle(layer)">{{layer.Title | characters:35:true}}</span>
+            <input type="text" ng-model="layer.Title" pattern=".{1,}" ng-show="layer.editTitle" ng-blur="editTitle(layer)">
+        </div>
+        <div class="categoryCell" ng-if="!layer.viewState.isLoading">
+            <span class="btn btn-default fa-stack toggleButton ng-scope" ng-click="removeLayer(layer)" tooltip-html-unsafe="<span style='white-space:nowrap'>Remove Layer</span>" tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500" tooltip-trigger="mouseenter">
+                <i class="fa fa-fw fa-remove fa-stack-1x text-danger"></i>
+            </span>
+        </div>
+    </div>
+</div>
+<div class="categoryGrouping">
+    <div ng-repeat="p2p in p2players" class="layerGrouping categoryIndent">
+        <div class="categoryCell" ng-if="p2p.viewState.isLoading">
+            <i class="fa fa-circle-o-notch fa-spin"></i>
+        </div>
+        <div class="categoryCell">
+            <st-toggle-visibility ng-if="p2p.viewState.isOnMap"
+                                  visible="p2p.viewState.toggledOn"
+                                  toggle="toggleVisibility(p2p)"></st-toggle-visibility>
+        </div>
+        <div class="categoryCell">
+            <span ng-show="!p2p.editTitle" ng-dblclick="editTitle(p2p)">{{p2p.Title | characters:35:true}}</span>
+            <input type="text" ng-model="p2p.Title" pattern=".{1,}" ng-show="p2p.editTitle" ng-blur="editTitle(p2p)">
+        </div>
+        <div class="categoryCell" ng-if="!p2p.viewState.isLoading">
+            <span class="btn btn-default fa-stack toggleButton ng-scope" ng-click="removeLayer(p2p)" tooltip-html-unsafe="<span style='white-space:nowrap'>Remove Layer</span>" tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500" tooltip-trigger="mouseenter">
+                <i class="fa fa-fw fa-remove fa-stack-1x text-danger"></i>
+            </span>
+        </div>
+    </div>
+</div>

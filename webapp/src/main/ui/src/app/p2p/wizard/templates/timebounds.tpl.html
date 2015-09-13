@@ -1,0 +1,23 @@
+<ng-form name="wizardForm">
+    <p>
+        Enter time bounds.
+    </p>
+    <table style="border-collapse:separate;border-spacing:2px;">
+        <tr>
+            <td><label>Start: </label></td>
+            <td>
+                <input type="text" ng-model="p2pquery.params.startDtg" ui-jq="datetimepicker"
+                       ui-options="{todayButton: false, yearStart: 1990, yearEnd: 2030, step: 15, format: 'Y-m-d H:i'}"
+                       st-utc-moment-format="YYYY-MM-DD HH:mm" style="width:120px;" required> Z
+            </td>
+        </tr>
+        <tr>
+            <td><label>End: </label></td>
+            <td>
+                <input type="text" ng-model="p2pquery.params.endDtg" ui-jq="datetimepicker"
+                       ui-options="{todayButton: false, yearStart: 1990, yearEnd: 2030, step: 15, format: 'Y-m-d H:i'}"
+                       st-utc-moment-format="YYYY-MM-DD HH:mm" style="width:120px;" required> Z
+            </td>
+        </tr>
+    </table>
+</ng-form>

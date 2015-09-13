@@ -37,7 +37,7 @@ function ($log, $q, wfs, colors, ol3Styles, clickSearchHelper, MapLayer, GeoJson
             fillColor: colors.getColor(),
             size: 4
         };
-        var _styleFunction = function (feature) {
+        var _styleFunction = options.styleFn || function (feature) {
             var style = [];
             switch (feature.getGeometry().getType()) {
                 case 'MultiLineString':
@@ -64,9 +64,8 @@ function ($log, $q, wfs, colors, ol3Styles, clickSearchHelper, MapLayer, GeoJson
             features: []
         });
         var _loadFeatures = function (features) {
-            var parsedFeatures = parser.readFeatures(features);
             var existingFeatures = _olSource.getFeatures();
-            _.each(parsedFeatures, function (feature) {
+            _.each(features, function (feature) {
                 var featureId = feature.getId();
                 var existingFeature = _.find(existingFeatures, function (ef) {
                     return ef.getId() === featureId;
@@ -98,7 +97,7 @@ function ($log, $q, wfs, colors, ol3Styles, clickSearchHelper, MapLayer, GeoJson
                 _self.styleDirectiveScope.$emit(_self.id + ':finishedLoading');
             });
         };
-        var _query = function () {
+        var _query = options.queryFn || function () {
             _loadStart();
             wfs.getFeature(_geoserverUrl, _typeName, CONFIG.geoserver.omitProxy, _requestParams)
             .success(function (data, status, headers) { //eslint-disable-line no-unused-vars
@@ -112,7 +111,8 @@ function ($log, $q, wfs, colors, ol3Styles, clickSearchHelper, MapLayer, GeoJson
                     _viewState.isError = true;
                     _viewState.errorMsg = 'No results';
                 } else {
-                    _loadFeatures(data);
+                    var parsedFeatures = parser.readFeatures(data);
+                    _loadFeatures(parsedFeatures);
                 }
             })
             .error(function (data, status, headers, config, statusText) { //eslint-disable-line no-unused-vars
@@ -198,6 +198,9 @@ function ($log, $q, wfs, colors, ol3Styles, clickSearchHelper, MapLayer, GeoJson
             }));
         };
 
+        this.loadStart = _loadStart;
+        this.loadEnd = _loadEnd;
+        this.loadFeatures = _loadFeatures;
         _query();
     };
     GeoJsonVectorLayer.prototype = Object.create(MapLayer.prototype);
