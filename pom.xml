@@ -111,9 +111,9 @@
                     minVersion: 10,
                     preferred: ["Firefox", "Chrome"]
                 },
-                "Internet Explorer": {
-                    name: "Internet Explorer",
-                    minVersion: 11,
+                msedge: {
+                    name: "Microsoft Edge",
+                    minVersion: 20,
                     preferred: ["Firefox", "Chrome"]
                 }
             }
