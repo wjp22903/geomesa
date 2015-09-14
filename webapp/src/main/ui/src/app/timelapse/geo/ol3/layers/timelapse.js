@@ -324,7 +324,7 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
         this.searchPoint = function (coord, res) {
             var activeStores = _.filter(_stores, function (store) {
                 var viewState = store.getViewState();
-                return viewState.toggledOn && !viewState.isError;
+                return viewState.toggledOn && !viewState.isError && viewState.isDataReady();
             });
             return _.map(activeStores, function (store, index) {
                 return store.searchPointAndTime(coord, res, _startMillis, _endMillis)
