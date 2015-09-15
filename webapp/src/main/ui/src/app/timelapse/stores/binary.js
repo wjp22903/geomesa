@@ -38,7 +38,7 @@ function ($log, $q, $filter, toastr, colors, clickSearchHelper, sorter) {
                 _layerThisBelongsTo.redrawCurrent();
             }
         };
-        _setPointRadius(pointRadius || 4);
+        _setPointRadius(pointRadius || 1);
 
         var _name = name || 'unknown';
         var _colorBy = colorBy;
@@ -71,7 +71,8 @@ function ($log, $q, $filter, toastr, colors, clickSearchHelper, sorter) {
             size: _pointRadius,
             fillColor: _fillColorHexString,
             opacity: _opacity,
-            colorById: false
+            colorById: false,
+            relativeSizing: true
         };
 
         // Getters and setters for display properties

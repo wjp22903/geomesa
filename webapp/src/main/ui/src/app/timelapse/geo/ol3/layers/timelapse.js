@@ -88,7 +88,7 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
         // Transient drawing parameters.
         var _iDiv = 0;
         var _x, _y, _idx, _center, _rgba, _rampFactor;
-        var _curSize = [0, 0], _curExtent = [0, 0, 0, 0];
+        var _curSize = [0, 0], _curExtent = [0, 0, 0, 0], _curResolution = 0, _curZoomLevel = 0;
         var _startMillis = 0, _endMillis = 0, _windowMillis = 0, _windowSeconds = 0, _windowBeginSeconds = 0;
         var zn, x, y, y2, pixel, yw, lat, lon;
         var south, north, west, east;
@@ -100,7 +100,10 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
 
         // Function called by OL3 to update canvas.
         var _drawFn = function (extent, resolution, pixelRatio, size, projection) { //eslint-disable-line no-unused-vars
-            if (sizeChanged(_curSize, size) || extentChanged(_curExtent, extent)) {
+            if (sizeChanged(_curSize, size) || extentChanged(_curExtent, extent) || _curResolution !== resolution) {
+                var projExtent = projection.getExtent();
+                var maxExtent = Math.max(projExtent[2] - projExtent[0], projExtent[3] - projExtent[1]);
+
                 // Update size parameters.
                 _curSize = angular.copy(size);
                 _curExtent = angular.copy(extent);
@@ -125,6 +128,10 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
                 _lonFactor = _w / (_bounds.east - _bounds.west);
                 _latFactor = _h / (_bounds.north - _bounds.south);
 
+                // Update current projection and resolution.
+                _curResolution = resolution;
+                _curZoomLevel = Math.log(maxExtent / (resolution * 256)) / Math.LN2;
+
                 // Fill new image buffer now to prevent flicker effect.
                 _.eachRight(_stores, function (store) {
                     if (store.getViewState().toggledOn) {
@@ -148,7 +155,12 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
             iLower = store.getLowerBoundIdx(_startMillis);
             iUpper = store.getUpperBoundIdx(_endMillis);
 
-            rMinus1 = store.getPointRadius() - 1;
+            if (store.getViewState().relativeSizing) {
+                // Map is created with minZoom set to 2, so only add to radius after zoom level 2.
+                rMinus1 = Math.min(100, store.getPointRadius() + (_curZoomLevel - 2)) - 1;
+            } else {
+                rMinus1 = store.getPointRadius() - 1;
+            }
             radiusRamp = _radiusRamps[rMinus1];
             r2Plus1Ramp = _r2Plus1Ramps[rMinus1];
             alphaRamp = _alphaRamps[store.getOpacity() - 1];
