@@ -3,7 +3,8 @@
  */
 angular.module('stealth.dragonfish.classifier.wizard', [
     'stealth.dragonfish',
-    'stealth.dragonfish.classifier.runner'
+    'stealth.dragonfish.classifier.runner',
+    'stealth.timelapse.wizard.bounds'
 ])
 
 /**
@@ -11,16 +12,24 @@ angular.module('stealth.dragonfish.classifier.wizard', [
  */
 .service('stealth.dragonfish.classifier.wizard.scope', [
 '$rootScope',
+'stealth.core.utils.WidgetDef',
 'stealth.dragonfish.classifier.service',
 'stealth.dragonfish.classifier.runner.Constant',
 'stealth.dragonfish.classifier.runner.QueryParams',
-function ($rootScope, classifierService, runnerConstant, QueryParams) {
+function ($rootScope, WidgetDef, classifierService, runnerConstant, QueryParams) {
     var _creations = 0;
 
     this.create = function () {
         var wizardScope = $rootScope.$new();
         wizardScope.constant = runnerConstant;
         wizardScope.query = new QueryParams('Classifier Application ' + (_creations + 1));
+        wizardScope.drawBoundsWidgetDef = new WidgetDef('st-df-wiz-bounds', wizardScope);
+        wizardScope.isGeomSource = function () {
+            return wizardScope.query.geomSource === runnerConstant.geom;
+        };
+        wizardScope.isImageIdSource = function () {
+            return wizardScope.query.geomSource === runnerConstant.byid;
+        };
         classifierService.getClassifiers()
             .then(function (classifiers) {
                 wizardScope.classifiers = classifiers;
@@ -47,7 +56,7 @@ function ($rootScope, wizardManager, Wizard, Step, WidgetDef, DF, ClassConstant,
         var scope = wizardScope.create();
         wizardManager.launchWizard(
             new Wizard('Apply Classifier', DF.icon, 'fa-check text-success', [
-                new Step('Select and Configure Classifier', new WidgetDef('st-df-cl-wiz', scope), null, true,
+                new Step('Select and Configure Classifier', new WidgetDef('st-df-cl-wiz', scope), null, false,
                     _.noop,
                     function (success) {
                         if (success) {
@@ -73,4 +82,16 @@ function () {
         templateUrl: 'dragonfish/classifier/wizard.tpl.html'
     };
 }])
+
+/**
+ * Simple bounds template, uses controller from timelapse module
+ */
+.directive('stDfWizBounds',
+function () {
+    return {
+        restrict: 'E',
+        templateUrl: 'dragonfish/classifier/bounds.tpl.html',
+        controller: 'boundWizController'
+    };
+})
 ;

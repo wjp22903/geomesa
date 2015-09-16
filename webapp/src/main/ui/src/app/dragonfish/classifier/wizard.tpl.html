@@ -1,62 +1,76 @@
 <ng-form name="wizardForm">
-    <table style="width:500px">
-        <tr><td><select class="form-control input-sm"
-                ng-model="query.classifier"
-                ng-init="classifiers[0]"
-                ng-options="classifier.name for classifier in classifiers | orderBy: 'name'"
-                required>
-                <option value="" selected disabled>Select a Classifier</option>
-        </select></td></tr>
-        <tr><td><select class="form-control input-sm"
-                ng-model="query.classifierLabel"
-                ng-init="query.classifier.labels[0]"
-                ng-options="label for label in query.classifier.labels"
-                required>
-                <option value="" selected disabled>Select a Label</option>
-        </select></td></tr>
-
-        <!-- Only one of these should be chosen. Geometry should be via drawing. No inline styles -->
-        <table>
-            <tr ng-click="query.geomSource = constant.geom">
-                <td>
-                    <input type="radio"
-                        aria-label="by geometry"
-                        name="geomSource"
-                        ng-model="query.geomSource"
-                        ng-value="constant.geom" />
-                </td>
-                <td>
-                    <input type="text"
-                        placeholder="Enter Geometry"
-                        ng-disabled="query.geomSource !== constant.geom"
-                        ng-model="query.geom"
-                        ng-required="query.geomSource === constant.geom"
-                        class="form-control input-sm df-wizard-text-input" />
-                </td>
-            </tr>
-            <tr ng-click="query.geomSource = constant.byid">
-                <td>
-                    <input type="radio"
-                        aria-label="by image id"
-                        name="geomSource"
-                        ng-model="query.geomSource"
-                        ng-value="constant.byid" />
-                </td>
-                <td>
-                    <input type="text"
-                        placeholder="Enter Image ID"
-                        ng-disabled="query.geomSource !== constant.byid"
-                        ng-model="query.imageId"
-                        ng-required="query.geomSource === constant.byid"
-                        class="form-control input-sm df-wizard-text-input" />
-                </td>
-            </tr>
-        </table>
-
-        <!-- Only an input when not using an image id. Otherwise the time is the time of the image -->
-        <tr><td><input type="text" placeholder="CQL filter" ng-model="query.time" class="df-wizard-text-input" /></td></tr>
-
-        <!-- Only visible for imagery classifiers. Defaults to false -->
-        <tr><td><label><input type="checkbox" ng-model="query.slidingWindow" /> Use sliding window</label></td></tr>
+    <table class="df-wizard-table" ng-hide="boundWiz.drawing">
+        <tr>
+            <td>
+                <select class="form-control input-sm"
+                    ng-model="query.classifier"
+                    ng-init="classifiers[0]"
+                    ng-options="classifier.name for classifier in classifiers | orderBy: 'name'"
+                    required>
+                    <option value="" selected disabled>Select a Classifier</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <select class="form-control input-sm"
+                    ng-model="query.classifierLabel"
+                    ng-init="query.classifier.labels[0]"
+                    ng-options="label for label in query.classifier.labels"
+                    required>
+                    <option value="" selected disabled>Select a Label</option>
+                </select>
+            </td>
+        </tr>
+    </table>
+    <table class="df-wizard-table" ng-hide="boundWiz.drawing">
+        <tr ng-click="query.geomSource = constant.byid">
+            <td>
+                <input type="radio"
+                    aria-label="by image id"
+                    name="geomSource"
+                    ng-model="query.geomSource"
+                    ng-value="constant.byid"
+                    class="df-wizard-selector" />
+                <input type="text"
+                    placeholder="Enter Image ID"
+                    ng-disabled="!isImageIdSource()"
+                    ng-model="query.imageId"
+                    ng-required="isImageIdSource()"
+                    class="form-control input-sm df-wizard-text-input df-wizard-selector" />
+            </td>
+        </tr>
+    </table>
+    <table class="df-wizard-table">
+        <tr ng-click="query.geomSource = constant.geom">
+            <td ng-hide="boundWiz.drawing">
+                <input type="radio"
+                    aria-label="by geometry"
+                    name="geomSource"
+                    ng-model="query.geomSource"
+                    ng-value="constant.geom"
+                    class="df-wizard-selector" />
+                <label ng-class="{'ng-hide': isGeomSource()}" class="df-wizard-bounds-title">
+                    Bounding Box
+                </label>
+            </td>
+            <td>
+                <st-widget-compiler widget-def="drawBoundsWidgetDef">
+                </st-widget-compiler>
+            </td>
+        </tr>
+        <tr ng-class="{'ng-hide': !isGeomSource()}">
+            <td/>
+            <td ng-hide="boundWiz.drawing" colspan="2">
+                <!-- Only an input when not using an image id. Otherwise the time is the time of the image -->
+                <input type="text" placeholder="CQL filter" ng-model="query.time" class="df-wizard-text-input" />
+            </td>
+        </tr>
+    </table>
+    <table class="df-wizard-table" ng-hide="boundWiz.drawing">
+        <tr>
+            <!-- Only visible for imagery classifiers. Defaults to false -->
+            <td><label><input type="checkbox" ng-model="query.slidingWindow" /> Use sliding window</label></td>
+        </tr>
     </table>
 </ng-form>
