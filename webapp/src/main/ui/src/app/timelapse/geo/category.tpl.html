@@ -80,7 +80,7 @@
                 </div>
                 <div class="categoryCell" style="width:100%">
                     <input type="text" ng-model="filterLayer.Title" style="border-radius:3px;width:100%;"
-                           ng-change="updateLiveLayerName(filterLayer)">
+                           st-change="updateLiveLayerName(filterLayer)">
                 </div>
                 <div class="categoryCell">
                     <span class="btn btn-default fa-stack toggleButton"
@@ -116,25 +116,21 @@
                                    class="form-control input-sm"
                                    placeholder="Enter search term"
                                    st-select-text-on-focus
-                                   st-enter="handleLiveFilterTextChange(filterLayer)"
-                                   ng-change="handleLiveFilterTextChange(filterLayer, 1000)"
-                                   ng-blur="handleLiveFilterTextChange(filterLayer)"
+                                   st-change="handleLiveFilterTextChange(filterLayer)"
+                                   st-change-delay="1000"
                                    ng-model="filterLayer.options.cql.freeText">
                         </div>
                     </div>
                     <div style="padding:4px 8px;" ng-class="{'ng-hide': !(filterLayer.options.showCql)}">
                         <div class="categoryCell">CQL:</div>
                         <div class="categoryCell" style="width:100%;">
-                            <form ng-submit="handleLiveFilterExtraCqlChange(filterLayer)">
-                                <input type="text"
-                                       class="form-control input-sm"
-                                       placeholder="Enter CQL"
-                                       st-select-text-on-focus
-                                       st-enter="handleLiveFilterExtraCqlChange(filterLayer)"
-                                       ng-change="handleLiveFilterExtraCqlChange(filterLayer, 1000)"
-                                       ng-blur="handleLiveFilterExtraCqlChange(filterLayer)"
-                                       ng-model="filterLayer.options.cql.value">
-                            </form>
+                            <input type="text"
+                                   class="form-control input-sm"
+                                   placeholder="Enter CQL"
+                                   st-select-text-on-focus
+                                   st-change="handleLiveFilterExtraCqlChange(filterLayer)"
+                                   st-change-delay="1000"
+                                   ng-model="filterLayer.options.cql.value">
                         </div>
                     </div>
                     <div ng-class="{'ng-hide': filterLayer.options.showCql || !(filterLayer.layerThisBelongsTo.KeywordConfig.search.text.field | lodash:'isEmpty')}">
@@ -164,12 +160,14 @@
                         </div>
                         <div class="categoryCell">CQL:</div>
                         <div class="categoryCell" style="width:510px;">
-                            <form ng-submit="handleLiveFilterExtraCqlChange(filterLayer)">
-                                <input type="text"
-                                       ng-blur="handleLiveFilterExtraCqlChange(filterLayer)"
-                                       ng-model="filterLayer.options.cql.value"
-                                       style="width:100%;border-radius:3px">
-                            </form>
+                            <input type="text"
+                                   class="form-control input-sm"
+                                   placeholder="Enter CQL"
+                                   st-select-text-on-focus
+                                   st-change="handleLiveFilterExtraCqlChange(filterLayer)"
+                                   st-change-delay="1000"
+                                   ng-model="filterLayer.options.cql.value"
+                                   style="width:100%;border-radius:3px">
                         </div>
                         <div>
                             <div class="categoryCell categoryIndent">
