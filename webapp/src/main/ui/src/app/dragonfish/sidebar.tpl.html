@@ -15,9 +15,9 @@
         <ul class="list-unstyled">
             <li class="df-class-result"
                 ng-repeat="result in results | startFrom:(paging.currentPage-1)*paging.pageSize | limitTo:paging.pageSize">
-                <h4>{{result.name}}</h4>
-                <h5>{{result.score}}</h5>
-                <p>{{result.desc}}</p>
+                <h4>{{scoredEntityService.name(result)}}</h4>
+                <h5>{{scoredEntityService.score(result)}}</h5>
+                <p>{{scoredEntityService.description(result)}}</p>
                 <button class="btn btn-primary btn-xs" ng-click="searchSimilar(result)">
                     More Like This
                 </button>

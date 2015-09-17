@@ -79,14 +79,14 @@ function ($filter, cookies) {
 .service('stealth.dragonfish.classifier.runner.service', [
 '$log',
 '$q',
-'stealth.dragonfish.ScoredEntity',
-function ($log, $q, ScoredEntity) {
+'stealth.dragonfish.scoredEntity',
+function ($log, $q, scoredEntity) {
     this.run = function (queryParams) {
         $log.debug(queryParams); // no eslint error. we'll certainly use queryParams when we make the wps
         return $q.when([
-            new ScoredEntity('1234', 'Hospital 1', 0.98, '', '', '', ''),
-            new ScoredEntity('5678', 'Hospital 2', 0.89, '', '', '', ''),
-            new ScoredEntity('9182', 'Hospitality Enterprises', 0.63, '', '', '', '')
+            scoredEntity('1234', 'Hospital 1', 0.98, '', '', '', ''),
+            scoredEntity('5678', 'Hospital 2', 0.89, '', '', '', ''),
+            scoredEntity('9182', 'Hospitality Enterprises', 0.63, '', '', '', '')
         ]);
     };
 }])

@@ -21,10 +21,11 @@ function () {
 }])
 
 .service('stealth.dragonfish.similarity.runner.QueryParamsService', [
+'stealth.dragonfish.scoredEntityService',
 'stealth.dragonfish.similarity.runner.QueryParams',
-function (QueryParams) {
+function (scoredEntityService, QueryParams) {
     this.runnerParams = function (scoredEntity) {
-        return new QueryParams("Entities similar to " + scoredEntity.name, scoredEntity.id);
+        return new QueryParams("Entities similar to " + scoredEntityService.name(scoredEntity), scoredEntityService.id(scoredEntity));
     };
 }])
 
@@ -35,13 +36,13 @@ function (QueryParams) {
 .service('stealth.dragonfish.similarity.runner.service', [
 '$log',
 '$q',
-'stealth.dragonfish.ScoredEntity',
-function ($log, $q, ScoredEntity) {
+'stealth.dragonfish.scoredEntity',
+function ($log, $q, scoredEntity) {
     this.run = function (queryParams) {
         $log.debug(queryParams); // no eslint error. we'll certainly use queryParams when we make the wps
         return $q.when([
-            new ScoredEntity('abcd', 'Entity X', 0.97, '', '', '', ''),
-            new ScoredEntity('efgh', 'Entity Y', 0.91, '', '', '', '')
+            scoredEntity('abcd', 'Entity X', 0.97, '', '', '', ''),
+            scoredEntity('efgh', 'Entity Y', 0.91, '', '', '', '')
         ]);
     };
 }])

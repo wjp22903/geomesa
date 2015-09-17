@@ -18,28 +18,36 @@ angular.module('stealth.dragonfish', [
 /**
  * The entities we'll show as a result of our first two analytics both have basically the same shape (for now, anyway),
  * which is captured by this class.
- *
- * Realistically, the results probably should come back as a SimpleFeatureCollection. We can refactor
- * ScoredEntity, here represented as a class, to almost more of a typeclass via a service:
- *    service('scoredEntity', [
- *    function () {
- *       this.id = function (result) { return result.get('id'); // when result is a ol3.Feature. for now, the service could just do result.id
- *       // similar accessor functions for the other fields of a Result, below
- *    }])
- * Switching to a 'typeclass' pattern like this would let us quickly change the return type, without changing
- * any 'client' code, as long as the clients do all accessing of result data through the typeclass.
  */
-.factory('stealth.dragonfish.ScoredEntity', [
+
+.factory('stealth.dragonfish.scoredEntity', [
 function () {
     return function (id, name, score, geom, time, thumbnail, description) {
-        this.id = id;
-        this.name = name;
-        this.score = score;
-        this.geom = geom;
-        this.time = time;
-        this.thumbnail = thumbnail;
-        this.description = description;
+        return new ol.Feature({
+            id: id,
+            name: name,
+            score: score,
+            geometry: geom || null, //can crash if given empty string
+            time: time,
+            thumbnail: thumbnail,
+            description: description
+        });
     };
+}])
+
+/**
+ * Service for getting properties from ScoredEntities.
+ * Expects ol.Feature objects
+ */
+.service('stealth.dragonfish.scoredEntityService', [
+function () {
+    this.id    = function (entity) { return entity.get('id'); };
+    this.name  = function (entity) { return entity.get('name'); };
+    this.score = function (entity) { return entity.get('score'); };
+    this.geom  = function (entity) { return entity.getGeometry(); }; //ol.geom.getGeometry
+    this.time  = function (entity) { return entity.get('time'); };
+    this.thumbnail   = function (entity) { return entity.get('thumbnail'); };
+    this.description = function (entity) { return entity.get('description'); };
 }])
 
 /**
@@ -48,14 +56,16 @@ function () {
  */
 .service('stealth.dragonfish.sidebarService', [
 '$rootScope',
+'stealth.dragonfish.scoredEntityService',
 'stealth.dragonfish.similarity.Constant',
 'stealth.dragonfish.similarity.runner.QueryParamsService',
-function ($rootScope, SimConstant, simQueryService) {
+function ($rootScope, scoredEntityService, SimConstant, simQueryService) {
     // make sure to call scope.$destroy() when you're done with what we give you
     this.createScope = function (req, results) {
         var scope = $rootScope.$new();
         scope.request = req;
         scope.results = results;
+        scope.scoredEntityService = scoredEntityService;
 
         scope.searchSimilar = function (result) {
             $rootScope.$emit(SimConstant.applyEvent, simQueryService.runnerParams(result));
