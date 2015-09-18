@@ -156,8 +156,10 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
             iUpper = store.getUpperBoundIdx(_endMillis);
 
             if (store.getViewState().relativeSizing) {
-                // Map is created with minZoom set to 2, so only add to radius after zoom level 2.
-                rMinus1 = Math.min(100, store.getPointRadius() + (_curZoomLevel - 2)) - 1;
+                // Map is created with minZoom=2 and maxZoom=17.
+                // Only add to radius after zoom level 2.
+                // Adjust down to allow 1 pixel points at max zoom.
+                rMinus1 = Math.max(0, Math.min(100, store.getPointRadius() + (_curZoomLevel - 2) - 16));
             } else {
                 rMinus1 = store.getPointRadius() - 1;
             }

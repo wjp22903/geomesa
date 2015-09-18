@@ -38,7 +38,7 @@ function ($log, $q, $filter, toastr, colors, clickSearchHelper, sorter) {
                 _layerThisBelongsTo.redrawCurrent();
             }
         };
-        _setPointRadius(pointRadius || 1);
+        _setPointRadius(pointRadius || 15);
 
         var _name = name || 'unknown';
         var _colorBy = colorBy;
