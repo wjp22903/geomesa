@@ -51,7 +51,8 @@ module.exports = {
             'vendor/bower/mathjs/dist/math.js',
             'vendor/bower/openlayers/OpenLayers.debug.js',
             'vendor/bower/long/dist/Long.js',
-            'vendor/bower/isteven-angular-multiselect/isteven-multi-select.js'
+            'vendor/bower/isteven-angular-multiselect/isteven-multi-select.js',
+            'vendor/bower/css-element-queries/src/ResizeSensor.js'
         ],
         assets_nested: [
         ],
