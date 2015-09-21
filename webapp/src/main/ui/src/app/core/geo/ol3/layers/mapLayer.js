@@ -1,4 +1,5 @@
 angular.module('stealth.core.geo.ol3.layers', [
+    'ccri.angular-utils',
     'stealth.core.popup.capabilities',
     'stealth.core.utils'
 ])
@@ -9,8 +10,9 @@ angular.module('stealth.core.geo.ol3.layers', [
 '$q',
 '$timeout',
 'coreCapabilitiesExtender',
+'ccri.angular-utils.WidgetDef',
 'stealth.core.utils.WidgetDef',
-function ($log, $rootScope, $q, $timeout, coreCapabilitiesExtender, WidgetDef) {
+function ($log, $rootScope, $q, $timeout, coreCapabilitiesExtender, WidgetDef, OldWidgetDef) {
     var tag = 'stealth.core.geo.ol3.layers.MapLayer: ';
     $log.debug(tag + 'factory started');
     var _idSeq = 0;
@@ -189,7 +191,7 @@ function ($log, $rootScope, $q, $timeout, coreCapabilitiesExtender, WidgetDef) {
                     widgetDef: (response.isError ||
                         !_.isArray(response.records) ||
                         _.isEmpty(response.records)) ?
-                            null : new WidgetDef('st-popup-paged-table', s, "result='result' on-remove-all='onRemoveAll'")
+                            null : new OldWidgetDef('st-popup-paged-table', s, "result='result' on-remove-all='onRemoveAll'")
                 };
             };
         }
@@ -197,14 +199,16 @@ function ($log, $rootScope, $q, $timeout, coreCapabilitiesExtender, WidgetDef) {
     };
 
     /**
-     * @returns {stealth.core.utils.WidgetDef} Layer's style widget
+     * @returns {ccri.angular-utils.WidgetDef} Layer's style widget
      * @public
      */
     MapLayer.prototype.getStyleDisplayDef = function () {
         if (!this.styleDisplayDef) {
-            this.styleDisplayDef = new WidgetDef(
-                this.styleDirective, this.styleDirectiveScope,
-                this.styleDirectiveIsoScopeAttrs);
+            this.styleDisplayDef = new WidgetDef({
+                directive: this.styleDirective,
+                scope: this.styleDirectiveScope,
+                isoScopeAttrs: this.styleDirectiveIsoScopeAttrs
+            });
         }
         return this.styleDisplayDef;
     };
@@ -242,5 +246,4 @@ function ($log) {
         template: '<ui-include src="fragmentUrl" fragment="\'.layerStyleMapLayer\'"></ui-include>'
     };
 }])
-
 ;

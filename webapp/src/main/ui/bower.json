@@ -16,6 +16,7 @@
     "animate.css": "3.4.0",
     "bootstrap": "3.3.5",
     "bowser": "1.0.0",
+    "ccri.angular-utils": "http://art.ccri.com:8081/artifactory/libs-release-local/com/ccri/commons-ui/ccri.angular-utils/0.2.1/ccri.angular-utils-0.2.1.zip",
     "css-element-queries": "0.3.0",
     "d3": "3.4.13",
     "datetimepicker": "2.4.5",

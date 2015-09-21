@@ -1,4 +1,5 @@
 angular.module('stealth.core.popup.components', [
+    'ccri.angular-utils',
     'stealth.core.utils'
 ])
 

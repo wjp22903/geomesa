@@ -246,7 +246,6 @@ module.exports = function (grunt) {
             tasks: ['index:build']
         },
         js: {
-            options: {cwd: '.'},
             files: ['<%= appFiles.js %>'],
             tasks: ['eslint:src', 'karma:spec:run', 'copy:build_appjs']
         },
@@ -266,6 +265,18 @@ module.exports = function (grunt) {
         jst: {
             files: ['src/templates/**/*.jst.*'],
             tasks: ['jst:compile']
+        },
+        vendor_assets: {
+            files: ['<%= vendorFiles.assets_nested %>', '<%= vendorFiles.assets %>', '<%= vendorFiles.fonts %>', '<%= vendorFiles.css.images %>'],
+            tasks: ['copy:build_vendor_assets']
+        },
+        vendor_js: {
+            files: ['<%= vendorFiles.js %>', '<%= vendorFiles.map %>'],
+            tasks: ['copy:build_vendorjs', 'copy:build_vendor_maps']
+        },
+        vendor_css: {
+            files: ['<%= vendorFiles.css.files %>'],
+            tasks: ['stylus:build']
         }
     });
 

@@ -35,6 +35,7 @@ module.exports = {
             'vendor/bower/angular-animate/angular-animate.js',
             'vendor/bower/angular-cookies/angular-cookies.js',
             'vendor/bower/angular-ui-utils/ui-utils.js',
+            'vendor/bower/ccri.angular-utils/ccri.angular-utils.js',
             'vendor/bower/momentjs/min/moment.min.js',
             'vendor/bower/angular-ui-bootstrap-bower/ui-bootstrap-tpls.js',
             'vendor/bower/bowser/bowser.js',
@@ -64,6 +65,7 @@ module.exports = {
             'vendor/bower/bootstrap/fonts/*'
         ],
         css: {
+            files: ['vendor/bower/**/*.css'],
             images: [
                 'vendor/bower/jquery-ui/themes/smoothness/images/*'
             ]

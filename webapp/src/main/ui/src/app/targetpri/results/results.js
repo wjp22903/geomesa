@@ -1,4 +1,5 @@
 angular.module('stealth.targetpri.results', [
+    'ccri.angular-utils',
     'stealth.core.geo.ol3.geodetics'
 ])
 

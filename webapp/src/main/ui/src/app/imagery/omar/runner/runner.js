@@ -1,4 +1,5 @@
 angular.module('stealth.imagery.omar.runner', [
+    'ccri.angular-utils',
     'stealth.core.geo.ol3.map',
     'stealth.core.geo.ol3.overlays',
     'stealth.core.geo.ol3.utils',

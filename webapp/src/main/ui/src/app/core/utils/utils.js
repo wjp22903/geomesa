@@ -44,12 +44,6 @@ function ($log) {
     };
 }])
 
-.filter('lodash', function () {
-    return function (value, fnName) {
-        return _[fnName].apply(this, [value].concat(Array.prototype.slice.call(arguments, 2)));
-    };
-})
-
 .filter('momentFormat', function () {
     return function (value, format) {
         return value.format(format);
@@ -95,35 +89,6 @@ function () {
     }
 })
 
-.filter('startFrom', [
-function () {
-    return function (input, start) {
-        if (_.isArray(input)) {
-            start = +start; //parse to int
-            if (start < 0) {
-                start = 0;
-            }
-            if (start > input.length - 1) {
-                start = input.length;
-            }
-            return input.slice(start);
-        }
-        return 0;
-    };
-}])
-
-//Replacement for regular string.split() that will
-//split only the number of times specified by limit.
-.filter('splitLimit', [
-function () {
-    return function (text, delimiter, limit) {
-        var arr = text.split(delimiter);
-        var result = arr.splice(0, limit);
-        result.push(arr.join(delimiter));
-        return result;
-    };
-}])
-
 .directive('stSelectTextOnFocus', [
 '$timeout',
 function ($timeout) {
@@ -135,26 +100,6 @@ function ($timeout) {
                     $timeout(function () {
                         element.select();
                     }, 5);
-                });
-            }
-        }
-    };
-}])
-
-.directive('stEnter', [
-'$parse',
-function ($parse) {
-    return {
-        restrict: 'A',
-        link: function (scope, element, attrs) {
-            var fn = $parse(attrs['stEnter']);
-            if (_.isFunction(fn)) {
-                element.on('keypress', function (event) {
-                    if (event.keyCode === 13) {
-                        scope.$evalAsync(function () {
-                            fn(scope);
-                        });
-                    }
                 });
             }
         }

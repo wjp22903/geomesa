@@ -1,4 +1,6 @@
-angular.module('stealth.core.geo.ows')
+angular.module('stealth.core.geo.ows', [
+    'ccri.angular-utils'
+])
 
 .service('owsLayers', [
 '$filter',
