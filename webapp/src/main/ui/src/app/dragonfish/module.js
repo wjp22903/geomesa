@@ -8,6 +8,7 @@
  */
 angular.module('stealth.dragonfish', [
     'stealth.dragonfish.classifier',
+    'stealth.dragonfish.geo.ol3.layers',
     'stealth.dragonfish.similarity'
 ])
 
@@ -81,16 +82,19 @@ function ($rootScope, scoredEntityService, SimConstant, simQueryService) {
 
 /**
  * This service provides a 'display' method to show the results of applying a classifier or running a similarity search.
- * This method sets up a new category and populates the sidebar.
+ * This method sets up a new category, adds the results to the map, and populates the sidebar.
  */
 .service('stealth.dragonfish.resultsService', [
+'$rootScope',
 'categoryManager',
 'sidebarManager',
 'stealth.core.geo.analysis.category.AnalysisCategory',
 'stealth.core.utils.WidgetDef',
 'stealth.dragonfish.Constant',
 'stealth.dragonfish.sidebarService',
-function (catMgr, sidebarManager, AnalysisCategory, WidgetDef, DF, sidebarService) {
+'stealth.dragonfish.geo.ol3.layers.EntityLayer',
+'stealth.dragonfish.geo.ol3.layers.EntityConstant',
+function ($rootScope, catMgr, sidebarManager, AnalysisCategory, WidgetDef, DF, sidebarService, EntityLayer, EL) {
     this.display = function (req, results) {
         var scope = sidebarService.createScope(req, results);
 
@@ -99,8 +103,16 @@ function (catMgr, sidebarManager, AnalysisCategory, WidgetDef, DF, sidebarServic
             scope.$destroy();
         }));
 
+        // populate the Map
+        if (!_.isEmpty(scope.results)) {
+            scope.entityLayer = new EntityLayer({name: scope.request.name, features: scope.results, categoryId: category.id});
+            category.addLayer(scope.entityLayer);
+        }
+
         var destroy = function () {
-            catMgr.removeCategory(category.id);
+            if (scope.entityLayer) {
+                $rootScope.$emit(EL.removeEvent, {layerId: scope.entityLayer.id, categoryId: category.id});
+            }
             scope.$destroy();
         };
 

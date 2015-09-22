@@ -41,8 +41,8 @@ function ($log, $q, scoredEntity) {
     this.run = function (queryParams) {
         $log.debug(queryParams); // no eslint error. we'll certainly use queryParams when we make the wps
         return $q.when([
-            scoredEntity('abcd', 'Entity X', 0.97, '', '', '', ''),
-            scoredEntity('efgh', 'Entity Y', 0.91, '', '', '', '')
+            scoredEntity('abcd', 'Entity X', 0.97, new ol.geom.Point([3, 40]), '', '', ''),
+            scoredEntity('efgh', 'Entity Y', 0.91, new ol.geom.Point([14.5, 37]), '', '', '')
         ]);
     };
 }])
