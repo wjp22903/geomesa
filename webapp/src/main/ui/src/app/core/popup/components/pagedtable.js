@@ -19,7 +19,7 @@ function ($filter) {
             var records = $scope.result.records;
             var numColumns = $scope.numColumns || 4;
             var columnMinWidth = $scope.columnMinWidth || 100;
-            var rowWidth = columnMinWidth * Math.min(records.length, numColumns) + 75;
+            var rowWidth = columnMinWidth * Math.min(records.length, numColumns) + 90;
 
             $scope.columns = _.range(0, numColumns);
             $scope.keys = _.keys(records[0]);
@@ -138,9 +138,20 @@ function () {
     return {
         restrict: 'A',
         link: function (scope, element) {
+            var primaryDisplay = angular.element('.primaryDisplay');
+            var minWidth = parseInt(element.css('min-width').replace('px', ''), 10);
+            element.children().css('max-height', Math.floor(primaryDisplay.height() / 2.5));
+            element.parent().css('max-width', Math.max(minWidth, Math.floor(primaryDisplay.width() / 2.5)));
             element.resizable({
                 start: function () {
+                    var handle = element.data('ui-resizable').axis;
                     element.find('.tableRow').css('width', '');
+                    if (handle === 's' || handle === 'se') {
+                        element.children().css('max-height', '');
+                    }
+                    if (handle === 'e' || handle === 'se') {
+                        element.parent().css('max-width', '');
+                    }
                 },
                 resize: function (event, ui) { //eslint-disable-line no-unused-vars
                     element.siblings().find('.tableRow').width(element.find('.tableRow').width());
