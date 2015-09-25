@@ -38,12 +38,16 @@ function (DF, runnerConstant, geomService) {
             if (this.classifier) {
                 return this.classifier.space !== DF.space.imagery;
             }
+            return true;
         };
         this.isGeomSource = function () {
             return this.geomSource === runnerConstant.geom;
         };
         this.isImageIdSource = function () {
             return this.geomSource === runnerConstant.byid;
+        };
+        this.hasSingleLabel = function () {
+            return (this.classifier && this.classifier.labels.length === 1);
         };
     };
 }])

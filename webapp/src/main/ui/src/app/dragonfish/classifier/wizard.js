@@ -28,6 +28,9 @@ function ($rootScope, WidgetDef, classifierService, runnerConstant, QueryParams)
             if (wizardScope.query.isNonImageSpace()) {
                 wizardScope.query.geomSource = runnerConstant.geom;
             }
+            if (wizardScope.query.hasSingleLabel()) {
+                wizardScope.query.classifierLabel = wizardScope.query.classifier.labels[0];
+            }
         });
         classifierService.getClassifiers()
             .then(function (classifiers) {

@@ -47,8 +47,10 @@ function ($q, Classifier) {
     this.getClassifiers = function () {
         // memoize WPS results
         return $q.when([
-            new Classifier('00abc', 'Hospitals', 'Imagery', ['Hospitals', 'Other']),
-            new Classifier('fed42', 'Building Type', 'Fusion', ['Hospital', 'Mall', 'Office Park'])
+            new Classifier('00abc', 'Hospitals', 'Imagery', ['Hospitals']),
+            new Classifier('01def', 'Airplanes', 'Imagery', ['Jets', 'Props']),
+            new Classifier('fed42', 'Building Type', 'Fusion', ['Hospital', 'Mall', 'Office Park']),
+            new Classifier('zyx65', 'TV Station', 'Fusion', ['TV Station'])
         ]);
     };
 }])

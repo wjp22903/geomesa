@@ -4,7 +4,6 @@
             <td>
                 <select class="form-control input-sm"
                     ng-model="query.classifier"
-                    ng-init="classifiers[0]"
                     ng-options="classifier.name for classifier in classifiers | orderBy: 'name'"
                     required>
                     <option value="" selected disabled>Select a Classifier</option>
@@ -12,10 +11,9 @@
             </td>
         </tr>
         <tr>
-            <td>
+            <td ng-class="{'ng-hide': query.hasSingleLabel()}">
                 <select class="form-control input-sm"
                     ng-model="query.classifierLabel"
-                    ng-init="query.classifier.labels[0]"
                     ng-options="label for label in query.classifier.labels"
                     required>
                     <option value="" selected disabled>Select a Label</option>
