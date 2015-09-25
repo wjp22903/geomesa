@@ -1,5 +1,5 @@
 <ng-form name="wizardForm">
-    <table class="df-wizard-table" ng-hide="boundWiz.drawing">
+    <table class="df-wizard-table" ng-class="{'ng-hide': boundWiz.drawing}">
         <tr>
             <td>
                 <select class="form-control input-sm"
@@ -23,34 +23,27 @@
             </td>
         </tr>
     </table>
-    <table class="df-wizard-table" ng-hide="boundWiz.drawing">
+    <table class="df-wizard-table" ng-class="{'ng-hide': boundWiz.drawing || query.isNonImageSpace()}">
         <tr ng-click="query.geomSource = constant.byid">
             <td>
-                <input type="radio"
-                    aria-label="by image id"
-                    name="geomSource"
-                    ng-model="query.geomSource"
-                    ng-value="constant.byid"
-                    class="df-wizard-selector" />
+                <i class="fa fa-fw" ng-class="query.isImageIdSource() ? 'fa-dot-circle-o' : 'fa-circle-o'"
+                   ng-click="query.geomSource = constant.byid">
+                </i>
                 <input type="text"
-                    placeholder="Enter Image ID"
-                    ng-disabled="!isImageIdSource()"
-                    ng-model="query.imageId"
-                    ng-required="isImageIdSource()"
-                    class="form-control input-sm df-wizard-text-input df-wizard-selector" />
+                   placeholder="Enter Image ID"
+                   ng-model="query.imageId"
+                   ng-required="query.isImageIdSource()"
+                   class="form-control input-sm df-wizard-text-input df-wizard-selector" />
             </td>
         </tr>
     </table>
     <table class="df-wizard-table">
         <tr ng-click="query.geomSource = constant.geom">
-            <td ng-hide="boundWiz.drawing">
-                <input type="radio"
-                    aria-label="by geometry"
-                    name="geomSource"
-                    ng-model="query.geomSource"
-                    ng-value="constant.geom"
-                    class="df-wizard-selector" />
-                <label ng-class="{'ng-hide': isGeomSource()}" class="df-wizard-bounds-title">
+            <td ng-class="{'ng-hide': boundWiz.drawing}">
+                <i class="fa fa-fw" ng-class="query.isGeomSource() ? 'fa-dot-circle-o' : 'fa-circle-o'"
+                   ng-click="query.geomSource = constant.geom">
+                </i>
+                <label ng-class="{'ng-hide': query.isGeomSource()}" class="df-wizard-bounds-title">
                     Bounding Box
                 </label>
             </td>
@@ -59,18 +52,21 @@
                 </st-widget-compiler>
             </td>
         </tr>
-        <tr ng-class="{'ng-hide': !isGeomSource()}">
-            <td/>
-            <td ng-hide="boundWiz.drawing" colspan="2">
+        <tr ng-class="{'ng-hide': !query.isGeomSource()}">
+            <td />
+            <td ng-class="{'ng-hide': boundWiz.drawing}" colspan="2">
                 <!-- Only an input when not using an image id. Otherwise the time is the time of the image -->
                 <input type="text" placeholder="CQL filter" ng-model="query.time" class="df-wizard-text-input" />
             </td>
         </tr>
     </table>
-    <table class="df-wizard-table" ng-hide="boundWiz.drawing">
+    <table class="df-wizard-table" ng-class="{'ng-hide': boundWiz.drawing || query.isNonImageSpace()}">
         <tr>
             <!-- Only visible for imagery classifiers. Defaults to false -->
-            <td><label><input type="checkbox" ng-model="query.slidingWindow" /> Use sliding window</label></td>
+            <td>
+                <label><input type="checkbox" ng-model="query.slidingWindow" /> Use sliding window</label>
+            </td>
         </tr>
     </table>
+    <input type="text" ng-model="query.geomSource" class="df-input-hidden" required />
 </ng-form>

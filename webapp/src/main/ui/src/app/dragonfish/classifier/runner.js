@@ -18,20 +18,32 @@ angular.module('stealth.dragonfish.classifier.runner', [
  * request to the backend.
  */
 .factory('stealth.dragonfish.classifier.runner.QueryParams', [
-'stealth.dragonfish.classifier.runner.queryParamsGeomService',
+'stealth.dragonfish.Constant',
 'stealth.dragonfish.classifier.runner.Constant',
-function (geomService, runnerConstant) {
+'stealth.dragonfish.classifier.runner.queryParamsGeomService',
+function (DF, runnerConstant, geomService) {
     return function (name) {
         this.name = name;
         this.classifier = null;
         this.classifierLabel = null;
         this.imageId = null;
         this.time = null;
-        this.geomSource = runnerConstant.byid;
+        this.geomSource = null;
         this.slidingWindow = false;
         this.geom = geomService.initialGeom();
         this.checkAndSetBounds = function (extent, skipCookie) {
             _.merge(this.geom, geomService.checkAndSetBounds(extent, skipCookie));
+        };
+        this.isNonImageSpace = function () {
+            if (this.classifier) {
+                return this.classifier.space !== DF.space.imagery;
+            }
+        };
+        this.isGeomSource = function () {
+            return this.geomSource === runnerConstant.geom;
+        };
+        this.isImageIdSource = function () {
+            return this.geomSource === runnerConstant.byid;
         };
     };
 }])

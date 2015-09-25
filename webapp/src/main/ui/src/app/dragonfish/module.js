@@ -12,7 +12,11 @@ angular.module('stealth.dragonfish', [
 ])
 
 .constant('stealth.dragonfish.Constant', {
-    icon: 'fa-puzzle-piece'
+    icon: 'fa-puzzle-piece',
+    space: {
+        imagery: 'Imagery',
+        fusion: 'Fusion'
+    }
 })
 
 /**

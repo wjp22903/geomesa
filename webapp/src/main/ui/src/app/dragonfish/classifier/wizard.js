@@ -24,12 +24,11 @@ function ($rootScope, WidgetDef, classifierService, runnerConstant, QueryParams)
         wizardScope.constant = runnerConstant;
         wizardScope.query = new QueryParams('Classifier Application ' + (_creations + 1));
         wizardScope.drawBoundsWidgetDef = new WidgetDef('st-df-wiz-bounds', wizardScope);
-        wizardScope.isGeomSource = function () {
-            return wizardScope.query.geomSource === runnerConstant.geom;
-        };
-        wizardScope.isImageIdSource = function () {
-            return wizardScope.query.geomSource === runnerConstant.byid;
-        };
+        wizardScope.$watch('query.classifier', function () {
+            if (wizardScope.query.isNonImageSpace()) {
+                wizardScope.query.geomSource = runnerConstant.geom;
+            }
+        });
         classifierService.getClassifiers()
             .then(function (classifiers) {
                 wizardScope.classifiers = classifiers;
