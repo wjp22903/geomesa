@@ -13,15 +13,17 @@ angular.module('stealth.p2p.geo', [
 'stealth.core.geo.ol3.manager.Category',
 'stealth.core.utils.WidgetDef',
 'stealth.core.geo.ol3.layers.GeoJsonVectorLayer',
+'toastr',
 function ($log, $rootScope, colors,
           ol3Map, catMgr, p2pWizard, p2pService,
-          Category, WidgetDef, GeoJsonVectorLayer) {
+          Category, WidgetDef, GeoJsonVectorLayer, toastr) {
     var tag = 'stealth.p2p.geo: ';
     $log.debug(tag + 'run called');
     var scope = $rootScope.$new();
     scope.layers = [];
     scope.workspaces = {};
 
+    var globalId = 0;
     scope.removeLayer = function (layer) {
         if (layer.viewState.isOnMap) {
             scope.toggleVisibility(layer);
@@ -38,11 +40,22 @@ function ($log, $rootScope, colors,
     };
 
     scope.launchP2pWizard = function () {
-        scope.isWizardInProgress = true;
         p2pWizard.launch();
     };
 
     scope.runP2pQuery = function (q) {
+        var queryTitle = q.params.title;
+        var layerName = queryTitle + ":" + globalId++;
+        var tempLayer = {
+            Name: layerName,
+            Title: queryTitle,
+            viewState: {
+                isLoading: true
+            }
+        };
+        scope.layers.push(tempLayer);
+        scope.tempLayer = tempLayer;
+
         p2pService.doP2PQuery(q).then(
             function (response) {
                 var geojsonParser = new ol.format.GeoJSON();
@@ -103,9 +116,9 @@ function ($log, $rootScope, colors,
                 var lyr = new GeoJsonVectorLayer({
                     queryable: true,
                     queryFn: function () {
-                        lyr.loadStart();
-                        lyr.loadFeatures(geojson);
-                        lyr.loadEnd();
+                        this.loadStart();
+                        this.loadFeatures(geojson);
+                        this.loadEnd();
                     },
                     styleFn: styleFunction,
                     layerThisBelongsTo: q.layerData.currentLayer
@@ -120,8 +133,14 @@ function ($log, $rootScope, colors,
                 };
                 lyr.OriginalTitle = queryTitle;
                 lyr.Title = queryTitle;
-                lyr.mapLayerId = lyr.id;
+                var tempLayer = scope.layers.filter(function (l) { return layerName === l.Name; });
+                var tempLayerIdx = scope.layers.indexOf(tempLayer[0]);
+                scope.layers.splice(tempLayerIdx, tempLayerIdx + 1);
                 scope.layers.push(lyr);
+            }, function (reason) {
+                var removeLayerIdx = scope.layers.indexOf(scope.tempLayer);
+                scope.layers.splice(removeLayerIdx, removeLayerIdx + 1);
+                toastr.error(reason);
             });
     };
 

@@ -12,14 +12,14 @@ function (wps, CONFIG) {
                     value: new OpenLayers.Bounds(q.params.minLon, q.params.minLat, q.params.maxLon, q.params.maxLat)
                 });
 
+        var customCQL = _.isEmpty(q.params.cql) ? null : new OpenLayers.Format.CQL().read(q.params.cql);
+
         var timeFilter = new OpenLayers.Filter.Comparison({
             type: OpenLayers.Filter.Comparison.BETWEEN,
             property: q.params.dtgField.name,
             lowerBoundary: q.params.startDtg.toISOString(),
             upperBoundary: q.params.endDtg.toISOString()
         });
-
-        var customCQL = _.isEmpty(q.params.cql) ? null : new OpenLayers.Format.CQL().read(q.params.cql);
 
         var filt =
                 new OpenLayers.Filter.Logical({

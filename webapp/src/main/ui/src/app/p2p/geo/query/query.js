@@ -134,13 +134,14 @@ function ($q, $filter, cookies, wfs, ol3Map, owsLayers, CONFIG) {
             }).then(function () {
                 _self.layerData.layers = _.sortBy(_self.pointLayers, 'Title');
                 _.each(_self.layerData.layers, function (layer) {
-                    _.each(_.keys(_.get(layer.KeywordConfig, keywordPrefix)), function (workspace) {
+                    layer.fieldNames = {};
+                    _.each(_.keys(_.get(layer.KeywordConfig, keywordPrefix)), function () {
                         layer.fieldNames = _.merge({
                             groupingField: 'groupingField',
                             sortField: 'sortField',
                             geom: 'geom',
                             dtg: 'dtg'
-                        }, _.get(layer.KeywordConfig, keywordPrefix.concat([workspace, 'field'])));
+                        }, _.get(layer.KeywordConfig, keywordPrefix.concat(['field'])));
                     });
                 });
                 if (!_.isEmpty(_self.layerData.layers)) {
@@ -163,4 +164,3 @@ function ($q, $filter, cookies, wfs, ol3Map, owsLayers, CONFIG) {
     return P2PQuery;
 }])
 ;
-
