@@ -46,7 +46,7 @@ function ($log, $rootScope, $q, $filter, $window, toastr, cqlHelper, clickSearch
             var overrides = {
                 propertyName: _.compact([dtg, geom, id, label]).join(),
                 outputFormat: 'application/vnd.binary-viewer',
-                format_options: 'dtg:' + dtg + ';trackId:' + id + (label ? ';label:' + label : '') +
+                format_options: 'geom:' + geom + ';dtg:' + dtg + ';trackId:' + id + (label ? ';label:' + label : '') +
                     (query.params.sortOnServer ? ';sort=true' : ''),
                 cql_filter: cqlHelper.buildSpaceTimeFilter(query.params)
             };
