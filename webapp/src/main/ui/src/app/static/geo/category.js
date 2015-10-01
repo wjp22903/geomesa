@@ -247,8 +247,8 @@ function ($timeout, owsLayers, ol3Map, WmsLayer, CONFIG) {
             delete _self.workspaces[workspaceName];
         });
     };
-    this.refreshLayers = function () {
-        owsLayers.getLayers(keywordPrefix, true)
+    this.refreshLayers = function (skipRefresh) {
+        owsLayers.getLayers(keywordPrefix, !skipRefresh)
             .then(function (layers) {
                 markLayersForDeletion(); // assume everything can be deleted
                 _.each(layers, function (l) {
@@ -270,7 +270,7 @@ function ($timeout, owsLayers, ol3Map, WmsLayer, CONFIG) {
                 removeDeletableLayers();
             });
     };
-    this.refreshLayers();
+    this.refreshLayers(true);
 }])
 
 .run([
