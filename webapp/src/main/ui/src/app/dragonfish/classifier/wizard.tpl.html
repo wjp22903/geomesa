@@ -36,23 +36,53 @@
         </tr>
     </table>
     <table class="df-wizard-table" ng-class="{'ng-hide': boundWiz.drawing || query.isNonImageSpace()}">
-        <tr ng-click="query.geomSource = constant.byid">
-            <td>
+        <tr ng-click="query.searchBy = RUN.imageId">
+            <td ng-class="{'has-error': imgMeta.errMsg}">
                 <i class="fa fa-fw" ng-class="query.isImageIdSource() ? 'fa-dot-circle-o' : 'fa-circle-o'"
-                   ng-click="query.geomSource = constant.byid"></i>
+                   ng-click="query.searchBy = RUN.imageId">
+                </i>
+            </td>
+            <td>
                 <input type="text"
-                   placeholder="Enter Image ID"
-                   ng-model="query.imageId"
-                   ng-required="query.isImageIdSource()"
-                   class="form-control input-sm df-wizard-text-input df-wizard-selector df-input-style">
+                       placeholder="Enter Image ID"
+                       ng-model="query.imageId"
+                       st-change="lookupImgMeta()"
+                       ng-disabled="query.isGeomSource()"
+                       class="form-control input-sm df-wizard-text-input df-wizard-selector" />
+                <span ng-class="{'ng-hide': !(imgMeta.isLoading)}"><i class="fa fa-circle-o-notch fa-spin"></i></span>
+            </td>
+        </tr>
+        <tr ng-class="{'ng-hide': !(imgMeta.errMsg)}">
+            <td />
+            <td>
+                <label class="control-label df-wizard-error-message"><i class="fa fa-warning"></i> {{imgMeta.errMsg}}</label>
+            </td>
+        </tr>
+        <tr ng-class="{'ng-hide': query.isGeomSource()}">
+            <td />
+            <td>
+                <table class="df-wizard-table-common">
+                    <tr ng-class="{'ng-hide': !imgMeta.resolvedMetadata.dtg}">
+                        <td>Date:</td>
+                        <td>{{imgMeta.resolvedMetadata.dtg.toISOString()}}</td>
+                    </tr>
+                    <tr ng-class="{'ng-hide': !imgMeta.resolvedMetadata.type}">
+                        <td>Type:</td>
+                        <td>{{imgMeta.resolvedMetadata.type}}</td>
+                    </tr>
+                    <tr ng-class="{'ng-hide': !imgMeta.resolvedMetadata.hasNIIRS()}">
+                        <td>NIIRS:</td>
+                        <td>{{imgMeta.resolvedMetadata.niirs}}</td>
+                    </tr>
+                </table>
             </td>
         </tr>
     </table>
     <table class="df-wizard-table">
-        <tr ng-click="query.geomSource = constant.geom">
+        <tr ng-click="query.searchBy = RUN.geoTime">
             <td ng-class="{'ng-hide': boundWiz.drawing}">
                 <i class="fa fa-fw" ng-class="query.isGeomSource() ? 'fa-dot-circle-o' : 'fa-circle-o'"
-                   ng-click="query.geomSource = constant.geom">
+                   ng-click="query.searchBy = RUN.geoTime">
                 </i>
                 <label ng-class="{'ng-hide': query.isGeomSource()}" class="df-wizard-bounds">
                     Bounding Box
@@ -72,21 +102,21 @@
                     <tr>
                         <td><label>Start: </label></td>
                         <td><input type="text" ng-model="query.timeData.startDtg" ui-jq="datetimepicker"
-                            ng-change="query.checkAndSetTimeRange(query.timeData.startDtg, query.timeData.endDtg)"
-                            ng-disabled="query.isImageIdSource()"
-                            ng-required="!query.isImageIdSource()"
-                            ui-options="{todayButton: false, yearStart: 1990, yearEnd: 2030, step: 15, format: 'Y-m-d H:i'}"
-                            st-utc-moment-format="YYYY-MM-DD HH:mm" class="df-datetimepicker" /> Z
+                                   ng-change="query.checkTimeRangeAndSetCookie(query.timeData.startDtg, query.timeData.endDtg)"
+                                   ng-disabled="query.isImageIdSource()"
+                                   ng-required="!query.isImageIdSource()"
+                                   ui-options="{todayButton: false, yearStart: 1990, yearEnd: 2030, step: 15, format: 'Y-m-d H:i'}"
+                                   st-utc-moment-format="YYYY-MM-DD HH:mm" class="df-datetimepicker" /> Z
                         </td>
                     </tr>
                     <tr>
                         <td><label>End: </label></td>
                         <td><input type="text" ng-model="query.timeData.endDtg" ui-jq="datetimepicker"
-                            ng-change="query.checkAndSetTimeRange(query.timeData.startDtg, query.timeData.endDtg)"
-                            ng-disabled="query.isImageIdSource()"
-                            ng-required="!query.isImageIdSource()"
-                            ui-options="{todayButton: false, yearStart: 1990, yearEnd: 2030, step: 15, format: 'Y-m-d H:i'}"
-                            st-utc-moment-format="YYYY-MM-DD HH:mm" class="df-datetimepicker" /> Z
+                                   ng-change="query.checkTimeRangeAndSetCookie(query.timeData.startDtg, query.timeData.endDtg)"
+                                   ng-disabled="query.isImageIdSource()"
+                                   ng-required="!query.isImageIdSource()"
+                                   ui-options="{todayButton: false, yearStart: 1990, yearEnd: 2030, step: 15, format: 'Y-m-d H:i'}"
+                                   st-utc-moment-format="YYYY-MM-DD HH:mm" class="df-datetimepicker" /> Z
                         </td>
                     </tr>
                 </table>
@@ -110,5 +140,6 @@
             </td>
         </tr>
     </table>
-    <input type="text" ng-model="query.geomSource" class="df-input-hidden" required />
+    <input type="text" ng-model="query.searchBy" class="hidden" required />
+    <input type="text" ng-model="imgMeta.resolvedMetadata.dtg" class="hidden" ng-required="query.isImageIdSource()" />
 </ng-form>

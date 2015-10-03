@@ -3,6 +3,7 @@
  */
 angular.module('stealth.dragonfish.classifier.wizard', [
     'stealth.dragonfish',
+    'stealth.dragonfish.classifier.imageMetadata',
     'stealth.dragonfish.classifier.runner',
     'stealth.timelapse.wizard.bounds'
 ])
@@ -11,28 +12,55 @@ angular.module('stealth.dragonfish.classifier.wizard', [
  * Create the scope associated with a wizard, for use in things like templates and such.
  */
 .service('stealth.dragonfish.classifier.wizard.scope', [
+'$log',
 '$rootScope',
 'stealth.core.utils.WidgetDef',
 'stealth.dragonfish.Constant',
 'stealth.dragonfish.classifier.service',
+'stealth.dragonfish.classifier.imageMetadata.service',
 'stealth.dragonfish.classifier.runner.Constant',
 'stealth.dragonfish.classifier.runner.QueryParams',
-function ($rootScope, WidgetDef, DF, classifierService, runnerConstant, QueryParams) {
+function ($log, $rootScope, WidgetDef, DF, classifierService, imageMetadataService, RUN, QueryParams) {
     var _creations = 0;
 
     this.create = function () {
         var wizardScope = $rootScope.$new();
-        wizardScope.constant = runnerConstant;
+        wizardScope.RUN = RUN;
         wizardScope.query = new QueryParams('Classifier Application ' + (_creations + 1));
+        // wizardScope.imgMeta.errMsg should be either a string or undefined
+        wizardScope.imgMeta = {
+            resolvedMetadata: null,
+            isLoading: false
+        };
         wizardScope.drawBoundsWidgetDef = new WidgetDef('st-df-wiz-bounds', wizardScope);
         wizardScope.$watch('query.classifier', function () {
             if (wizardScope.query.isNonImageSpace()) {
-                wizardScope.query.geomSource = runnerConstant.geom;
+                wizardScope.query.searchBy = RUN.geoTime;
             }
             if (wizardScope.query.hasSingleLabel()) {
                 wizardScope.query.classifierLabel = wizardScope.query.classifier.labels[0];
             }
         });
+        wizardScope.lookupImgMeta = function () {
+            if (wizardScope.query.imageId) {
+                wizardScope.imgMeta.isLoading = true; // flag for spinner
+                imageMetadataService.lookupImgMeta(wizardScope.query.imageId)
+                    .then(function (imageMetadata) {
+                        wizardScope.imgMeta.isLoading = false;
+                        wizardScope.imgMeta.resolvedMetadata = imageMetadata;
+                        delete wizardScope.imgMeta.errMsg;
+                    }, function (reason) {
+                        wizardScope.imgMeta.isLoading = false;
+                        wizardScope.imgMeta.resolvedMetadata = null;
+                        wizardScope.imgMeta.errMsg = 'Image not found';
+                        $log.warn(reason);
+                    });
+            } else {
+                wizardScope.imgMeta.resolvedMetadata = null;
+                wizardScope.imgMeta.isLoading = false;
+                delete wizardScope.imgMeta.errMsg;
+            }
+        };
         wizardScope.pickClassifier = function (classifier) {
             wizardScope.query.classifier = classifier;
             delete wizardScope.query.classifierLabel;
@@ -41,7 +69,6 @@ function ($rootScope, WidgetDef, DF, classifierService, runnerConstant, QueryPar
         wizardScope.spaceIcon[DF.space.imagery] = 'fa-file-image-o';
         wizardScope.spaceIcon[DF.space.sigint] = 'fa-rss';
         wizardScope.spaceIcon[DF.space.fusion] = 'fa-sun-o';
-
         classifierService.getClassifiers()
             .then(function (classifiers) {
                 wizardScope.classifiers = classifiers;

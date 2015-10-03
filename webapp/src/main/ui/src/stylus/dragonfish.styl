@@ -1,5 +1,6 @@
 .fa-df
     margin-right 8px
+
 .df-button
     font-size 12px
     border none
@@ -11,6 +12,21 @@
     &:hover
         background-color #575757
         color white
+
+.df-margin-specs
+    margin-top 5px
+    margin-bottom 5px
+
+.df-class-sidebar
+    background white
+    .df-class-result
+        border 1px dashed black
+        @extends .df-margin-specs
+
+.df-datetimepicker
+    margin-bottom 10px
+    width 120px
+
 .df-dropdown
     font-color white
     font-size 12px
@@ -27,26 +43,8 @@
         background-color green
         color red
 
-.df-margin-specs
-    margin-top 5px
-    margin-bottom 5px
-
 .df-inline-v-middle
     display inline
-    vertical-align middle
-
-.df-class-sidebar
-    background white
-    .df-class-result
-        border 1px dashed black
-        @extends .df-margin-specs
-
-.df-wizard-text-input
-    @extends .df-margin-specs
-    font-size 12px
-    color #ccc
-    width 270px
-    text-align left
     vertical-align middle
 
 .df-wizard-table-common
@@ -56,20 +54,22 @@
 .df-wizard-table
     @extends .df-wizard-table-common
     width 500px
-    .df-datetimepicker
-        margin-bottom 10px
-        width 120px
 
 .df-wizard-bounds-table
     @extends .df-margin-specs
     @extends .df-wizard-table-common
     text-align center
 
-.df-wizard-selector
-    @extends .df-inline-v-middle
-
 .df-wizard-draw-message
     @extends .df-margin-specs
+
+.df-wizard-text-input
+    @extends .df-margin-specs
+    font-size 12px
+    color #ccc
+    width 270px
+    text-align left
+    vertical-align middle
 
 .df-wizard-bounds-title
     @extends .df-inline-v-middle
@@ -83,5 +83,8 @@
 .df-wizard-bounds-box
     max-width 90px
 
-.df-input-hidden
-    display none
+.df-wizard-error-message
+    font-size 12px
+
+.df-wizard-selector
+    @extends .df-inline-v-middle

@@ -25,6 +25,20 @@ function () {
     this.flipXY = function (geom) {
         geom.setCoordinates(flipDeep(geom.getCoordinates()));
     };
+
+    this.polygonFromExtent = function (extent) {
+        return this.polygonFromExtentParts(extent[0], extent[1], extent[2], extent[3]);
+    };
+
+    this.polygonFromExtentParts = function (minLon, minLat, maxLon, maxLat) {
+        return new ol.geom.Polygon([[
+            [minLon, minLat],
+            [minLon, maxLat],
+            [maxLon, maxLat],
+            [maxLon, minLat],
+            [minLon, minLat]
+        ]]);
+    };
 }])
 
 .service('routeDrawHelper', [
