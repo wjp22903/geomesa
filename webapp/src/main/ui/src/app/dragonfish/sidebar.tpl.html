@@ -11,7 +11,8 @@
         <h3 ng-when="false">{{request.name}}</h3>
     </div>
     <hr />
-    <div> <!-- paged results. each li seems like the sort of thing that's supposed to be a directive -->
+    <progressbar class="progress-striped active" value="100" type="primary" ng-if="queryRunning">Evaluating</progressbar>
+    <div ng-if="!queryRunning"> <!-- paged results. each li seems like the sort of thing that's supposed to be a directive -->
         <ul class="list-unstyled">
             <li class="df-class-result"
                 ng-repeat="result in results | startFrom:(paging.currentPage-1)*paging.pageSize | limitTo:paging.pageSize">

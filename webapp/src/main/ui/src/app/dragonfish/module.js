@@ -66,11 +66,14 @@ function () {
 'stealth.dragonfish.similarity.runner.QueryParamsService',
 function ($rootScope, scoredEntityService, SimConstant, simQueryService) {
     // make sure to call scope.$destroy() when you're done with what we give you
-    this.createScope = function (req, results) {
+    this.createScope = function (req) {
         var scope = $rootScope.$new();
         scope.request = req;
-        scope.results = results;
+        scope.results = null;
         scope.scoredEntityService = scoredEntityService;
+        scope.queryRunning = true;
+        scope.entityLayer = null;
+
         scope.searchSimilar = function (result) {
             $rootScope.$emit(SimConstant.applyEvent, simQueryService.runnerParams(result));
         };
@@ -87,30 +90,21 @@ function ($rootScope, scoredEntityService, SimConstant, simQueryService) {
 'categoryManager',
 'sidebarManager',
 'stealth.core.geo.analysis.category.AnalysisCategory',
+'stealth.core.geo.ol3.format.GeoJson',
 'stealth.core.utils.WidgetDef',
 'stealth.dragonfish.Constant',
 'stealth.dragonfish.sidebarService',
+'stealth.dragonfish.scoredEntityService',
 'stealth.dragonfish.geo.ol3.layers.EntityLayer',
 'stealth.dragonfish.geo.ol3.layers.EntityConstant',
-function ($rootScope, catMgr, sidebarManager, AnalysisCategory, WidgetDef, DF, sidebarService, EntityLayer, EL) {
-    this.display = function (req, results) {
-        var scope = sidebarService.createScope(req, results);
+function ($rootScope, catMgr, sidebarManager, AnalysisCategory, GeoJson, WidgetDef, DF, sidebarService, scoredEntityService, EntityLayer, EL) {
+    this.display = function (req, resultsPromise) {
+        var scope = sidebarService.createScope(req);
 
         var category = catMgr.addCategory(2, new AnalysisCategory(scope.request.name, DF.icon, function () {
             sidebarManager.removeButton(buttonId);
             scope.$destroy();
         }));
-
-        // populate the Map
-        if (!_.isEmpty(scope.results)) {
-            scope.entityLayer = new EntityLayer({
-                queryable: true,
-                name: scope.request.name,
-                features: scope.results,
-                categoryId: category.id
-            });
-            category.addLayer(scope.entityLayer);
-        }
 
         var destroy = function () {
             if (scope.entityLayer) {
@@ -123,8 +117,30 @@ function ($rootScope, catMgr, sidebarManager, AnalysisCategory, WidgetDef, DF, s
             sidebarManager.addButton(scope.request.name, DF.icon, 500,
                 new WidgetDef('st-df-sidebar', scope),
                 new WidgetDef('st-pager', scope, "paging='paging' records='results'"),
-            false, destroy),
-        true);
+                false,
+                destroy
+            ),
+            true
+        );
+
+        var parser = new GeoJson(); // stealth GeoJson, extending OL3 for STEALTH-319
+        resultsPromise
+            .then(function (response) {
+                scope.queryRunning = false;
+                scope.results = _.sortBy(parser.readFeatures(response), function (scoredEntity) {
+                    return -scoredEntityService.score(scoredEntity);
+                });
+                // populate the Map
+                if (!_.isEmpty(scope.results)) {
+                    scope.entityLayer = new EntityLayer({
+                        queryable: true,
+                        name: scope.request.name,
+                        features: scope.results,
+                        categoryId: category.id
+                    });
+                    category.addLayer(scope.entityLayer);
+                }
+            });
     };
 }])
 
@@ -138,4 +154,30 @@ function () {
         templateUrl: 'dragonfish/sidebar.tpl.html'
     };
 })
+
+/**
+ * A service to parse a flag out of CONFIG to determine whether we are using the 'Hardcoded' dragonfish-wps variants,
+ * and if the "urn:" prefix should be stripped from classifier IDs (to account for an inconsistency in dragonfish?).
+ */
+.service('stealth.dragonfish.wps.prefixService', [
+'CONFIG',
+function (CONFIG) {
+    /**
+     * Set `dragonfish.wpsPrefix=Hardcoded` to use the Hardcoded dragonfish-wps variants
+     */
+    this.prefix = _.get(CONFIG, 'dragonfish.wpsPrefix', '');
+}])
+
+/**
+ * A generically useful wps wrapper that takes CONFIG for the geoserver parameters.
+ * This way, clients don't need to get CONFIG themselves, or remember quite so many parameters to pass to wps.
+ */
+.service('stealth.dragonfish.configWps', [
+'wps',
+'CONFIG',
+function (wps, CONFIG) {
+    this.submit = function (req) {
+        return wps.submit(CONFIG.geoserver.defaultUrl, req, CONFIG.geoserver.omitProxy);
+    };
+}])
 ;

@@ -157,21 +157,19 @@ function ($filter, cookies, RUN) {
 }])
 
 /**
- * A service to actually 'run' (=apply) a classifier. This will become a WPS process, but we hard-code some example
- * data for now. Also, see notes related to results being simple Javascript objects, versus ol3 Features in a FeatureCollection.
+ * A service to actually 'run' (=apply) a classifier. This relies on the dragonfish-wps project.
  */
 .service('stealth.dragonfish.classifier.runner.service', [
-'$log',
-'$q',
-'stealth.dragonfish.scoredEntity',
-function ($log, $q, scoredEntity) {
+'stealth.dragonfish.configWps',
+'stealth.dragonfish.wps.prefixService',
+function (wps, prefixService) {
     this.run = function (queryParams) {
-        $log.debug(queryParams); // no eslint error. we'll certainly use queryParams when we make the wps
-        return $q.when([
-            scoredEntity('1234', 'Hospital 1', 0.98, new ol.geom.Point([10, 45]), '', '', ''),
-            scoredEntity('5678', 'Hospital 2', 0.89, new ol.geom.Polygon([[[-8.437, 54.977], [-8.437, 58.263], [1.406, 58.263], [1.406, 54.977], [-8.437, 54.977]]]), '', '', ''),
-            scoredEntity('9182', 'Hospitality Enterprises', 0.63, new ol.geom.Point([-21.972, 64.244]), '', '', '')
-        ]);
+        var req = stealth.jst['wps/dragonfish_applyClassifier.xml']({
+            classifierID: queryParams.classifier.id,
+            classifierLabel: queryParams.classifierLabel,
+            dfPrefix: prefixService.prefix
+        });
+        return wps.submit(req);
     };
 }])
 
@@ -185,10 +183,7 @@ function ($log, $q, scoredEntity) {
 'stealth.dragonfish.classifier.runner.service',
 function ($rootScope, resultsService, ClassConstant, runnerService) {
     $rootScope.$on(ClassConstant.applyEvent, function (evt, req) { // eslint-disable-line no-unused-vars
-        runnerService.run(req)
-            .then(function (response) {
-                resultsService.display(req, response);
-            });
+        resultsService.display(req, runnerService.run(req));
     });
 }])
 ;

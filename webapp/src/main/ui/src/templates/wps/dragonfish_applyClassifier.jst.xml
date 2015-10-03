@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wps:Execute version="1.0.0" service="WPS"
+             xmlns="http://www.opengis.net/wps/1.0.0"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:wps="http://www.opengis.net/wps/1.0.0"
+             xmlns:ows="http://www.opengis.net/ows/1.1"
+             xsi:schemaLocation="http://www.opengis.net/wps/1.0.0
+             http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd">
+    <ows:Identifier>dragonfish:{{dfPrefix}}ApplyClassifierWPS</ows:Identifier>
+    <wps:DataInputs>
+        <Input>
+            <ows:Identifier>classifierID</ows:Identifier>
+            <Data>
+                <LiteralData><![CDATA[{{classifierID}}]]></LiteralData>
+            </Data>
+        </Input>
+        <Input>
+            <ows:Identifier>classifierLabel</ows:Identifier>
+            <Data>
+                <LiteralData>{{classifierLabel}}</LiteralData>
+            </Data>
+        </Input>
+    </wps:DataInputs>
+    <wps:ResponseForm>
+        <wps:RawDataOutput mimeType="application/json">
+            <ows:Identifier>result</ows:Identifier>
+        </wps:RawDataOutput>
+    </wps:ResponseForm>
+</wps:Execute>

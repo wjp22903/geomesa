@@ -41,17 +41,20 @@ function () {
  * planning on bundling all supporting back-end interfaces into WPS processes). For now, we hard-code some sample data.
  */
 .service('stealth.dragonfish.classifier.service', [
-'$q',
+'stealth.dragonfish.configWps',
 'stealth.dragonfish.classifier.Classifier',
-function ($q, Classifier) {
+'stealth.dragonfish.wps.prefixService',
+function (wps, Classifier, prefixService) {
     this.getClassifiers = function () {
-        // memoize WPS results
-        return $q.when([
-            new Classifier('00abc', 'Hospitals', 'Imagery', ['Hospitals']),
-            new Classifier('01def', 'Airplanes', 'Imagery', ['Jets', 'Props']),
-            new Classifier('fed42', 'Building Type', 'Fusion', ['Hospital', 'Mall', 'Office Park']),
-            new Classifier('zyx65', 'TV Station', 'Fusion', ['TV Station'])
-        ]);
+        var req = stealth.jst['wps/dragonfish_listClassifiers.xml']({
+            dfPrefix: prefixService.prefix
+        });
+        return wps.submit(req)
+            .then(function (response) {
+                return _.map(response.classifiers, function (cfw) {
+                    return new Classifier(cfw.id, cfw.name, cfw.space, cfw.labels);
+                });
+            });
     };
 }])
 ;
