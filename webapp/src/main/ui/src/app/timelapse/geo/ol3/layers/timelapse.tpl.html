@@ -58,19 +58,22 @@
                                  tooltip-trigger="mouseenter">
                             </span>
                         </div>
-                        <div class="cell" style="padding-left:5px">Color by:</div>
-                        <div class="cell">
-                            <!-- TODO: Should be list of available colorBy options -->
-                            <select style="outline:none">
-                                <option value="ID field">ID field</option>
-                            </select>
-                        </div>
+                        <div class="cell" style="padding-left:5px">Color by ID:</div>
                         <div class="cell">
                             <stealth.core.utils.checkbox
                                 checked="store.getViewState().colorById"
                                 toggle="store.toggleColorById()"
-                                tooltip-text="<span style='white-space:nowrap'>Toggle color by</span>"
+                                tooltip-text="<span style='white-space:nowrap'>Toggle color by ID</span>"
                                 tooltip-placement="top">
+                            </stealth.core.utils.checkbox>
+                        </div>
+                        <div class="cell" style="padding-left:5px">Connect by ID:</div>
+                        <div class="cell">
+                            <stealth.core.utils.checkbox
+                                checked="store.getViewState().connectById"
+                                toggle="store.toggleConnectById()"
+                                tooltip-text="<span style='white-space:nowrap'>Toggle connect by ID</span>"
+                                tooltip-placement="left">
                             </stealth.core.utils.checkbox>
                         </div>
                     </div>

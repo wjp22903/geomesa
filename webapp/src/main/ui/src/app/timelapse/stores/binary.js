@@ -72,6 +72,7 @@ function ($log, $q, $filter, toastr, colors, clickSearchHelper, sorter) {
             fillColor: _fillColorHexString,
             opacity: _opacity,
             colorById: false,
+            connectById: false,
             relativeSizing: true
         };
 
@@ -126,6 +127,10 @@ function ($log, $q, $filter, toastr, colors, clickSearchHelper, sorter) {
         };
         this.toggleColorById = function () {
             _viewState.colorById = !_viewState.colorById;
+            _layerThisBelongsTo.redrawCurrent();
+        };
+        this.toggleConnectById = function () {
+            _viewState.connectById = !_viewState.connectById;
             _layerThisBelongsTo.redrawCurrent();
         };
 

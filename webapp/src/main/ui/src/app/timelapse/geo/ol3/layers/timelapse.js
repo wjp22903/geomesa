@@ -73,6 +73,7 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
         };
         var _lonFactor = 1.0;
         var _latFactor = 1.0;
+        var _halfWorld;
 
         // Canvas references.
         var _canvas = document.createElement('canvas');
@@ -87,13 +88,13 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
 
         // Transient drawing parameters.
         var _iDiv = 0;
-        var _x, _y, _idx, _center, _rgba, _rampFactor;
+        var _x, _y, _idx, _id, _center, _rgba, _rampFactor;
         var _curSize = [0, 0], _curExtent = [0, 0, 0, 0], _curResolution = 0, _curZoomLevel = 0;
         var _startMillis = 0, _endMillis = 0, _windowMillis = 0, _windowSeconds = 0, _windowBeginSeconds = 0;
-        var zn, x, y, y2, pixel, yw, lat, lon;
+        var zn, x, y, x2, y2, pixel, yw, lat, lon, dx, dy, sx, sy, err, e2;
         var south, north, west, east;
         var color, iLower, iUpper, stride, iUpperStride;
-        var radiusRamp, r2Plus1Ramp, alphaRamp, colorById, iCol, rMinus1;
+        var radiusRamp, r2Plus1Ramp, alphaRamp, connectById, colorById, iCol, rMinus1;
 
         // Binary stores holding observations.
         var _stores = [];
@@ -127,6 +128,7 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
 
                 _lonFactor = _w / (_bounds.east - _bounds.west);
                 _latFactor = _h / (_bounds.north - _bounds.south);
+                _halfWorld = 180 * _lonFactor;
 
                 // Update current projection and resolution.
                 _curResolution = resolution;
@@ -150,6 +152,7 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
         };
 
         function _fillImageBuffer (store) {
+            var connectLookup = {};
             stride = store.getStride();
             color = store.getFillColorRgbArray();
             iLower = store.getLowerBoundIdx(_startMillis);
@@ -172,12 +175,14 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
             west = _bounds.west;
             east = _bounds.east;
 
+            connectById = store.getViewState().connectById;
             colorById = store.getViewState().colorById;
             _idx = (iLower + 1) * stride;
             iUpperStride = iUpper * stride;
             for (; _idx < iUpperStride; _idx = _idx + stride | 0) {
+                _id = store.getId(_idx);
                 if (colorById) {
-                    iCol = store.getId(_idx) % _numColors;
+                    iCol = _id % _numColors;
                     color = _colorRgbArray[iCol];
                 }
                 lat = store.getLat(_idx);
@@ -197,11 +202,53 @@ function ($log, $rootScope, MapLayer, CONFIG, colors) {
 
                     _rgba = (alphaRamp[_iDiv] << 24) | // alpha
                             (color[2] << 16) |         // blue
-                            (color[1] << 8) |         // green
+                            (color[1] << 8) |          // green
                              color[0];                 // red
 
                     // Fill circle at center with radius.
                     _fillCircle(_imageView, _imageLen, _w, _center, radiusRamp[_iDiv], r2Plus1Ramp[_iDiv], _rgba);
+                    if (connectById) {
+                        _connectPoints(_imageView, [_x, _y], connectLookup[_id], _rgba);
+                        connectLookup[_id] = [_x, _y];
+                    }
+                }
+            }
+        }
+
+        // Slightly modified Bresenham's line algorithm
+        // http://rosettacode.org/wiki/Bitmap/Bresenham%27s_line_algorithm#JavaScript
+        function _connectPoints (buffer, point1, point2, value) {
+            if (point2) {
+                x = point1[0] | 0;
+                y = point1[1] | 0;
+                yw = y * _w | 0;
+                x2 = point2[0] | 0;
+                y2 = point2[1] | 0;
+                dx = Math.abs(x2 - x) | 0;
+                // Don't connect points more than 180deg of longitude apart.
+                // Could be points spanning dateline or near a pole, but don't
+                // bother anyway.
+                if (dx < _halfWorld) {
+                    sx = (x < x2 ? 1 : -1) | 0;
+                    dy = Math.abs(y2 - y) | 0;
+                    sy = (y < y2 ? 1 : -1) | 0;
+                    err = (dx > dy ? dx : -dy) / 2;
+                    while (true) {
+                        e2 = err;
+                        if (e2 > -dx) {
+                            err -= dy;
+                            x += sx;
+                        }
+                        if (e2 < dy) {
+                            err += dx;
+                            y += sy;
+                            yw = y * _w | 0;
+                        }
+                        if (x === x2 && y === y2) {
+                            break;
+                        }
+                        buffer[yw + x] = value; // Set a pixel
+                    }
                 }
             }
         }
