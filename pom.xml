@@ -113,7 +113,7 @@
                 },
                 msedge: {
                     name: "Microsoft Edge",
-                    minVersion: 20,
+                    minVersion: 12,
                     preferred: ["Firefox", "Chrome"]
                 }
             }
