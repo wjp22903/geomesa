@@ -17,17 +17,75 @@ function ($rootScope, catMgr, ol3Map, EL) {
     });
 }])
 
+.service('stealth.dragonfish.geo.ol3.layers.styler', [
+'colors',
+function (colors) {
+    var _styleCache = {};
+    var _self = this;
+    var _defaultStyle = new ol.style.Style({
+        fill: new ol.style.Fill({
+            color: [250, 250, 250, 1]
+        }),
+        stroke: new ol.style.Stroke({
+            color: [220, 220, 220, 1],
+            width: 1
+        })
+    });
+    var _hidden = {display: 'none'};
+    var _pinkC = colors.hexStringToRgbArray('#ffa07a');
+    var _redC  = colors.hexStringToRgbArray('#ff0000');
+    this.getColorByScore = function (score, cutoff) {
+        var color;
+        if (score < cutoff) {
+            color = {display: 'none'};
+        } else {
+            var styleSplit = cutoff + (Math.abs(1.0 - cutoff) / 2);
+            color = {color: score >= styleSplit ? '#ff0000' : '#ffa07a'};
+        }
+        return color;
+    };
+    this.curryableStyleFunction = function (viewState, feature, resolution) { //eslint-disable-line no-unused-vars
+        var score = feature.get('score');
+        if (!score) {
+            return _defaultStyle;
+        } else if (score < viewState.scoreCutoff) {
+            // hide the feature
+            return _hidden;
+        } else {
+            var styleSplit = viewState.scoreCutoff + (Math.abs(1.0 - viewState.scoreCutoff) / 2);
+            var level = (score >= styleSplit ? 1 : 2) + resolution.toFixed(2);
+            if (!_styleCache[level]) {
+                var fillColor = score >= styleSplit ? _redC : _pinkC;
+                var width = viewState.size;
+                var fill = new ol.style.Fill({
+                    color: fillColor.concat(0.5)
+                });
+                _styleCache[level] = new ol.style.Style({
+                    fill: fill,
+                    image: new ol.style.Circle({
+                        radius: width + 1,
+                        fill: fill
+                    })
+                });
+            }
+            return [_styleCache[level]];
+        }
+    };
+    this.curriedStyleFunction = function (viewState) {
+        return _.curry(_self.curryableStyleFunction)(viewState);
+    };
+}])
+
 .factory('stealth.dragonfish.geo.ol3.layers.EntityLayer', [
 '$log',
 '$q',
 '$rootScope',
-'stylepicker',
-'colors',
 'clickSearchHelper',
 'stealth.dragonfish.Constant',
 'stealth.core.geo.ol3.layers.MapLayer',
+'stealth.dragonfish.geo.ol3.layers.styler',
 'stealth.dragonfish.geo.ol3.layers.EntityConstant',
-function ($log, $q, $rootScope, stylepicker, colors, clickSearchHelper, DF, MapLayer, EL) {
+function ($log, $q, $rootScope, clickSearchHelper, DF, MapLayer, dfStyler, EL) {
     var tag = 'stealth.dragonfish.geo.ol3.layers.EntityLayer: ';
     $log.debug(tag + 'factory started');
 
@@ -50,17 +108,15 @@ function ($log, $q, $rootScope, stylepicker, colors, clickSearchHelper, DF, MapL
             toggledOn: true,
             isError: false,
             errorMsg: '',
-            fillColor: colors.getColor(),
+            scoreCutoff: 0.75,
             size: 4
         };
         var _ol3Source = new ol.source.Vector({
             features: _features
         });
         var _ol3Layer = new ol.layer.Vector({
-            source: _ol3Source,
-            style: stylepicker.styleFunction(_viewState)
+            source: _ol3Source
         });
-
         $log.debug(tag + 'new Entity Layer(' + arguments[0] + ')');
         MapLayer.apply(_self, [_name, _ol3Layer, _queryable, _zIndexHint]);
         _self.styleDirective = 'st-entity-layer-style-view';
@@ -68,7 +124,19 @@ function ($log, $q, $rootScope, stylepicker, colors, clickSearchHelper, DF, MapL
         _self.styleDirectiveScope.removeLayer = function () {
             $rootScope.$emit(EL.removeEvent, {layerId: _self.id, categoryId: _categoryid});
         };
-
+        _self.styleDirectiveScope.entityStyler = dfStyler;
+        _.set(_self, 'viewState', _viewState);
+        var setStyle = function () {
+            _self.ol3Layer.setStyle(dfStyler.curriedStyleFunction(_self.viewState));
+        };
+        setStyle();
+        _self.styleDirectiveScope.getViewState = function () {
+            return _self.viewState;
+        };
+        _self.styleDirectiveScope.updateMap = function () {
+            setStyle();
+            _self.ol3Layer.changed();
+        };
         _self.searchPoint = function (coord, resolution) {
             var baseResponse = _.merge(this.getEmptySearchPointResult(), {
                 getLayerLegendStyle: function () {
@@ -109,7 +177,7 @@ function ($log) {
     var tag = 'stealth.dragonfish.geo.ol3.layers.stEntityLayerStyleView: ';
     $log.debug(tag + 'directive defined');
     return {
-        templateUrl: 'core/geo/ol3/layers/dropped-layerstyleview.tpl.html'
+        templateUrl: 'dragonfish/geo/ol3/layers/entity-layerstyleview.tpl.html'
     };
 }])
 ;

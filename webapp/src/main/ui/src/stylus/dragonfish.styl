@@ -22,6 +22,11 @@
     .df-class-result
         border 1px dashed black
         @extends .df-margin-specs
+        margin-left 2px
+        &:hover
+            activeGlow()
+        .df-class-result-contents
+            margin-left 5px
 
 .df-datetimepicker
     margin-bottom 10px
@@ -82,6 +87,13 @@
 
 .df-wizard-bounds-box
     max-width 90px
+
+.df-width-percent
+    width 100%
+
+.df-width-nowrap
+    @extends .df-width-percent
+    white-space no-wrap
 
 .df-wizard-error-message
     font-size 12px

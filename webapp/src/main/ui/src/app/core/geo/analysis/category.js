@@ -23,9 +23,7 @@ function ($rootScope, $timeout, ol3Map, Base, WidgetDef) {
             scope.toggleVisibility(layer);
         };
         this.addLayer = function (layer) {
-            layer.viewState = {
-                toggledOn: true
-            };
+            _.merge(layer.viewState, {toggledOn: true});
             scope.layers.push(layer);
             ol3Map.addLayer(layer);
 

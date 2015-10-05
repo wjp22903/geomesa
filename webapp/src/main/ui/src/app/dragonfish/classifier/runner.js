@@ -165,8 +165,9 @@ function ($filter, cookies, RUN) {
 'stealth.dragonfish.wps.prefixService',
 function (wps, prefixService) {
     this.run = function (queryParams) {
+        var mungedId = prefixService.mungeClassifierId(queryParams.classifier.id);
         var req = stealth.jst['wps/dragonfish_applyClassifier.xml']({
-            classifierID: queryParams.classifier.id,
+            classifierID: mungedId,
             classifierLabel: queryParams.classifierLabel,
             dfPrefix: prefixService.prefix
         });

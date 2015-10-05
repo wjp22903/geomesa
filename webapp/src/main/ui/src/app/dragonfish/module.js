@@ -18,7 +18,22 @@ angular.module('stealth.dragonfish', [
         imagery: 'Imagery',
         fusion: 'Fusion',
         sigint: 'Sigint'
-    }
+    },
+    highlightStyle: new ol.style.Style({
+        fill: new ol.style.Fill({
+            color: [255, 255, 0, 0.5]
+        }),
+        stroke: new ol.style.Stroke({
+            color: [255, 255, 0, 1],
+            width: 2
+        }),
+        image: new ol.style.Circle({
+            radius: 5,
+            fill: new ol.style.Fill({
+                color: [255, 255, 0, 1]
+            })
+        })
+    })
 })
 
 /**
@@ -62,10 +77,12 @@ function () {
  */
 .service('stealth.dragonfish.sidebarService', [
 '$rootScope',
+'stealth.core.geo.ol3.overlays.Vector',
+'stealth.dragonfish.Constant',
 'stealth.dragonfish.scoredEntityService',
 'stealth.dragonfish.similarity.Constant',
 'stealth.dragonfish.similarity.runner.QueryParamsService',
-function ($rootScope, scoredEntityService, SimConstant, simQueryService) {
+function ($rootScope, VectorOverlay, DF, scoredEntityService, SimConstant, simQueryService) {
     // make sure to call scope.$destroy() when you're done with what we give you
     this.createScope = function (req) {
         var scope = $rootScope.$new();
@@ -74,10 +91,41 @@ function ($rootScope, scoredEntityService, SimConstant, simQueryService) {
         scope.scoredEntityService = scoredEntityService;
         scope.queryRunning = true;
         scope.entityLayer = null;
-
         scope.searchSimilar = function (result) {
+            // in case mouseleave event doesn't happen
+            scope.unhighlight(result);
             $rootScope.$emit(SimConstant.applyEvent, simQueryService.runnerParams(result));
         };
+        scope.entityHighlighter = new VectorOverlay({
+            styleBuilder: function () {
+                return DF.highlightStyle;
+            }
+        });
+        scope.entityHighlighter.addToMap();
+        scope.$on('$destroy', function () {
+            scope.entityHighlighter.removeFromMap();
+        });
+        scope.entitySort = function (result) {
+            return scoredEntityService.score(result);
+        };
+        scope.highlight = function (result) {
+            result.highlightFeature = result.clone();
+            scope.entityHighlighter.addFeature(result.highlightFeature);
+        };
+        scope.unhighlight = function (result) {
+            if (result.highlightFeature) {
+                scope.entityHighlighter.removeFeature(result.highlightFeature);
+                delete result.highlightFeature;
+            }
+        };
+        scope.floorFigure = function (figure, decimals) {
+            if (!decimals) {
+                decimals = 2;
+            }
+            var d = Math.pow(10, decimals);
+            return (parseInt(figure*d, 10)/d).toFixed(decimals);
+        };
+
         return scope;
     };
 }])
@@ -96,9 +144,10 @@ function ($rootScope, scoredEntityService, SimConstant, simQueryService) {
 'stealth.dragonfish.Constant',
 'stealth.dragonfish.sidebarService',
 'stealth.dragonfish.scoredEntityService',
+'stealth.dragonfish.geo.ol3.layers.styler',
 'stealth.dragonfish.geo.ol3.layers.EntityLayer',
 'stealth.dragonfish.geo.ol3.layers.EntityConstant',
-function ($rootScope, catMgr, sidebarManager, AnalysisCategory, GeoJson, WidgetDef, DF, sidebarService, scoredEntityService, EntityLayer, EL) {
+function ($rootScope, catMgr, sidebarManager, AnalysisCategory, GeoJson, WidgetDef, DF, sidebarService, scoredEntityService, entityStyler, EntityLayer, EL) {
     this.display = function (req, resultsPromise) {
         var scope = sidebarService.createScope(req);
 
@@ -111,11 +160,12 @@ function ($rootScope, catMgr, sidebarManager, AnalysisCategory, GeoJson, WidgetD
             if (scope.entityLayer) {
                 $rootScope.$emit(EL.removeEvent, {layerId: scope.entityLayer.id, categoryId: category.id});
             }
+            catMgr.removeCategory(category.id);
             scope.$destroy();
         };
 
         var buttonId = sidebarManager.toggleButton(
-            sidebarManager.addButton(scope.request.name, DF.icon, 500,
+            sidebarManager.addButton(scope.request.name, DF.icon, 400,
                 new WidgetDef('st-df-sidebar', scope),
                 new WidgetDef('st-pager', scope, "paging='paging' records='results'"),
                 false,
@@ -139,6 +189,12 @@ function ($rootScope, catMgr, sidebarManager, AnalysisCategory, GeoJson, WidgetD
                         features: scope.results,
                         categoryId: category.id
                     });
+                    scope.updateMap = function () {
+                        scope.entityLayer.styleDirectiveScope.updateMap();
+                    };
+                    scope.getEntityColor = function (result) {
+                        return entityStyler.getColorByScore(scope.scoredEntityService.score(result), scope.entityLayer.viewState.scoreCutoff);
+                    };
                     category.addLayer(scope.entityLayer);
                 }
             });
@@ -167,6 +223,19 @@ function (CONFIG) {
      * Set `dragonfish.wpsPrefix=Hardcoded` to use the Hardcoded dragonfish-wps variants
      */
     this.prefix = _.get(CONFIG, 'dragonfish.wpsPrefix', '');
+
+    /**
+     * Check `dragonfish.stripClassifierURNPrefix` to see if we should remove `urn:` from the beginning of
+     * classifier IDs (obtained via ListClassifiers) before passing them back to ApplyClassifier
+     */
+    this.mungeClassifierId = function (id) {
+        var doStrip = _.get(CONFIG, 'dragonfish.stripClassifierURNPrefix', true);
+        if (doStrip && id.substring(0, 4) === 'urn:') {
+            return id.substring(4);
+        } else {
+            return id;
+        }
+    };
 }])
 
 /**

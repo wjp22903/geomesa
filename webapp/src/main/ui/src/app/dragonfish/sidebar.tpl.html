@@ -10,18 +10,39 @@
     <div ng-class="{'ng-hide': !!(request.classifier)}">
         <h3 ng-when="false">{{request.name}}</h3>
     </div>
+    <div class="layerStyleRow" ng-class="{'ng-hide': !(request.classifier)}">
+        <div class="cell">Score Cutoff:</div>
+        <div class="cell df-width-percent">
+            <input type="range" ng-model="entityLayer.viewState.scoreCutoff"
+                   min="0.5" max="1" step="0.01"
+                   st-change="updateMap()"
+                   st-change-delay="30"
+                   st-float-input>
+        </div>
+        <div class="cell">{{entityLayer.viewState.scoreCutoff.toFixed(2)}}</div>
+    </div>
     <hr />
     <progressbar class="progress-striped active" value="100" type="primary" ng-if="queryRunning">Evaluating</progressbar>
     <div ng-if="!queryRunning"> <!-- paged results. each li seems like the sort of thing that's supposed to be a directive -->
         <ul class="list-unstyled">
             <li class="df-class-result"
-                ng-repeat="result in results | startFrom:(paging.currentPage-1)*paging.pageSize | limitTo:paging.pageSize">
-                <h4>{{scoredEntityService.name(result)}}</h4>
-                <h5>{{scoredEntityService.score(result)}}</h5>
-                <p>{{scoredEntityService.description(result)}}</p>
-                <button class="btn btn-primary btn-xs" ng-click="searchSimilar(result)">
-                    More Like This
-                </button>
+                ng-repeat="result in results | orderBy:entitySort:true | startFrom:(paging.currentPage-1)*paging.pageSize | limitTo:paging.pageSize"
+                ng-mouseenter="highlight(result)" ng-mouseleave="unhighlight(result)">
+                <div class="df-class-result-contents">
+                    <h4>{{scoredEntityService.name(result)}}</h4>
+                    <span class="df-inline-v-middle">
+                        <h5>
+                            {{floorFigure(scoredEntityService.score(result), 3)}}
+                            <span ng-if="(getEntityColor | lodash:'isFunction')"
+                                  class="fa fa-lg fa-fw fa-square colorBox df-inline-v-middle"
+                                  ng-style="getEntityColor(result)"/>
+                        </h5>
+                    </span>
+                    <p>{{scoredEntityService.description(result)}}</p>
+                    <button class="btn btn-primary btn-xs" ng-click="searchSimilar(result)">
+                        More Like This
+                    </button>
+                </div>
             </li>
         </ul>
     </div>
