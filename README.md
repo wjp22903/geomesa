@@ -1,17 +1,15 @@
 # Stealth
-Frontend for DragonSpell analytics
 
 ### Getting started
-1st build: `mvn clean install -Pinstall-nodejs,unpack-npm,unpack-bower`
+1st build: `mvn clean prepare-package -Pinstall-nodejs,unpack-npm,unpack-bower`
 
-After a nodejs version change: `mvn clean install -Pinstall-nodejs`
+After someone commits a nodejs version change: `mvn clean prepare-package -Pinstall-nodejs`  
+After someone commits an npm dependency change: `mvn clean prepare-package -Punpack-npm`  
+After someone commits a bower dependency change: `mvn clean prepare-package -Punpack-bower`
 
-After an npm dependency change (with internet): `mvn clean install -Ppack-npm`
-After a bower dependency change (with internet): `mvn clean install -Ppack-bower`
+After **you** make an npm dependency change (with internet): `mvn clean prepare-package -Ppack-npm`  
+After **you** make a bower dependency change (with internet): `mvn clean prepare-package -Ppack-bower`
 
-Regular development: `mvn clean prepare-package`
-
-To run webapp in jetty: `mvn -pl webapp jetty:run`
-
-Notes:
-* To 'grunt watch' you must run './node grunt watch' from src/main/ui dir.
+Regular development build: `mvn clean prepare-package`  
+Then run webapp in jetty: `mvn -pl webapp jetty:run`  
+Then in a 2nd terminal, watch for code changes: `./node grunt watch` from src/main/ui directory  
