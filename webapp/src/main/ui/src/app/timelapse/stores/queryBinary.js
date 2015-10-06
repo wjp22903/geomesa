@@ -8,76 +8,41 @@ angular.module('stealth.timelapse.stores', [
 '$log',
 '$rootScope',
 '$q',
-'$filter',
-'$window',
-'toastr',
 'cqlHelper',
 'clickSearchHelper',
 'CONFIG',
 'wfs',
 'queryBinStoreExtender',
-'stealth.timelapse.stores.BinStore',
-function ($log, $rootScope, $q, $filter, $window, toastr, cqlHelper, clickSearchHelper,
-          CONFIG, wfs, queryBinStoreExtender, BinStore) {
+'stealth.timelapse.stores.LineQueryBinStore',
+function ($log, $rootScope, $q, cqlHelper, clickSearchHelper,
+          CONFIG, wfs, queryBinStoreExtender, LineQueryBinStore) {
     var tag = 'stealth.timelapse.stores.QueryBinStore: ';
     $log.debug(tag + 'factory started.');
 
-    //TODO: Add streaming query capability
     var QueryBinStore = function () {
-        BinStore.apply(this, arguments);
+        LineQueryBinStore.apply(this, arguments);
         $log.debug(tag + 'new QueryBinStore(' + this.getName() + ')');
 
         var _thisStore = this;
-        var _viewState = this.getViewState();
-        var _query;
-        var _featureTypeProperties;
 
-        this.getQuery = function () { return _query; };
+        this.buildSpaceTimeFilter = function () {
+            var query = this.getQuery();
+            return cqlHelper.buildSpaceTimeFilter(query.params);
+        };
 
-        this.launchQuery = function (query) {
-            _query = query;
-            _featureTypeProperties = query.featureTypeData.featureTypes[0].properties;
-            var typeName = query.layerData.currentLayer.Name;
-            var responseType = 'arraybuffer';
+        this.buildGetFeatureOverrides = function () {
+            var query = this.getQuery();
             var geom = query.params.geomField.name;
             var dtg = query.params.dtgField.name;
             var id = query.params.idField.name;
             var label = query.layerData.currentLayer.fieldNames.label;
-            var overrides = {
+            return {
                 propertyName: _.compact([dtg, geom, id, label]).join(),
                 outputFormat: 'application/vnd.binary-viewer',
                 format_options: 'geom:' + geom + ';dtg:' + dtg + ';trackId:' + id + (label ? ';label:' + label : '') +
                     (query.params.sortOnServer ? ';sort=true' : ''),
-                cql_filter: cqlHelper.buildSpaceTimeFilter(query.params)
+                cql_filter: this.buildSpaceTimeFilter()
             };
-
-            wfs.getFeature(CONFIG.geoserver.defaultUrl, typeName, CONFIG.geoserver.omitProxy, overrides, responseType)
-            .success(function (data, status, headers, config, statusText) { //eslint-disable-line no-unused-vars
-                var contentType = headers('content-type');
-                if (contentType.indexOf('xml') > -1) {
-                    $log.error(tag + '(' + _thisStore.getName() + ') ows:ExceptionReport returned');
-                    $log.error(data);
-                    _viewState.isError = true;
-                    _viewState.errorMsg = 'ows:ExceptionReport returned';
-                    toastr.error('Error: ' + _thisStore.getName(), _viewState.errorMsg);
-                } else if (data.byteLength === 0) {
-                    $log.error(tag + '(' + _thisStore.getName() + ') No results');
-                    _viewState.isError = true;
-                    _viewState.errorMsg = 'No results';
-                    toastr.error('Error: ' + _thisStore.getName(), _viewState.errorMsg);
-                } else {
-                    _thisStore.setArrayBuffer(data, query.params.sortOnServer, function () {
-                        $rootScope.$emit('timelapse:querySuccessful');
-                    });
-                }
-            })
-            .error(function (data, status, headers, config, statusText) { //eslint-disable-line no-unused-vars
-                var msg = 'HTTP status ' + status + ': ' + statusText;
-                $log.error(tag + '(' + _thisStore.getName() + ') ' + msg);
-                _viewState.isError = true;
-                _viewState.errorMsg = msg;
-                toastr.error('Error: ' + _thisStore.getName(), _viewState.errorMsg);
-            });
         };
 
         function boundStartMillis (t) {
@@ -95,11 +60,11 @@ function ($log, $rootScope, $q, $filter, $window, toastr, cqlHelper, clickSearch
                 cql_filter: cql
             };
 
-            var typeName = _query.layerData.currentLayer.Name;
+            var typeName = _thisStore.getQuery().layerData.currentLayer.Name;
             wfs.getFeature(CONFIG.geoserver.defaultUrl, typeName, CONFIG.geoserver.omitProxy, overrides)
             .success(function (data, status, headers, config, statusText) { //eslint-disable-line no-unused-vars
                 var trimmedFeatures = clickSearchHelper.sortAndTrimFeatures(coord, data.features, clickOverrides);
-                var omitKeys = _.keys(_.get(_query.layerData.currentLayer.KeywordConfig, 'field.hide'));
+                var omitKeys = _.keys(_.get(_thisStore.getQuery().layerData.currentLayer.KeywordConfig, 'field.hide'));
                 var records = _.map(_.pluck(trimmedFeatures, 'properties'), function (record) {
                     return _.omit(record, omitKeys);
                 });
@@ -111,20 +76,20 @@ function ($log, $rootScope, $q, $filter, $window, toastr, cqlHelper, clickSearch
                     },
                     records: records,
                     capabilities: capabilities,
-                    fieldTypes: _featureTypeProperties,
+                    fieldTypes: _thisStore.getQuery().featureTypeData.featureTypes[0].properties,
                     isFilterable: true,
                     filterHandler: function (key, val) {
                         var filter = key + '=' + (angular.isString(val) ? "'" + val + "'" : val);
                         var overrides = {
-                            startDtg: moment(_query.params.startDtg),
-                            endDtg: moment(_query.params.endDtg),
-                            storeName: _query.params.storeName + ' (' + filter + ')',
-                            currentLayer: _query.layerData.currentLayer
+                            startDtg: moment(_thisStore.getQuery().params.startDtg),
+                            endDtg: moment(_thisStore.getQuery().params.endDtg),
+                            storeName: _thisStore.getQuery().params.storeName + ' (' + filter + ')',
+                            currentLayer: _thisStore.getQuery().layerData.currentLayer
                         };
-                        if (!_query.params.cql || _.trim(_query.params.cql) === '') {
+                        if (!_thisStore.getQuery().params.cql || _.trim(_thisStore.getQuery().params.cql) === '') {
                             overrides.cql = filter;
                         } else {
-                            overrides.cql = _.trim(_query.params.cql) + ' AND ' + filter;
+                            overrides.cql = _.trim(_thisStore.getQuery().params.cql) + ' AND ' + filter;
                         }
                         $rootScope.$emit('Launch Timelapse Wizard', overrides);
                     }
@@ -144,7 +109,7 @@ function ($log, $rootScope, $q, $filter, $window, toastr, cqlHelper, clickSearch
             var deferred = $q.defer();
             var boundedStartMillis = boundStartMillis(startMillis);
             var boundedEndMillis = boundEndMillis(endMillis);
-            var KeywordConfig = _query.layerData.currentLayer.KeywordConfig;
+            var KeywordConfig = _thisStore.getQuery().layerData.currentLayer.KeywordConfig;
             var clickOverrides = {
                 fixedPixelBuffer: Math.max(this.getPointRadius(), 4)
             };
@@ -157,7 +122,7 @@ function ($log, $rootScope, $q, $filter, $window, toastr, cqlHelper, clickSearch
             });
 
             if (this.hasLabel()) {
-                var label = _query.layerData.currentLayer.fieldNames.label || 'label';
+                var label = _thisStore.getQuery().layerData.currentLayer.fieldNames.label || 'label';
                 var labels = _.pluck(this.searchPointAndTimeForRecords(coord, res, startMillis, endMillis), 'label');
                 if (labels.length > 0) {
                     var cql = label + ' IN (' + labels.join() + ')';
@@ -169,15 +134,15 @@ function ($log, $rootScope, $q, $filter, $window, toastr, cqlHelper, clickSearch
                 var extent = clickSearchHelper.getSearchExtent(coord, res, clickOverrides);
                 var cqlParams = {
                     params: {
-                        geomField: _query.params.geomField,
-                        dtgField: _query.params.dtgField,
-                        minLon: Math.max(extent[0], _query.params.minLon),
-                        minLat: Math.max(extent[1], _query.params.minLat),
-                        maxLon: Math.min(extent[2], _query.params.maxLon),
-                        maxLat: Math.min(extent[3], _query.params.maxLat),
+                        geomField: _thisStore.getQuery().params.geomField,
+                        dtgField: _thisStore.getQuery().params.dtgField,
+                        minLon: Math.max(extent[0], _thisStore.getQuery().params.minLon),
+                        minLat: Math.max(extent[1], _thisStore.getQuery().params.minLat),
+                        maxLon: Math.min(extent[2], _thisStore.getQuery().params.maxLon),
+                        maxLat: Math.min(extent[3], _thisStore.getQuery().params.maxLat),
                         startDtg: moment.utc(boundedStartMillis),
                         endDtg: moment.utc(boundedEndMillis),
-                        cql: _query.params.cql
+                        cql: _thisStore.getQuery().params.cql
                     }
                 };
 
@@ -197,27 +162,19 @@ function ($log, $rootScope, $q, $filter, $window, toastr, cqlHelper, clickSearch
             }
         };
 
-        this.exportBin = function (outputFormat) {
-            //Default is bin format.  Don't requery for bin format.
-            if (!_.isString(outputFormat) || outputFormat === 'bin') {
-                var blob = new Blob([this.getArrayBuffer()], {type: 'application/octet-binary'});
-                saveAs(blob, this.getName().trim().replace(/\W/g, '_') + '.bin');
-            } else {
-                var url = $filter('cors')(CONFIG.geoserver.defaultUrl, 'wfs', CONFIG.geoserver.omitProxy);
-                $window.open(url + '?' + [
-                    'service=WFS',
-                    'version=1.0.0',
-                    'request=GetFeature',
-                    'typeName=' + _query.layerData.currentLayer.Name,
-                    'srsName=EPSG:4326',
-                    'outputFormat=' + outputFormat,
-                    'cql_filter=' + cqlHelper.buildSpaceTimeFilter(_query.params)
-                ].join('&'));
-            }
+        this.exportFormats = {
+            'Binary': 'bin',
+            'CSV': 'csv',
+            'GML2': 'GML2',
+            'GML3.1': 'text/xml; subtype=gml/3.1.1',
+            'GML3.2': 'application/gml+xml; version=3.2',
+            'GeoJSON': 'application/json',
+            'KML': 'application/vnd.google-earth.kml+xml',
+            'Shapefile': 'SHAPE-ZIP'
         };
     };
 
-    QueryBinStore.prototype = Object.create(BinStore.prototype);
+    QueryBinStore.prototype = Object.create(LineQueryBinStore.prototype);
 
     return QueryBinStore;
 }])

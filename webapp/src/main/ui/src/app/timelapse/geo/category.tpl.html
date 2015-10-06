@@ -253,14 +253,10 @@
         </div>
         <div id="col3" class="categoryCell" style="width:100%;text-align:right">
             <ul ui-jq="menu" style="display:none;position:absolute;font-size:inherit;font-family:inherit;border-radius:4px;z-index:91;">
-                <li ng-click="store.exportBin('bin')">Binary</li>
-                <li ng-click="store.exportBin('csv')">CSV</li>
-                <li ng-click="store.exportBin('GML2')">GML2</li>
-                <li ng-click="store.exportBin('text/xml; subtype=gml/3.1.1')">GML3.1</li>
-                <li ng-click="store.exportBin('application/gml+xml; version=3.2')">GML3.2</li>
-                <li ng-click="store.exportBin('application/json')">GeoJSON</li>
-                <li ng-click="store.exportBin('application/vnd.google-earth.kml+xml')">KML</li>
-                <li ng-click="store.exportBin('SHAPE-ZIP')">Shapefile</li>
+                <li ng-repeat="(name, format) in ::store.exportFormats | orderBy:'name'"
+                    ng-click="store.exportBin(format)">
+                    {{::name}}
+                </li>
             </ul>
             <div class="btn-group"
                  ng-if="store.getViewState().isDataReady() && store.exportBin"

@@ -23,7 +23,7 @@
                 </select>
             </td>
         </tr>
-        <tr>
+        <tr ng-class="{'ng-hide': query.isLineQuery()}">
             <td style="padding-top:2px;">
                 <label>Time field</label>
             </td>
@@ -36,7 +36,7 @@
                 </select>
             </td>
         </tr>
-        <tr>
+        <tr ng-class="{'ng-hide': query.isLineQuery()}">
             <td style="padding-top:2px;">
                 <label>Geometry field&nbsp;</label>
             </td>
@@ -58,4 +58,12 @@
             </td>
         </tr>
     </table>
+    <select class="ng-hide"
+            ng-model="query.params.startDtgField"
+            ng-required="query.isLineQuery()">
+    </select>
+    <select class="ng-hide"
+            ng-model="query.params.endDtgField"
+            ng-required="query.isLineQuery()">
+    </select>
 </ng-form>

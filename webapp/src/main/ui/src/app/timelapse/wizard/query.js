@@ -8,16 +8,22 @@ angular.module('stealth.timelapse.wizard.query', [
 .service('queryService', [
 '$rootScope',
 'tlLayerManager',
+'stealth.timelapse.stores.LineQueryBinStore',
 'stealth.timelapse.stores.QueryBinStore',
-function ($rootScope, tlLayerManager, QueryBinStore) {
+function ($rootScope, tlLayerManager, LineQueryBinStore, QueryBinStore) {
     var hLayer;
 
     this.launchBinQuery = function (query) {
-        hLayer = tlLayerManager.getHistoricalLayer();
-        var name = query.params.storeName;
-        var store = new QueryBinStore(name);
-        hLayer.addStore(store);
-        store.launchQuery(query);
+        //Either a valid line-query or not a line-query at all
+        //If not either, silently do nothing.
+        if (query.isValidLineQuery() || !query.isLineQuery()) {
+            hLayer = tlLayerManager.getHistoricalLayer();
+            var name = query.params.storeName;
+            var store = query.isValidLineQuery() ?
+                new LineQueryBinStore(name) : new QueryBinStore(name);
+            hLayer.addStore(store);
+            store.launchQuery(query);
+        }
     };
 
     $rootScope.$on('timelapse:querySuccessful', function () {
@@ -50,6 +56,8 @@ function ($filter, cookies, wfs, ol3Map, owsLayers, CONFIG) {
             idField: null,
             geomField: null,
             dtgField: null,
+            startDtgField: null,
+            endDtgField: null,
             storeName: 'History ' + idSeq++,
             maxLat: 90,
             minLat: -90,
@@ -130,30 +138,44 @@ function ($filter, cookies, wfs, ol3Map, owsLayers, CONFIG) {
             _self.params.idField = null;
             _self.params.geomField = null;
             _self.params.dtgField = null;
+            _self.params.startDtgField = null;
+            _self.params.endDtgField = null;
 
             wfs.getFeatureTypeDescription(CONFIG.geoserver.defaultUrl,
                                           _self.layerData.currentLayer.Name,
                                           CONFIG.geoserver.omitProxy)
             .then(
                 function (data) {
-                    _self.featureTypeData = data;
                     if (data.error) { // Response is successful,
                                       // but no description is
                                       // found for the type.
                         _self.featureTypeData = 'unavailable';
                     } else {
-                        var id = _.find(_self.featureTypeData.featureTypes[0].properties, {'name': _self.layerData.currentLayer.fieldNames.trkId});
+                        var id = _.find(data.featureTypes[0].properties, {'name': _self.layerData.currentLayer.fieldNames.trkId});
                         if (id !== undefined) {
                             _self.params.idField = id;
                         }
-                        var dtg = _.find(_self.featureTypeData.featureTypes[0].properties, {'name': _self.layerData.currentLayer.fieldNames.dtg});
+                        var dtg = _.find(data.featureTypes[0].properties, {'name': _self.layerData.currentLayer.fieldNames.dtg});
                         if (dtg !== undefined) {
                             _self.params.dtgField = dtg;
                         }
-                        var geom = _.find(_self.featureTypeData.featureTypes[0].properties, {'name': _self.layerData.currentLayer.fieldNames.geom});
+                        var geom = _.find(data.featureTypes[0].properties, {'name': _self.layerData.currentLayer.fieldNames.geom});
                         if (geom !== undefined) {
                             _self.params.geomField = geom;
                         }
+                        if (_self.layerData.currentLayer.fieldNames.startDtg) {
+                            var startDtg = _.find(data.featureTypes[0].properties, {'name': _self.layerData.currentLayer.fieldNames.startDtg});
+                            if (dtg !== undefined) {
+                                _self.params.startDtgField = startDtg;
+                            }
+                        }
+                        if (_self.layerData.currentLayer.fieldNames.endDtg) {
+                            var endDtg = _.find(data.featureTypes[0].properties, {'name': _self.layerData.currentLayer.fieldNames.endDtg});
+                            if (dtg !== undefined) {
+                                _self.params.endDtgField = endDtg;
+                            }
+                        }
+                        _self.featureTypeData = data;
                     }
                 },
                 function (error) {
@@ -166,6 +188,21 @@ function ($filter, cookies, wfs, ol3Map, owsLayers, CONFIG) {
             //Set time range limit, if this layer has one
             this.timeData.maxTimeRangeMillis = _self.layerData.currentLayer.maxTimeRangeMillis;
             this.checkAndSetTimeRange(_self.params.startDtg, _self.params.endDtg, true);
+        };
+
+        this.getLineQueryConditions = function () {
+            return [
+                _self.params.startDtgField,
+                _self.params.endDtgField,
+                _.get(_self.params, 'dtgField.localType') === 'string', // List reported as 'string', for some reason
+                _.get(_self.params, 'geomField.localType') === 'LineString'
+            ];
+        };
+        this.isLineQuery = function () {
+            return _.any(this.getLineQueryConditions(), Boolean);
+        };
+        this.isValidLineQuery = function () {
+            return _.all(this.getLineQueryConditions(), Boolean);
         };
 
         var keywordPrefix = ['timelapse', 'historical'];
