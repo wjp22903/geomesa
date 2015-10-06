@@ -10,6 +10,7 @@ Regular development build:
 mvn clean prepare-package
 mvn -pl webapp jetty:run
 ```
+Find your server at http://localhost:8080/stealth  
 Then in a 2nd terminal, watch for code changes:
 ```sh
 cd webapp/src/main/ui
