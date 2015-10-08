@@ -13,10 +13,11 @@ angular.module('stealth.dragonfish.classifier.wizard', [
 .service('stealth.dragonfish.classifier.wizard.scope', [
 '$rootScope',
 'stealth.core.utils.WidgetDef',
+'stealth.dragonfish.Constant',
 'stealth.dragonfish.classifier.service',
 'stealth.dragonfish.classifier.runner.Constant',
 'stealth.dragonfish.classifier.runner.QueryParams',
-function ($rootScope, WidgetDef, classifierService, runnerConstant, QueryParams) {
+function ($rootScope, WidgetDef, DF, classifierService, runnerConstant, QueryParams) {
     var _creations = 0;
 
     this.create = function () {
@@ -32,6 +33,15 @@ function ($rootScope, WidgetDef, classifierService, runnerConstant, QueryParams)
                 wizardScope.query.classifierLabel = wizardScope.query.classifier.labels[0];
             }
         });
+        wizardScope.pickClassifier = function (classifier) {
+            wizardScope.query.classifier = classifier;
+            delete wizardScope.query.classifierLabel;
+        };
+        wizardScope.spaceIcon = {};
+        wizardScope.spaceIcon[DF.space.imagery] = 'fa-file-image-o';
+        wizardScope.spaceIcon[DF.space.sigint] = 'fa-rss';
+        wizardScope.spaceIcon[DF.space.fusion] = 'fa-sun-o';
+
         classifierService.getClassifiers()
             .then(function (classifiers) {
                 wizardScope.classifiers = classifiers;

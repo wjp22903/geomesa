@@ -1,23 +1,37 @@
 <ng-form name="wizardForm">
     <table class="df-wizard-table" ng-class="{'ng-hide': boundWiz.drawing}">
         <tr>
+            <!--SELECT A CLASSIFIER-->
             <td>
-                <select class="form-control input-sm"
-                    ng-model="query.classifier"
-                    ng-options="classifier.name for classifier in classifiers | orderBy: 'name'"
-                    required>
-                    <option value="" selected disabled>Select a Classifier</option>
-                </select>
+                <div class="btn-group dropdown dropdown-append-to-body df-button">
+                    <button type="button" class="btn dropdown-toggle df-button">
+                        <span class="df-dropdown" ng-if="!query.classifier">Select a Classifier</span>
+                        <span class="df-dropdown" ng-if="query.classifier"><span class="fa fa-fw fa-df" ng-class="spaceIcon[query.classifier.space]"></span>{{query.classifier.name}}</span>
+                        <span class="pull-right"><span class="caret"></span></span>
+                    </button>
+                    <ul class="dropdown-menu df-dropdown" role="menu" aria-labelledby="btn-append-to-body">
+                        <li ng-repeat="classifier in ::classifiers | orderBy: 'name'"  role="menuitem">
+                            <a href="#" ng-click="pickClassifier(classifier)"><i class="fa fa-fw fa-df" ng-class="spaceIcon[classifier.space]"></i>{{classifier.name}}</a>
+                        </li>
+                    </ul>
+                </div>
             </td>
         </tr>
         <tr>
+            <!--SELECT A LABEL (FOR THE CLASSIFIER)-->
             <td ng-class="{'ng-hide': query.hasSingleLabel()}">
-                <select class="form-control input-sm"
-                    ng-model="query.classifierLabel"
-                    ng-options="label for label in query.classifier.labels"
-                    required>
-                    <option value="" selected disabled>Select a Label</option>
-                </select>
+                <div class="btn-group dropdown dropdown-append-to-body df-button">
+                    <button type="button" class="btn dropdown-toggle df-button">
+                        <span class="df-dropdown" ng-if="!query.classifierLabel">Select a Label</span>
+                        <span class="df-dropdown" ng-if="query.classifierLabel"><i class="fa fa-fw fa-df" ng-class="spaceIcon[query.classifier.space]"></i>{{query.classifierLabel}}</span>
+                        <span class="pull-right"><span class="caret"></span></span>
+                    </button>
+                    <ul class="dropdown-menu df-dropdown" role="menu" aria-labelledby="btn-append-to-body">
+                        <li ng-repeat="label in query.classifier.labels | orderBy: 'name'"  role="menuitem">
+                            <a href="#" ng-click="query.classifierLabel = label"><i class="fa fa-fw fa-df" ng-class="spaceIcon[query.classifier.space]"></i>{{label}}</a>
+                        </li>
+                    </ul>
+                </div>
             </td>
         </tr>
     </table>
@@ -25,13 +39,12 @@
         <tr ng-click="query.geomSource = constant.byid">
             <td>
                 <i class="fa fa-fw" ng-class="query.isImageIdSource() ? 'fa-dot-circle-o' : 'fa-circle-o'"
-                   ng-click="query.geomSource = constant.byid">
-                </i>
+                   ng-click="query.geomSource = constant.byid"></i>
                 <input type="text"
                    placeholder="Enter Image ID"
                    ng-model="query.imageId"
                    ng-required="query.isImageIdSource()"
-                   class="form-control input-sm df-wizard-text-input df-wizard-selector" />
+                   class="form-control input-sm df-wizard-text-input df-wizard-selector df-input-style">
             </td>
         </tr>
     </table>
@@ -41,7 +54,7 @@
                 <i class="fa fa-fw" ng-class="query.isGeomSource() ? 'fa-dot-circle-o' : 'fa-circle-o'"
                    ng-click="query.geomSource = constant.geom">
                 </i>
-                <label ng-class="{'ng-hide': query.isGeomSource()}" class="df-wizard-bounds-title">
+                <label ng-class="{'ng-hide': query.isGeomSource()}" class="df-wizard-bounds">
                     Bounding Box
                 </label>
             </td>
@@ -55,7 +68,7 @@
             <td ng-class="{'ng-hide': boundWiz.drawing}" colspan="2">
                 <!-- Only an input when not using an image id. Otherwise the time is the time of the image -->
                 <table class="df-wizard-table">
-                    <tr><label>Enter time range:</label></tr>
+                    <tr><p></p><label>Enter time range:</label></tr>
                     <tr>
                         <td><label>Start: </label></td>
                         <td><input type="text" ng-model="query.timeData.startDtg" ui-jq="datetimepicker"
@@ -63,7 +76,7 @@
                             ng-disabled="query.isImageIdSource()"
                             ng-required="!query.isImageIdSource()"
                             ui-options="{todayButton: false, yearStart: 1990, yearEnd: 2030, step: 15, format: 'Y-m-d H:i'}"
-                            st-utc-moment-format="YYYY-MM-DD HH:mm" class="df-datetimepicker"> Z
+                            st-utc-moment-format="YYYY-MM-DD HH:mm" class="df-datetimepicker" /> Z
                         </td>
                     </tr>
                     <tr>
@@ -73,11 +86,11 @@
                             ng-disabled="query.isImageIdSource()"
                             ng-required="!query.isImageIdSource()"
                             ui-options="{todayButton: false, yearStart: 1990, yearEnd: 2030, step: 15, format: 'Y-m-d H:i'}"
-                            st-utc-moment-format="YYYY-MM-DD HH:mm" class="df-datetimepicker"> Z
+                            st-utc-moment-format="YYYY-MM-DD HH:mm" class="df-datetimepicker" /> Z
                         </td>
                     </tr>
                 </table>
-                <!-- this input is a bit finicky. any value in query.timeData.valid will validate,
+                <!-- This input is a bit finicky. any value in query.timeData.valid will validate,
                      even if the value is a boolean false. make sure _not_ to set a valid flag until
                      the query.timeData is actually valid. do _not_ set valid to false. -->
                 <input type="hidden" ng-model="query.timeData.valid" ng-required="!query.isImageIdSource()">
@@ -92,6 +105,7 @@
         <tr>
             <!-- Only visible for imagery classifiers. Defaults to false -->
             <td>
+                <p></p>
                 <label><input type="checkbox" ng-model="query.slidingWindow" /> Use sliding window</label>
             </td>
         </tr>

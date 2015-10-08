@@ -16,7 +16,8 @@ angular.module('stealth.dragonfish', [
     icon: 'fa-puzzle-piece',
     space: {
         imagery: 'Imagery',
-        fusion: 'Fusion'
+        fusion: 'Fusion',
+        sigint: 'Sigint'
     }
 })
 

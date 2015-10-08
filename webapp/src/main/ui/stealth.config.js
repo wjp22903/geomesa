@@ -61,7 +61,12 @@ module.exports = {
         assets_nested: [
         ],
         assets: [
-            'vendor/bower/world.geo.json/countries.geo.json'
+            'vendor/bower/world.geo.json/countries.geo.json',
+            'vendor/bower/ccri.icon-font/*.eot',
+            'vendor/bower/ccri.icon-font/*.woff',
+            'vendor/bower/ccri.icon-font/*.ttf',
+            'vendor/bower/ccri.icon-font/*.svg'
+
         ],
         fonts: [
             'vendor/bower/font-awesome/fonts/*',
