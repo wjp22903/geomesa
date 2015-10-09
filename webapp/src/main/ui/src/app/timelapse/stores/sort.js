@@ -1,7 +1,10 @@
 angular.module('stealth.timelapse.stores')
 
 .service('stealth.timelapse.stores.sorter', [
-function () {
+'$timeout',
+function ($timeout) {
+    var _self = this;
+
     // Return true if a sequence of "bin" records is sorted or false if not.
     //
     // vi32  - Int32Array of raw storage
@@ -88,7 +91,7 @@ function () {
 
         tStart = Date.now();
 
-        if ((spI32|0) <= 1) { // spI32 is 0, 2, 4, ...
+        if ((spI32|0) < 2) { // spI32 is 0, 2, 4, ...
             completionFunc(completionArg);
             return null;
         }
@@ -110,7 +113,7 @@ function () {
 
             n = (e-b)|0;
 
-            if ((n|0) <= 2) { // GNU C++ stdlib use 16
+            if ((n|0) < 3) { // GNU C++ stdlib use 16
                 // trivial sort
                 // do we need to swap or are we good-to-go as is?
                 if ((n|0) > 1 && (vi32[ib|0]|0) > (vi32[(ib+szI32)]|0)) {
@@ -121,7 +124,7 @@ function () {
                         tmp = vf64[f1|0]; vf64[f1|0]=vf64[f2|0]; vf64[f2|0]=tmp;
                     }
                 }
-                if ((spI32|0) <= 1) {
+                if ((spI32|0) < 2) {
                     completionFunc(completionArg);
                     return null;         // ########## Finished! ##########
                 }
@@ -191,7 +194,7 @@ function () {
                     p = (p+1)|0;
                 }
 
-                // The parition is complete; now we need to sort [b,p) and [p,e).
+                // The partition is complete; now we need to sort [b,p) and [p,e).
                 //
                 // Push the smaller range on our call stack and proceed to sort
                 // the larger one.
@@ -216,23 +219,23 @@ function () {
                     // prepare to process larger range [b,p)
                     e = p;
                 }
+            }
 
-                // Should we press on or give control back to the browser?
+            // Should we press on or give control back to the browser?
 
-                // Calling Date.now() is expensive so try not to do it very often.
-                if (((e-b)|0) > 50000) {
-                    // Relinquishing control is *very* expensive so don't do it
-                    // unless we getting close to human-perceptible times (50ms).
-                    if ((Date.now() - tStart) > 50) {
-                        // push [b,e) and resume processing later
-                        si32[spI32|0] = b|0;
-                        spI32 = (spI32+1)|0;
-                        si32[spI32|0] = e|0;
-                        spI32 = (spI32+1)|0;
-                        setTimeout(this.sortBinRec, 0, vi32, vf64, si32, spI32, koI32, szF64,
-                                   completionFunc, completionArg);
-                        return spI32|0;
-                    }
+            // Calling Date.now() is expensive so try not to do it very often.
+            if (((e-b)|0) > 50000) {
+                // Relinquishing control is *very* expensive so don't do it
+                // unless we getting close to human-perceptible times (50ms).
+                if ((Date.now() - tStart) > 50) {
+                    // push [b,e) and resume processing later
+                    si32[spI32|0] = b|0;
+                    spI32 = (spI32+1)|0;
+                    si32[spI32|0] = e|0;
+                    spI32 = (spI32+1)|0;
+                    $timeout(_self.sortBinRec, 0, false, vi32, vf64, si32, spI32,
+                             koI32, szF64, completionFunc, completionArg);
+                    return spI32|0;
                 }
             }
         }
