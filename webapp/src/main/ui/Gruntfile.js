@@ -233,7 +233,7 @@ module.exports = function (grunt) {
     // WATCH
     grunt.config('delta', {
         options: {
-            livereload: true
+            livereload: grunt.option('watchPort') || 35729
         },
         gruntfile: {
             files: 'Gruntfile.js',
