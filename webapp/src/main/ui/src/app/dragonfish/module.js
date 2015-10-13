@@ -71,11 +71,9 @@ function ($rootScope, scoredEntityService, SimConstant, simQueryService) {
         scope.request = req;
         scope.results = results;
         scope.scoredEntityService = scoredEntityService;
-
         scope.searchSimilar = function (result) {
             $rootScope.$emit(SimConstant.applyEvent, simQueryService.runnerParams(result));
         };
-
         return scope;
     };
 }])
@@ -105,7 +103,12 @@ function ($rootScope, catMgr, sidebarManager, AnalysisCategory, WidgetDef, DF, s
 
         // populate the Map
         if (!_.isEmpty(scope.results)) {
-            scope.entityLayer = new EntityLayer({name: scope.request.name, features: scope.results, categoryId: category.id});
+            scope.entityLayer = new EntityLayer({
+                queryable: true,
+                name: scope.request.name,
+                features: scope.results,
+                categoryId: category.id
+            });
             category.addLayer(scope.entityLayer);
         }
 

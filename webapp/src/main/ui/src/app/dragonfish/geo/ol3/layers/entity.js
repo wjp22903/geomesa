@@ -19,13 +19,15 @@ function ($rootScope, catMgr, ol3Map, EL) {
 
 .factory('stealth.dragonfish.geo.ol3.layers.EntityLayer', [
 '$log',
+'$q',
 '$rootScope',
 'stylepicker',
 'colors',
+'clickSearchHelper',
 'stealth.dragonfish.Constant',
 'stealth.core.geo.ol3.layers.MapLayer',
 'stealth.dragonfish.geo.ol3.layers.EntityConstant',
-function ($log, $rootScope, stylepicker, colors, DF, MapLayer, EL) {
+function ($log, $q, $rootScope, stylepicker, colors, clickSearchHelper, DF, MapLayer, EL) {
     var tag = 'stealth.dragonfish.geo.ol3.layers.EntityLayer: ';
     $log.debug(tag + 'factory started');
 
@@ -66,6 +68,35 @@ function ($log, $rootScope, stylepicker, colors, DF, MapLayer, EL) {
         _self.styleDirectiveScope.removeLayer = function () {
             $rootScope.$emit(EL.removeEvent, {layerId: _self.id, categoryId: _categoryid});
         };
+
+        _self.searchPoint = function (coord, resolution) {
+            var baseResponse = _.merge(this.getEmptySearchPointResult(), {
+                getLayerLegendStyle: function () {
+                    return {color: _viewState.fillColor};
+                }
+            });
+            var extent = clickSearchHelper.getSearchExtent(coord, resolution);
+            var nearbyFeatures = [];
+            var trimmedFeatures;
+
+            // If this layer is not toggled on, ...
+            if (!_viewState.toggledOn || _viewState.isError) {
+                return $q.when(baseResponse);
+            }
+
+            _ol3Source.forEachFeatureIntersectingExtent(extent, function (feature) {
+                nearbyFeatures.push(feature);
+            });
+
+            trimmedFeatures = clickSearchHelper.sortAndTrimFeatures(coord, nearbyFeatures);
+            return $q.when(_.merge(baseResponse, {
+                isError: false,
+                records: _.map(trimmedFeatures, function (feat) {
+                    return _.pick(feat.getProperties(), ['id', 'name', 'score']);
+                }),
+                features: trimmedFeatures
+            }));
+        };
     };
     EntityLayer.prototype = Object.create(MapLayer.prototype);
 
@@ -81,5 +112,4 @@ function ($log) {
         templateUrl: 'core/geo/ol3/layers/dropped-layerstyleview.tpl.html'
     };
 }])
-
 ;
