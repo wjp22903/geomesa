@@ -8,7 +8,7 @@ module.exports = function (grunt) {
 
     // Load npm tasks.
     require('matchdep').filterDev('grunt*').forEach(function (dep) {
-        if (dep !== 'grunt-cli') {
+        if (['grunt', 'grunt-cli'].indexOf(dep) < 0) {
             grunt.loadNpmTasks(dep);
         }
     });
@@ -280,73 +280,6 @@ module.exports = function (grunt) {
         }
     });
 
-    grunt.config('connect', {
-        localTestFilesServer: {
-            options: {
-                port: 9901,
-                base: '../../test/ui'
-            }
-        },
-        options: {
-            port: 9900,
-            hostname: 'localhost',
-            debug: true
-        },
-        dgeo: {
-            proxies: [
-                {
-                    context: ['/geoserver'],
-                    host: 'dgeo',
-                    port: 8080
-                },
-                {
-                    context: ['/'],
-                    host: 'localhost',
-                    port: 9901
-                }
-            ]
-        },
-        geo: {
-            appendProxies: false,
-            proxies: [{
-                context: ['/geoserver'],
-                host: 'geo',
-                port: 8080
-            }]
-        },
-        livereload: {
-            options: {
-                middleware: function (connect, options) {
-                    var middlewares = [];
-
-                    if (!Array.isArray(options.base)) {
-                        options.base = [options.base];
-                    }
-
-                    // Enable CORS by setting response headers
-                    middlewares.unshift(function (req, res, next) { //eslint-disable-line no-unused-vars
-                        res.setHeader('Access-Control-Allow-Origin', '*');
-                        res.setHeader('Access-Control-Allow-Methods', '*');
-                        res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-                        return next();
-                    });
-
-                    // Setup the proxy
-                    middlewares.push(
-                        require('grunt-connect-proxy/lib/utils')
-                            .proxyRequest);
-
-                    // Serve static files
-                    options.base.forEach(function (base) {
-                        middlewares.push(connect['static'](base));
-                    });
-
-                    return middlewares;
-                }
-            }
-        }
-    });
-
     grunt.config('uglify', {
         options: {
             screwIE8: true,
@@ -456,18 +389,6 @@ module.exports = function (grunt) {
         'copy:build_vendorjs',
         'copy:build_vendor_maps',
         'index:build'
-    ]);
-
-    grunt.registerTask('proxy-dgeo', [
-        'configureProxies:dgeo',
-        'connect:localTestFilesServer',
-        'connect:livereload',
-        'watch'
-    ]);
-
-    grunt.registerTask('proxy-geo', [
-        'configureProxies:geo',
-        'connect:livereload'
     ]);
 };
 /* eslint-enable no-invalid-this */
