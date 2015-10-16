@@ -9,6 +9,7 @@
 @import '../../vendor/bower/datetimepicker/jquery.datetimepicker.css'
 @import '../../vendor/bower/angular-toastr/dist/angular-toastr.css'
 @import '../../vendor/bower/isteven-angular-multiselect/isteven-multi-select.css'
+@import '../../vendor/bower/ccri.bars/ccri.bars.css'
 // http://visionmedia.github.io/nib/
 @import 'nib'
 // application files imports
@@ -47,8 +48,30 @@
     font-weight normal
     font-style normal
 
+html, body
+    height 100%
+    width 100%
+    margin 0
+    padding 0
+
 body
     overflow hidden
+    display flex
+    flex-direction column
+
+.appContents
+    overflow hidden
+    display flex
+    flex-direction column
+    flex 1
+    position relative
+    >ccri-bars-hbar
+        position relative
+        z-index 900
+
+.viewPort
+    flex 1
+    position relative
 
 .primaryDisplay
     left sidebarWidth
@@ -131,3 +154,6 @@ input[type=number]::-webkit-outer-spin-button
 hr
     margin-top 10px
     margin-bottom 10px
+
+#toast-container
+    position absolute

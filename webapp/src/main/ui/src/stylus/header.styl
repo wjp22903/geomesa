@@ -18,9 +18,22 @@
     display inline-block
     color #e4e4e4
     max-height 40px
+    .dropdown-menu
+        margin-left -4px
+        background-color rgb(44, 44, 44)
+        li>a
+            color #e4e4e4
+            &:hover, &:active, &:focus
+                background-color #575757
+                color white
+                i.fa
+                    transform scale(1.4)
 
 .headerButton.btn
     padding 5px
+    &:hover, &:active, &:focus
+        transform scale(1.2)
+        color white
 
 .headerTitle
     font-size 1.5em

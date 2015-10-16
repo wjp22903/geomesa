@@ -43,6 +43,7 @@ module.exports = {
             'vendor/bower/bowser/bowser.js',
             'vendor/bower/lodash/lodash.js', // out of order because ccri.angular-utils needs it
             'vendor/bower/ccri.angular-utils/ccri.angular-utils.js',
+            'vendor/bower/ccri.bars/ccri.bars.js',
             'vendor/bower/css-element-queries/src/ResizeSensor.js',
             'vendor/bower/datetimepicker/jquery.datetimepicker.js',
             'vendor/bower/d3/d3.js',

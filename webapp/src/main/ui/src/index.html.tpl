@@ -13,16 +13,21 @@
 </head>
 
 <body>
-    <div class="anchorTop shadowBottom classBanner {{::app.classification.level}}"
-         ng-bind="::app.classification.text" ng-style="::app.classBannerStyle"></div>
-    <div class="anchorLeftRight" ng-style="::app.betweenClassBannersStyle">
-        <st-sidebar></st-sidebar>
-        <div class="primaryDisplay anchorTopBottom anchorRight">
-            <st-ol3-map id="primaryMap"></st-ol3-map>
-            <st-popup-container></st-popup-container>
-            <st-header></st-header>
-            <st-wizard></st-wizard>
+    <div class="shadowBottom classBanner {{::app.classification.level}}"
+         ng-bind="::app.classification.text">
+    </div>
+    <div class="appContents">
+        <ccri-bars-hbar bar-id="top" class="shadowBottom"></ccri-bars-hbar>
+        <div class="viewPort">
+            <st-sidebar></st-sidebar>
+            <div class="primaryDisplay anchorTopBottom anchorRight">
+                <st-ol3-map id="primaryMap"></st-ol3-map>
+                <st-popup-container></st-popup-container>
+                <st-header></st-header>
+                <st-wizard></st-wizard>
+            </div>
         </div>
+        <ccri-bars-hbar bar-id="bottom" class="shadowTop"></ccri-bars-hbar>
         <div id="splash" class="splashPage"
              ng-if="::CONFIG.app.showSplash">
             <iframe ng-src="{{CONFIG.app.splashUrl}}"></iframe>
@@ -32,8 +37,9 @@
             </div>
         </div>
     </div>
-    <div class="anchorBottom shadowTop classBanner {{::app.classification.level}}"
-         ng-bind="::app.classification.text" ng-style="::app.classBannerStyle"></div>
+    <div class="shadowTop classBanner {{::app.classification.level}}"
+         ng-bind="::app.classification.text">
+    </div>
 
     [% styles.forEach(function(file) { %]
     <link rel="stylesheet" href="[%= file %]?[%= datetime %]">[% }); %]

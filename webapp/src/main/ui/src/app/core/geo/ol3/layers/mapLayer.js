@@ -205,9 +205,9 @@ function ($log, $rootScope, $q, $timeout, coreCapabilitiesExtender, WidgetDef, O
     MapLayer.prototype.getStyleDisplayDef = function () {
         if (!this.styleDisplayDef) {
             this.styleDisplayDef = new WidgetDef({
-                directive: this.styleDirective,
+                tag: this.styleDirective,
                 scope: this.styleDirectiveScope,
-                isoScopeAttrs: this.styleDirectiveIsoScopeAttrs
+                attrs: this.styleDirectiveIsoScopeAttrs
             });
         }
         return this.styleDisplayDef;

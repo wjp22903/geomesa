@@ -5,6 +5,8 @@ angular.module('stealth.app', [
     'ui.bootstrap',
     'ui.utils',
     'toastr',
+    'ccri.angular-utils',
+    'ccri.bars',
     'templates-app',
     'stealth.core',
     'stealth.plugins',
@@ -55,20 +57,10 @@ function ($log, $rootScope, CONFIG) {
 'CONFIG',
 function ($log, $scope, $timeout, $document, CONFIG) {
     $log.debug('stealth.app.AppController: controller started');
-    var classBannerHeight = ((_.isEmpty(CONFIG.classification)) ||
-                             (_.isEmpty(CONFIG.classification.text) &&
-                              _.isEmpty(CONFIG.classification.level))) ? 0 : 15;
     $scope.app = {
         loadTime: moment().format('YYYYMMDDHHmmss'),
-        title: CONFIG.app ? (CONFIG.app.title || '') : '',
+        title: _.get(CONFIG, 'app.title', ''),
         classification: CONFIG.classification,
-        classBannerStyle: {
-            height: classBannerHeight + 'px'
-        },
-        betweenClassBannersStyle: {
-            top: classBannerHeight + 'px',
-            bottom: classBannerHeight + 'px'
-        },
         userCn: CONFIG.userCn
     };
 
@@ -76,6 +68,8 @@ function ($log, $scope, $timeout, $document, CONFIG) {
         $scope.dismissSplash = function () {
             $('#splash').remove();
             $document.off('keydown', $scope.dismissSplash);
+            delete $scope.splashDismissButton;
+            delete $scope.dismissSplash;
         };
         $timeout(function () {
             $scope.splashDismissButton = {
