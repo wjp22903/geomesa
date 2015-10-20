@@ -14,13 +14,14 @@ angular.module('stealth.dragonfish.classifier.wizard', [
 .service('stealth.dragonfish.classifier.wizard.scope', [
 '$log',
 '$rootScope',
+'ol3Map',
 'stealth.core.utils.WidgetDef',
 'stealth.dragonfish.Constant',
 'stealth.dragonfish.classifier.service',
 'stealth.dragonfish.classifier.imageMetadata.service',
 'stealth.dragonfish.classifier.runner.Constant',
 'stealth.dragonfish.classifier.runner.QueryParams',
-function ($log, $rootScope, WidgetDef, DF, classifierService, imageMetadataService, RUN, QueryParams) {
+function ($log, $rootScope, ol3Map, WidgetDef, DF, classifierService, imageMetadataService, RUN, QueryParams) {
     var _creations = 0;
 
     this.create = function () {
@@ -35,17 +36,41 @@ function ($log, $rootScope, WidgetDef, DF, classifierService, imageMetadataServi
         wizardScope.drawBoundsWidgetDef = new WidgetDef('st-df-wiz-bounds', wizardScope);
         wizardScope.$watch('query.classifier', function () {
             if (wizardScope.query.isNonImageSpace()) {
-                wizardScope.query.searchBy = RUN.geoTime;
+                wizardScope.searchByGeoTime();
             }
             if (wizardScope.query.hasSingleLabel()) {
                 wizardScope.query.classifierLabel = wizardScope.query.classifier.labels[0];
             }
         });
+        wizardScope.searchByImageId = function () {
+            wizardScope.query.searchBy = RUN.imageId;
+            // if geomFeatureOverlay is set, remove it from the map (STEALTH-461)
+            // if imageFeatureOverlay is set, add it to the map and zoom to there
+            if (wizardScope.imageFeatureOverlay) {
+                wizardScope.imageFeatureOverlay.addToMap();
+                ol3Map.fit(wizardScope.imgMeta.resolvedMetadata.polygon);
+            }
+        };
+        wizardScope.searchByGeoTime = function () {
+            wizardScope.query.searchBy = RUN.geoTime;
+            // if imageFeatureOverlay is set, remove it from the map
+            if (wizardScope.imageFeatureOverlay) {
+                wizardScope.imageFeatureOverlay.removeFromMap();
+            }
+            // if geomFeatureOverlay is set, add it to the map and zoom to there (STEALTH-461)
+        };
         wizardScope.lookupImgMeta = function () {
+            if (wizardScope.imageFeatureOverlay) {
+                wizardScope.imageFeatureOverlay.removeFromMap();
+                delete wizardScope.imageFeatureOverlay;
+            }
             if (wizardScope.query.imageId) {
                 wizardScope.imgMeta.isLoading = true; // flag for spinner
                 imageMetadataService.lookupImgMeta(wizardScope.query.imageId)
                     .then(function (imageMetadata) {
+                        if (imageMetadata && imageMetadata.polygon) {
+                            wizardScope.imageFeatureOverlay = imageMetadataService.drawImageMetadata(imageMetadata.polygon);
+                        }
                         wizardScope.imgMeta.isLoading = false;
                         wizardScope.imgMeta.resolvedMetadata = imageMetadata;
                         delete wizardScope.imgMeta.errMsg;
@@ -98,6 +123,9 @@ function ($rootScope, wizardManager, Wizard, Step, WidgetDef, DF, ClassConstant,
                 new Step('Select and Configure Classifier', new WidgetDef('st-df-cl-wiz', scope), null, false,
                     _.noop,
                     function (success) {
+                        if (scope.imageFeatureOverlay) {
+                            scope.imageFeatureOverlay.removeFromMap();
+                        }
                         if (success) {
                             $rootScope.$emit(ClassConstant.applyEvent, scope.query);
                             scope.$destroy();

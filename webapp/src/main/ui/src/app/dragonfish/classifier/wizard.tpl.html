@@ -36,7 +36,7 @@
         </tr>
     </table>
     <table class="df-wizard-table" ng-class="{'ng-hide': boundWiz.drawing || query.isNonImageSpace()}">
-        <tr ng-click="query.searchBy = RUN.imageId">
+        <tr ng-click="searchByImageId()">
             <td ng-class="{'has-error': imgMeta.errMsg}">
                 <i class="fa fa-fw" ng-class="query.isImageIdSource() ? 'fa-dot-circle-o' : 'fa-circle-o'"
                    ng-click="query.searchBy = RUN.imageId">
@@ -79,7 +79,7 @@
         </tr>
     </table>
     <table class="df-wizard-table">
-        <tr ng-click="query.searchBy = RUN.geoTime">
+        <tr ng-click="searchByGeoTime()">
             <td ng-class="{'ng-hide': boundWiz.drawing}">
                 <i class="fa fa-fw" ng-class="query.isGeomSource() ? 'fa-dot-circle-o' : 'fa-circle-o'"
                    ng-click="query.searchBy = RUN.geoTime">
@@ -140,6 +140,7 @@
             </td>
         </tr>
     </table>
-    <input type="text" ng-model="query.searchBy" class="hidden" required />
+    <input type="text" ng-model="query.classifier" class="hidden" required />
+    <input type="text" ng-model="query.classifierLabel" class="hidden" required />
     <input type="text" ng-model="imgMeta.resolvedMetadata.dtg" class="hidden" ng-required="query.isImageIdSource()" />
 </ng-form>
