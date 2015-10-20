@@ -30,7 +30,7 @@ class TestDefaultServlet extends Specification with Mockito {
     val auth = mock[Authentication]
     auth.getPrincipal() returns details
 
-    DefaultServlet.parseAuth(auth) must beSome("user1")
+    DefaultServlet.parseAuth(auth) must beSome("CN=user1,O=ccri")
   }
 
   "getAuth works with String principal" >> {
@@ -63,7 +63,7 @@ class TestDefaultServlet extends Specification with Mockito {
 
     SecurityContextHolder.setContext(context)
 
-    DefaultServlet.getUser must beSome("user1")
+    DefaultServlet.getUser must beSome("CN=user1,O=ccri")
   }
 
   "getUser returns None if auth is null" >> {

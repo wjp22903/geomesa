@@ -23,7 +23,12 @@
         <beans:property name="preAuthenticatedUserDetailsService" ref="externalAuthUserDetailsService"/>
     </beans:bean>
 
-    <http entry-point-ref="http403ForbiddenEntryPoint" create-session="stateless" use-expressions="true" access-denied-page="${app.accessDeniedUrl}">
+    <beans:bean id="redirectingAccessDeniedHandler" class="com.ccri.stealth.security.RedirectingAccessDeniedHandlerImpl">
+        <beans:property name="target" value="${app.accessDeniedUrl}"/>
+    </beans:bean>
+
+    <http entry-point-ref="http403ForbiddenEntryPoint" create-session="stateless" use-expressions="true">
+        <access-denied-handler ref="redirectingAccessDeniedHandler"/>
         <custom-filter position="PRE_AUTH_FILTER" ref="externalAuthenticationFilter"/>
         <intercept-url pattern="/**/public/**" access="permitAll"/>
         <!-- change role to one appropriate for the production environment -->

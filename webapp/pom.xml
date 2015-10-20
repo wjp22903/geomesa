@@ -745,8 +745,8 @@
                 <app.context>thresher</app.context>
                 <app.title>Thresher</app.title>
                 <app.showSplash>true</app.showSplash>
-                <app.splashUrl>webjars/thresher/splash.html</app.splashUrl>
-                <app.accessDeniedUrl>/webjars/thresher/access.html</app.accessDeniedUrl>
+                <app.splashUrl>webjars/thresher/splash.ssp</app.splashUrl>
+                <app.accessDeniedUrl>webjars/thresher/public/access.ssp</app.accessDeniedUrl>
                 <app.plugins>
                     [
                         'stealth.air',
@@ -769,7 +769,7 @@
                 <dependency>
                     <groupId>com.ccri.thresher</groupId>
                     <artifactId>thresher-webjar</artifactId>
-                    <version>1.0.0</version>
+                    <version>2.0.0</version>
                 </dependency>
             </dependencies>
         </profile>

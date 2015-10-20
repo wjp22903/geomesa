@@ -10,6 +10,28 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.UserDetails
 import spray.json._
 
+object DefaultServlet {
+  /** get the user from the security context */
+  def getUser: Option[String] = for {
+    context <- Option(SecurityContextHolder.getContext) // shouldn't ever be null, but check it anyway
+    auth <- Option(context.getAuthentication) // might be null
+    user <- DefaultServlet.parseAuth(auth)
+  } yield user
+
+  /** parse the auth object to get the username from UserDetails or a String */
+  def parseAuth(auth: Authentication): Option[String] =
+    auth.getPrincipal match {
+      case details: UserDetails => Option(details.getUsername)
+      case userString: String => Option(userString)
+      case _ => None // shouldn't happen
+    }
+
+  /** get the CN if present, otherwise return input string */
+  def getCNOrAll(dn:String) : String =
+    if(dn.contains("CN=")) dn.split(",").find(s => s.startsWith("CN=")).get.substring(3)
+    else dn
+}
+
 class DefaultServlet(appContext: String) extends ScalatraServlet with ScalateSupport {
   val logger = LoggerFactory.getLogger(getClass)
   val rootConf = ConfigFactory.load()
@@ -18,6 +40,7 @@ class DefaultServlet(appContext: String) extends ScalatraServlet with ScalateSup
       rootConf.getConfig(appContext).withFallback(rootConf.getConfig("stealth"))
     else
       rootConf.getConfig("stealth")
+  val unknownUser = "Unknown User"
 
   get("/?") {
     redirect("/!")
@@ -30,7 +53,8 @@ class DefaultServlet(appContext: String) extends ScalatraServlet with ScalateSup
       response.setHeader("X-UA-Compatible", "IE=edge")
       ssp(
         "index",
-        "userCn" -> user,
+        "userCn" -> DefaultServlet.getCNOrAll(user),
+        "userDn" -> user,
         "config" -> JsonParser(conf.root().withoutKey("private").render(
           ConfigRenderOptions.defaults()
             .setJson(true)
@@ -44,56 +68,53 @@ class DefaultServlet(appContext: String) extends ScalatraServlet with ScalateSup
   }
 
   get("/:file.html") {
-    findTemplate(requestPath) map { path =>
-      contentType = "text/html"
-      layoutTemplate(path)
-    } orElse serveStaticResource() getOrElse resourceNotFound()
-  }
-
-  get("/browser.html") {
-    contentType = "text/html; charset=UTF-8"
-    ssp(
-      "browser",
-      "config" -> JsonParser(conf.root().withOnlyKey("app").render(
-        ConfigRenderOptions.defaults()
-          .setJson(true)
-          .setComments(false)
-          .setOriginComments(false)
-      ))
-    )
+    def buildResponse(user: String)  = {
+      findTemplate(requestPath) map { path =>
+        contentType = "text/html; charset=UTF-8"
+        response.setHeader("X-UA-Compatible", "IE=edge")
+        ssp(
+          path,
+          "userCn" -> DefaultServlet.getCNOrAll(user),
+          "userDn" -> user,
+          "config" -> JsonParser(conf.root().withOnlyKey("app").render(
+            ConfigRenderOptions.defaults()
+              .setJson(true)
+              .setComments(false)
+              .setOriginComments(false)
+          ))
+        )
+      } orElse serveStaticResource() getOrElse resourceNotFound()
+    }
+    buildResponse(DefaultServlet.getUser.getOrElse(unknownUser))
   }
 
   get("/webjars/*") {
-    val resourcePath = "/META-INF/resources/webjars/" + params("splat")
-    Option(getClass.getResourceAsStream(resourcePath)) match {
-      case Some(inputStream) => {
-        contentType = servletContext.getMimeType(resourcePath)
-        IOUtil.loadBytes(inputStream)
+    def buildResponse(user: String)  = {
+      val resourcePath = "/META-INF/resources/webjars/" + params("splat")
+      Option(getClass.getResourceAsStream(resourcePath)) match {
+        case Some(inputStream) => {
+          if (templateEngine.extensions.contains(resourcePath.split("\\.").last)) {
+            contentType = "text/html; charset=UTF-8"
+            response.setHeader("X-UA-Compatible", "IE=edge")
+            layoutTemplate(
+              resourcePath,
+              "userCn" -> DefaultServlet.getCNOrAll(user),
+              "userDn" -> user,
+              "config" -> JsonParser(conf.root().withOnlyKey("app").render(
+                ConfigRenderOptions.defaults()
+                  .setJson(true)
+                  .setComments(false)
+                  .setOriginComments(false)
+              ))
+            )
+          } else {
+            contentType = servletContext.getMimeType(resourcePath)
+            IOUtil.loadBytes(inputStream)
+          }
+        }
+        case None => resourceNotFound()
       }
-      case None => resourceNotFound()
     }
+    buildResponse(DefaultServlet.getUser.getOrElse(unknownUser))
   }
 }
-
-object DefaultServlet {
-  /** get the user from the security context */
-  def getUser: Option[String] = for {
-      context <- Option(SecurityContextHolder.getContext) // shouldn't ever be null, but check it anyway
-      auth <- Option(context.getAuthentication) // might be null
-      user <- DefaultServlet.parseAuth(auth)
-    } yield user
-
-  /** parse the auth object to get the username from UserDetails or a String */
-  def parseAuth(auth: Authentication): Option[String] =
-    auth.getPrincipal match {
-      case details: UserDetails => Option(DefaultServlet.getCNOrAll(details.getUsername))
-      case userString: String => Option(userString)
-      case _ => None // shouldn't happen
-    }
-
-  /** get the CN if present, otherwise return input string */
-  def getCNOrAll(dn:String) : String =
-    if(dn.contains("CN=")) dn.split(",").find(s => s.startsWith("CN=")).get.substring(3)
-    else dn
-}
-
