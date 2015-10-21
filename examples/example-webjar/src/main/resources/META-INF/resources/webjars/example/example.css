@@ -1,0 +1,9 @@
+.example-sidebar-panel {
+    color: lime;
+    padding: 5px;
+}
+
+.example-sidebar-panel > iframe {
+    border: none;
+    background-color: white;
+}

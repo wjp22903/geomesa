@@ -1,0 +1,7 @@
+<%@ var userCn: String %>
+<html>
+    <body>
+        <h2>You are [${ userCn }].</h2>
+        <img src="test.png"/>
+    </body>
+</html>

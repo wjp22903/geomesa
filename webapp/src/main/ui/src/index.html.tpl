@@ -1,5 +1,10 @@
 <%@ var config: spray.json.JsValue %>
 <%@ var userCn: String %>
+<%@ var datetime: String %>
+<%@ var jmxCss: List[String] %>
+<%@ var jmxJs: List[String] %>
+<%@ var plugins: List[String] %>
+
 <!DOCTYPE html>
 <html lang="en" ng-app="stealth.app" ng-controller="AppController" ng-strict-di>
 <head>
@@ -57,5 +62,24 @@
             window.location = 'browser.html';
         }
     </script>
+
+    <!-- CSS from JMX Plugins -->
+    #for (css <- jmxCss)
+        <link rel="stylesheet" href="${css}?${datetime}">
+    #end
+
+    <!-- JS from JMX Plugins -->
+    #for (js <- jmxJs)
+        <script src="${js}?${datetime}"></script>
+    #end
+
+    <!-- Load Plugins -->
+    #if (plugins.nonEmpty)
+        <script>
+            angular.module('stealth.plugins', [
+                '<%= plugins.mkString("','") %>'
+            ]);
+        </script>
+    #end
 </body>
 </html>

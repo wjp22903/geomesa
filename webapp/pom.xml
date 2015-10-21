@@ -169,6 +169,10 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.ccri.stealth</groupId>
+            <artifactId>stealth-jmx</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.typesafe</groupId>
             <artifactId>config</artifactId>
         </dependency>
@@ -215,6 +219,14 @@
         <dependency>
             <groupId>org.specs2</groupId>
             <artifactId>specs2_2.10</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
         </dependency>
         <!-- Adding Spring Security -->
         <dependency>

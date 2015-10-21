@@ -1,13 +1,18 @@
 package com.ccri.stealth.servlet
 
+import java.util.Date
+
+import com.ccri.stealth.plugin.JmxUtils
 import com.typesafe.config.{ConfigRenderOptions, ConfigFactory}
 import org.fusesource.scalate.util.IOUtil
 import org.scalatra.ScalatraServlet
 import org.scalatra.scalate.ScalateSupport
+import org.scalatra.util.DateUtil
 import org.slf4j.LoggerFactory
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.UserDetails
+import scala.collection.JavaConversions._
 import spray.json._
 
 object DefaultServlet {
@@ -47,6 +52,7 @@ class DefaultServlet(appContext: String) extends ScalatraServlet with ScalateSup
   }
 
   get("/!") {
+    val beanNames = JmxUtils.getBeanNames
     def buildResponse(user: String)  = {
       logger.info("Access Granted: " + user)
       contentType = "text/html; charset=UTF-8"
@@ -55,6 +61,10 @@ class DefaultServlet(appContext: String) extends ScalatraServlet with ScalateSup
         "index",
         "userCn" -> DefaultServlet.getCNOrAll(user),
         "userDn" -> user,
+        "datetime" -> DateUtil.formatDate(new Date(), "yyyyMMDDHHmm"),
+        "jmxCss" -> JmxUtils.getCss(beanNames).toList,
+        "jmxJs" -> JmxUtils.getJs(beanNames).toList,
+        "plugins" -> JmxUtils.getPlugins(beanNames).toList,
         "config" -> JsonParser(conf.root().withoutKey("private").render(
           ConfigRenderOptions.defaults()
             .setJson(true)
