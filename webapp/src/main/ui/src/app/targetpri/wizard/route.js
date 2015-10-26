@@ -5,8 +5,9 @@ angular.module('stealth.targetpri.wizard.route', [
     'stealth.core.geo.ol3.utils'
 ])
 
-.factory('routeTpWizFactory', [
+.factory('stealth.targetpri.wizard.route.routeTpWizFactory', [
 '$rootScope',
+'cookies',
 'stealth.core.geo.ol3.interaction.standard',
 'stealth.core.geo.ol3.overlays.Vector',
 'stealth.core.wizard.Wizard',
@@ -15,34 +16,12 @@ angular.module('stealth.targetpri.wizard.route', [
 'ol3Map',
 'ol3Styles',
 'elementAppender',
-'routeDrawHelper',
-function ($rootScope, ol3Interaction, VectorOverlay, Wizard, Step, WidgetDef, ol3Map, ol3Styles, elementAppender, routeDrawHelper) {
+'stealth.core.geo.ol3.utils.routeDrawHelper',
+'stealth.targetpri.runner.TargetType',
+'stealth.targetpri.wizard.TargetpriCookies',
+function ($rootScope, cookies, ol3Interaction, VectorOverlay, Wizard, Step, WidgetDef, ol3Map, ol3Styles,
+        elementAppender, routeDrawHelper, TT, COOKIES) {
     var self = {
-        createSourceWiz: function (wizardScope) {
-            return new Wizard(null, null, 'fa-ellipsis-h', [
-                new Step('Select route source', new WidgetDef('st-tp-wiz-source', wizardScope), null, true,
-                    function (stepNum) {
-                        this.setEndIconClass('fa-ellipsis-h');
-                        this.truncateSteps(stepNum);
-                    },
-                    function (success) {
-                        if (success) {
-                            switch (wizardScope.source) {
-                                case 'server':
-                                    //TODO
-                                    break;
-                                case 'file':
-                                case 'drawing':
-                                    this.appendWizard(self.createDrawWiz(wizardScope));
-                                    break;
-                            }
-                            this.appendWizard(self.createEndWiz(wizardScope));
-                        }
-                    },
-                    true
-                )
-            ]);
-        },
         createDrawWiz: function (wizardScope) {
             var featureOverlay = new VectorOverlay({
                 colors: ['#CC0099'],
@@ -65,13 +44,14 @@ function ($rootScope, ol3Interaction, VectorOverlay, Wizard, Step, WidgetDef, ol
                     }
                 });
             });
-
             var routeInfoPanel = null;
             wizardScope.featureOverlay = featureOverlay;
             return new Wizard(null, null, null, [
                 new Step('Define route', new WidgetDef('st-tp-wiz-draw', wizardScope),
                     new WidgetDef('st-tp-route-draw-tools', wizardScope, "feature-overlay='featureOverlay' geo-feature='geoFeature' route-info='routeInfo' source='source'"),
-                    false, function () {
+                    false,
+                    // setup function:
+                    function () {
                         if (wizardScope.geoFeature) {
                             routeDrawHelper.initFeature(wizardScope.geoFeature, wizardScope);
                         }
@@ -82,7 +62,9 @@ function ($rootScope, ol3Interaction, VectorOverlay, Wizard, Step, WidgetDef, ol
                             'targetpri/wizard/templates/routePoints.tpl.html', wizardScope,
                             function (val) { routeInfoPanel = val; }
                         );
-                    }, function () {
+                    },
+                    // teardown function:
+                    function () {
                         if (routeInfoPanel) {
                             routeInfoPanel.remove();
                         }
@@ -92,8 +74,7 @@ function ($rootScope, ol3Interaction, VectorOverlay, Wizard, Step, WidgetDef, ol
                         if (wizardScope.geoFeature) {
                             routeDrawHelper.detachFeature(wizardScope.geoFeature);
                         }
-                    }
-                )
+                    })
             ]);
         },
         createEndWiz: function (wizardScope) {
@@ -101,6 +82,12 @@ function ($rootScope, ol3Interaction, VectorOverlay, Wizard, Step, WidgetDef, ol
             wizardScope.proximityMeters = 2000;
             wizardScope.startDtg = now.clone().subtract(7, 'days');
             wizardScope.endDtg = now;
+            _.merge(wizardScope,
+                _.mapValues(cookies.get(COOKIES.time, 0), function (time) {
+                    return time ? moment.utc(time) : null;
+                }),
+                cookies.get(COOKIES.proximityMeters, 0)
+            );
             return new Wizard(
                 null,
                 null,
@@ -115,14 +102,22 @@ function ($rootScope, ol3Interaction, VectorOverlay, Wizard, Step, WidgetDef, ol
                         null,
                         function (success) {
                             if (success) {
-                                $rootScope.$emit('targetpri:request:route',
-                                    //TODO - package these settings into an obj within wizardScope
+                                //Save search properties in a cookie - expires in a year
+                                var time = {
+                                    startDtg: wizardScope.startDtg,
+                                    endDtg: wizardScope.endDtg
+                                };
+                                cookies.put(COOKIES.time, 0, time, moment.utc().add(1, 'y'));
+                                cookies.put(COOKIES.proximityMeters, 0, {proximityMeters: wizardScope.proximityMeters}, moment.utc().add(1, 'y'));
+                                $rootScope.$emit('targetpri:request',
                                     {
                                         name: wizardScope.name,
+                                        targetType: TT.route,
+                                        rankTemplate: 'wps/routeRank_geojson.xml',
                                         startDtg: wizardScope.startDtg,
                                         endDtg: wizardScope.endDtg,
                                         proximityMeters: wizardScope.proximityMeters,
-                                        routeFeature: wizardScope.geoFeature,
+                                        targetFeature: wizardScope.geoFeature,
                                         dataSources: wizardScope.datasources
                                     }
                                 );
@@ -147,12 +142,12 @@ function () {
 }])
 
 .directive('stTpRouteDrawTools', [
-'$timeout',
 'ol3Map',
 'stealth.core.geo.ol3.format.GeoJson',
 'csvFormat',
-'routeDrawHelper',
-function ($timeout, ol3Map, GeoJson, csvFormat, routeDrawHelper) {
+'stealth.core.geo.ol3.utils.routeDrawHelper',
+'stealth.targetpri.wizard.tpWizHelper',
+function (ol3Map, GeoJson, csvFormat, routeDrawHelper, tpWizHelper) {
     return {
         restrict: 'E',
         scope: {
@@ -163,19 +158,32 @@ function ($timeout, ol3Map, GeoJson, csvFormat, routeDrawHelper) {
         },
         templateUrl: 'targetpri/wizard/templates/drawTools.tpl.html',
         link: function (scope, element) {
-            var geoJsonFormat = new GeoJson(); // stealth GeoJson, extending OL3 for STEALTH-319
-            var fileInput = element.append('<input type="file" class="hidden">')[0].lastChild;
-
+            var geoJsonFormat = new GeoJson(),
+                fileInput = element.append('<input type="file" class="hidden">')[0].lastChild;
             //Couple FileReader to the hidden file input created above.
             FileReaderJS.setupInput(fileInput, {
                 readAsDefault: 'Text',
                 on: {
                     load: function (e, file) {
-                        fileInput.value = null;
                         var feature = null;
+                        fileInput.value = null;
                         switch (file.extra.extension.toLowerCase()) {
                             case 'json':
-                                feature = geoJsonFormat.readFeature(e.target.result);
+                                var pdFeaturesArr = geoJsonFormat.readFeatures(e.target.result);
+                                if (pdFeaturesArr) {
+                                    feature = new ol.Feature({
+                                        pointData: {
+                                            features: pdFeaturesArr,
+                                            type: 'FeatureCollection'
+                                        },
+                                        geometry: new ol.geom.LineString([])
+                                    });
+                                    var featureCoords = feature.getGeometry().getCoordinates();
+                                    _.each(pdFeaturesArr, function (pdFeat) {
+                                        featureCoords.push(pdFeat.getGeometry().getCoordinates().slice(0));
+                                    });
+                                    feature.getGeometry().setCoordinates(featureCoords);
+                                }
                                 break;
                             case 'csv':
                                 feature = csvFormat.csvToFeatures(e.target.result, 'LineString', csvFormat.coordFormat.dmshCombined, ['DMS'])[0];
@@ -193,27 +201,14 @@ function ($timeout, ol3Map, GeoJson, csvFormat, routeDrawHelper) {
                     }
                 }
             });
-
-            scope.erase = function () {
-                $timeout(function () {
-                    scope.geoFeature = null;
-                    scope.routeInfo = null;
-                    scope.featureOverlay.getFeatures().clear();
-                });
-            };
-
-            scope.upload = function () {
-                $timeout(function () {
-                    fileInput.click();
-                });
-            };
+            _.merge(scope, tpWizHelper.drawCommon(scope, fileInput));
             scope.save = function (format) {
                 if (scope.geoFeature && scope.geoFeature.getGeometry().getType() === 'LineString') {
                     var output = null,
                         type = 'text/plain';
                     switch (format) {
                         case 'json':
-                            output = geoJsonFormat.writeFeature(scope.geoFeature);
+                            output = geoJsonFormat.writeFeatures(scope.geoFeature.get('pointData').features);
                             type = 'application/json';
                             break;
                         case 'csv':
@@ -226,7 +221,6 @@ function ($timeout, ol3Map, GeoJson, csvFormat, routeDrawHelper) {
                     saveAs(blob, 'route.' + format);
                 }
             };
-
             if (scope.source === 'file') {
                 scope.upload();
             }

@@ -1,9 +1,18 @@
 <ng-form name="wizardForm">
-    <input type="hidden" ng-model="geoFeature" required>
-    <ol>
+    <input type="hidden" ng-if="type !== 'sites'" ng-model="geoFeature" required>
+    <input type="hidden" ng-if="type === 'sites'" ng-model="sitesInfo.pdFeatures.getArray()[0]" required>
+    <input type="hidden" ng-if="type === 'track'" ng-model="trackInfo.allDtgValid" required>
+    <ol ng-class="{'ng-hide': type === 'sites'}">
         <li>Click to draw line segments, SHIFT+click+hold to draw freehand.</li>
         <li>Double-click to finish drawing.</li>
-        <li>Click and drag to modify. DELETE+click to erase a vertex.</li>
+        <li>Click and drag to modify.
+            <span ng-class="{'ng-hide': type === 'track'}">DELETE+click to erase a vertex.</span>
+        </li>
         <p>(To re-draw {{type}}, click the eraser icon.)</p>
+    </ol>
+    <ol ng-class="{'ng-hide': !(type === 'sites')}">
+        <li>Click to draw {{type}}.</li>
+        <li>Click and drag to modify.</li>
+        <li>To re-draw {{type}}, click the eraser icon.</li>
     </ol>
 </ng-form>

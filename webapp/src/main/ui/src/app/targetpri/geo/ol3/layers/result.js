@@ -4,7 +4,7 @@ angular.module('stealth.targetpri.geo.ol3.layers', [
 
 .factory('stealth.targetpri.geo.ol3.layers.TargetPriResultLayer', [
 'stealth.core.geo.ol3.layers.WmsLayer',
-'targetPriResultLayerExtender',
+'stealth.targetpri.geo.ol3.layers.targetPriResultLayerExtender',
 function (WmsLayer, targetPriResultLayerExtender) {
     var TargetPriResultLayer = function (wmsOptions, request, dataSource) {
         wmsOptions.layerThisBelongsTo = dataSource;
@@ -20,11 +20,10 @@ function (WmsLayer, targetPriResultLayerExtender) {
         };
     };
     TargetPriResultLayer.prototype = Object.create(WmsLayer.prototype);
-
     return TargetPriResultLayer;
 }])
 
-.service('targetPriResultLayerExtender', [
+.service('stealth.targetpri.geo.ol3.layers.targetPriResultLayerExtender', [
 'coreCapabilitiesExtender',
 'stealth.core.popup.capabilities.Extender',
 function (coreCapabilitiesExtender, Extender) {

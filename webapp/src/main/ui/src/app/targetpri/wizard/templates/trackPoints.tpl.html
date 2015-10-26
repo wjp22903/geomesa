@@ -1,0 +1,32 @@
+<div class="glass anchorLeft anchorBottom tpPointsPanel" ng-class="{'ng-hide': !(trackInfo | lodash:'isObject')}">
+    <div class="tpPointsPanelDistSpeed">
+        <div class="alert alert-danger pull-left tpInterpolErrorMsg" ng-class="{'ng-hide': !trackInfo.interpolationError}">
+            <i class="fa fa-warning"></i>{{trackInfo.interpolationError}}
+        </div>
+        <span ng-click="interpolateTimes()" class="btn btn-default">
+            Interpolate Times
+        </span>
+    </div>
+    <div class="tpPointsPanelDistSpeed">
+        <strong class="tpNoWrap">Total Distance: {{trackInfo.meters | formatMeters}}</strong><br/>
+        <strong class="tpNoWrap">Average Speed: {{trackInfo.avgSpeed}}</strong>
+    </div>
+    <div class="anchorLeft anchorRight anchorBottom tpTrackPointsList">
+        <div class="tpPointBox" ng-repeat="pdFeature in trackInfo.pdFeatures"
+             ng-class="{'has-error': !pdFeature.get('dtg').isValid()}">
+            <div class="pointNum pull-left tpCoords">{{$index + 1}}</div>
+            <div  class="tpTrackPointItem">
+                Lat: {{(pdFeature.getGeometry().getCoordinates() | coordToDMSH)[0]}}<br>
+                Lon: {{(pdFeature.getGeometry().getCoordinates() | coordToDMSH)[1]}}<br>
+                <input type="text" ng-model="pdFeature.linkDtg" ui-jq="datetimepicker"
+                       ng-change="updateAvgSpeed(); dtgChanged(pdFeature)"
+                       ui-options="{todayButton: false, yearStart: 1990, yearEnd: 2030, step: 15, format: 'Y-m-d H:i'}"
+                       st-utc-moment-format="YYYY-MM-DD HH:mm" class="tpDatePicker"> Z
+                <label ng-show="!pdFeature.get('dtg').isValid()" class="control-label"><i class="fa fa-warning"></i>Time needed</label>
+                <br>
+                Interpolated: <i class="fa fa-fw" ng-class="pdFeature.get('dtgIsInterpolated') ? 'fa-check-square' : 'fa-square'">
+                </i>
+            </div>
+        </div>
+    </div>
+</div>

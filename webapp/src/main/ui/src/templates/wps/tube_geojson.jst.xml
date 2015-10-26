@@ -9,8 +9,7 @@
     <wps:DataInputs>
         <wps:Input>
             <ows:Identifier>features</ows:Identifier>
-            <wps:Reference mimeType="text/xml" xlink:href="http://geoserver/wps"
-                           method="POST">
+            <wps:Reference mimeType="text/xml" xlink:href="http://geoserver/wps" method="POST">
                 <wps:Body>
                     <wps:Execute version="1.0.0" service="WPS">
                         <ows:Identifier>geomesa:TubeSelect</ows:Identifier>
@@ -18,7 +17,7 @@
                             <wps:Input>
                                 <ows:Identifier>tubeFeatures</ows:Identifier>
                                 <wps:Data>
-                                    <wps:ComplexData mimeType="application/json"><![CDATA[{{tubeFeatures}}]]></wps:ComplexData>
+                                    <wps:ComplexData mimeType="application/json"><![CDATA[{{inputFeatures}}]]></wps:ComplexData>
                                 </wps:Data>
                             </wps:Input>
                             <wps:Input>
@@ -26,23 +25,41 @@
                                 <wps:Reference mimeType="text/xml" xlink:href="http://geoserver/wfs" method="POST">
                                     <wps:Body>
                                         <wfs:GetFeature service="WFS" version="1.0.0" outputFormat="GML2">
-                                            <wfs:Query typeName="{{featureCollection}}"/>
+                                            <wfs:Query typeName="{{dataLayer}}"/>
                                         </wfs:GetFeature>
                                     </wps:Body>
                                 </wps:Reference>
                             </wps:Input>
                             <wps:Input>
+                                <ows:Identifier>filter</ows:Identifier>
+                                <wps:Data>
+                                    <wps:ComplexData mimeType="text/plain; subtype=cql"><![CDATA[{{dataLayerFilter}}]]></wps:ComplexData>
+                                </wps:Data>
+                            </wps:Input>
+                            <!-- <wps:Input>
                                 <ows:Identifier>maxSpeed</ows:Identifier>
                                 <wps:Data>
-                                    <wps:LiteralData>{{maxSpeedMps}}</wps:LiteralData>
+                                    <wps:LiteralData>{-{maxSpeedMps}-}</wps:LiteralData>
                                 </wps:Data>
                             </wps:Input>
                             <wps:Input>
-                                <ows:Identifier>maxTime</ows:Identifier>
+                              <ows:Identifier>maxTime</ows:Identifier>
+                              <wps:Data>
+                                <wps:LiteralData>{-{maxTimeSec}-}</wps:LiteralData>
+                              </wps:Data>
+                            </wps:Input> -->
+                            <wps:Input>
+                                <ows:Identifier>bufferSize</ows:Identifier>
                                 <wps:Data>
-                                    <wps:LiteralData>{{maxTimeSec}}</wps:LiteralData>
+                                    <wps:LiteralData>{{bufferMeters}}</wps:LiteralData>
                                 </wps:Data>
                             </wps:Input>
+                            <!-- <wps:Input>
+                              <ows:Identifier>maxBins</ows:Identifier>
+                              <wps:Data>
+                                <wps:LiteralData>{-{maxBins}-}</wps:LiteralData>
+                              </wps:Data>
+                            </wps:Input> -->
                             <wps:Input>
                                 <ows:Identifier>gapFill</ows:Identifier>
                                 <wps:Data>
@@ -75,6 +92,12 @@
             <ows:Identifier>name</ows:Identifier>
             <wps:Data>
                 <wps:LiteralData>{{output.name}}</wps:LiteralData>
+            </wps:Data>
+        </wps:Input>
+        <wps:Input>
+            <ows:Identifier>keywords</ows:Identifier>
+            <wps:Data>
+                <wps:LiteralData>{{output.keywords}}</wps:LiteralData>
             </wps:Data>
         </wps:Input>
     </wps:DataInputs>

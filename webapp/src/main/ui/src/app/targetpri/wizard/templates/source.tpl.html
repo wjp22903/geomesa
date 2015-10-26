@@ -1,17 +1,17 @@
 <ng-form name="wizardForm">
-    <p style="max-width:430px;">
+    <p class="tpSourceInstructions">
         Choose the source for your {{type}} information. In the next step, you'll be able to modify the {{type}} before proceeding.
     </p>
-    <input type="radio" ng-model="source" value="server" disabled>  Server
-    <div style="margin-bottom:10px;padding-left:20px;max-width:430px;font-style:italic;">
+    <label><input type="radio" ng-model="source" value="server" disabled>  Server</label>
+    <div class="tpRadioTxt">
         Select and filter a stored source
     </div>
-    <input type="radio" ng-model="source" value="file">  File
-    <div style="margin-bottom:10px;padding-left:20px;max-width:430px;font-style:italic;">
+    <label><input type="radio" ng-model="source" value="file">  File</label>
+    <div class="tpRadioTxt">
         Upload a file containing the {{type}} information (CSV or GeoJSON)
     </div>
-    <input type="radio" ng-model="source" value="drawing">  Map Drawing
-    <div style="margin-bottom:10px;padding-left:20px;max-width:430px;font-style:italic;">
+    <label><input type="radio" ng-model="source" value="drawing">  Map Drawing</label>
+    <div class="tpRadioTxt">
         Draw {{type}} on the map
     </div>
 </ng-form>

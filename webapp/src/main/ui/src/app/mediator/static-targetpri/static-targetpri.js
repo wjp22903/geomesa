@@ -7,7 +7,7 @@ angular.module('stealth.mediator.static-targetpri', [
 .run([
 'staticWorkspaceManager',
 'staticLayerWizard',
-'targetPriResultLayerExtender',
+'stealth.targetpri.geo.ol3.layers.targetPriResultLayerExtender',
 function (staticWorkspaceMgr, staticLayerWiz, tpExtender) {
     tpExtender.addCapabilitiesExtender(function (capabilities, opts) {
         capabilities['static'] = {

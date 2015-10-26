@@ -1,0 +1,12 @@
+<div class="glass anchorLeft anchorBottom tpPointsPanel" ng-class="{'ng-hide': !(sitesInfo | lodash:'isObject')}">
+    <div class="tpPointsPanelDistSpeed">
+        <strong  class="tpNoWrap">Sites:</strong>
+    </div>
+    <div class="anchorLeft anchorRight anchorBottom tpRoutePointsList">
+        <div class="tpPointBox" ng-repeat="pdFeature in sitesInfo.pdFeatures.getArray()">
+            <div class="pointNum pull-left tpCoords">{{pdFeature.get('name')}}</div>
+            Lat: {{(pdFeature.getGeometry().getCoordinates() | coordToDMSH)[0]}}<br>
+            Lon: {{(pdFeature.getGeometry().getCoordinates() | coordToDMSH)[1]}}
+        </div>
+    </div>
+</div>

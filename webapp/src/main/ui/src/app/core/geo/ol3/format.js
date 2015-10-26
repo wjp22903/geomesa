@@ -4,9 +4,9 @@ angular.module('stealth.core.geo.ol3.format')
 'stealth.core.geo.ol3.format.GeoJson',
 function (GeoJson) {
     var _coordFormat = {
-        dmshCombined: 0
+        dmshCombined: 0,
+        ddCombined: 1
     };
-
     function _dmshToDecimal (d, m, s, h) {
         var decimal = d;
         m += s / 60;
@@ -93,6 +93,11 @@ function (GeoJson) {
                     lon = _dmshToDecimal(parseInt(dms[1].substr(0, 3), 10), parseInt(dms[1].substr(3, 2), 10), parseFloat(dms[1].substring(5, lonHIdx)), dms[1].substr(lonHIdx, 1)),
                     lat = _dmshToDecimal(parseInt(dms[0].substr(0, 2), 10), parseInt(dms[0].substr(2, 2), 10), parseFloat(dms[0].substring(4, latHIdx)), dms[0].substr(latHIdx, 1));
                 return [lon, lat];
+            case _coordFormat.ddCombined:
+                var dd = csvValuesArr[0].split(' ');
+                lon = parseFloat(dd[0]);
+                lat = parseFloat(dd[1]);
+                return [lon, lat];
         }
     }
 
@@ -103,17 +108,20 @@ function (GeoJson) {
             csv = '';
         //gather fields
         _.each(geoJson.properties.pointData.features, function (feature) {
-            var coordArr = _formatCoordForCsv(feature.geometry.coordinates, coordFormat);
+            var coordArr = _formatCoordForCsv(feature.getGeometry().getCoordinates(), coordFormat);
             _.each(coordColumns, function (column, index) {
-                feature.properties[column] = coordArr[index];
+                feature.set(column, coordArr[index]);
             });
-            fields = _.union(fields, _.keys(feature.properties));
+            fields = _.union(fields, _.keys(feature.getProperties()));
         });
         //add data rows to csv
         _.each(geoJson.properties.pointData.features, function (feature) {
             var values = [];
             _.each(fields, function (field) {
-                values.push(feature.properties[field]);
+                if (moment.isMoment(feature.get(field)) && feature.get(field).isValid()) {
+                    feature.set(field, feature.get(field).toISOString());
+                }
+                values.push(feature.get(field));
             });
             csv += values.join() + '\n';
         });
@@ -144,15 +152,10 @@ function (GeoJson) {
                     });
                     coord = _parseCoordFromCsv(coord, coordFormat);
                     jsonObj.geometry.coordinates.push(coord);
-                    jsonObj.properties.pointData.features.push({
+                    jsonObj.properties.pointData.features.push(new ol.Feature(_.merge(properties, {
                         id: _.now() + '_' + index,
-                        type: 'Feature',
-                        properties: properties,
-                        geometry: {
-                            type: 'Point',
-                            coordinates: coord
-                        }
-                    });
+                        geometry: new ol.geom.Point(coord)
+                    })));
                 });
                 return jsonObj;
             default:

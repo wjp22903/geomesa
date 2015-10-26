@@ -1,0 +1,64 @@
+<ng-form name="wizardForm">
+    <p>
+        Set additional options for finding and ranking targets.
+    </p>
+    <table>
+        <tr>
+            <td><label class="tpFieldLabel">Proximity:</label></td>
+            <td>
+                <input type="number" ui-jq="spinner"
+                       ng-model="proximityMeters" class="tpSpinner" min="0" required>
+                meters
+            </td>
+        </tr>
+        <tr>
+            <td><label class="tpFieldLabel">Uniqueness Weight:&nbsp;&nbsp;</label></td>
+            <td>
+                <input type="number" ui-jq="spinner"
+                       ng-model="weights.uniquenessWeight" class="tpSpinner" min="0" required>
+            </td>
+        </tr>
+        <tr>
+            <td><label class="tpFieldLabel">Duration Weight:&nbsp;&nbsp;</label></td>
+            <td>
+                <input type="number" ui-jq="spinner"
+                       ng-model="weights.durationWeight" class="tpSpinner" min="0" required>
+            </td>
+        </tr>
+        <tr>
+            <td><label class="tpFieldLabel">Prevalence Weight:&nbsp;&nbsp;</label></td>
+            <td>
+                <input type="number" ui-jq="spinner"
+                       ng-model="weights.prevalenceWeight" class="tpSpinner" min="0" required>
+            </td>
+        </tr>
+        <tr>
+            <td><label class="tpFieldLabel">Proximity Weight:&nbsp;&nbsp;</label></td>
+            <td>
+                <input type="number" ui-jq="spinner"
+                       ng-model="weights.proximityWeight" class="tpSpinner" min="0" required>
+            </td>
+        </tr>
+        <tr>
+            <td><label class="tpFieldLabel">Start: </label></td>
+            <td>
+                <input type="text" ng-model="startDtg" ui-jq="datetimepicker"
+                       ui-options="{todayButton: false, yearStart: 1990, yearEnd: 2030, step: 15, format: 'Y-m-d H:i'}"
+                       st-utc-moment-format="YYYY-MM-DD HH:mm" class="tpDatePicker"> Z
+            </td>
+        </tr>
+        <tr>
+            <td><label class="tpFieldLabel">End: </label></td>
+            <td>
+                <input type="text" ng-model="endDtg" ui-jq="datetimepicker"
+                       ui-options="{todayButton: false, yearStart: 1990, yearEnd: 2030, step: 15, format: 'Y-m-d H:i'}"
+                       st-utc-moment-format="YYYY-MM-DD HH:mm" class="tpDatePicker"> Z
+            </td>
+        </tr>
+    </table>
+    <p class="tpSpacer">
+        Give this Target Identification a meaningful name.
+    </p>
+    <label>Name: </label>
+    <input class="tpText" type="text" ng-model="name" required />
+</ng-form>

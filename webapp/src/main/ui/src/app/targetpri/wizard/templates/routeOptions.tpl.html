@@ -4,33 +4,33 @@
     </p>
     <table>
         <tr>
-            <td><label>Proximity:&nbsp;&nbsp;</label></td>
+            <td><label class="tpFieldLabel">Proximity:</label></td>
             <td>
-                <input type="number" ui-jq="spinner"
-                       ng-model="proximityMeters" style="width:60px;" min="0" required>
+                <input class="tpSpinner" type="number" ui-jq="spinner"
+                       ng-model="proximityMeters" min="0" required />
                 meters
             </td>
         </tr>
         <tr>
-            <td><label>Start: </label></td>
+            <td><label class="tpFieldLabel">Start:</label></td>
             <td>
-                <input type="text" ng-model="startDtg" ui-jq="datetimepicker"
+                <input class="tpDatePicker" type="text" ng-model="startDtg" ui-jq="datetimepicker"
                        ui-options="{todayButton: false, yearStart: 1990, yearEnd: 2030, step: 15, format: 'Y-m-d H:i'}"
-                       st-utc-moment-format="YYYY-MM-DD HH:mm" style="width:120px;"> Z
+                       st-utc-moment-format="YYYY-MM-DD HH:mm" /> Z
             </td>
         </tr>
         <tr>
-            <td><label>End: </label></td>
+            <td><label class="tpFieldLabel">End:</label></td>
             <td>
-                <input type="text" ng-model="endDtg" ui-jq="datetimepicker"
+                <input class="tpDatePicker" type="text" ng-model="endDtg" ui-jq="datetimepicker"
                        ui-options="{todayButton: false, yearStart: 1990, yearEnd: 2030, step: 15, format: 'Y-m-d H:i'}"
-                       st-utc-moment-format="YYYY-MM-DD HH:mm" style="width:120px;"> Z
+                       st-utc-moment-format="YYYY-MM-DD HH:mm" /> Z
             </td>
         </tr>
     </table>
-    <p style="margin-top:20px;">
-        Give this Target Identification a meaningful name.<br>
+    <p class="tpSpacer">
+        Give this Target Identification a meaningful name.
     </p>
     <label>Name: </label>
-    <input type="text" ng-model="name" style="width:250px;" required>
+    <input class="tpText" type="text" ng-model="name" required />
 </ng-form>

@@ -1,0 +1,60 @@
+All loaded layers must have these keywords:
+    stealth.targetpri.data.example.field.id=[FIELD TO USE FOR PRIORITZATION] (defaults to "id")
+    stealth.targetpri.data.example.field.dtg=[FIELD TO USE FOR DATES] (defaults to "dtg")
+
+Source test data to be loaded into the server
+ * nyc_tweets.csv
+ * nyc_tweets.tsv
+
+Saved target searches
+ * frtest_hawaii_route.csv
+	 choose Target Identification
+	 choose Route
+	 click Next 
+	 choose File
+	 click Next 
+	 select frtest_hawaii_route.csv on your file system
+	 click Next 
+	 choose frtest data
+	 click Next 
+	 change the start date to have 2012 for the year
+	 click Done
+ * frtest_hawaii_track.csv
+	 choose Target Identification
+	 choose Track
+	 click Next 
+	 choose File
+	 click Next
+	 select frtest_hawaii_track.csv on your file system
+	 click Next 
+	 choose frtest data
+	 click Next
+	 set Proximity to 1000 meters
+	 click Done
+ * nyc_tweets_broadway_track.csv
+	 choose Target Identification
+	 choose Track
+	 click Next 
+	 choose File
+	 click Next
+	 select nyc_tweets_broadway_track.csv on your file system
+	 click Next 
+	 choose nyc_tweets data
+	 click Next
+	 set Proximity to 200 meters
+	 click Done
+ * frtest_hawaii_sites.csv
+	 choose Target Identification
+	 choose Track
+	 click Next 
+	 choose File
+	 click Next
+	 select frtest_hawaii_sites.csv on your file system
+	 click Next 
+	 choose frtest data
+	 click Next
+	 set Proximity to 50000 meters
+	 click Done
+ 
+
+

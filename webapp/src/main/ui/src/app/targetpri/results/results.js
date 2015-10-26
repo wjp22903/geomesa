@@ -5,7 +5,7 @@ angular.module('stealth.targetpri.results', [
 
 .directive('stTargetPriResults', [
 'ol3Geodetics',
-'targetPriResultLayerExtender',
+'stealth.targetpri.geo.ol3.layers.targetPriResultLayerExtender',
 function (ol3Geodetics, tpExtender) {
     return {
         restrict: 'E',
@@ -15,22 +15,43 @@ function (ol3Geodetics, tpExtender) {
                 $scope.status = {
                     waiting: true
                 };
-                $scope.extraRequestInfo = {
-                    routeMeters: ol3Geodetics.distanceVincenty(
-                        $scope.request.routeFeature.getGeometry().getCoordinates())
-                };
-                $scope.sortOpts = {
-                    Score: false,
-                    'Route coverage': function (value) {
-                        return value.routeCoverage;
-                    },
-                    Count: function (value) {
-                        return value.counts.route;
-                    },
-                    'Score (no motion)': function (value) {
-                        return value.combined.scoreNoMotion;
-                    }
-                };
+                if ($scope.request.targetType !== 'Sites') {
+                    $scope.extraRequestInfo = {
+                        routeMeters: ol3Geodetics.distanceVincenty(
+                            $scope.request.targetFeature.getGeometry().getCoordinates())
+                    };
+                    $scope.sortOpts = {
+                        Score: false,
+                        'Route coverage': function (value) {
+                            return value.routeCoverage;
+                        },
+                        Count: function (value) {
+                            return value.counts.route;
+                        },
+                        'Score (no motion)': function (value) {
+                            return value.combined.scoreNoMotion;
+                        }
+                    };
+                } else {
+                    $scope.sortOpts = {
+                        Score: false,
+                        Count: function (value) {
+                            return value.pingCount;
+                        },
+                        'Site Score': function (value) {
+                            return value.siteScore;
+                        },
+                        'Day Score': function (value) {
+                            return value.dayScore;
+                        },
+                        'Ping Score': function (value) {
+                            return value.pingScore;
+                        },
+                        'Proximity Score': function (value) {
+                            return value.proxScore;
+                        }
+                    };
+                }
                 $scope.sortProp = $scope.sortOpts.Score;
                 $scope.updateSort = function () {
                     $scope.response.results =

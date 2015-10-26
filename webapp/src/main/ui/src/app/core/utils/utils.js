@@ -74,7 +74,9 @@ function () {
                 return moment.utc(value, format);
             });
             ngModelCtrlr.$formatters.push(function (value) {
-                return value.format(format);
+                if (moment.isMoment(value) && value.isValid()) {
+                    return value.format(format);
+                }
             });
         }
     };

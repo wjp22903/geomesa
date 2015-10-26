@@ -1,9 +1,8 @@
 <div>
-    <progressbar class="progress-striped active" style="margin:6px;" value="100" type="primary"
+    <progressbar class="progress-striped active tpResultProgBar" value="100" type="primary"
                  ng-if="status.waiting">
     </progressbar>
-    <div ng-if="status.error" class="bg-danger"
-         style="margin:6px;padding:4px;border-radius:4px;">
+    <div ng-if="status.error" class="bg-danger tpResultErrorBox">
         <i class="fa fa-fw fa-lg fa-exclamation-triangle text-danger"></i>
         {{status.errorMessage}}
     </div>
@@ -14,18 +13,31 @@
                 {{::request.startDtg | momentFormat:'YYYY-MM-DD HH:mm'}}Z &#8193; &#8213; &#8193; {{::request.endDtg | momentFormat:'YYYY-MM-DD HH:mm'}}Z
             </span>
             <br>
-            <label>Route length:</label>
-            <span>{{::extraRequestInfo.routeMeters | formatMeters}}</span>
-            <label style="margin-left:10px;">Proximity:</label>
+            <span ng-class="{'ng-hide': !(extraRequestInfo.routeMeters > 0)}"><label>Route length:</label>{{::extraRequestInfo.routeMeters | formatMeters}}</span>
+            <label class="tpResultProxLabel">Proximity:</label>
             <span>{{::request.proximityMeters | formatMeters}}</span>
             <br>
+            <span ng-class="{'ng-hide': !(request.weights)}">
+                <label>Uniqueness Weight:</label>
+                <span>{{::request.weights.uniquenessWeight | number:1}}</span>
+                <br />
+                <label>Duration Weight:</label>
+                <span>{{::request.weights.durationWeight | number:1}}</span>
+                <br />
+                <label>Prevalence Weight:</label>
+                <span>{{::request.weights.prevalenceWeight | number:1}}</span>
+                <br />
+                <label>Proximity Weight:</label>
+                <span>{{::request.weights.proximityWeight | number:1}}</span>
+                <br />
+            </span>
             <label>Data sources:</label>
             <span ng-repeat="source in request.dataSources">
                 {{::source.Title || source.Name}}
                 <strong ng-class="{'ng-hide': $last}">&nbsp;|&nbsp;</strong>
             </span>
         </div>
-        <div style="background-color:#f0f0f0;margin:2px 4px;border-radius:3px;padding:1px 2px;">
+        <div ng-class="{'ng-show': response.results.length}" class="tpResultSortBox">
             <span>Sort by: </span>
             <select ng-model="sortProp"
                     ng-change="updateSort()"
@@ -34,30 +46,32 @@
             <span class="pull-right">
                 <span class="btn btn-default fa-stack toggleButton"
                       ng-click="collapseAll()"
-                      tooltip-html-unsafe="<span style='white-space:nowrap'>Collapse All</span>"
+                      tooltip-html-unsafe="<span class='tpNoWrap'>Collapse All</span>"
                       tooltip-placement="left" tooltip-animation="false" tooltip-popup-delay="500"
                       tooltip-trigger="mouseenter">
                     <i class="fa fa-fw fa-stack-1x fa-angle-double-up"></i>
                 </span>
                 <span class="btn btn-default fa-stack toggleButton"
                       ng-click="expandAll()"
-                      tooltip-html-unsafe="<span style='white-space:nowrap'>Expand All</span>"
+                      tooltip-html-unsafe="<span class='tpNoWrap'>Expand All</span>"
                       tooltip-placement="left" tooltip-animation="false" tooltip-popup-delay="500"
                       tooltip-trigger="mouseenter">
                     <i class="fa fa-fw fa-stack-1x fa-angle-double-down"></i>
                 </span>
             </span>
         </div>
-        <div ng-repeat="result in response.results | startFrom:(paging.currentPage-1)*paging.pageSize | limitTo:paging.pageSize"
+        <div ng-class="{'ng-hide': response.results.length}" class="has-warning tpResultNoResults">
+            <label class="control-label"><i class="fa fa-warning"></i> No results</label>
+        </div>
+        <div ng-repeat="result in response.results | startFrom:paging.currentPageFirstIndex() | limitTo:paging.pageSize"
              class="tpResult hoverBorderGlow">
-            <div style="overflow:hidden;">
-                <div class="toggleButton"
-                     style="height:16px;width:16px;border:1px solid #d3d3d3;border-radius:2px;display:inline-block;margin:0 5px;"
+            <div class="tpOverflowHidden">
+                <div class="toggleButton tpResultLayerColor"
                      ng-style="{'background-color': result.color || '#BEBE40'}">
                 </div>
-                <div class="pointNum" style="margin:2px;">{{(paging.currentPage-1)*paging.pageSize + $index + 1}}</div>
-                <div style="height:16px;max-width:200px;display:inline-block;overflow:hidden;text-overflow:ellipsis;"
-                     tooltip-html-unsafe="<span style='white-space:nowrap'>{{result.key}}</span>"
+                <div class="pointNum tpCoords">{{paging.currentPageFirstIndex() + $index + 1}}</div>
+                <div class="tpResultKey"
+                     tooltip-html-unsafe="<span class='tpNoWrap'>{{result.key}}</span>"
                      tooltip-placement="bottom" tooltip-animation="false" tooltip-popup-delay="500"
                      tooltip-trigger="mouseenter">
                     {{result.key}}
@@ -65,7 +79,7 @@
                 <span class="pull-right">
                     <span class="btn btn-default fa-stack toggleButton"
                           ng-click="result.isExpanded = !result.isExpanded"
-                          tooltip-html-unsafe="<span style='white-space:nowrap'>{{result.isExpanded ? 'Collapse' : 'Expand'}}</span>"
+                          tooltip-html-unsafe="<span class='tpNoWrap'>{{result.isExpanded ? 'Collapse' : 'Expand'}}</span>"
                           tooltip-placement="left" tooltip-animation="false" tooltip-popup-delay="500"
                           tooltip-trigger="mouseenter">
                         <i class="fa fa-fw fa-stack-1x"
@@ -73,23 +87,30 @@
                         </i>
                     </span>
                 </span>
-                <div class="pull-right" style="height:18px;width:200px;margin-top:2px;margin-right:2px;background-color:#EEE;">
-                    <div class="pull-right btn-success rank-bar" style="height:100%;border:none;width:0px;"
+                <div class="pull-right tpRankBarBox" ng-class="{'ng-hide': request.targetType === 'Sites'}">
+                    <div class="pull-right btn-success rank-bar tpRankBar"
                          ng-style="{width: (response.maxScore <= 0) ? 0 : (result.combined.score/response.maxScore)*100 + '%'}">
-                        <span class="pull-right outlineTextWhite" style="padding-right:10px;color:black;">
+                        <span class="pull-right outlineTextWhite tpCombinedResult">
                             {{::(response.maxScore <= 0) ? 0 : (result.combined.score/response.maxScore)*100 | number:1}}
+                        </span>
+                    </div>
+                </div>
+                <div class="pull-right tpRankBarBox" ng-class="{'ng-hide': !(request.targetType === 'Sites')}">
+                    <div class="pull-right btn-success rank-bar tpRankBar"
+                         ng-style="{width: (response.maxScore <= 0) ? 0 : (result.aggregateScore/response.maxScore)*100 + '%'}">
+                        <span class="pull-right outlineTextWhite tpCombinedResult">
+                            {{::(response.maxScore <= 0) ? 0 : (result.aggregateScore/response.maxScore)*100 | number:1}}
                         </span>
                     </div>
                 </div>
             </div>
             <div collapse="!result.isExpanded">
-                <div style="overflow:auto;">
+                <div class="tpOverflowAuto">
                     <div class="tpDataBox">
-                        <div class="pull-right" style="display:inline-block;">
+                        <div class="pull-right tpInlineBlock">
                             <div ng-repeat="capa in capabilities[result.dataSource.Name]"
-                                 class="btn btn-default fa-stack toggleButton"
-                                 style="display:block;"
-                                 tooltip-html-unsafe="<span style='white-space:nowrap;'>{{::capa.toolTipText}}</span>"
+                                 class="btn btn-default fa-stack toggleButton tpBlock"
+                                 tooltip-html-unsafe="<span class='tpNoWrap'>{{::capa.toolTipText}}</span>"
                                  tooltip-placement="left" tooltip-animation="false" tooltip-popup-delay="500"
                                  tooltip-trigger="mouseenter"
                                  ng-if="capa.onClick"
@@ -101,35 +122,46 @@
                         <span>{{::result.dataSource.Title || result.dataSource.Name}}</span>
                         <br>
                         <label>Identifier field:</label>
-                        <span>{{::result.dataSource.idField}}</span>
-                        <br>
-                        <label>Route coverage:</label>
-                        <span>{{::result.routeCoverage * extraRequestInfo.routeMeters | formatMeters}} ({{::result.routeCoverage * 100 | numberTrim:2}}% of route)</span>
+                        <span>{{::result.dataSource.fieldNames.id}}</span>
+                        <span ng-class="{'ng-hide': request.targetType === 'Sites'}">
+                            <br>
+                            <label>Route coverage:</label>
+                            <span>{{::result.routeCoverage * extraRequestInfo.routeMeters | formatMeters}} ({{::result.routeCoverage * 100 | numberTrim:2}}% of route)</span>
+                        </span>
                         <br>
                         <label>Count:</label>
-                        <span>{{::result.counts.route}}</span>
+                        <span ng-class="{'ng-hide': request.targetType === 'Sites'}">{{::result.counts.route}}</span>
+                        <span ng-class="{'ng-hide': !(request.targetType === 'Sites')}">{{::result.pingCount}}</span>
                     </div>
-                    <div class="pull-left tpDataBox secondaryTpDataBox">
+                    <span ng-class="{'ng-hide': request.targetType === 'Sites'}">
+                        <div class="pull-left tpDataBox secondaryTpDataBox">
+                            <label>Scores</label>
+                            <div ng-repeat="(key, value) in result.combined">
+                                {{::key}}: {{::value | numberTrim:10}}
+                            </div>
+                        </div>
+                        <div class="pull-left tpDataBox secondaryTpDataBox">
+                            <label>Route Deviation</label>
+                            <div ng-repeat="(key, value) in result.routeCellDeviation">
+                                {{::key}}: {{::value | numberTrim:10}}
+                            </div>
+                        </div>
+                        <div class="pull-left tpDataBox secondaryTpDataBox">
+                            <label>Motion</label>
+                            <div ng-repeat="(key, value) in result.motionEvidence">
+                                {{::key}}: {{::value | numberTrim:10}}
+                            </div>
+                        </div>
+                        <div class="pull-left tpDataBox secondaryTpDataBox">
+                            <label>TF-IDF</label>
+                            <div ng-repeat="(key, value) in result.tfIdf">
+                                {{::key}}: {{::value | numberTrim:10}}
+                            </div>
+                        </div>
+                    </span>
+                    <div ng-class="{'ng-hide': !(request.targetType === 'Sites')}" class="pull-left tpDataBox secondaryTpDataBox">
                         <label>Scores</label>
-                        <div ng-repeat="(key, value) in result.combined">
-                            {{::key}}: {{::value | numberTrim:10}}
-                        </div>
-                    </div>
-                    <div class="pull-left tpDataBox secondaryTpDataBox">
-                        <label>Route Deviation</label>
-                        <div ng-repeat="(key, value) in result.routeCellDeviation">
-                            {{::key}}: {{::value | numberTrim:10}}
-                        </div>
-                    </div>
-                    <div class="pull-left tpDataBox secondaryTpDataBox">
-                        <label>Motion</label>
-                        <div ng-repeat="(key, value) in result.motionEvidence">
-                            {{::key}}: {{::value | numberTrim:10}}
-                        </div>
-                    </div>
-                    <div class="pull-left tpDataBox secondaryTpDataBox">
-                        <label>TF-IDF</label>
-                        <div ng-repeat="(key, value) in result.tfIdf">
+                        <div ng-repeat="(key, value) in ::result | sitesResultsFilter">
                             {{::key}}: {{::value | numberTrim:10}}
                         </div>
                     </div>

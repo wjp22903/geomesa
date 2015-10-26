@@ -13,7 +13,7 @@ angular.module('stealth.routeanalysis.wizard', [
 'wizardManager',
 'colors',
 'elementAppender',
-'routeDrawHelper',
+'stealth.core.geo.ol3.utils.routeDrawHelper',
 'stealth.core.geo.ol3.interaction.standard',
 'stealth.core.geo.ol3.overlays.Vector',
 'stealth.core.wizard.Step',
@@ -227,7 +227,7 @@ function () {
 '$timeout',
 'ol3Map',
 'csvFormat',
-'routeDrawHelper',
+'stealth.core.geo.ol3.utils.routeDrawHelper',
 'stealth.core.geo.ol3.format.GeoJson',
 function ($timeout, ol3Map, csvFormat, routeDrawHelper, GeoJson) {
     return {

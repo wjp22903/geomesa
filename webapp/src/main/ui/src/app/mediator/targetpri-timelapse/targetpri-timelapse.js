@@ -1,7 +1,7 @@
 angular.module('stealth.mediator.targetpri-timelapse')
 
 .run([
-'targetPriResultLayerExtender',
+'stealth.targetpri.geo.ol3.layers.targetPriResultLayerExtender',
 'tlWizard',
 function (tpExtender, tlWizard) {
     tpExtender.addCapabilitiesExtender(function (capabilities, opts) {

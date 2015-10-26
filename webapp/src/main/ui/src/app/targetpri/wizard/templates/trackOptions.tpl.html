@@ -1,0 +1,19 @@
+<ng-form name="wizardForm">
+    <p>
+        Set additional options for finding and ranking targets.
+    </p>
+    <table>
+        <tr>
+            <td><label class="tpFieldLabel">Proximity:</label></td>
+            <td>
+                <input class="tpSpinner" type="number" ui-jq="spinner" ng-model="proximityMeters" min="0" required />
+                meters
+            </td>
+        </tr>
+    </table>
+    <p class="tpSpacer">
+        Give this Target Identification a meaningful name.
+    </p>
+    <label>Name: </label>
+    <input type="text" ng-model="name" class="tpText" required />
+</ng-form>

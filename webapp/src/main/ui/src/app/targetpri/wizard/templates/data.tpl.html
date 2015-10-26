@@ -3,10 +3,10 @@
         <i ng-class="{'ng-hide': !(layers | lodash:'isEmpty')}">No datasources found.</i>
         <i ng-class="{'ng-hide': !loadError}">Error.</i>
         <div ng-repeat="layer in layers">
-            <i class="fa fa-fw" ng-class="layer.isSelected ? 'fa-check-square' : 'fa-square'"
-               ng-click="toggleLayer(layer)">
-            </i>
-            {{layer.Title || layer.Name | characters:60:true}}
+            <span ng-click="toggleLayer(layer)">
+                <i class="fa fa-fw" ng-class="layer.isSelected ? 'fa-check-square' : 'fa-square'"></i>
+                {{layer.Title || layer.Name | characters:60:true}}
+            </span>
         </div>
     </div>
     <i ng-class="{'ng-hide': (layers | lodash:'isArray')}" class="fa fa-spinner fa-spin fa-lg"></i>

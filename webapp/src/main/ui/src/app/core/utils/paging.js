@@ -32,6 +32,9 @@ function () {
                 },
                 nextPage: function () {
                     scope.paging.suggestedPage = (scope.paging.currentPage = (scope.paging.currentPage >= scope.paging.numberOfPages()) ? 1 : (scope.paging.currentPage+1));
+                },
+                currentPageFirstIndex: function () {
+                    return (scope.paging.currentPage-1)*scope.paging.pageSize;
                 }
             }, scope.paging);
         }
