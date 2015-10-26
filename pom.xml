@@ -90,7 +90,6 @@
         <app.showStartPop>false</app.showStartPop>
         <app.showSplash>false</app.showSplash>
         <app.splashUrl>splash.html</app.splashUrl>
-        <app.accessDeniedUrl>access.html</app.accessDeniedUrl>
         <app.supported.browsers>
             {
                 chrome: {
@@ -228,12 +227,15 @@
         <static.category.name>Data</static.category.name>
         <timelapse.hideBinSortOption>true</timelapse.hideBinSortOption>
 
+        <security.accessDeniedUrl>access.html</security.accessDeniedUrl>
         <security.keystore.path>${basedir}/src/test/resources/certs/server.p12</security.keystore.path>
         <security.keystore.type>PKCS12</security.keystore.type>
         <security.keystore.password>password</security.keystore.password>
         <security.keystore.keyPassword>password</security.keystore.keyPassword>
         <security.truststore.path>${basedir}/src/test/resources/certs/truststore.jks</security.truststore.path>
         <security.truststore.password>password</security.truststore.password>
+        <external.auth.project>STEALTH</external.auth.project>
+        <external.auth.group>stealth-users</external.auth.group>
 
         <!-- proxy config -->
         <web.proxy />

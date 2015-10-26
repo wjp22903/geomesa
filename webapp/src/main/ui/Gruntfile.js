@@ -42,7 +42,6 @@ module.exports = function (grunt) {
                 src: [
                     '<%= html2js.app.dest %>',
                     '<%= buildDir %>/templates-jst.js',
-                    '<%= buildDir %>/plugins.js',
                     '<%= buildDir %>/src/'
                 ]
             }
@@ -143,8 +142,7 @@ module.exports = function (grunt) {
         grunt.config('appJs', [
             '<%= appFiles.js %>',
             '<%= html2js.app.dest %>',
-            '<%= buildDir %>/templates-jst.js',
-            '<%= buildDir %>/plugins.js'
+            '<%= buildDir %>/templates-jst.js'
         ]);
     }
     grunt.config('index', {
@@ -290,8 +288,7 @@ module.exports = function (grunt) {
                 '<%= buildDir %>/app.min.js': [
                     '<%= appFiles.js %>',
                     '<%= html2js.app.dest %>',
-                    '<%= buildDir %>/templates-jst.js',
-                    '<%= buildDir %>/plugins.js'
+                    '<%= buildDir %>/templates-jst.js'
                 ]
             }
         }

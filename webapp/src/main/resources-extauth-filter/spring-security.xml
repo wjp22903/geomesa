@@ -14,7 +14,7 @@
 
     <beans:bean id="externalAuthenticationFilter" class="com.ccri.spring.ExternalAuthenticationFilter">
         <!-- insert host project name into constructor-arg -->
-        <beans:constructor-arg value="${external.auth.project.name}"/>
+        <beans:constructor-arg value="${private.security.externalAuth.project}"/>
         <beans:property name="authenticationDetailsSource" ref="proxyAwareWebAuthenticationDetailsSource"/>
         <beans:property name="authenticationManager" ref="authenticationManager"/>
     </beans:bean>
@@ -24,7 +24,7 @@
     </beans:bean>
 
     <beans:bean id="redirectingAccessDeniedHandler" class="com.ccri.stealth.security.RedirectingAccessDeniedHandlerImpl">
-        <beans:property name="target" value="${app.accessDeniedUrl}"/>
+        <beans:property name="target" value="${private.security.accessDeniedUrl}"/>
     </beans:bean>
 
     <http entry-point-ref="http403ForbiddenEntryPoint" create-session="stateless" use-expressions="true">
@@ -32,7 +32,7 @@
         <custom-filter position="PRE_AUTH_FILTER" ref="externalAuthenticationFilter"/>
         <intercept-url pattern="/**/public/**" access="permitAll"/>
         <!-- change role to one appropriate for the production environment -->
-        <intercept-url pattern="/**" access="hasAnyRole('${external.auth.group.name}')"/>
+        <intercept-url pattern="/**" access="hasAnyRole('${private.security.externalAuth.group}')"/>
     </http>
 
     <authentication-manager alias="authenticationManager">

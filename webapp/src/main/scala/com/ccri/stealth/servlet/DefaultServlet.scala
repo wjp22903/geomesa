@@ -2,6 +2,7 @@ package com.ccri.stealth.servlet
 
 import java.util.Date
 
+import com.ccri.stealth.config.TypesafeConfig
 import com.ccri.stealth.plugin.JmxUtils
 import com.typesafe.config.{ConfigRenderOptions, ConfigFactory}
 import org.fusesource.scalate.util.IOUtil
@@ -39,12 +40,7 @@ object DefaultServlet {
 
 class DefaultServlet(appContext: String) extends ScalatraServlet with ScalateSupport {
   val logger = LoggerFactory.getLogger(getClass)
-  val rootConf = ConfigFactory.load()
-  val conf =
-    if (rootConf.hasPath(appContext))
-      rootConf.getConfig(appContext).withFallback(rootConf.getConfig("stealth"))
-    else
-      rootConf.getConfig("stealth")
+  val conf = TypesafeConfig.get(appContext)
   val unknownUser = "Unknown User"
 
   get("/?") {
@@ -53,6 +49,8 @@ class DefaultServlet(appContext: String) extends ScalatraServlet with ScalateSup
 
   get("/!") {
     val beanNames = JmxUtils.getBeanNames
+    val plugins = conf.getStringList("private.plugins").toList.:::(JmxUtils.getPlugins(beanNames).toList)
+      .distinct.map(plugin => {"'" + plugin.replaceAll("['\"]", "") + "'"})
     def buildResponse(user: String)  = {
       logger.info("Access Granted: " + user)
       contentType = "text/html; charset=UTF-8"
@@ -64,7 +62,7 @@ class DefaultServlet(appContext: String) extends ScalatraServlet with ScalateSup
         "datetime" -> DateUtil.formatDate(new Date(), "yyyyMMDDHHmm"),
         "jmxCss" -> JmxUtils.getCss(beanNames).toList,
         "jmxJs" -> JmxUtils.getJs(beanNames).toList,
-        "plugins" -> JmxUtils.getPlugins(beanNames).toList,
+        "plugins" -> plugins,
         "config" -> JsonParser(conf.root().withoutKey("private").render(
           ConfigRenderOptions.defaults()
             .setJson(true)
@@ -74,7 +72,7 @@ class DefaultServlet(appContext: String) extends ScalatraServlet with ScalateSup
       )
     }
     // if we have a user, build response, otherwise redirect
-    DefaultServlet.getUser.fold(redirect(conf.getString("app.accessDeniedUrl")))(buildResponse)
+    DefaultServlet.getUser.fold(redirect(conf.getString("private.security.accessDeniedUrl")))(buildResponse)
   }
 
   get("/:file.html") {

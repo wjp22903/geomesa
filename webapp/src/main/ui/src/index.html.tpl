@@ -74,12 +74,10 @@
     #end
 
     <!-- Load Plugins -->
-    #if (plugins.nonEmpty)
-        <script>
-            angular.module('stealth.plugins', [
-                '<%= plugins.mkString("','") %>'
-            ]);
-        </script>
-    #end
+    <script>
+        angular.module('stealth.plugins', [
+            <%= plugins.mkString(",") %>
+        ]);
+    </script>
 </body>
 </html>
