@@ -23,8 +23,8 @@ function (toastr, manager, CONFIG) {
             $scope.logoUrl = 'assets/logo.png?' + CONFIG.app.loadTime;
             $scope.title = CONFIG.app.title;
             $scope.manager = manager;
-            var noTimeout = {timeOut: 0};
-            var currentBrowser = _.find(_.keys(CONFIG.app.browsers), function (browserType) {
+            var noTimeout = {timeOut: 0, extendedTimeOut: 0};
+            var currentBrowser = _.find(CONFIG.app.browsers, function (browserInfo, browserType) { //eslint-disable-line no-unused-vars
                 return bowser[browserType];
             });
             if (currentBrowser) {

@@ -36,7 +36,11 @@ function ($provide, $httpProvider, $logProvider, toastrConfig) {
 
     angular.extend(toastrConfig, {
         target: '.primaryDisplay',
-        positionClass: 'toast-bottom-right'
+        positionClass: 'toast-bottom-right',
+        closeButton: true,
+        progressBar: true,
+        timeOut: 5000,
+        extendedTimeOut: 5000
     });
 }])
 

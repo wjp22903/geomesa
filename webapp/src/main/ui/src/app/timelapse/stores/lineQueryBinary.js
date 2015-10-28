@@ -73,12 +73,12 @@ function ($log, $rootScope, $filter, $window, toastr, cqlHelper, wfs, BinStore, 
                     $log.error(data);
                     _viewState.isError = true;
                     _viewState.errorMsg = 'ows:ExceptionReport returned';
-                    toastr.error('Error: ' + _thisStore.getName(), _viewState.errorMsg);
+                    toastr.error(_viewState.errorMsg, 'Error: ' + _thisStore.getName());
                 } else if (data.byteLength === 0) {
                     $log.error('(' + _thisStore.getName() + ') No results');
                     _viewState.isError = true;
                     _viewState.errorMsg = 'No results';
-                    toastr.error('Error: ' + _thisStore.getName(), _viewState.errorMsg);
+                    toastr.error(_viewState.errorMsg, 'Error: ' + _thisStore.getName());
                 } else {
                     _thisStore.setArrayBuffer(data, query.params.sortOnServer, function () {
                         $rootScope.$emit('timelapse:querySuccessful');
@@ -90,7 +90,7 @@ function ($log, $rootScope, $filter, $window, toastr, cqlHelper, wfs, BinStore, 
                 $log.error('(' + _thisStore.getName() + ') ' + msg);
                 _viewState.isError = true;
                 _viewState.errorMsg = msg;
-                toastr.error('Error: ' + _thisStore.getName(), _viewState.errorMsg);
+                toastr.error(_viewState.errorMsg, 'Error: ' + _thisStore.getName());
             });
         };
 
