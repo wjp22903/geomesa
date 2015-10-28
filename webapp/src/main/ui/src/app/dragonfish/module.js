@@ -33,7 +33,8 @@ angular.module('stealth.dragonfish', [
                 color: [255, 255, 0, 1]
             })
         })
-    })
+    }),
+    polyColor: '#FFFF99'
 })
 
 /**

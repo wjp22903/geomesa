@@ -14,14 +14,17 @@ angular.module('stealth.dragonfish.classifier.wizard', [
 .service('stealth.dragonfish.classifier.wizard.scope', [
 '$log',
 '$rootScope',
+'ol3Styles',
 'ol3Map',
+'stealth.core.geo.ol3.utils.geomHelper',
+'stealth.core.geo.ol3.overlays.Vector',
 'stealth.core.utils.WidgetDef',
 'stealth.dragonfish.Constant',
 'stealth.dragonfish.classifier.service',
 'stealth.dragonfish.classifier.imageMetadata.service',
 'stealth.dragonfish.classifier.runner.Constant',
 'stealth.dragonfish.classifier.runner.QueryParams',
-function ($log, $rootScope, ol3Map, WidgetDef, DF, classifierService, imageMetadataService, RUN, QueryParams) {
+function ($log, $rootScope, ol3Styles, ol3Map, geomHelper, VectorOverlay, WidgetDef, DF, classifierService, imageMetadataService, RUN, QueryParams) {
     var _creations = 0;
 
     this.create = function () {
@@ -43,21 +46,36 @@ function ($log, $rootScope, ol3Map, WidgetDef, DF, classifierService, imageMetad
             }
         });
         wizardScope.searchByImageId = function () {
-            wizardScope.query.searchBy = RUN.imageId;
-            // if geomFeatureOverlay is set, remove it from the map (STEALTH-461)
-            // if imageFeatureOverlay is set, add it to the map and zoom to there
-            if (wizardScope.imageFeatureOverlay) {
-                wizardScope.imageFeatureOverlay.addToMap();
-                ol3Map.fit(wizardScope.imgMeta.resolvedMetadata.polygon);
+            if (!wizardScope.query.isImageIdSource()) {
+                wizardScope.query.searchBy = RUN.imageId;
+                // if geomFeatureOverlay is set, remove it from the map
+                if (wizardScope.geomFeatureOverlay) {
+                    wizardScope.geomFeatureOverlay.removeFromMap();
+                }
+                // if imageFeatureOverlay is set, add it to the map and zoom to there
+                if (wizardScope.imageFeatureOverlay) {
+                    wizardScope.imageFeatureOverlay.addToMap();
+                    ol3Map.fit(wizardScope.imgMeta.resolvedMetadata.polygon);
+                }
             }
         };
         wizardScope.searchByGeoTime = function () {
-            wizardScope.query.searchBy = RUN.geoTime;
-            // if imageFeatureOverlay is set, remove it from the map
-            if (wizardScope.imageFeatureOverlay) {
-                wizardScope.imageFeatureOverlay.removeFromMap();
+            if (!wizardScope.query.isGeomSource()) {
+                wizardScope.query.searchBy = RUN.geoTime;
+                // if imageFeatureOverlay is set, remove it from the map
+                if (wizardScope.imageFeatureOverlay) {
+                    wizardScope.imageFeatureOverlay.removeFromMap();
+                }
+                // if geomFeatureOverlay is set, add it to the map and zoom to there (STEALTH-461)
+                if (wizardScope.geomFeatureOverlay) {
+                    var polygon = geomHelper.polygonFromExtentParts(wizardScope.query.geom.minLon,
+                                    wizardScope.query.geom.minLat,
+                                    wizardScope.query.geom.maxLon,
+                                    wizardScope.query.geom.maxLat);
+                    wizardScope.geomFeatureOverlay.addToMap();
+                    ol3Map.fit(polygon);
+                }
             }
-            // if geomFeatureOverlay is set, add it to the map and zoom to there (STEALTH-461)
         };
         wizardScope.lookupImgMeta = function () {
             if (wizardScope.imageFeatureOverlay) {
@@ -94,6 +112,29 @@ function ($log, $rootScope, ol3Map, WidgetDef, DF, classifierService, imageMetad
         wizardScope.spaceIcon[DF.space.imagery] = 'fa-file-image-o';
         wizardScope.spaceIcon[DF.space.sigint] = 'fa-rss';
         wizardScope.spaceIcon[DF.space.fusion] = 'fa-sun-o';
+        wizardScope.clearGeomBounds = function () {
+            if (wizardScope.geomFeatureOverlay) {
+                wizardScope.geomFeatureOverlay.removeFromMap();
+                delete wizardScope.geomFeatureOverlay;
+            }
+        };
+        wizardScope.drawGeomBounds = function (geom) {
+            var polygon = geomHelper.polygonFromExtentParts(geom.minLon, geom.minLat, geom.maxLon, geom.maxLat);
+            var geomFeatureOverlay = new VectorOverlay({
+                colors: [DF.polyColor],
+                styleBuilder: function () {
+                    return ol3Styles.getPolyStyle(1, DF.polyColor);
+                }
+            });
+            geomFeatureOverlay.addFeature(new ol.Feature({geometry: polygon}));
+            geomFeatureOverlay.addToMap();
+            ol3Map.fit(polygon);
+            return geomFeatureOverlay;
+        };
+        wizardScope.$watchGroup(['query.geom.minLat', 'query.geom.minLon', 'query.geom.maxLat', 'query.geom.maxLon'], function () {
+            wizardScope.clearGeomBounds();
+            wizardScope.geomFeatureOverlay = wizardScope.drawGeomBounds(wizardScope.query.geom);
+        });
         classifierService.getClassifiers()
             .then(function (classifiers) {
                 wizardScope.classifiers = classifiers;
@@ -125,6 +166,9 @@ function ($rootScope, wizardManager, Wizard, Step, WidgetDef, DF, ClassConstant,
                     function (success) {
                         if (scope.imageFeatureOverlay) {
                             scope.imageFeatureOverlay.removeFromMap();
+                        }
+                        if (scope.geomFeatureOverlay) {
+                            scope.geomFeatureOverlay.removeFromMap();
                         }
                         if (success) {
                             $rootScope.$emit(ClassConstant.applyEvent, scope.query);

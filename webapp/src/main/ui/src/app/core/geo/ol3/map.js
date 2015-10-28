@@ -311,6 +311,9 @@ function ($log, $filter, searchManager, GeoJson, MapLayer, TintLayer, CONFIG) {
     this.getEventPixel = function (event) {
         return _map.getEventPixel(event);
     };
+    this.beforeRender = function (/* passing all args through */) {
+        return _map.beforeRender.apply(_map, arguments);
+    };
 
     // ***** Initialization *****
     //Built-in layers

@@ -38,8 +38,7 @@
     <table class="df-wizard-table" ng-class="{'ng-hide': boundWiz.drawing || query.isNonImageSpace()}">
         <tr ng-click="searchByImageId()">
             <td ng-class="{'has-error': imgMeta.errMsg}">
-                <i class="fa fa-fw" ng-class="query.isImageIdSource() ? 'fa-dot-circle-o' : 'fa-circle-o'"
-                   ng-click="query.searchBy = RUN.imageId">
+                <i class="fa fa-fw" ng-class="query.isImageIdSource() ? 'fa-dot-circle-o' : 'fa-circle-o'">
                 </i>
             </td>
             <td>
@@ -79,10 +78,9 @@
         </tr>
     </table>
     <table class="df-wizard-table">
-        <tr ng-click="searchByGeoTime()">
-            <td ng-class="{'ng-hide': boundWiz.drawing}">
-                <i class="fa fa-fw" ng-class="query.isGeomSource() ? 'fa-dot-circle-o' : 'fa-circle-o'"
-                   ng-click="query.searchBy = RUN.geoTime">
+        <tr>
+            <td ng-class="{'ng-hide': boundWiz.drawing}" ng-click="searchByGeoTime()">
+                <i class="fa fa-fw" ng-class="query.isGeomSource() ? 'fa-dot-circle-o' : 'fa-circle-o'">
                 </i>
                 <label ng-class="{'ng-hide': query.isGeomSource()}" class="df-wizard-bounds">
                     Bounding Box

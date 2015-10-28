@@ -98,7 +98,7 @@ function ($filter, cookies, RUN) {
     this.initialGeom = function () {
         return _.merge(_geom, cookies.get(RUN.cookies.geom, 0));
     };
-    this.checkAndSetBounds = function (extent, skipCookie) {
+    this.checkAndSetBounds = function (extent, skipCookie) { // this func name must match what's in stealth.timelapse.wizard.Query
         var filter = $filter('number');
         var trimmed = _.map(extent, function (val) {
             return parseFloat(filter(val, 5));
