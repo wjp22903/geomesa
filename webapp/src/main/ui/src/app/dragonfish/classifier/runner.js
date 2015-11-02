@@ -14,7 +14,9 @@ angular.module('stealth.dragonfish.classifier.runner', [
     cookies: {
         geom: 'dragonfish.wizard.bbox',
         time: 'dragonfish.wizard.time'
-    }
+    },
+    anywhereCoords: [-180, -90, 180, 90],
+    anywhere: 'Anywhere'
 })
 
 /**
@@ -25,9 +27,9 @@ angular.module('stealth.dragonfish.classifier.runner', [
 'stealth.dragonfish.Constant',
 'stealth.dragonfish.classifier.runner.Constant',
 'stealth.dragonfish.classifier.runner.queryParamsService',
-function (DF, RUN, paramService) {
-    return function (name) {
-        this.name = name;
+'stealth.core.geo.ol3.utils.geomHelper',
+function (DF, RUN, paramService, geomHelper) {
+    return function () {
         this.classifier = null;
         this.classifierLabel = null;
         this.imageId = null;
@@ -41,8 +43,8 @@ function (DF, RUN, paramService) {
         this.searchBy = null; // query by image id or using geometry and time
         this.slidingWindow = false;
         this.geom = paramService.initialGeom();
-        this.checkAndSetBounds = function (extent, skipCookie) {
-            _.merge(this.geom, paramService.checkAndSetBounds(extent, skipCookie));
+        this.checkAndSetBounds = function (extent, skipCookie) { // this func name must match what's in stealth.timelapse.wizard.Query
+            _.merge(this.geom, paramService.checkAndSetBounds(extent, this.geom.name, this.geom.userSet, skipCookie));
         };
         this.checkTimeRangeAndSetCookie = function (start, end, skipCookie) {
             /**
@@ -71,6 +73,31 @@ function (DF, RUN, paramService) {
         this.hasSingleLabel = function () {
             return (this.classifier && this.classifier.labels.length === 1);
         };
+        this.getTitle = function () {
+            var title = this.hasSingleLabel() ? this.classifierLabel : this.classifier.name;
+            title += ' [';
+            if (this.isImageIdSource() && this.imageId) {
+                title += this.imageId;
+            } else {
+                title += this.geom.name;
+            }
+            title += ']';
+            return title;
+        };
+        this.generateGeomName = function () {
+            if (!this.geom.userSet ||
+                (this.geom.userSet && !this.geom.name)) {
+                this.geom.userSet = false;
+                if (_.isEqual(paramService.geomToArray(this.geom), RUN.anywhereCoords)) {
+                    this.geom.name = RUN.anywhere;
+                } else {
+                    // create centroid:
+                    var polygon = geomHelper.polygonFromExtent(paramService.geomToArray(this.geom));
+                    var centroid = ol.extent.getCenter(polygon.getExtent());
+                    this.geom.name = 'near(' + centroid[1].toFixed(2) + ', ' + centroid[0].toFixed(2) + ')';
+                }
+            }
+        };
         _.merge(this.timeData, paramService.initialTimerange());
         this.checkTimeRangeAndSetCookie(this.timeData.startDtg, this.timeData.endDtg, true);
     };
@@ -89,7 +116,9 @@ function ($filter, cookies, RUN) {
         maxLat: 90,
         minLat: -90,
         maxLon: 180,
-        minLon: -180
+        minLon: -180,
+        name: '',
+        userSet: false
     };
     var _time = {
         startDtg: moment.utc().subtract(1, 'week'),
@@ -98,7 +127,7 @@ function ($filter, cookies, RUN) {
     this.initialGeom = function () {
         return _.merge(_geom, cookies.get(RUN.cookies.geom, 0));
     };
-    this.checkAndSetBounds = function (extent, skipCookie) { // this func name must match what's in stealth.timelapse.wizard.Query
+    this.checkAndSetBounds = function (extent, name, userSet, skipCookie) {
         var filter = $filter('number');
         var trimmed = _.map(extent, function (val) {
             return parseFloat(filter(val, 5));
@@ -107,7 +136,9 @@ function ($filter, cookies, RUN) {
             minLon: trimmed[0] < -180 ? -180 : trimmed[0],
             minLat: trimmed[1] < -90 ? -90 : trimmed[1],
             maxLon: trimmed[2] > 180 ? 180 : trimmed[2],
-            maxLat: trimmed[3] > 90 ? 90 : trimmed[3]
+            maxLat: trimmed[3] > 90 ? 90 : trimmed[3],
+            name: name,
+            userSet: userSet
         };
         if (!skipCookie && !_.contains(trimmed, NaN)) {
             //Save cookie - expires in a year
@@ -154,6 +185,9 @@ function ($filter, cookies, RUN) {
             cookies.put(RUN.cookies.time, 0, {startDtg: start, endDtg: end}, moment.utc().add(1, 'y'));
         }
         return {valid: true};
+    };
+    this.geomToArray = function (geom) {
+        return [geom.minLon, geom.minLat, geom.maxLon, geom.maxLat];
     };
 }])
 

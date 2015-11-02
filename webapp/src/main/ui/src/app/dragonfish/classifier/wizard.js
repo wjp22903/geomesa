@@ -25,12 +25,10 @@ angular.module('stealth.dragonfish.classifier.wizard', [
 'stealth.dragonfish.classifier.runner.Constant',
 'stealth.dragonfish.classifier.runner.QueryParams',
 function ($log, $rootScope, ol3Styles, ol3Map, geomHelper, VectorOverlay, WidgetDef, DF, classifierService, imageMetadataService, RUN, QueryParams) {
-    var _creations = 0;
-
     this.create = function () {
         var wizardScope = $rootScope.$new();
         wizardScope.RUN = RUN;
-        wizardScope.query = new QueryParams('Classifier Application ' + (_creations + 1));
+        wizardScope.query = new QueryParams();
         // wizardScope.imgMeta.errMsg should be either a string or undefined
         wizardScope.imgMeta = {
             resolvedMetadata: null,
@@ -48,11 +46,9 @@ function ($log, $rootScope, ol3Styles, ol3Map, geomHelper, VectorOverlay, Widget
         wizardScope.searchByImageId = function () {
             if (!wizardScope.query.isImageIdSource()) {
                 wizardScope.query.searchBy = RUN.imageId;
-                // if geomFeatureOverlay is set, remove it from the map
                 if (wizardScope.geomFeatureOverlay) {
                     wizardScope.geomFeatureOverlay.removeFromMap();
                 }
-                // if imageFeatureOverlay is set, add it to the map and zoom to there
                 if (wizardScope.imageFeatureOverlay) {
                     wizardScope.imageFeatureOverlay.addToMap();
                     ol3Map.fit(wizardScope.imgMeta.resolvedMetadata.polygon);
@@ -62,11 +58,9 @@ function ($log, $rootScope, ol3Styles, ol3Map, geomHelper, VectorOverlay, Widget
         wizardScope.searchByGeoTime = function () {
             if (!wizardScope.query.isGeomSource()) {
                 wizardScope.query.searchBy = RUN.geoTime;
-                // if imageFeatureOverlay is set, remove it from the map
                 if (wizardScope.imageFeatureOverlay) {
                     wizardScope.imageFeatureOverlay.removeFromMap();
                 }
-                // if geomFeatureOverlay is set, add it to the map and zoom to there (STEALTH-461)
                 if (wizardScope.geomFeatureOverlay) {
                     var polygon = geomHelper.polygonFromExtentParts(wizardScope.query.geom.minLon,
                                     wizardScope.query.geom.minLat,
@@ -118,6 +112,10 @@ function ($log, $rootScope, ol3Styles, ol3Map, geomHelper, VectorOverlay, Widget
                 delete wizardScope.geomFeatureOverlay;
             }
         };
+        wizardScope.checkAndSetBounds = function () {
+            var geom = wizardScope.query.geom;
+            wizardScope.query.checkAndSetBounds([geom.minLon, geom.minLat, geom.maxLon, geom.maxLat], false);
+        };
         wizardScope.drawGeomBounds = function (geom) {
             var polygon = geomHelper.polygonFromExtentParts(geom.minLon, geom.minLat, geom.maxLon, geom.maxLat);
             var geomFeatureOverlay = new VectorOverlay({
@@ -134,12 +132,17 @@ function ($log, $rootScope, ol3Styles, ol3Map, geomHelper, VectorOverlay, Widget
         wizardScope.$watchGroup(['query.geom.minLat', 'query.geom.minLon', 'query.geom.maxLat', 'query.geom.maxLon'], function () {
             wizardScope.clearGeomBounds();
             wizardScope.geomFeatureOverlay = wizardScope.drawGeomBounds(wizardScope.query.geom);
+            wizardScope.query.generateGeomName();
         });
+        wizardScope.geomNameEdited = function () {
+            wizardScope.query.geom.userSet = true;
+            wizardScope.query.generateGeomName();
+            wizardScope.checkAndSetBounds(); // call to get name saved into cookie
+        };
         classifierService.getClassifiers()
             .then(function (classifiers) {
                 wizardScope.classifiers = classifiers;
             });
-        _creations++;
         return wizardScope;
     };
 }])

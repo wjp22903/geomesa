@@ -4,12 +4,6 @@
 
          The goal in either case is to show the query parameters in a way that might let the user change them
          and issue another query. -->
-    <div ng-class="{'ng-hide': !(request.classifier)}">
-        <h3 ng-when="true">{{request.classifierLabel}} from {{request.classifier.name}}</h3>
-    </div>
-    <div ng-class="{'ng-hide': !!(request.classifier)}">
-        <h3 ng-when="false">{{request.name}}</h3>
-    </div>
     <div class="layerStyleRow" ng-class="{'ng-hide': !(request.classifier)}">
         <div class="cell">Score Cutoff:</div>
         <div class="cell df-width-percent">

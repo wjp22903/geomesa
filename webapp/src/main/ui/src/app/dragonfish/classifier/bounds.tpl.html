@@ -1,11 +1,21 @@
 <div ng-class="{'ng-hide': !query.isGeomSource()}">
+    <table class="df-wizard-table-common" ng-class="{'ng-hide': boundWiz.drawing}">
+        <tr>
+            <td>
+                <label>Name search area:<br />
+                    <input type="text" ng-model="query.geom.name" ng-change="geomNameEdited()" st-select-text-on-focus
+                           class="form-control input-sm df-wizard-text-input df-wizard-selector" ng-required="query.isGeomSource()" />
+                </label>
+            </td>
+        </tr>
+    </table>
     <div class="df-wizard-bounds-buttons" ng-class="{'ng-hide': boundWiz.drawing}">
         <table class="df-wizard-bounds-table">
             <tr>
                 <td></td>
                 <td colspan="2">
                     <input type="number" placeholder="Max Lat (deg)" ui-jq="spinner" class="df-wizard-bounds-box"
-                           ng-change="query.checkAndSetBounds([query.geom.minLon, query.geom.minLat, query.geom.maxLon, query.geom.maxLat])"
+                           ng-change="checkAndSetBounds()"
                            ng-required="query.isGeomSource()"
                            min="-90" max="90" step="0.00001" ng-model="query.geom.maxLat">
                     </input>
@@ -15,14 +25,14 @@
             <tr>
                 <td colspan="2">
                     <input type="number" placeholder="Min Lon (deg)" ui-jq="spinner" class="df-wizard-bounds-box"
-                           ng-change="query.checkAndSetBounds([query.geom.minLon, query.geom.minLat, query.geom.maxLon, query.geom.maxLat])"
+                           ng-change="checkAndSetBounds()"
                            ng-required="query.isGeomSource()"
                            min="-180" max="180" step="0.00001" ng-model="query.geom.minLon">
                     </input>
                 </td>
                 <td colspan="2">
                     <input type="number" placeholder="Max Lon (deg)" ui-jq="spinner" class="df-wizard-bounds-box"
-                           ng-change="query.checkAndSetBounds([query.geom.minLon, query.geom.minLat, query.geom.maxLon, query.geom.maxLat])"
+                           ng-change="checkAndSetBounds()"
                            ng-required="query.isGeomSource()"
                            min="-180" max="180" step="0.00001" ng-model="query.geom.maxLon">
                     </input>
@@ -32,7 +42,7 @@
                 <td></td>
                 <td colspan="2">
                     <input type="number" placeholder="Min Lat (deg)" ui-jq="spinner" class="df-wizard-bounds-box"
-                           ng-change="query.checkAndSetBounds([query.geom.minLon, query.geom.minLat, query.geom.maxLon, query.geom.maxLat])"
+                           ng-change="checkAndSetBounds()"
                            ng-required="query.isGeomSource()"
                            min="-90" max="90" step="0.00001" ng-model="query.geom.minLat">
                     </input>

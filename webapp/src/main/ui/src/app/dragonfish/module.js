@@ -166,7 +166,7 @@ function ($rootScope, catMgr, sidebarManager, AnalysisCategory, GeoJson, WidgetD
         };
 
         var buttonId = sidebarManager.toggleButton(
-            sidebarManager.addButton(scope.request.name, DF.icon, 400,
+            sidebarManager.addButton(scope.request.getTitle(), DF.icon, 500,
                 new WidgetDef('st-df-sidebar', scope),
                 new WidgetDef('st-pager', scope, "paging='paging' records='results'"),
                 false,
@@ -174,7 +174,7 @@ function ($rootScope, catMgr, sidebarManager, AnalysisCategory, GeoJson, WidgetD
             ),
             true
         );
-
+        scope.entityLayer = {viewState: {scoreCutoff: 0.0}}; // initialize for html
         var parser = new GeoJson(); // stealth GeoJson, extending OL3 for STEALTH-319
         resultsPromise
             .then(function (response) {
