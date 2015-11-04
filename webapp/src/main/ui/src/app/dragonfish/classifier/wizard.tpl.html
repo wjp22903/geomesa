@@ -134,11 +134,11 @@
             <!-- Only visible for imagery classifiers. Defaults to false -->
             <td>
                 <p></p>
-                <label><input type="checkbox" ng-model="query.slidingWindow" /> Use sliding window</label>
+                <label><input type="checkbox" ng-model="query.slidingWindow" ng-true-value="false" ng-false-value="true" /> Search existing entities only</label>
             </td>
         </tr>
     </table>
     <input type="text" ng-model="query.classifier" class="hidden" required />
     <input type="text" ng-model="query.classifierLabel" class="hidden" required />
-    <input type="text" ng-model="imgMeta.resolvedMetadata.dtg" class="hidden" ng-required="query.isImageIdSource()" />
+    <input type="text" ng-model="query.imageId" class="hidden" ng-required="query.isImageIdSource()" />
 </ng-form>

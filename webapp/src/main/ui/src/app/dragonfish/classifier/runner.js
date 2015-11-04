@@ -41,7 +41,7 @@ function (DF, RUN, paramService, geomHelper) {
             maxTimeRangeMillis: Number.POSITIVE_INFINITY
         };
         this.searchBy = null; // query by image id or using geometry and time
-        this.slidingWindow = false;
+        this.slidingWindow = true; // slidingWindow true == Search existing entities only false (unchecked)
         this.geom = paramService.initialGeom();
         this.checkAndSetBounds = function (extent, skipCookie) { // this func name must match what's in stealth.timelapse.wizard.Query
             _.merge(this.geom, paramService.checkAndSetBounds(extent, this.geom.name, this.geom.userSet, skipCookie));
@@ -195,14 +195,31 @@ function ($filter, cookies, RUN) {
  * A service to actually 'run' (=apply) a classifier. This relies on the dragonfish-wps project.
  */
 .service('stealth.dragonfish.classifier.runner.service', [
+'cqlHelper',
 'stealth.dragonfish.configWps',
 'stealth.dragonfish.wps.prefixService',
-function (wps, prefixService) {
+function (cqlHelper, wps, prefixService) {
     this.run = function (queryParams) {
-        var mungedId = prefixService.mungeClassifierId(queryParams.classifier.id);
+        var geom = cqlHelper.bboxToPolygon([queryParams.geom.minLon,
+                    queryParams.geom.minLat,
+                    queryParams.geom.maxLon,
+                    queryParams.geom.maxLat]),
+            startDtg = '',
+            endDtg = '';
+        if (moment.isMoment(queryParams.timeData.startDtg) && queryParams.timeData.startDtg.isValid()) {
+            startDtg = queryParams.timeData.startDtg.toISOString();
+        }
+        if (moment.isMoment(queryParams.timeData.endDtg) && queryParams.timeData.endDtg.isValid()) {
+            endDtg = queryParams.timeData.endDtg.toISOString();
+        }
         var req = stealth.jst['wps/dragonfish_applyClassifier.xml']({
-            classifierID: mungedId,
+            classifierID: queryParams.classifier.id,
             classifierLabel: queryParams.classifierLabel,
+            imageID: queryParams.imageId,
+            slidingWindow: queryParams.slidingWindow,
+            geom: geom,
+            startDtg: startDtg,
+            endDtg: endDtg,
             dfPrefix: prefixService.prefix
         });
         return wps.submit(req);

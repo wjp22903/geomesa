@@ -26,17 +26,24 @@ function () {
  */
 .service('stealth.dragonfish.classifier.imageMetadata.service', [
 '$q',
+'CONFIG',
 'ol3Map',
 'ol3Styles',
 'stealth.core.geo.ol3.overlays.Vector',
 'stealth.core.geo.ol3.utils.geomHelper',
 'stealth.dragonfish.classifier.imageMetadata.ImageMetadata',
-function ($q, ol3Map, ol3Styles, VectorOverlay, geomHelper, ImageMetadata) {
-    var possibleResults = {
-        aa: new ImageMetadata('aa', moment.utc(), geomHelper.polygonFromExtentParts(-36.098, 17.554, -35.031, 18.029), 'VNIR', 8),
-        bb: new ImageMetadata('bb', moment.utc(), geomHelper.polygonFromExtentParts(-160.825, 22.554, -154.236, 18.029), 'GeoTIFF', 4),
-        cc: new ImageMetadata('cc', moment.utc(), geomHelper.polygonFromExtentParts(-75.098, 40.554, -74.031, 41.029), 'GeoJPEG', 16)
-    };
+function ($q, CONFIG, ol3Map, ol3Styles, VectorOverlay, geomHelper, ImageMetadata) {
+    var possibleResults = {};
+    var imageIds = _.get(CONFIG, 'dragonfish.imageIds', []);
+    _.each(imageIds, function (imageMetadata) {
+        possibleResults[imageMetadata.name] = new ImageMetadata(
+            imageMetadata.name,
+            (imageMetadata.date !== '' ? moment(imageMetadata.date) : moment.utc()),
+            geomHelper.polygonFromExtent(imageMetadata.extent),
+            imageMetadata.type,
+            imageMetadata.niirs
+        );
+    });
     this.lookupImgMeta = function (imageId) {
         return $q(function (resolve, reject) {
             setTimeout(function () {

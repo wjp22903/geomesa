@@ -136,8 +136,10 @@ function ($rootScope, VectorOverlay, DF, scoredEntityService, SimConstant, simQu
  * This method sets up a new category, adds the results to the map, and populates the sidebar.
  */
 .service('stealth.dragonfish.resultsService', [
+'$log',
 '$rootScope',
 'categoryManager',
+'ol3Map',
 'sidebarManager',
 'stealth.core.geo.analysis.category.AnalysisCategory',
 'stealth.core.geo.ol3.format.GeoJson',
@@ -148,7 +150,7 @@ function ($rootScope, VectorOverlay, DF, scoredEntityService, SimConstant, simQu
 'stealth.dragonfish.geo.ol3.layers.styler',
 'stealth.dragonfish.geo.ol3.layers.EntityLayer',
 'stealth.dragonfish.geo.ol3.layers.EntityConstant',
-function ($rootScope, catMgr, sidebarManager, AnalysisCategory, GeoJson, WidgetDef, DF, sidebarService, scoredEntityService, entityStyler, EntityLayer, EL) {
+function ($log, $rootScope, catMgr, ol3Map, sidebarManager, AnalysisCategory, GeoJson, WidgetDef, DF, sidebarService, scoredEntityService, entityStyler, EntityLayer, EL) {
     this.display = function (req, resultsPromise) {
         var scope = sidebarService.createScope(req);
 
@@ -197,7 +199,15 @@ function ($rootScope, catMgr, sidebarManager, AnalysisCategory, GeoJson, WidgetD
                         return entityStyler.getColorByScore(scope.scoredEntityService.score(result), scope.entityLayer.viewState.scoreCutoff);
                     };
                     category.addLayer(scope.entityLayer);
+                    ol3Map.fit(scope.entityLayer.ol3Layer.getSource().getExtent());
                 }
+            }, function (reason) {
+                scope.queryRunning = false;
+                scope.results = [];
+                scope.getEntityColor = function () {
+                    return '#000000';
+                };
+                $log.warn(reason);
             });
     };
 }])
@@ -224,19 +234,6 @@ function (CONFIG) {
      * Set `dragonfish.wpsPrefix=Hardcoded` to use the Hardcoded dragonfish-wps variants
      */
     this.prefix = _.get(CONFIG, 'dragonfish.wpsPrefix', '');
-
-    /**
-     * Check `dragonfish.stripClassifierURNPrefix` to see if we should remove `urn:` from the beginning of
-     * classifier IDs (obtained via ListClassifiers) before passing them back to ApplyClassifier
-     */
-    this.mungeClassifierId = function (id) {
-        var doStrip = _.get(CONFIG, 'dragonfish.stripClassifierURNPrefix', true);
-        if (doStrip && id.substring(0, 4) === 'urn:') {
-            return id.substring(4);
-        } else {
-            return id;
-        }
-    };
 }])
 
 /**
