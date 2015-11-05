@@ -37,7 +37,6 @@
 @import 'alerts'
 @import 'dcm'
 @import 'splash'
-@import 'dragonfish'
 @import 'popup'
 @import 'upload'
 
@@ -110,13 +109,16 @@ input[type=number]::-webkit-outer-spin-button
     -webkit-appearance none
     margin 0
 
-.pointNum
+.pointNumColorless
     display inline-block
-    background #BDDADA
     text-align center
     width 1.5em
     height 1.5em
     border-radius 50%
+
+.pointNum
+    @extends .pointNumColorless
+    background #BDDADA
 
 .toggleButton
     line-height 4px
@@ -157,3 +159,5 @@ hr
 
 #toast-container
     position absolute
+
+@import 'dragonfish'

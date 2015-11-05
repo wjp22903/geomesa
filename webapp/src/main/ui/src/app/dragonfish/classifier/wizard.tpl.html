@@ -1,143 +1,193 @@
 <ng-form name="wizardForm">
-    <table class="df-wizard-table" ng-class="{'ng-hide': boundWiz.drawing}">
-        <tr>
-            <!--SELECT A CLASSIFIER-->
-            <td>
+    <div ng-class="{'ng-hide': boundWiz.drawing}">
+        <div class="df-wizard-inst">
+            <div class="df-pointNum">1</div> <!-- instructions for step 1 -->
+            Select a Classifier
+        </div>
+        <div>
+            <div class="df-wizard-input-content">
+                <!-- classifier picklist -->
                 <div class="btn-group dropdown dropdown-append-to-body df-button">
                     <button type="button" class="btn dropdown-toggle df-button">
                         <span class="df-dropdown" ng-if="!query.classifier">Select a Classifier</span>
                         <span class="df-dropdown" ng-if="query.classifier"><span class="fa fa-fw fa-df" ng-class="spaceIcon[query.classifier.space]"></span>{{query.classifier.name}}</span>
                         <span class="pull-right"><span class="caret"></span></span>
                     </button>
-                    <ul class="dropdown-menu df-dropdown" role="menu" aria-labelledby="btn-append-to-body">
-                        <li ng-repeat="classifier in ::classifiers | orderBy: 'name'"  role="menuitem">
+                    <ul class="dropdown-menu df-dropdown" role="menu">
+                        <li ng-repeat="classifier in ::classifiers | orderBy: 'name'" role="menuitem">
                             <a href="#" ng-click="pickClassifier(classifier)"><i class="fa fa-fw fa-df" ng-class="spaceIcon[classifier.space]"></i>{{classifier.name}}</a>
                         </li>
                     </ul>
                 </div>
-            </td>
-        </tr>
-        <tr>
-            <!--SELECT A LABEL (FOR THE CLASSIFIER)-->
-            <td ng-class="{'ng-hide': query.hasSingleLabel()}">
-                <div class="btn-group dropdown dropdown-append-to-body df-button">
-                    <button type="button" class="btn dropdown-toggle df-button">
-                        <span class="df-dropdown" ng-if="!query.classifierLabel">Select a Label</span>
-                        <span class="df-dropdown" ng-if="query.classifierLabel"><i class="fa fa-fw fa-df" ng-class="spaceIcon[query.classifier.space]"></i>{{query.classifierLabel}}</span>
-                        <span class="pull-right"><span class="caret"></span></span>
-                    </button>
-                    <ul class="dropdown-menu df-dropdown" role="menu" aria-labelledby="btn-append-to-body">
-                        <li ng-repeat="label in query.classifier.labels | orderBy: 'name'"  role="menuitem">
-                            <a href="#" ng-click="query.classifierLabel = label"><i class="fa fa-fw fa-df" ng-class="spaceIcon[query.classifier.space]"></i>{{label}}</a>
-                        </li>
-                    </ul>
+            </div>
+        </div>
+        <!-- classifier label picklist -->
+        <div class="df-wizard-input-content" ng-class="{'ng-hide': query.hasSingleLabel()}">
+            <div class="btn-group dropdown dropdown-append-to-body df-button df-button">
+                <button type="button" class="btn df-button dropdown-toggle">
+                    <span class="df-dropdown" ng-if="!query.classifierLabel">Select a Label</span>
+                    <span class="df-dropdown" ng-if="query.classifierLabel"><i class="fa fa-fw fa-df" ng-class="spaceIcon[query.classifier.space]"></i>{{query.classifierLabel}}</span>
+                    <span class="pull-right"><span class="caret"></span></span>
+                </button>
+                <ul class="dropdown-menu df-dropdown" role="menu">
+                    <li ng-repeat="label in query.classifier.labels | orderBy: 'name'" role="menuitem">
+                        <a href="#" ng-click="query.classifierLabel = label"><i class="fa fa-fw fa-df" ng-class="spaceIcon[query.classifier.space]"></i>{{label}}</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <!-- instructions for step 2 -->
+        <div class="df-wizard-inst">
+            <div class="df-pointNum">2</div>
+            Select area or enter image ID
+        </div>
+        <div class="df-wizard-content" ng-click="searchByImageId()">
+            <div class="form-group" ng-class="{'has-error': imgMeta.errMsg}">
+                <div class="df-wizard-imageid">
+                    <!-- image id radio button -->
+                    <i class="fa fa-fw" ng-class="query.isImageIdSource() ? 'fa-dot-circle-o' : 'fa-circle-o'">
+                    </i>
+                    <input type="text"
+                           placeholder="Enter Image ID"
+                           ng-model="query.imageId"
+                           st-change="lookupImgMeta()"
+                           ng-disabled="query.isGeomSource() || query.isNonImageSpace()"
+                           class="form-control input-sm df-wizard-selector df-wizard-text-input" />
+                    <span ng-class="{'ng-hide': !(imgMeta.isLoading)}"><i class="fa fa-circle-o-notch fa-spin"></i></span>
                 </div>
-            </td>
-        </tr>
-    </table>
-    <table class="df-wizard-table" ng-class="{'ng-hide': boundWiz.drawing || query.isNonImageSpace()}">
-        <tr ng-click="searchByImageId()">
-            <td ng-class="{'has-error': imgMeta.errMsg}">
-                <i class="fa fa-fw" ng-class="query.isImageIdSource() ? 'fa-dot-circle-o' : 'fa-circle-o'">
-                </i>
-            </td>
-            <td>
-                <input type="text"
-                       placeholder="Enter Image ID"
-                       ng-model="query.imageId"
-                       st-change="lookupImgMeta()"
-                       ng-disabled="query.isGeomSource()"
-                       class="form-control input-sm df-wizard-text-input df-wizard-selector" />
-                <span ng-class="{'ng-hide': !(imgMeta.isLoading)}"><i class="fa fa-circle-o-notch fa-spin"></i></span>
-            </td>
-        </tr>
-        <tr ng-class="{'ng-hide': !(imgMeta.errMsg)}">
-            <td />
-            <td>
-                <label class="control-label df-wizard-error-message"><i class="fa fa-warning"></i> {{imgMeta.errMsg}}</label>
-            </td>
-        </tr>
-        <tr ng-class="{'ng-hide': query.isGeomSource()}">
-            <td />
-            <td>
-                <table class="df-wizard-table-common">
-                    <tr ng-class="{'ng-hide': !imgMeta.resolvedMetadata.dtg}">
-                        <td>Date:</td>
-                        <td>{{imgMeta.resolvedMetadata.dtg.toISOString()}}</td>
-                    </tr>
-                    <tr ng-class="{'ng-hide': !imgMeta.resolvedMetadata.type}">
-                        <td>Type:</td>
-                        <td>{{imgMeta.resolvedMetadata.type}}</td>
-                    </tr>
-                    <tr ng-class="{'ng-hide': !imgMeta.resolvedMetadata.hasNIIRS()}">
-                        <td>NIIRS:</td>
-                        <td>{{imgMeta.resolvedMetadata.niirs}}</td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-    </table>
-    <table class="df-wizard-table">
-        <tr>
-            <td ng-class="{'ng-hide': boundWiz.drawing}" ng-click="searchByGeoTime()">
-                <i class="fa fa-fw" ng-class="query.isGeomSource() ? 'fa-dot-circle-o' : 'fa-circle-o'">
-                </i>
-                <label ng-class="{'ng-hide': query.isGeomSource()}" class="df-wizard-bounds">
-                    Bounding Box
+                <!-- slidingWindow checkbox -->
+                <label class="df-wizard-sliding-win" ng-class="{'df-wizard-sliding-win-nospin': !(imgMeta.isLoading), 'df-wizard-sliding-win': imgMeta.isLoading}">
+                    <input type="checkbox" ng-model="query.slidingWindow" ng-true-value="false" ng-false-value="true" /> Existing<br />entities only
                 </label>
-            </td>
-            <td>
-                <st-widget-compiler widget-def="drawBoundsWidgetDef">
-                </st-widget-compiler>
-            </td>
-        </tr>
-        <tr ng-class="{'ng-hide': !query.isGeomSource()}">
-            <td />
-            <td ng-class="{'ng-hide': boundWiz.drawing}" colspan="2">
-                <!-- Only an input when not using an image id. Otherwise the time is the time of the image -->
-                <table class="df-wizard-table-common">
-                    <tr><label>Enter time range:</label></tr>
-                    <tr>
-                        <td><label>Start: </label></td>
-                        <td><input type="text" ng-model="query.timeData.startDtg" ui-jq="datetimepicker"
-                                   ng-change="query.checkTimeRangeAndSetCookie(query.timeData.startDtg, query.timeData.endDtg)"
-                                   ng-disabled="query.isImageIdSource()"
-                                   ng-required="!query.isImageIdSource()"
-                                   ui-options="{todayButton: false, yearStart: 1990, yearEnd: 2030, step: 15, format: 'Y-m-d H:i'}"
-                                   st-utc-moment-format="YYYY-MM-DD HH:mm" class="df-datetimepicker" /> Z
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><label>End: </label></td>
-                        <td><input type="text" ng-model="query.timeData.endDtg" ui-jq="datetimepicker"
-                                   ng-change="query.checkTimeRangeAndSetCookie(query.timeData.startDtg, query.timeData.endDtg)"
-                                   ng-disabled="query.isImageIdSource()"
-                                   ng-required="!query.isImageIdSource()"
-                                   ui-options="{todayButton: false, yearStart: 1990, yearEnd: 2030, step: 15, format: 'Y-m-d H:i'}"
-                                   st-utc-moment-format="YYYY-MM-DD HH:mm" class="df-datetimepicker" /> Z
-                        </td>
-                    </tr>
-                </table>
-                <!-- This input is a bit finicky. any value in query.timeData.valid will validate,
-                     even if the value is a boolean false. make sure _not_ to set a valid flag until
-                     the query.timeData is actually valid. do _not_ set valid to false. -->
-                <input type="hidden" ng-model="query.timeData.valid" ng-required="!query.isImageIdSource()">
-                <div class="alert alert-danger" ng-class="{'ng-hide': !query.timeData.errorMsg}">
-                    <span class="fa fa-lg fa-fw fa-exclamation-triangle"></span>
-                    <span>{{query.timeData.errorMsg}}</span>
-                </div>
-            </td>
-        </tr>
-    </table>
-    <table class="df-wizard-table" ng-class="{'ng-hide': boundWiz.drawing || query.isNonImageSpace()}">
-        <tr>
-            <!-- Only visible for imagery classifiers. Defaults to false -->
-            <td>
-                <p></p>
-                <label><input type="checkbox" ng-model="query.slidingWindow" ng-true-value="false" ng-false-value="true" /> Search existing entities only</label>
-            </td>
-        </tr>
-    </table>
+            </div>
+        </div>
+        <div class="form-group df-wizard-image-info" ng-class="{'has-error': imgMeta.errMsg}">
+            <label class="control-label" ng-class="{'ng-hide': !(imgMeta.errMsg)}"><i class="fa fa-warning"></i> {{imgMeta.errMsg}}</label>
+        </div>
+        <div class="form-group df-wizard-image-info" ng-class="{'ng-hide': query.isGeomSource()}">
+            <table class="df-wizard-sm-text">
+                <tr ng-class="{'ng-hide': !imgMeta.resolvedMetadata.dtg}">
+                    <td>Date:</td>
+                    <td>{{imgMeta.resolvedMetadata.dtg.toISOString()}}</td>
+                </tr>
+                <tr ng-class="{'ng-hide': !imgMeta.resolvedMetadata.type}">
+                    <td>Type:</td>
+                    <td>{{imgMeta.resolvedMetadata.type}}</td>
+                </tr>
+                <tr ng-class="{'ng-hide': !imgMeta.resolvedMetadata.hasNIIRS()}">
+                    <td>NIIRS:</td>
+                    <td>{{imgMeta.resolvedMetadata.niirs}}</td>
+                </tr>
+            </table>
+        </div>
+        <div class="form-group df-wizard-content df-wizard-geom" ng-click="searchByGeoTime()">
+            <i class="fa fa-fw" ng-class="query.isGeomSource() ? 'fa-dot-circle-o' : 'fa-circle-o'">
+            </i>
+            <div class="btn-group">
+                <label class="btn btn-default btn-xs df-wizard-geom-buttons" ng-model="geomButtons" btn-radio="'wholeEarth'" ng-click="boundWiz.setWholeEarth()" uncheckable>Whole Earth</label>
+                <label class="btn btn-default btn-xs df-wizard-geom-buttons" ng-model="geomButtons" btn-radio="'mapExtent'" ng-click="boundWiz.setMapExtent()" uncheckable>Use Map Extent</label>
+                <label class="btn btn-default btn-xs df-wizard-geom-buttons" ng-model="geomButtons" btn-radio="'drawBounds'" ng-click="clearGeomBounds(); boundWiz.drawExtent()" uncheckable>Draw Bounds</label>
+                <label class="btn btn-default btn-xs df-wizard-geom-buttons" ng-model="geomButtons" btn-radio="'enterCoords'" uncheckable>Enter Coordinates</label>
+            </div>
+        </div>
+        <div class="btn-group df-wizard-input-content" ng-class="{'ng-hide': !geomButtons}">
+            Search area name: <input type="text" ng-model="query.geom.name"
+                                     class="form-control input-sm df-wizard-selector df-wizard-geom-name"
+                                     ng-change="geomNameEdited()"
+                                     st-select-text-on-focus
+                                     ng-required="query.isGeomSource()" />
+        </div>
+        <div class="df-wizard-bounds-buttons" ng-class="{'ng-hide': geomButtons !== 'enterCoords'}">
+            <table class="df-wizard-bounds-table">
+                <tr>
+                    <td></td>
+                    <td colspan="2">
+                        N <input type="number" placeholder="Max Lat (deg)" ui-jq="spinner" class="df-wizard-bounds-box"
+                                 ng-change="checkAndSetBounds()"
+                                 ng-required="query.isGeomSource()"
+                                 min="-90" max="90" step="0.00001" ng-model="query.geom.maxLat">
+                        </input>
+                    </td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        W <input type="number" placeholder="Min Lon (deg)" ui-jq="spinner" class="df-wizard-bounds-box"
+                                 ng-change="checkAndSetBounds()"
+                                 ng-required="query.isGeomSource()"
+                                 min="-180" max="180" step="0.00001" ng-model="query.geom.minLon">
+                        </input>
+                    </td>
+                    <td colspan="2">
+                        E <input type="number" placeholder="Max Lon (deg)" ui-jq="spinner" class="df-wizard-bounds-box"
+                                 ng-change="checkAndSetBounds()"
+                                 ng-required="query.isGeomSource()"
+                                 min="-180" max="180" step="0.00001" ng-model="query.geom.maxLon">
+                        </input>
+                    </td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td colspan="2">
+                        S <input type="number" placeholder="Min Lat (deg)" ui-jq="spinner" class="df-wizard-bounds-box"
+                                 ng-change="checkAndSetBounds()"
+                                 ng-required="query.isGeomSource()"
+                                 min="-90" max="90" step="0.00001" ng-model="query.geom.minLat">
+                        </input>
+                    </td>
+                    <td></td>
+                </tr>
+            </table>
+        </div>
+    </div> <!-- end of div that disappears when drawing bbox on the map -->
+    <st-widget-compiler widget-def="drawBoundsWidgetDef">
+    </st-widget-compiler>
+    <div ng-class="{'ng-hide': !query.isGeomSource() || boundWiz.drawing}">
+        <!-- instructions for step 3 -->
+        <div class="df-wizard-inst">
+            <div class="df-pointNum">3</div>
+            Select date and time range
+        </div>
+        <div class="form-group df-wizard-content" ng-class="{'has-error': query.timeData.errorMsg}">
+            <table class="df-wizard-sm-text">
+                <tr>
+                    <td>
+                        <label class="control-label" for="startDtg">Start: </label>
+                    </td>
+                    <td>
+                        <input type="text" ng-model="query.timeData.startDtg" ui-jq="datetimepicker"
+                               ng-change="query.checkTimeRangeAndSetCookie(query.timeData.startDtg, query.timeData.endDtg)"
+                               ng-disabled="query.isImageIdSource()"
+                               ng-required="!query.isImageIdSource()"
+                               ui-options="{todayButton: false, yearStart: 1990, yearEnd: 2030, step: 15, format: 'Y-m-d H:i'}"
+                               st-utc-moment-format="YYYY-MM-DD HH:mm" class="df-datetimepicker" /> Z
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label class="control-label">End: </label>
+                    </td>
+                    <td>
+                        <input type="text" ng-model="query.timeData.endDtg" ui-jq="datetimepicker"
+                               ng-change="query.checkTimeRangeAndSetCookie(query.timeData.startDtg, query.timeData.endDtg)"
+                               ng-disabled="query.isImageIdSource()"
+                               ng-required="!query.isImageIdSource()"
+                               ui-options="{todayButton: false, yearStart: 1990, yearEnd: 2030, step: 15, format: 'Y-m-d H:i'}"
+                               st-utc-moment-format="YYYY-MM-DD HH:mm" class="df-datetimepicker" /> Z
+                    </td>
+                </tr>
+            </table>
+            <div class="alert alert-danger" ng-class="{'ng-hide': !query.timeData.errorMsg}">
+                <span class="fa fa-lg fa-fw fa-exclamation-triangle"></span>
+                <span>{{query.timeData.errorMsg}}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- This input is a bit finicky. any value in query.timeData.valid will validate,
+         even if the value is a boolean false. make sure _not_ to set a valid flag until
+         the query.timeData is actually valid. do _not_ set valid to false. -->
+    <input type="text" ng-model="query.timeData.valid" class="hidden" ng-required="!query.isImageIdSource()">
     <input type="text" ng-model="query.classifier" class="hidden" required />
     <input type="text" ng-model="query.classifierLabel" class="hidden" required />
     <input type="text" ng-model="query.imageId" class="hidden" ng-required="query.isImageIdSource()" />

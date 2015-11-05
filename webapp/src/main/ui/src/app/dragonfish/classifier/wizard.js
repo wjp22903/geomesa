@@ -45,7 +45,9 @@ function ($log, $rootScope, ol3Styles, ol3Map, geomHelper, VectorOverlay, Widget
         });
         wizardScope.searchByImageId = function () {
             if (!wizardScope.query.isImageIdSource()) {
-                wizardScope.query.searchBy = RUN.imageId;
+                if (!wizardScope.query.isNonImageSpace()) {
+                    wizardScope.query.searchBy = RUN.imageId;
+                }
                 if (wizardScope.geomFeatureOverlay) {
                     wizardScope.geomFeatureOverlay.removeFromMap();
                 }

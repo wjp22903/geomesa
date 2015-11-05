@@ -7,8 +7,8 @@
     min-width 300px
     text-align left
     border-radius 4px
-    color #ccc
-    background-color #000000
+    color #000
+    background-color #fff
     &:hover
         background-color #575757
         color white
@@ -33,24 +33,62 @@
     width 120px
 
 .df-dropdown
-    font-color white
     font-size 12px
     border none
     min-width 300px
     text-align left
     border-radius 4px
-    color #ffffff
-    background-color #0000000
-    &:active
-        background-color #575757
-        color white
-    &:focus
-        background-color green
-        color red
 
 .df-inline-v-middle
     display inline
     vertical-align middle
+    
+.df-pointNum
+    @extends .pointNumColorless
+    background #575757
+    margin-left 25px
+    margin-right 10px
+    margin-bottom 10px
+    margin-top 20px
+
+.df-wizard-content
+    margin-right 20px
+    margin-bottom 10px
+    margin-left 58px
+    vertical-align middle
+
+.df-wizard-input-content
+    margin-bottom 10px
+    margin-left 80px
+
+.df-wizard-sliding-win
+    font-size 11px
+    margin 0px 0px 0px 3px
+
+.df-wizard-sliding-win-nospin
+    @extends .df-wizard-sliding-win
+    margin-left 21px
+
+.df-wizard-inst
+    font-size 14px
+    font-style bold
+
+.df-wizard-sm-text
+    font-size 12px
+
+.df-wizard-geom
+    padding-top 4px
+
+.df-wizard-geom-buttons
+    padding 4px 7px 4px 7px
+
+.df-wizard-image-info
+    @extends .df-wizard-input-content
+    position relative
+    margin-top -18px
+
+.df-wizard-imageid
+    float left
 
 .df-wizard-table-common
     border-collapse separate
@@ -71,8 +109,14 @@
 .df-wizard-text-input
     @extends .df-margin-specs
     font-size 12px
-    color #ccc
-    width 270px
+    width 300px
+    text-align left
+    vertical-align middle
+
+.df-wizard-geom-name
+    @extends .df-margin-specs
+    font-size 12px
+    width 259px
     text-align left
     vertical-align middle
 
