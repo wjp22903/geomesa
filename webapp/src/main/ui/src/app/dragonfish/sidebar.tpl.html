@@ -1,45 +1,59 @@
-<div class="df-class-sidebar">
-    <!-- Longer-term, this sidebar header is probably a pluggable directive, with classifier results using one
-         directive and similarity results using another.
-
-         The goal in either case is to show the query parameters in a way that might let the user change them
-         and issue another query. -->
-    <div class="layerStyleRow" ng-class="{'ng-hide': !(request.classifier)}">
-        <div class="cell">Score Cutoff:</div>
-        <div class="cell df-width-percent">
+<div class="df-results-sidebar anchorAll">
+    <progressbar class="progress-striped active" value="100" type="primary" ng-if="queryRunning">
+        Evaluating
+    </progressbar>
+    <div class="bg-danger" ng-class="{'ng-hide': queryRunning || results.length}">
+        <i class="fa fa-fw fa-lg fa-exclamation-triangle text-danger"></i> Query returned no results</li>
+    </div>
+    <div class="df-result-header"
+         ng-class="{'ng-hide': !(request.classifier && results.length)}">
+        <div>Score Threshold: <b>{{entityLayer.viewState.scoreCutoff.toFixed(2)}}</b></div>
+        <div class="df-width-percent">
             <input type="range" ng-model="entityLayer.viewState.scoreCutoff"
                    min="0.5" max="1" step="0.01"
                    st-change="updateMap()"
                    st-change-delay="30"
                    st-float-input>
         </div>
-        <div class="cell">{{entityLayer.viewState.scoreCutoff.toFixed(2)}}</div>
+        <hr>
     </div>
-    <hr />
-    <progressbar class="progress-striped active" value="100" type="primary" ng-if="queryRunning">Evaluating</progressbar>
-    <div ng-if="!queryRunning"> <!-- paged results. each li seems like the sort of thing that's supposed to be a directive -->
-        <ul class="list-unstyled">
-            <li class="df-class-result bg-danger" ng-class="{'ng-hide': results.length > 0}">
-                <i class="fa fa-fw fa-lg fa-exclamation-triangle text-danger"></i> Query returned no results</li>
-            <li class="df-class-result"
-                ng-repeat="result in results | orderBy:entitySort:true | startFrom:(paging.currentPage-1)*paging.pageSize | limitTo:paging.pageSize"
-                ng-mouseenter="highlight(result)" ng-mouseleave="unhighlight(result)">
-                <div class="df-class-result-contents">
-                    <h4>{{scoredEntityService.name(result)}}</h4>
-                    <span class="df-inline-v-middle">
-                        <h5>
-                            {{floorFigure(scoredEntityService.score(result), 3)}}
-                            <span ng-if="(getEntityColor | lodash:'isFunction')"
-                                  class="fa fa-lg fa-fw fa-square colorBox df-inline-v-middle"
-                                  ng-style="getEntityColor(result)"/>
-                        </h5>
-                    </span>
-                    <p>{{scoredEntityService.description(result)}}</p>
+    <ul class="list-unstyled">
+        <li class="df-result"
+            ng-repeat="result in results | orderBy:entitySort:true | startFrom:(paging.currentPage-1)*paging.pageSize | limitTo:paging.pageSize"
+            ng-mouseenter="entityHighlighter.addFeature(result)"
+            ng-mouseleave="entityHighlighter.removeFeature(result)">
+            <div class="thumbnail-container">
+                <img ng-src="{{composeThumbnailUrl(result)}}">
+                <div ng-mouseenter="result.showThumbnailMenu=true"
+                     ng-mouseleave="result.showThumbnailMenu=false">
+                    <i class="fa fa-lg fa-map outlineTextWhite"></i>
+                    <ul class="list-unstyled" ng-if="result.showThumbnailMenu">
+                        <li class="df-result thumbnail-menu-item" ng-click="zoomTo(result)">Zoom to entity</li>
+                        <li class="df-result thumbnail-menu-item">Show image on map</li>
+                        <li class="df-result thumbnail-menu-item">Bring image to front</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="df-result-info-container">
+                <div class="df-result-content">
+                    <strong><i class="fa fa-lg ccri-icon ccri-icon-map-pin"></i></strong>
+                    <div>
+                        <div><strong>{{::scoredEntityService.name(result)}}</strong></div>
+                        <div ng-if="::scoredEntityService.time(result)">
+                            Time: {{::scoredEntityService.time(result)}}
+                        </div>
+                        <div>{{::scoredEntityService.description(result)}}</div>
+                    </div>
+                </div>
+                <div class="df-result-footer">
                     <button class="btn btn-primary btn-xs" ng-click="searchSimilar(result)">
                         More Like This
                     </button>
+                    <span class="pull-right">
+                        Score: <b>{{::floorFigure(scoredEntityService.score(result), 3)}}</b>
+                    </span>
                 </div>
-            </li>
-        </ul>
-    </div>
+            </div>
+        </li>
+    </ul>
 </div>

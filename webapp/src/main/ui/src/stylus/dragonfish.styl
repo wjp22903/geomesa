@@ -17,16 +17,69 @@
     margin-top 5px
     margin-bottom 5px
 
-.df-class-sidebar
-    background white
-    .df-class-result
-        border 1px dashed black
-        @extends .df-margin-specs
-        margin-left 2px
+.df-results-sidebar
+    >*
+        margin 5px
+    >ul.list-unstyled
+        margin-top 0
+    .df-result-header
+        background-color #333
+        color #e4e4e4
+        padding 8px
+        margin-bottom 0
+        >div
+            padding 2px 0
+            position relative
+    .df-result
+        background-color #333
+        color #e4e4e4
+        padding 8px
+        border-top 3px solid #575757
+        &:first-child
+            border-top none
         &:hover
-            activeGlow()
-        .df-class-result-contents
-            margin-left 5px
+            background-color #575757
+            color white
+        .thumbnail-container
+            overflow visible
+            display inline-block
+            height 128px
+            width 128px
+            vertical-align top
+            position relative
+            border-radius 4px
+            >img
+                border-radius 4px
+                padding 1px
+                border 1px solid #e4e4e4
+                height 128px
+                width 128px
+            >div
+                position absolute
+                top 12px
+                left 10px
+                cursor pointer
+                >i
+                    color black
+                .thumbnail-menu-item
+                    white-space nowrap
+                    padding 2px
+        .df-result-info-container
+            display inline-block
+            padding 5px
+            width 320px
+            .df-result-content
+                height 88px
+                overflow hidden
+                >*
+                    display inline-block
+                    vertical-align top
+                >div
+                    width 190px
+                    :first-child
+                        margin-bottom 5px
+            .df-result-footer
+                padding 4px
 
 .df-datetimepicker
     margin-bottom 10px
@@ -42,7 +95,7 @@
 .df-inline-v-middle
     display inline
     vertical-align middle
-    
+
 .df-pointNum
     @extends .pointNumColorless
     background #575757

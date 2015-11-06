@@ -1,7 +1,27 @@
 angular.module('stealth.dragonfish.geo.ol3.layers')
 
 .constant('stealth.dragonfish.geo.ol3.layers.EntityConstant', {
-    removeEvent: 'dragonfish.layer.entity.remove'
+    removeEvent: 'dragonfish.layer.entity.remove',
+    chipStyle: {
+        stroke: new ol.style.Stroke({
+            color: '#DA4747',
+            width: 2
+        })
+    },
+    pinStyle: {
+        text: new ol.style.Text({
+            text: '\ue003', // map pin
+            font: 'normal 26px CcriIcon',
+            textBaseline: 'bottom',
+            fill: new ol.style.Fill({
+                color: '#DA4747'
+            }),
+            stroke: new ol.style.Stroke({
+                color: 'black',
+                width: 1
+            })
+        })
+    }
 })
 
 .run([
@@ -18,22 +38,13 @@ function ($rootScope, catMgr, ol3Map, EL) {
 }])
 
 .service('stealth.dragonfish.geo.ol3.layers.styler', [
-'colors',
-function (colors) {
-    var _styleCache = {};
+'stealth.dragonfish.geo.ol3.layers.EntityConstant',
+function (EL) {
     var _self = this;
-    var _defaultStyle = new ol.style.Style({
-        fill: new ol.style.Fill({
-            color: [250, 250, 250, 1]
-        }),
-        stroke: new ol.style.Stroke({
-            color: [220, 220, 220, 1],
-            width: 1
-        })
-    });
-    var _hidden = {display: 'none'};
-    var _pinkC = colors.hexStringToRgbArray('#ffa07a');
-    var _redC  = colors.hexStringToRgbArray('#ff0000');
+    var _footprintStyle = new ol.style.Style(EL.chipStyle); // chip outline style set in constant
+    var _markerStyle = new ol.style.Style(EL.pinStyle); // pin style set in constant
+
+    var _hidden = new ol.style.Style();
     this.getColorByScore = function (score, cutoff) {
         var color;
         if (score < cutoff) {
@@ -44,31 +55,16 @@ function (colors) {
         }
         return color;
     };
-    this.curryableStyleFunction = function (viewState, feature, resolution) { //eslint-disable-line no-unused-vars
+    this.curryableStyleFunction = function (viewState, feature, resolution) {
         var score = feature.get('score');
-        if (!score) {
-            return _defaultStyle;
-        } else if (score < viewState.scoreCutoff) {
-            // hide the feature
-            return _hidden;
+        if (score < viewState.scoreCutoff) {
+            return [_hidden];
+        } else if (resolution > 0.0001) {
+            return [_markerStyle];
+        } else if (resolution > 0.00004) {
+            return [_markerStyle, _footprintStyle];
         } else {
-            var styleSplit = viewState.scoreCutoff + (Math.abs(1.0 - viewState.scoreCutoff) / 2);
-            var level = (score >= styleSplit ? 1 : 2) + resolution.toFixed(2);
-            if (!_styleCache[level]) {
-                var fillColor = score >= styleSplit ? _redC : _pinkC;
-                var width = viewState.size;
-                var fill = new ol.style.Fill({
-                    color: fillColor.concat(0.5)
-                });
-                _styleCache[level] = new ol.style.Style({
-                    fill: fill,
-                    image: new ol.style.Circle({
-                        radius: width + 1,
-                        fill: fill
-                    })
-                });
-            }
-            return [_styleCache[level]];
+            return [_footprintStyle];
         }
     };
     this.curriedStyleFunction = function (viewState) {
@@ -108,7 +104,7 @@ function ($log, $q, $rootScope, clickSearchHelper, DF, MapLayer, dfStyler, EL) {
             toggledOn: true,
             isError: false,
             errorMsg: '',
-            scoreCutoff: 0.75,
+            scoreCutoff: 0.6,
             size: 4
         };
         var _ol3Source = new ol.source.Vector({
@@ -140,7 +136,7 @@ function ($log, $q, $rootScope, clickSearchHelper, DF, MapLayer, dfStyler, EL) {
         _self.searchPoint = function (coord, resolution) {
             var baseResponse = _.merge(this.getEmptySearchPointResult(), {
                 getLayerLegendStyle: function () {
-                    return {color: _viewState.fillColor};
+                    return {display: 'none'};
                 }
             });
             var extent = clickSearchHelper.getSearchExtent(coord, resolution);
@@ -153,7 +149,10 @@ function ($log, $q, $rootScope, clickSearchHelper, DF, MapLayer, dfStyler, EL) {
             }
 
             _ol3Source.forEachFeatureIntersectingExtent(extent, function (feature) {
-                nearbyFeatures.push(feature);
+                var score = feature.get('score');
+                if (score >= _viewState.scoreCutoff) {
+                    nearbyFeatures.push(feature);
+                }
             });
 
             trimmedFeatures = clickSearchHelper.sortAndTrimFeatures(coord, nearbyFeatures);

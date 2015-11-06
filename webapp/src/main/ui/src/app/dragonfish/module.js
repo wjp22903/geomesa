@@ -21,21 +21,31 @@ angular.module('stealth.dragonfish', [
         sigint: 'Sigint'
     },
     highlightStyle: new ol.style.Style({
-        fill: new ol.style.Fill({
-            color: [255, 255, 0, 0.5]
-        }),
         stroke: new ol.style.Stroke({
-            color: [255, 255, 0, 1],
+            color: 'red',
             width: 2
+        }),
+        text: new ol.style.Text({
+            text: '\ue003', // map pin
+            font: 'normal 26px CcriIcon',
+            textBaseline: 'bottom',
+            fill: new ol.style.Fill({
+                color: 'yellow'
+            }),
+            stroke: new ol.style.Stroke({
+                color: 'black',
+                width: 2
+            })
         }),
         image: new ol.style.Circle({
             radius: 5,
             fill: new ol.style.Fill({
-                color: [255, 255, 0, 1]
+                color: 'red'
             })
         })
     }),
-    polyColor: '#FFFF99'
+    polyColor: '#FFFF99',
+    pageResults: {pageSize: 10}
 })
 
 /**
@@ -69,7 +79,7 @@ function () {
     this.score = function (entity) { return entity.get('score'); };
     this.geom  = function (entity) { return entity.getGeometry(); }; //ol.geom.getGeometry
     this.time  = function (entity) { return entity.get('time'); };
-    this.thumbnail   = function (entity) { return entity.get('thumbnail'); };
+    this.thumbnail   = function (entity) { return entity.get('thumbnailURL'); };
     this.description = function (entity) { return entity.get('description'); };
 }])
 
@@ -79,12 +89,13 @@ function () {
  */
 .service('stealth.dragonfish.sidebarService', [
 '$rootScope',
+'ol3Map',
 'stealth.core.geo.ol3.overlays.Vector',
 'stealth.dragonfish.Constant',
 'stealth.dragonfish.scoredEntityService',
 'stealth.dragonfish.similarity.Constant',
 'stealth.dragonfish.similarity.runner.QueryParamsService',
-function ($rootScope, VectorOverlay, DF, scoredEntityService, SimConstant, simQueryService) {
+function ($rootScope, ol3Map, VectorOverlay, DF, scoredEntityService, SimConstant, simQueryService) {
     // make sure to call scope.$destroy() when you're done with what we give you
     this.createScope = function (req) {
         var scope = $rootScope.$new();
@@ -120,12 +131,20 @@ function ($rootScope, VectorOverlay, DF, scoredEntityService, SimConstant, simQu
                 delete result.highlightFeature;
             }
         };
+
+
         scope.floorFigure = function (figure, decimals) {
             if (!decimals) {
                 decimals = 2;
             }
             var d = Math.pow(10, decimals);
             return (parseInt(figure*d, 10)/d).toFixed(decimals);
+        };
+
+        scope.paging = DF.pageResults;
+
+        scope.zoomTo = function (result) {
+            ol3Map.fit(result.getGeometry());
         };
 
         return scope;
@@ -137,8 +156,10 @@ function ($rootScope, VectorOverlay, DF, scoredEntityService, SimConstant, simQu
  * This method sets up a new category, adds the results to the map, and populates the sidebar.
  */
 .service('stealth.dragonfish.resultsService', [
+'$interpolate',
 '$log',
 '$rootScope',
+'CONFIG',
 'categoryManager',
 'ol3Map',
 'sidebarManager',
@@ -151,7 +172,7 @@ function ($rootScope, VectorOverlay, DF, scoredEntityService, SimConstant, simQu
 'stealth.dragonfish.geo.ol3.layers.styler',
 'stealth.dragonfish.geo.ol3.layers.EntityLayer',
 'stealth.dragonfish.geo.ol3.layers.EntityConstant',
-function ($log, $rootScope, catMgr, ol3Map, sidebarManager, AnalysisCategory, GeoJson, WidgetDef, DF, sidebarService, scoredEntityService, entityStyler, EntityLayer, EL) {
+function ($interpolate, $log, $rootScope, CONFIG, catMgr, ol3Map, sidebarManager, AnalysisCategory, GeoJson, WidgetDef, DF, sidebarService, scoredEntityService, entityStyler, EntityLayer, EL) {
     this.display = function (req, resultsPromise) {
         var scope = sidebarService.createScope(req);
 
@@ -177,6 +198,15 @@ function ($log, $rootScope, catMgr, ol3Map, sidebarManager, AnalysisCategory, Ge
             ),
             true
         );
+
+        scope.composeThumbnailUrl = function (result) {
+            var template = _.get(CONFIG, 'dragonfish.thumbnailURL', '{{defaultUrl}}/dragonfish/thumbnail{{thumbnailName}}&h=128&w=128');
+            return $interpolate(template)({
+                defaultUrl: _.get(CONFIG, 'geoserver.defaultUrl', ''),
+                thumbnailName: scoredEntityService.thumbnail(result)
+            });
+        };
+
         scope.entityLayer = {viewState: {scoreCutoff: 0.0}}; // initialize for html
         var parser = new GeoJson(); // stealth GeoJson, extending OL3 for STEALTH-319
         resultsPromise
