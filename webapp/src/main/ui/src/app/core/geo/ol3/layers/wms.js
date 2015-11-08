@@ -105,7 +105,11 @@ function ($log, $q, toastr, wfs, clickSearchHelper, cqlHelper, MapLayer, CONFIG)
                 }
             });
 
+            // Read the capability.tiled keyword for # of zoom-levels to preload
+            var preload = _.parseInt(_.get(_layerThisBelongsTo.KeywordConfig, 'capability.tiled'));
+            preload = _.isFinite(preload) && preload > 0 ? preload : 0;
             _olLayer = new ol.layer.Tile({
+                preload: preload,
                 source: _olSource
             });
         } else {

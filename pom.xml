@@ -163,7 +163,8 @@
                     Name: "mapproxy:globe.osm.default",
                     Title: "Globe OSM Mapnik",
                     KeywordList: [
-                        "stealth.context.Base"
+                        "stealth.context.Base",
+                        "stealth.capability.tiled=16"
                     ],
                     queryable: false
                 },
@@ -219,6 +220,7 @@
         <map.click.search.fixed.pixelBuffer>5</map.click.search.fixed.pixelBuffer>
         <map.click.search.zoom.meterBuffer>10000</map.click.search.zoom.meterBuffer>
         <map.countriesOff>false</map.countriesOff>
+        <map.skipAnimation>false</map.skipAnimation>
         <map.maxZoom>17</map.maxZoom>
 
         <classification.text>Dynamic Page - Highest Possible Classification is UNCLASSIFIED//FOR OFFICIAL USE ONLY</classification.text>

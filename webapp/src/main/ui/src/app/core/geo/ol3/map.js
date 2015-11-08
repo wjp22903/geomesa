@@ -25,7 +25,7 @@ function ($log, $interval, ol3Map, CONFIG) {
                     $interval.cancel(checkDisplay); //cancel further checks
                     ol3Map.setTarget(attrs.id);
                     ol3Map.fit(ol.extent.containsExtent(CONFIG.map.initExtent, CONFIG.map.extent) ?
-                        CONFIG.map.extent : CONFIG.map.initExtent);
+                        CONFIG.map.extent : CONFIG.map.initExtent, true);
                 }
             }, 100);
         }
@@ -49,6 +49,7 @@ function ($log, $filter, searchManager, GeoJson, MapLayer, TintLayer, CONFIG) {
     var _map = new ol.Map({
         logo: false,
         renderer: 'canvas',
+        loadTilesWhileAnimating: true,
         view: new ol.View({
             extent: _.get(CONFIG, 'map.extent', [-180, -90, 180, 90]),
             projection: _projection,
@@ -101,9 +102,30 @@ function ($log, $filter, searchManager, GeoJson, MapLayer, TintLayer, CONFIG) {
     /**
      * Zoom map to specified geometry or extent.
      * @param {ol.geom.SimpleGeometry|ol.Extent} geometry - Geometry or Extent to fit
+     * @param {boolean} skipAnimation - whether or not to animate pan and zoom
      */
-    this.fit = function (geometry) {
-        _map.getView().fit(geometry, _map.getSize());
+    this.fit = function (geometry, skipAnimation) {
+        if (!_.get(CONFIG, 'map.skipAnimation') && !skipAnimation) {
+            var start = +new Date();
+            var pan = ol.animation.pan({
+                duration: 2000,
+                source: _map.getView().getCenter(),
+                start: start,
+                easing: ol.easing.linear
+            });
+            var zoom = ol.animation.zoom({
+                duration: 2000,
+                resolution: _map.getView().getResolution(),
+                start: start,
+                easing: ol.easing.linear
+            });
+            _map.beforeRender(pan, zoom);
+        }
+        _map.getView().fit(geometry, _map.getSize(), {
+            // Padding on left to accomodate a sidebar panel.
+            // Most common use case involves a single open sidebar panel over map.
+            padding: [0, 0, 0, 400]
+        });
     };
     /**
      * Get current map extent.
@@ -333,5 +355,4 @@ function ($log, $filter, searchManager, GeoJson, MapLayer, TintLayer, CONFIG) {
     this.addLayer(new MapLayer('Countries', countryLayer, false, -20));
     this.addLayer(new TintLayer(CONFIG.map.initTint || 0));
 }])
-
 ;
