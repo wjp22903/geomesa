@@ -21,38 +21,30 @@ function () {
 }])
 
 /**
- * A service to fetch image metadata: lookupImgMeta(). This will become a WPS process, but we hard-code some example data for now.
- * drawImageMetadata() will take an ImageMetadata polygon and draw it on the map, recentering the map to show the figure
+ * This service provides two methods:
+ *   * lookupImgMeta(imageId): queries the backend for the metadata for the specified image
+ *   * drawImageMetadata() takes the poly from an image metadata lookup and draws it on the map,
+ *                         additionally re-centering the map to show the polygon
  */
 .service('stealth.dragonfish.classifier.imageMetadata.service', [
-'$q',
-'CONFIG',
 'ol3Map',
 'ol3Styles',
 'stealth.core.geo.ol3.overlays.Vector',
-'stealth.core.geo.ol3.utils.geomHelper',
 'stealth.dragonfish.classifier.imageMetadata.ImageMetadata',
-function ($q, CONFIG, ol3Map, ol3Styles, VectorOverlay, geomHelper, ImageMetadata) {
-    var possibleResults = {};
-    var imageIds = _.get(CONFIG, 'dragonfish.imageIds', []);
-    _.each(imageIds, function (imageMetadata) {
-        possibleResults[imageMetadata.name] = new ImageMetadata(
-            imageMetadata.name,
-            (imageMetadata.date !== '' ? moment(imageMetadata.date) : moment.utc()),
-            geomHelper.polygonFromExtent(imageMetadata.extent),
-            imageMetadata.type,
-            imageMetadata.niirs
-        );
-    });
+'stealth.dragonfish.configWps',
+function (ol3Map, ol3Styles, VectorOverlay, ImageMetadata, wps) {
+    var wktParser = new ol.format.WKT();
     this.lookupImgMeta = function (imageId) {
-        return $q(function (resolve, reject) {
-            setTimeout(function () {
-                if (possibleResults[imageId]) {
-                    resolve(possibleResults[imageId]);
-                } else {
-                    reject('Image Id "' + imageId + '" not found');
-                }
-            }, 1000);
+        var req = stealth.jst['wps/dragonfish_imageMetadata.xml']({
+            imageID: imageId
+        });
+        return wps.submit(req).then(function (imageMetadata) {
+            return new ImageMetadata(
+                imageId,
+                moment(imageMetadata.dtg, "x"), // Unix timestamp
+                wktParser.readFeature(imageMetadata.wkt).getGeometry(),
+                imageMetadata.src
+            );
         });
     };
     this.drawImageMetadata = function (polygon) {
