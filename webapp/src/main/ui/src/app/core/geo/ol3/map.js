@@ -50,10 +50,10 @@ function ($log, $filter, searchManager, GeoJson, MapLayer, TintLayer, CONFIG) {
         logo: false,
         renderer: 'canvas',
         view: new ol.View({
-            extent: (CONFIG.map && CONFIG.map.extent) ? CONFIG.map.extent : [-180, -90, 180, 90],
+            extent: _.get(CONFIG, 'map.extent', [-180, -90, 180, 90]),
             projection: _projection,
             minZoom: 2,
-            maxZoom: 17
+            maxZoom: _.get(CONFIG, 'map.maxZoom', 17)
         }),
         controls: [
             new ol.control.MousePosition({

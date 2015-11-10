@@ -1,0 +1,20 @@
+<div class="layerStyleDroppedLayer layerStyleGrouping">
+    <ui-include src="'core/geo/ol3/layers/layer-fragments.tpl.html'" fragment="'.dragHandle'"></ui-include>
+    <div class="layerStyleRow visibilityNameRemove">
+        <div class="cell"><i ng-class="::styleVars.iconClass"></i></div>
+        <div class="cell">
+            <st-toggle-visibility visible="layerState.visible"
+                                  toggle="toggleVisibility()"></st-toggle-visibility>
+        </div>
+        <div class="cell df-width-nowrap">
+            {{ol3Layer.get("name") || ol3Layer.get("id") | characters:30:true}}
+        </div>
+        <div class="cell">
+            <span class="btn btn-default fa-stack toggleButton"
+                  ng-click="removeLayer(ol3Layer)" >
+                <i class="fa fa-fw fa-remove fa-stack-1x text-danger"></i>
+            </span>
+        </div>
+    </div>
+    <ui-include src="'core/geo/ol3/layers/layer-fragments.tpl.html'" fragment="'.layerStyleRow.opacitySlider'"></ui-include>
+</div>

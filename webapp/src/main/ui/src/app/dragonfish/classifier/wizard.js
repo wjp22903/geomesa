@@ -23,7 +23,8 @@ angular.module('stealth.dragonfish.classifier.wizard', [
 'stealth.dragonfish.classifier.imageMetadata.service',
 'stealth.dragonfish.classifier.runner.Constant',
 'stealth.dragonfish.classifier.runner.QueryParams',
-function ($log, $rootScope, ol3Styles, ol3Map, geomHelper, VectorOverlay, WidgetDef, DF, classifierService, imageMetadataService, RUN, QueryParams) {
+'stealth.dragonfish.geo.ol3.layers.DragonTileLayer',
+function ($log, $rootScope, ol3Styles, ol3Map, geomHelper, VectorOverlay, WidgetDef, DF, classifierService, imageMetadataService, RUN, QueryParams, DragonTileLayer) {
     this.create = function () {
         var wizardScope = $rootScope.$new();
         wizardScope.RUN = RUN;
@@ -84,6 +85,11 @@ function ($log, $rootScope, ol3Styles, ol3Map, geomHelper, VectorOverlay, Widget
                         if (imageMetadata && imageMetadata.polygon) {
                             wizardScope.imageFeatureOverlay = imageMetadataService.drawImageMetadata(imageMetadata.polygon);
                         }
+                        // Add DragonTilesLayer
+                        wizardScope.query.tileLayer = new DragonTileLayer({
+                            imageId: imageMetadata.imageId
+                        });
+                        ol3Map.addLayer(wizardScope.query.tileLayer);
                         wizardScope.imgMeta.isLoading = false;
                         wizardScope.imgMeta.resolvedMetadata = imageMetadata;
                         delete wizardScope.imgMeta.errMsg;

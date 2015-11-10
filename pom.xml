@@ -219,6 +219,7 @@
         <map.click.search.fixed.pixelBuffer>5</map.click.search.fixed.pixelBuffer>
         <map.click.search.zoom.meterBuffer>10000</map.click.search.zoom.meterBuffer>
         <map.countriesOff>false</map.countriesOff>
+        <map.maxZoom>17</map.maxZoom>
 
         <classification.text>Dynamic Page - Highest Possible Classification is UNCLASSIFIED//FOR OFFICIAL USE ONLY</classification.text>
         <!-- supported levels: unclassified, confidential, secret, topSecret, sci -->
