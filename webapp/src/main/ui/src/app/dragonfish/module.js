@@ -9,7 +9,8 @@
 angular.module('stealth.dragonfish', [
     'stealth.dragonfish.classifier',
     'stealth.dragonfish.geo.ol3.layers',
-    'stealth.dragonfish.similarity'
+    'stealth.dragonfish.similarity',
+    'stealth.dragonfish.groups'
 ])
 
 .constant('stealth.dragonfish.Constant', {

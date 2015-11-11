@@ -1,0 +1,20 @@
+<div>
+    <div class="category">
+        <div class="df-sidebar-header">
+            <i class="fa fa-fw fa-lg fa-search"></i>
+            Search Groups
+        </div>
+        <ng-form>
+            <div class="df-sidebar-search-bar">
+                <input type="text" ng-model="groupFilter.name" class="df-sidebar-text-input"> <i class="fa fa-fw fa-sm fa-search"></i>
+            </div>
+            <div class="df-sidebar-group-list">
+                <ul>
+                    <li ng-repeat="group in groups | filter:groupFilter | orderBy:'group.name'"
+                        class="df-sidebar-group-li" ng-click="setGroup(group)"
+                        ng-style="{'background-color': (group.name === selectedGroup.name) ? '#e0e0e0' : '#f0f0f0'}">{{group.name}}</li>
+                </ul>
+            </div>
+        </ng-form>
+    </div>
+</div>
