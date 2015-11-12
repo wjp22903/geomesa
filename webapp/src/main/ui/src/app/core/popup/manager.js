@@ -83,6 +83,10 @@ function ($log, $rootScope) {
                 _extraStyles.right = (_primaryDisplay.width() - _offsetX) + 'px';
                 _extraStyles.bottom = (_primaryDisplay.height() - _offsetY) + 'px';
                 break;
+            case 'center':
+                _extraStyles.right = (_primaryDisplay.width()/2 - 100 - _offsetX) + 'px';
+                _extraStyles.bottom = (_primaryDisplay.height()/2 - 100 - _offsetY) + 'px';
+                break;
             default:
                 _extraStyles.left = _offsetX + 'px';
                 _extraStyles.top = _offsetY + 'px';

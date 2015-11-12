@@ -11,7 +11,14 @@ angular.module('stealth.dragonfish.groups', [
 .constant('stealth.dragonfish.groups.Constant', {
     icon: 'fa-th',
     title: 'Groups Manager',
-    panelWidth: 400
+    panelWidth: 400,
+    sonicMargin: {
+        top: 10,
+        right: 10,
+        bottom: -30,
+        left: -40
+    },
+    popupTitle: 'Analyze Embeddings'
 })
 
 // Service to put groups in scope for viewer to use
@@ -29,6 +36,25 @@ function (CONFIG, groupEntity) {
             });
         });
         return parsedGroups;
+    };
+}])
+
+.service('stealth.dragonfish.groups.entityGraphBuilder', [
+'stealth.dragonfish.groupEntityService',
+function (groupEntityService) {
+    this.groupEntityToSonicData = function (selectedGroup) {
+        var sonicData = [{
+            key: selectedGroup.id,
+            color: 'black',
+            values: _.map(selectedGroup.entities, function (entity) {
+                return {
+                    id: groupEntityService.id(entity),
+                    x: groupEntityService.netX(entity),
+                    y: groupEntityService.netY(entity)
+                };
+            })
+        }];
+        return sonicData;
     };
 }])
 
@@ -50,6 +76,65 @@ function () {
             netX: netX,
             netY: netY
         });
+    };
+}])
+
+/**
+ * Service for getting properties from GroupEntities.
+ * Expects ol.Feature objects
+ */
+.service('stealth.dragonfish.groupEntityService', [
+'stealth.dragonfish.scoredEntityService',
+function (scoredEntityService) {
+    var _self = this;
+    _.merge(_self, scoredEntityService);
+    this.netX = function (entity) {return entity.get('netX'); };
+    this.netY = function (entity) {return entity.get('netY'); };
+}])
+
+.directive('stDfGroupsPopup', [
+'$timeout',
+'stealth.dragonfish.groups.entityGraphBuilder',
+'stealth.dragonfish.groups.Constant',
+function ($timeout, entityGraphBuilder, DF_GROUPS) {
+    var link = function (scope) {
+        var vizDiv = '#' + scope.popupGroup.id + scope.popupOffset;
+        $timeout(function () {
+            sonic.viz(angular.element(vizDiv)[0], entityGraphBuilder.groupEntityToSonicData(scope.popupGroup), {
+                margin: DF_GROUPS.sonicMargin
+            })
+            .addXAxis({
+                ticks: false,
+                range: [0.05, 0.8]
+            })
+            .addYAxis({
+                ticks: false,
+                range: [0.1, 0.95]
+            })
+            .addPoints({
+                type: 'circle',
+                stroke: '#000',
+                fillOpacity: 0,
+                size: 49,
+                tooltip: {
+                    buffer: {
+                        type: 'pixel',
+                        amount: 5
+                    }
+                },
+                highlightLabel: { // this is in the sonic.js examples but is ignored here
+                    labelGenFn: function (p) {
+                        return p.name;
+                    }
+                }
+            });
+        }, 1000);
+    };
+    return {
+        restrict: 'E',
+        replace: true,
+        templateUrl: 'dragonfish/groups/groupPopup.tpl.html',
+        link: link
     };
 }])
 ;
