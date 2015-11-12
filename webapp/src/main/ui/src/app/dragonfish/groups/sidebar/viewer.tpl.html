@@ -17,4 +17,30 @@
             </div>
         </ng-form>
     </div>
+    <div class="category" ng-class="{'ng-hide': !selectedGroup.name}">
+        <div class="df-sidebar-header-no-icon">
+            Entities in <b>{{selectedGroup.name}}</b>
+        </div>
+        <div class="df-sidebar-entities">
+            <ul class="list-unstyled">
+                <li class="df-class-result bg-danger" ng-class="{'ng-hide': !selectedGroup.name || (selectedGroup.name && selectedGroup.entities.length > 0)}">
+                    <i class="fa fa-fw fa-lg fa-exclamation-triangle text-danger"></i> Group <b>{{selectedGroup.name}}</b> has no entities</li>
+                <li class="df-class-result"
+                    ng-repeat="result in selectedGroup.entities | orderBy:name | startFrom:(paging.currentPage-1)*paging.pageSize | limitTo:paging.pageSize"
+                    ng-mouseenter="highlight(result)" ng-mouseleave="unhighlight(result)">
+                    <div class="df-class-result-contents">
+                        <span class="df-inline-v-middle">
+                            <h4>
+                                <span ng-if="(getEntityColor | lodash:'isFunction')"
+                                      class="fa fa-lg fa-fw fa-square colorBox df-inline-v-middle"
+                                      ng-style="getEntityColor(result)"/>
+                                {{scoredEntityService.name(result)}}
+                            </h4>
+                        </span>
+                        <p>{{scoredEntityService.description(result)}}</p>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
 </div>
