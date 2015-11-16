@@ -7,7 +7,6 @@ angular.module('stealth.dragonfish.classifier.wizard', [
     'stealth.dragonfish.classifier.runner',
     'stealth.timelapse.wizard.bounds'
 ])
-
 /**
  * Create the scope associated with a wizard, for use in things like templates and such.
  */

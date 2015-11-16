@@ -14,9 +14,7 @@ angular.module('stealth.dragonfish.classifier.runner', [
     cookies: {
         geom: 'dragonfish.wizard.bbox',
         time: 'dragonfish.wizard.time'
-    },
-    anywhereCoords: [-180, -90, 180, 90],
-    anywhere: 'Anywhere'
+    }
 })
 
 /**
@@ -88,14 +86,10 @@ function (DF, RUN, paramService, geomHelper) {
             if (!this.geom.userSet ||
                 (this.geom.userSet && !this.geom.name)) {
                 this.geom.userSet = false;
-                if (_.isEqual(paramService.geomToArray(this.geom), RUN.anywhereCoords)) {
-                    this.geom.name = RUN.anywhere;
-                } else {
                     // create centroid:
-                    var polygon = geomHelper.polygonFromExtent(paramService.geomToArray(this.geom));
-                    var centroid = ol.extent.getCenter(polygon.getExtent());
-                    this.geom.name = 'near(' + centroid[1].toFixed(2) + ', ' + centroid[0].toFixed(2) + ')';
-                }
+                var polygon = geomHelper.polygonFromExtent(paramService.geomToArray(this.geom));
+                var centroid = ol.extent.getCenter(polygon.getExtent());
+                this.geom.name = 'near(' + centroid[1].toFixed(2) + ', ' + centroid[0].toFixed(2) + ')';
             }
         };
         _.merge(this.timeData, paramService.initialTimerange());

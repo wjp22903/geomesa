@@ -84,7 +84,6 @@
             <i class="fa fa-fw" ng-class="query.isGeomSource() ? 'fa-dot-circle-o' : 'fa-circle-o'">
             </i>
             <div class="btn-group">
-                <label class="btn btn-default btn-xs df-wizard-geom-buttons" ng-model="geomButtons" btn-radio="'wholeEarth'" ng-click="boundWiz.setWholeEarth()" uncheckable>Whole Earth</label>
                 <label class="btn btn-default btn-xs df-wizard-geom-buttons" ng-model="geomButtons" btn-radio="'mapExtent'" ng-click="boundWiz.setMapExtent()" uncheckable>Use Map Extent</label>
                 <label class="btn btn-default btn-xs df-wizard-geom-buttons" ng-model="geomButtons" btn-radio="'drawBounds'" ng-click="clearGeomBounds(); boundWiz.drawExtent()" uncheckable>Draw Bounds</label>
                 <label class="btn btn-default btn-xs df-wizard-geom-buttons" ng-model="geomButtons" btn-radio="'enterCoords'" uncheckable>Enter Coordinates</label>
