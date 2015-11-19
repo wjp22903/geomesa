@@ -42,9 +42,24 @@
     .headerInner
         height 22px
         line-height 22px
+        background-color none
+        display flex
+        justify-content space-between
+        align-items center
+        .title-box
+            justify-content flex-start
+            flex-grow 1
+            white-space nowrap
+            width 240px
+            overflow hidden
+            text-overflow ellipsis
         .btn
             padding 0
             line-height 1.2
+        .nav-box
+            padding-left 10px
+            align-self flex-end
+            flex-basis fit-content
     .sidebarContent
         margin-top 30px
         overflow auto
