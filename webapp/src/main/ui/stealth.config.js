@@ -32,6 +32,7 @@ module.exports = {
             'vendor/bower/angular-animate/angular-animate.js',
             'vendor/bower/angular-bootstrap-colorpicker/js/bootstrap-colorpicker-module.js',
             'vendor/bower/angular-cookies/angular-cookies.js',
+            'vendor/bower/angular-resource/angular-resource.js',
             'vendor/bower/angular-sanitize/angular-sanitize.js',
             'vendor/bower/angular-toastr/dist/angular-toastr.tpls.js',
             'vendor/bower/angular-truncate/src/truncate.js',
@@ -58,7 +59,8 @@ module.exports = {
             'vendor/bower/momentjs/min/moment.min.js',
             'vendor/bower/ol3/build/ol-debug.js',
             'vendor/bower/openlayers/OpenLayers.debug.js',
-            'vendor/bower/sonic.js/dist/sonic.js'
+            'vendor/bower/sonic.js/dist/sonic.js',
+            'vendor/bower/stealth.crawler/stealth.crawler.js'
         ],
         assets_nested: [
         ],
