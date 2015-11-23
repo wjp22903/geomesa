@@ -4,18 +4,38 @@ angular.module('stealth.dragonfish.groups.sidebar', [
 ])
 
 .run([
-'$rootScope',
+'$interpolate',
+'CONFIG',
+'categoryManager',
+'ol3Map',
 'sidebarManager',
+'stealth.core.geo.analysis.category.AnalysisCategory',
 'stealth.core.popup.popupManager',
 'stealth.core.utils.WidgetDef',
 'stealth.dragonfish.groups.Constant',
-function ($rootScope, sidebarManager, popupManager, WidgetDef, DF_GROUPS) {
-    var scope = $rootScope.$new();
+'stealth.dragonfish.groups.groupsManager',
+'stealth.dragonfish.Constant',
+'stealth.dragonfish.scoredEntityService',
+'stealth.dragonfish.groupEntityService',
+'stealth.dragonfish.geo.ol3.layers.EntityLayer',
+'stealth.dragonfish.sidebarService',
+function ($interpolate, CONFIG, catMgr, ol3Map, sidebarManager, AnalysisCategory, popupManager, WidgetDef, DF_GROUPS,
+          groupsManager, DF, scoredEntityService, groupEntityService, EntityLayer, sidebarService) {
+    var scope = sidebarService.createScope();
     scope.popupOffset = 0;
-    sidebarManager.addButton(DF_GROUPS.title, DF_GROUPS.icon, 400,
+    sidebarManager.addButton(DF_GROUPS.title, DF_GROUPS.icon, DF_GROUPS.panelWidth,
                              new WidgetDef('st-df-groups-sidebar', scope),
-                             undefined,
+                             new WidgetDef('st-pager', scope, "paging='paging' records='selectedGroup.entities'"),
                              true);
+    scope.groups = groupsManager.getGroups();
+    scope.scoredEntityService = scoredEntityService;
+    scope.groupEntityService = groupEntityService;
+    scope.selectedGroup = {};
+    scope.setGroup = function (group) {
+        scope.selectedGroup = group;
+    };
+    scope.DF_GROUPS = DF_GROUPS;
+    scope.buttonTitle = DF_GROUPS.popupTitle;
     scope.analyzeEmbeddings = function (popupGroup) {
         if (scope.selectedGroup.entities.length > 0) {
             var popupScope = scope.$new();
@@ -24,37 +44,62 @@ function ($rootScope, sidebarManager, popupManager, WidgetDef, DF_GROUPS) {
             if (scope.popupId !== undefined) {
                 scope.popupOffset++;
             }
-            scope.popupId = popupManager.displayPopup(DF_GROUPS.popupTitle, DF_GROUPS.icon, contentDef, {
+            scope.popupId = popupManager.displayPopup(scope.buttonTitle + ' (t-SNE)', DF_GROUPS.icon, contentDef, {
                 positioning: 'center',
                 offsetX: (10 * scope.popupOffset),
                 offsetY: (10 * scope.popupOffset)
             });
         }
     };
+    scope.composeThumbnailUrl = function (result) {
+        if (groupEntityService.hasThumbnail(result)) {
+            var template = _.get(CONFIG, 'dragonfish.thumbnailURL', '{{defaultUrl}}/dragonfish/thumbnail{{thumbnailName}}&h=128&w=128');
+            return $interpolate(template)({
+                defaultUrl: _.get(CONFIG, 'geoserver.defaultUrl', ''),
+                thumbnailName: groupEntityService.thumbnailURL(result)
+            });
+        } else {
+            return 'assets/no_image_128x128.png';
+        }
+    };
+    scope.$watch('selectedGroup', function () {
+        // reset paging
+        scope.paging.currentPage = 1;
+        scope.paging.suggestedPage = 1;
+        // swap out what's on the map
+        scope.loadMap();
+    });
+    scope.loadMap = function () {
+        // clear out old map layer:
+        if (scope.category) {
+            catMgr.removeCategory(scope.category.id);
+        }
+        // populate the map
+        scope.category = catMgr.addCategory(2, new AnalysisCategory(scope.buttonTitle, DF.icon));
+        if (!_.isEmpty(scope.selectedGroup.entities)) {
+            scope.entityLayer = new EntityLayer({
+                queryable: true,
+                name: scope.buttonTitle,
+                features: scope.selectedGroup.entities,
+                categoryId: scope.category.id
+            });
+            scope.updateMap = function () {
+                scope.entityLayer.updateMap();
+            };
+            scope.category.addLayer(scope.entityLayer);
+            ol3Map.fit(scope.entityLayer.getExtent());
+        }
+    };
 }])
 
 .directive('stDfGroupsSidebar', [
 '$log',
-'stealth.dragonfish.groups.groupsManager',
-'stealth.dragonfish.scoredEntityService',
-'stealth.dragonfish.geo.ol3.layers.styler',
-function ($log, groupsManager, scoredEntityService, entityStyler) {
+function ($log) {
     $log.debug('stealth.dragonfish.groups.sidebar.stDfGroupsSidebar: directive defined');
     return {
         restrict: 'E',
         replace: true,
-        templateUrl: 'dragonfish/groups/sidebar/viewer.tpl.html',
-        controller: ['$scope', function ($scope) {
-            $scope.groups = groupsManager.getGroups();
-            $scope.scoredEntityService = scoredEntityService;
-            $scope.getEntityColor = function (result) {
-                return entityStyler.getColorByScore($scope.scoredEntityService.score(result), 0.0);
-            };
-            $scope.selectedGroup = 'none';
-            $scope.setGroup = function (group) {
-                $scope.selectedGroup = group;
-            };
-        }]
+        templateUrl: 'dragonfish/groups/sidebar/viewer.tpl.html'
     };
 }])
 ;

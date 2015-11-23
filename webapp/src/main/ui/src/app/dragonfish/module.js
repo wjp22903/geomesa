@@ -55,14 +55,14 @@ angular.module('stealth.dragonfish', [
 
 .factory('stealth.dragonfish.scoredEntity', [
 function () {
-    return function (id, name, score, geom, time, thumbnail, description) {
+    return function (id, name, score, geom, time, thumbnailURL, description) {
         return new ol.Feature({
             id: id,
             name: name,
             score: score,
             geometry: geom || null, //can crash if given empty string
             time: time,
-            thumbnail: thumbnail,
+            thumbnailURL: thumbnailURL,
             description: description
         });
     };
@@ -74,13 +74,14 @@ function () {
  */
 .service('stealth.dragonfish.scoredEntityService', [
 function () {
-    this.id    = function (entity) { return entity.get('id'); };
+    this.id    = function (entity) { return entity.get('id') || entity.getId(); };
     this.name  = function (entity) { return entity.get('name'); };
     this.score = function (entity) { return entity.get('score'); };
     this.geom  = function (entity) { return entity.getGeometry(); }; //ol.geom.getGeometry
     this.time  = function (entity) { return entity.get('time'); };
-    this.thumbnail   = function (entity) { return entity.get('thumbnailURL'); };
-    this.description = function (entity) { return entity.get('description'); };
+    this.thumbnailURL = function (entity) { return entity.get('thumbnailURL'); };
+    this.description  = function (entity) { return entity.get('description'); };
+    this.hasThumbnail = function (entity) { return (this.thumbnailURL(entity)); };
 }])
 
 /**
@@ -172,7 +173,8 @@ function ($rootScope, ol3Map, VectorOverlay, DF, scoredEntityService, SimConstan
 'stealth.dragonfish.geo.ol3.layers.styler',
 'stealth.dragonfish.geo.ol3.layers.EntityLayer',
 'stealth.dragonfish.geo.ol3.layers.EntityConstant',
-function ($interpolate, $log, $rootScope, CONFIG, catMgr, ol3Map, sidebarManager, AnalysisCategory, GeoJson, WidgetDef, DF, sidebarService, scoredEntityService, entityStyler, EntityLayer, EL) {
+function ($interpolate, $log, $rootScope, CONFIG, catMgr, ol3Map, sidebarManager, AnalysisCategory,
+          GeoJson, WidgetDef, DF, sidebarService, scoredEntityService, entityStyler, EntityLayer, EL) {
     this.display = function (req, resultsPromise) {
         var scope = sidebarService.createScope(req);
 
@@ -203,7 +205,7 @@ function ($interpolate, $log, $rootScope, CONFIG, catMgr, ol3Map, sidebarManager
             var template = _.get(CONFIG, 'dragonfish.thumbnailURL', '{{defaultUrl}}/dragonfish/thumbnail{{thumbnailName}}&h=128&w=128');
             return $interpolate(template)({
                 defaultUrl: _.get(CONFIG, 'geoserver.defaultUrl', ''),
-                thumbnailName: scoredEntityService.thumbnail(result)
+                thumbnailName: scoredEntityService.thumbnailURL(result)
             });
         };
 
@@ -224,13 +226,13 @@ function ($interpolate, $log, $rootScope, CONFIG, catMgr, ol3Map, sidebarManager
                         categoryId: category.id
                     });
                     scope.updateMap = function () {
-                        scope.entityLayer.styleDirectiveScope.updateMap();
+                        scope.entityLayer.updateMap();
                     };
                     scope.getEntityColor = function (result) {
                         return entityStyler.getColorByScore(scope.scoredEntityService.score(result), scope.entityLayer.viewState.scoreCutoff);
                     };
                     category.addLayer(scope.entityLayer);
-                    ol3Map.fit(scope.entityLayer.ol3Layer.getSource().getExtent());
+                    ol3Map.fit(scope.entityLayer.getExtent());
                 }
             }, function (reason) {
                 scope.queryRunning = false;

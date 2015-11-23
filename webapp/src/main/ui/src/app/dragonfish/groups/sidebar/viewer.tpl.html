@@ -1,47 +1,54 @@
-<div>
-    <div class="category">
-        <div class="df-sidebar-header">
-            <i class="fa fa-fw fa-lg fa-search"></i>
-            Search Groups
-        </div>
-        <ng-form>
-            <div class="df-sidebar-search-bar">
-                <input type="text" ng-model="groupFilter.name" class="df-sidebar-text-input"> <i class="fa fa-fw fa-sm fa-search"></i>
-            </div>
-            <div class="df-sidebar-group-list">
-                <ul>
-                    <li ng-repeat="group in groups | filter:groupFilter | orderBy:'group.name'"
-                        class="df-sidebar-group-li" ng-click="setGroup(group)"
-                        ng-style="{'background-color': (group.name === selectedGroup.name) ? '#e0e0e0' : '#f0f0f0'}">{{group.name}}</li>
-                </ul>
-            </div>
-            <label class="btn btn-default btn-sm" ng-click="analyzeEmbeddings(selectedGroup)" ng-disabled="!selectedGroup.name">Analyze Embeddings</label>
-        </ng-form>
+<div class="df-results-sidebar anchorAll">
+    <div class="df-result-header">
+        <input type="text" ng-model="groupFilter.name" class="form-control input-sm df-wizard-selector df-sidebar-text-input"> <i class="fa fa-sm fa-search"></i>
+        <label class="btn btn-default btn-sm" ng-click="analyzeEmbeddings(selectedGroup)" ng-disabled="!selectedGroup.name">{{::buttonTitle}}</label>
     </div>
-    <div class="category" ng-class="{'ng-hide': !selectedGroup.name}">
-        <div class="df-sidebar-header-no-icon">
-            Entities in <b>{{selectedGroup.name}}</b>
-        </div>
-        <div class="df-sidebar-entities">
-            <ul class="list-unstyled">
-                <li class="df-class-result bg-danger" ng-class="{'ng-hide': !selectedGroup.name || (selectedGroup.name && selectedGroup.entities.length > 0)}">
-                    <i class="fa fa-fw fa-lg fa-exclamation-triangle text-danger"></i> Group <b>{{selectedGroup.name}}</b> has no entities</li>
-                <li class="df-class-result"
-                    ng-repeat="result in selectedGroup.entities | orderBy:name | startFrom:(paging.currentPage-1)*paging.pageSize | limitTo:paging.pageSize"
-                    ng-mouseenter="highlight(result)" ng-mouseleave="unhighlight(result)">
-                    <div class="df-class-result-contents">
-                        <span class="df-inline-v-middle">
-                            <h4>
-                                <span ng-if="(getEntityColor | lodash:'isFunction')"
-                                      class="fa fa-lg fa-fw fa-square colorBox df-inline-v-middle"
-                                      ng-style="getEntityColor(result)"/>
-                                {{scoredEntityService.name(result)}}
-                            </h4>
-                        </span>
-                        <p>{{scoredEntityService.description(result)}}</p>
+    <div class="df-sidebar-group-list">
+        <ul>
+            <li ng-repeat="group in groups | filter:groupFilter | orderBy:'group.name'"
+                class="df-sidebar-group-li" ng-click="setGroup(group)"
+                ng-style="{'background-color': (group.name === selectedGroup.name) ? '#000' : '#333'}">{{group.name}}</li>
+        </ul>
+    </div>
+    <div class="df-result-header" ng-class="{'ng-hide': !selectedGroup.name}">
+        Entities in <b>{{selectedGroup.name}}</b>
+    </div>
+    <ul class="list-unstyled">
+        <li class="df-result"
+            ng-repeat="result in selectedGroup.entities | orderBy:entitySort:true | startFrom:(paging.currentPage-1)*paging.pageSize | limitTo:paging.pageSize"
+            ng-mouseenter="entityHighlighter.addFeature(result)"
+            ng-mouseleave="entityHighlighter.removeFeature(result)">
+            <div class="thumbnail-container">
+                <img ng-src="{{composeThumbnailUrl(result)}}">
+                <div ng-mouseenter="result.showThumbnailMenu=true"
+                     ng-mouseleave="result.showThumbnailMenu=false">
+                    <i class="fa fa-lg fa-map outlineTextWhite"></i>
+                    <ul class="list-unstyled" ng-if="result.showThumbnailMenu">
+                        <li class="df-result thumbnail-menu-item" ng-click="zoomTo(result)">Zoom to entity</li>
+                        <li class="df-result thumbnail-menu-item" ng-class="{'ng-hide': !scoredEntityService.hasThumbnail(result)}">Show image on map</li>
+                        <li class="df-result thumbnail-menu-item" ng-class="{'ng-hide': !scoredEntityService.hasThumbnail(result)}">Bring image to front</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="df-result-info-container">
+                <div class="df-result-content">
+                    <strong><i class="fa fa-lg ccri-icon ccri-icon-map-pin" style="color: {{DF_GROUPS.entityColors[groupEntityService.subGroup(result)]}};"></i></strong>
+                    <div>
+                        <div><strong>{{::scoredEntityService.name(result)}}</strong></div>
+                        <div ng-if="::scoredEntityService.time(result)">
+                            Time: {{::scoredEntityService.time(result)}}
+                        </div>
+                        <div>{{::scoredEntityService.description(result)}}</div>
                     </div>
-                </li>
-            </ul>
-        </div>
-    </div>
+                </div>
+                <div class="df-result-footer">
+                    <button class="btn btn-primary btn-xs" ng-click="searchSimilar(result)">
+                        More Like This
+                    </button>
+                </div>
+            </div>
+        </li>
+        <li class="df-result bg-danger" ng-class="{'ng-hide': !selectedGroup.name || (selectedGroup.name && selectedGroup.entities.length > 0)}">
+            <i class="fa fa-fw fa-lg fa-exclamation-triangle text-danger"></i> Group <b>{{selectedGroup.name}}</b> has no entities</li>
+    </ul>
 </div>

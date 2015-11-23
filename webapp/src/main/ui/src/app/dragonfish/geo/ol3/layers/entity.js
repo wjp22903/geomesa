@@ -21,6 +21,35 @@ angular.module('stealth.dragonfish.geo.ol3.layers')
                 width: 1
             })
         })
+    },
+    groupChipStyle: function () {
+        return function (feature) {
+            var color = feature.get('color');
+            return new ol.style.Style({
+                stroke: new ol.style.Stroke({
+                    color: color,
+                    width: 2
+                })
+            });
+        };
+    },
+    groupPinStyle: function () {
+        return function (feature) {
+            return new ol.style.Style({
+                text: new ol.style.Text({
+                    text: '\ue003', // map pin
+                    font: 'normal 26px CcriIcon',
+                    textBaseline: 'bottom',
+                    fill: new ol.style.Fill({
+                        color: feature.get('color')
+                    }),
+                    stroke: new ol.style.Stroke({
+                        color: 'black',
+                        width: 1
+                    })
+                })
+            });
+        };
     }
 })
 
@@ -69,6 +98,18 @@ function (EL) {
     };
     this.curriedStyleFunction = function (viewState) {
         return _.curry(_self.curryableStyleFunction)(viewState);
+    };
+    this.groupCurryableStyleFunction = function (feature, resolution) {
+        if (resolution > 0.0001) {
+            return [EL.groupPinStyle()(feature)];
+        } else if (resolution > 0.00004) {
+            return [EL.groupPinStyle()(feature), EL.groupChipStyle()(feature)];
+        } else {
+            return [EL.groupChipStyle()(feature)];
+        }
+    };
+    this.groupCurriedStyleFunction = function () {
+        return _.curry(_self.groupCurryableStyleFunction)();
     };
 }])
 
@@ -123,7 +164,11 @@ function ($log, $q, $rootScope, clickSearchHelper, DF, MapLayer, dfStyler, EL) {
         _self.styleDirectiveScope.entityStyler = dfStyler;
         _.set(_self, 'viewState', _viewState);
         var setStyle = function () {
-            _self.ol3Layer.setStyle(dfStyler.curriedStyleFunction(_self.viewState));
+            if (_features[0].get('subGroup')) {
+                _self.ol3Layer.setStyle(dfStyler.groupCurriedStyleFunction());
+            } else {
+                _self.ol3Layer.setStyle(dfStyler.curriedStyleFunction(_self.viewState));
+            }
         };
         setStyle();
         _self.styleDirectiveScope.getViewState = function () {
@@ -132,6 +177,12 @@ function ($log, $q, $rootScope, clickSearchHelper, DF, MapLayer, dfStyler, EL) {
         _self.styleDirectiveScope.updateMap = function () {
             setStyle();
             _self.ol3Layer.changed();
+        };
+        _self.updateMap = function () {
+            _self.styleDirectiveScope.updateMap();
+        };
+        _self.getExtent = function () {
+            return _self.ol3Layer.getSource().getExtent();
         };
         _self.searchPoint = function (coord, resolution) {
             var baseResponse = _.merge(this.getEmptySearchPointResult(), {

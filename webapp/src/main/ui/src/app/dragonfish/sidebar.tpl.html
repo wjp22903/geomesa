@@ -29,8 +29,8 @@
                     <i class="fa fa-lg fa-map outlineTextWhite"></i>
                     <ul class="list-unstyled" ng-if="result.showThumbnailMenu">
                         <li class="df-result thumbnail-menu-item" ng-click="zoomTo(result)">Zoom to entity</li>
-                        <li class="df-result thumbnail-menu-item">Show image on map</li>
-                        <li class="df-result thumbnail-menu-item">Bring image to front</li>
+                        <li class="df-result thumbnail-menu-item" ng-class="{'ng-hide': !scoredEntityService.hasThumbnail(result)}">Show image on map</li>
+                        <li class="df-result thumbnail-menu-item" ng-class="{'ng-hide': !scoredEntityService.hasThumbnail(result)}">Bring image to front</li>
                     </ul>
                 </div>
             </div>
