@@ -8,5 +8,11 @@
         <div class="categoryCell">
             {{::layer.name | characters:35:true}}
         </div>
+        <div class="categoryCell">
+            <span class="btn btn-default fa-stack toggleButton"
+                  ng-click="removeLayer({layer: layer})">
+                <i class="fa fa-fw fa-close fa-stack-1x text-danger"></i>
+            </span>
+        </div>
     </div>
 </div>

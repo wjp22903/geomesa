@@ -5,6 +5,7 @@ angular.module('stealth.dragonfish.classifier.wizard', [
     'stealth.dragonfish',
     'stealth.dragonfish.classifier.imageMetadata',
     'stealth.dragonfish.classifier.runner',
+    'stealth.dragonfish.geo.category',
     'stealth.timelapse.wizard.bounds'
 ])
 /**
@@ -23,8 +24,8 @@ angular.module('stealth.dragonfish.classifier.wizard', [
 'stealth.dragonfish.classifier.imageMetadata.service',
 'stealth.dragonfish.classifier.runner.Constant',
 'stealth.dragonfish.classifier.runner.QueryParams',
-'stealth.dragonfish.geo.ol3.layers.DragonTileLayer',
-function ($log, $rootScope, ol3Styles, ol3Map, geomHelper, VectorOverlay, WidgetDef, DF, classifierService, imageMetadataService, RUN, QueryParams, DragonTileLayer) {
+'stealth.dragonfish.geo.category.manager',
+function ($log, $rootScope, ol3Styles, ol3Map, geomHelper, VectorOverlay, WidgetDef, DF, classifierService, imageMetadataService, RUN, QueryParams, dfCategoryMgr) {
     this.create = function () {
         var wizardScope = $rootScope.$new();
         wizardScope.RUN = RUN;
@@ -55,6 +56,9 @@ function ($log, $rootScope, ol3Styles, ol3Map, geomHelper, VectorOverlay, Widget
                     wizardScope.imageFeatureOverlay.addToMap();
                     ol3Map.fit(wizardScope.imgMeta.resolvedMetadata.polygon);
                 }
+                if (wizardScope.query.tileLayer) {
+                    dfCategoryMgr.addImageLayer(wizardScope.query.tileLayer);
+                }
             }
         };
         wizardScope.searchByGeoTime = function () {
@@ -71,12 +75,19 @@ function ($log, $rootScope, ol3Styles, ol3Map, geomHelper, VectorOverlay, Widget
                     wizardScope.geomFeatureOverlay.addToMap();
                     ol3Map.fit(polygon);
                 }
+                if (wizardScope.query.tileLayer) {
+                    dfCategoryMgr.removeImageLayer(wizardScope.query.tileLayer);
+                }
             }
         };
         wizardScope.lookupImgMeta = function () {
             if (wizardScope.imageFeatureOverlay) {
                 wizardScope.imageFeatureOverlay.removeFromMap();
                 delete wizardScope.imageFeatureOverlay;
+            }
+            if (wizardScope.query.tileLayer) {
+                dfCategoryMgr.removeImageLayer(wizardScope.query.tileLayer);
+                delete wizardScope.query.tileLayer;
             }
             if (wizardScope.query.imageId) {
                 wizardScope.imgMeta.isLoading = true; // flag for spinner
@@ -86,10 +97,7 @@ function ($log, $rootScope, ol3Styles, ol3Map, geomHelper, VectorOverlay, Widget
                             wizardScope.imageFeatureOverlay = imageMetadataService.drawImageMetadata(imageMetadata.polygon);
                         }
                         // Add DragonTilesLayer
-                        wizardScope.query.tileLayer = new DragonTileLayer({
-                            imageId: imageMetadata.imageId
-                        });
-                        ol3Map.addLayer(wizardScope.query.tileLayer);
+                        wizardScope.query.tileLayer = dfCategoryMgr.addImageLayerFromImageId(imageMetadata.imageId);
                         wizardScope.imgMeta.isLoading = false;
                         wizardScope.imgMeta.resolvedMetadata = imageMetadata;
                         delete wizardScope.imgMeta.errMsg;
@@ -166,7 +174,8 @@ function ($log, $rootScope, ol3Styles, ol3Map, geomHelper, VectorOverlay, Widget
 'stealth.dragonfish.Constant',
 'stealth.dragonfish.classifier.Constant',
 'stealth.dragonfish.classifier.wizard.scope',
-function ($rootScope, wizardManager, Wizard, Step, WidgetDef, DF, ClassConstant, wizardScope) {
+'stealth.dragonfish.geo.category.manager',
+function ($rootScope, wizardManager, Wizard, Step, WidgetDef, DF, ClassConstant, wizardScope, dfCategoryMgr) {
     this.launchWizard = function () {
         var scope = wizardScope.create();
         wizardManager.launchWizard(
@@ -182,8 +191,10 @@ function ($rootScope, wizardManager, Wizard, Step, WidgetDef, DF, ClassConstant,
                         }
                         if (success) {
                             $rootScope.$emit(ClassConstant.applyEvent, scope.query);
-                            scope.$destroy();
+                        } else if (scope.query.tileLayer) {
+                            dfCategoryMgr.removeImageLayer(scope.query.tileLayer);
                         }
+                        scope.$destroy();
                     },
                     false
                 )

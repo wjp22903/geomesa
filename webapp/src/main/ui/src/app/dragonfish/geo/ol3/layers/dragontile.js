@@ -15,6 +15,8 @@
 angular.module('stealth.dragonfish.geo.ol3.layers')
 
 .constant('stealth.dragonfish.geo.ol3.layers.DragonTileConstant', {
+    title: 'Dragonfish Imagery',
+    icon: 'fa-camera',
     defaultServletPathTemplate: '{{geoserverPath}}/dragonfish/map/',
     projection: ol.proj.get('EPSG:4326'),
     queryable: false,
@@ -31,11 +33,10 @@ angular.module('stealth.dragonfish.geo.ol3.layers')
 'CONFIG',
 '$rootScope',
 '$interpolate',
-'stealth.dragonfish.Constant',
 'stealth.core.geo.ol3.layers.MapLayer',
 'stealth.dragonfish.geo.ol3.layers.EntityConstant',
 'stealth.dragonfish.geo.ol3.layers.DragonTileConstant',
-function ($log, CONFIG, $rootScope, $interpolate, DF, MapLayer, EL, DTC) {
+function ($log, CONFIG, $rootScope, $interpolate, MapLayer, EL, DTC) {
     var tag = 'stealth.dragonfish.geo.ol3.layers.DragonTileLayer: ';
     $log.debug(tag + 'factory started');
 
@@ -82,13 +83,16 @@ function ($log, CONFIG, $rootScope, $interpolate, DF, MapLayer, EL, DTC) {
         $log.debug(tag + 'new DragonTiles Layer(' + arguments[0] +')');
         MapLayer.apply(_self, [_imageId, _ol3Layer, _queryable, _zIndexHint]);
         _self.styleDirective = 'st-dragon-tile-layer-style-view';
-        _self.styleDirectiveScope.styleVars.iconClass = 'fa fa-fw fa-lg ' + DF.icon;
+        _self.styleDirectiveScope.styleVars.iconClass = 'fa fa-fw fa-lg ' + DTC.icon;
         _.set(_self, 'viewState', _viewState);
         _self.styleDirectiveScope.getViewState = function () {
             return _self.viewState;
         };
         _self.styleDirectiveScope.removeLayer = function () {
             $rootScope.$emit(EL.removeEvent, {layerId: _self.id, categoryId: _categoryid});
+        };
+        _self.getImageId = function () {
+            return _imageId;
         };
     };
     DragonTileLayer.prototype = Object.create(MapLayer.prototype);
