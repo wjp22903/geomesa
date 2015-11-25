@@ -4,8 +4,6 @@ angular.module('stealth.dragonfish.groups.sidebar', [
 ])
 
 .run([
-'$interpolate',
-'CONFIG',
 'categoryManager',
 'ol3Map',
 'sidebarManager',
@@ -19,7 +17,7 @@ angular.module('stealth.dragonfish.groups.sidebar', [
 'stealth.dragonfish.groupEntityService',
 'stealth.dragonfish.geo.ol3.layers.EntityLayer',
 'stealth.dragonfish.sidebarService',
-function ($interpolate, CONFIG, catMgr, ol3Map, sidebarManager, AnalysisCategory, popupManager, WidgetDef, DF_GROUPS,
+function (catMgr, ol3Map, sidebarManager, AnalysisCategory, popupManager, WidgetDef, DF_GROUPS,
           groupsManager, DF, scoredEntityService, groupEntityService, EntityLayer, sidebarService) {
     var scope = sidebarService.createScope();
     scope.popupOffset = 0;
@@ -49,17 +47,6 @@ function ($interpolate, CONFIG, catMgr, ol3Map, sidebarManager, AnalysisCategory
                 offsetX: (10 * scope.popupOffset),
                 offsetY: (10 * scope.popupOffset)
             });
-        }
-    };
-    scope.composeThumbnailUrl = function (result) {
-        if (groupEntityService.hasThumbnail(result)) {
-            var template = _.get(CONFIG, 'dragonfish.thumbnailURL', '{{defaultUrl}}/dragonfish/thumbnail{{thumbnailName}}&h=128&w=128');
-            return $interpolate(template)({
-                defaultUrl: _.get(CONFIG, 'geoserver.defaultUrl', ''),
-                thumbnailName: groupEntityService.thumbnailURL(result)
-            });
-        } else {
-            return 'assets/no_image_128x128.png';
         }
     };
     scope.$watch('selectedGroup', function () {

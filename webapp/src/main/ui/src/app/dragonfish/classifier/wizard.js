@@ -100,6 +100,7 @@ function ($log, $rootScope, ol3Styles, ol3Map, geomHelper, VectorOverlay, Widget
                         wizardScope.query.tileLayer = dfCategoryMgr.addImageLayerFromImageId(imageMetadata.imageId);
                         wizardScope.imgMeta.isLoading = false;
                         wizardScope.imgMeta.resolvedMetadata = imageMetadata;
+                        wizardScope.query.imageDtg = imageMetadata.dtg;
                         delete wizardScope.imgMeta.errMsg;
                     }, function (reason) {
                         wizardScope.imgMeta.isLoading = false;
@@ -117,10 +118,7 @@ function ($log, $rootScope, ol3Styles, ol3Map, geomHelper, VectorOverlay, Widget
             wizardScope.query.classifier = classifier;
             delete wizardScope.query.classifierLabel;
         };
-        wizardScope.spaceIcon = {};
-        wizardScope.spaceIcon[DF.space.imagery] = 'fa-file-image-o';
-        wizardScope.spaceIcon[DF.space.sigint] = 'fa-rss';
-        wizardScope.spaceIcon[DF.space.fusion] = 'fa-sun-o';
+        wizardScope.space = DF.space;
         wizardScope.clearGeomBounds = function () {
             if (wizardScope.geomFeatureOverlay) {
                 wizardScope.geomFeatureOverlay.removeFromMap();
@@ -176,8 +174,11 @@ function ($log, $rootScope, ol3Styles, ol3Map, geomHelper, VectorOverlay, Widget
 'stealth.dragonfish.classifier.wizard.scope',
 'stealth.dragonfish.geo.category.manager',
 function ($rootScope, wizardManager, Wizard, Step, WidgetDef, DF, ClassConstant, wizardScope, dfCategoryMgr) {
-    this.launchWizard = function () {
+    this.launchWizard = function (request) {
         var scope = wizardScope.create();
+        if (request) {
+            scope.query = request;
+        }
         wizardManager.launchWizard(
             new Wizard('Apply Classifier', DF.icon, 'fa-check text-success', [
                 new Step('Select and Configure Classifier', new WidgetDef('st-df-cl-wiz', scope), null, false,

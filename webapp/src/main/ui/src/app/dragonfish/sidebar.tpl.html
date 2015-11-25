@@ -1,4 +1,75 @@
 <div class="df-results-sidebar anchorAll">
+    <div class="df-result-header" ng-class="{'ng-hide': !(request.classifier)}">
+        <table class="df-search-again-width">
+            <tr>
+                <td class="df-search-again-title">
+                    Classifier:
+                </td>
+                <td class="df-search-again-table">
+                    <span class="fa fa-fw" ng-class="space[request.classifier.space].icon"></span>{{request.classifier.name}}
+                </td>
+                <td>
+                    <button class="btn btn-primary btn-xs pull-right" ng-click="runAnotherQuery(request)">
+                        Run Another <span class="fa fa-fw fa-df {{::dfIcon}}" />
+                    </button>
+                </td>
+            </tr>
+            <tr>
+                <td class="df-search-again-title">
+                    <div class="df-search-again-rowspace">
+                        Search Area:
+                    </div>
+                </td>
+                <td class="df-search-again-table df-search-again-rowspace">
+                    <div class="df-search-again-rowspace">
+                        {{lastSearch.title}}
+                    </div>
+                </td>
+                <td/>
+            </tr>
+            <tr ng-class="{'ng-hide': !(lastSearch.startDtg)}">
+                <td class="df-search-again-title">
+                    Start Date:
+                </td>
+                <td class="df-search-again-table">
+                    {{lastSearch.startDtg}}
+                </td>
+                <td/>
+            </tr>
+            <tr ng-class="{'ng-hide': !(lastSearch.endDtg)}">
+                <td class="df-search-again-title">
+                    <div class="df-search-again-rowspace">
+                        End Date:
+                    </div>
+                </td>
+                <td class="df-search-again-table">
+                    <div class="df-search-again-rowspace">
+                        {{lastSearch.endDtg}}
+                    </div>
+                </td>
+                <td/>
+            </tr>
+            <tr ng-class="{'ng-hide': !(lastSearch.imageDtg)}">
+                <td class="df-search-again-title">
+                    <div class="df-search-again-rowspace">
+                        Image Date:
+                    </div>
+                </td>
+                <td class="df-search-again-table">
+                    <div class="df-search-again-rowspace">
+                        {{lastSearch.imageDtg}}
+                    </div>
+                </td>
+                <td/>
+            </tr>
+            <tr ng-class="{'ng-hide': request.slidingWindow}">
+                <td class="df-search-again-existing" colspan="3">
+                    Searched on existing entities only
+                </td>
+            </tr>
+        </table>
+    </div>
+    <hr>
     <progressbar class="progress-striped active" value="100" type="primary" ng-if="queryRunning">
         Evaluating
     </progressbar>

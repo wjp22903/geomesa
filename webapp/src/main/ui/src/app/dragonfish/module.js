@@ -16,9 +16,9 @@ angular.module('stealth.dragonfish', [
 .constant('stealth.dragonfish.Constant', {
     icon: 'fa-puzzle-piece',
     space: {
-        imagery: 'Imagery',
-        fusion: 'Fusion',
-        sigint: 'Sigint'
+        Imagery: {title: 'Imagery', icon: 'fa-file-image-o'},
+        Fusion: {title: 'Fusion', icon: 'fa-sun-o'},
+        Sigint: {title: 'Sigint', icon: 'fa-rss'}
     },
     highlightStyle: new ol.style.Style({
         stroke: new ol.style.Stroke({
@@ -89,14 +89,17 @@ function () {
  * for use in templates and such.
  */
 .service('stealth.dragonfish.sidebarService', [
+'$interpolate',
 '$rootScope',
+'CONFIG',
 'ol3Map',
 'stealth.core.geo.ol3.overlays.Vector',
 'stealth.dragonfish.Constant',
+'stealth.dragonfish.classifier.wizard.service',
 'stealth.dragonfish.scoredEntityService',
 'stealth.dragonfish.similarity.Constant',
 'stealth.dragonfish.similarity.runner.QueryParamsService',
-function ($rootScope, ol3Map, VectorOverlay, DF, scoredEntityService, SimConstant, simQueryService) {
+function ($interpolate, $rootScope, CONFIG, ol3Map, VectorOverlay, DF, classWizService, scoredEntityService, SimConstant, simQueryService) {
     // make sure to call scope.$destroy() when you're done with what we give you
     this.createScope = function (req) {
         var scope = $rootScope.$new();
@@ -132,7 +135,30 @@ function ($rootScope, ol3Map, VectorOverlay, DF, scoredEntityService, SimConstan
                 delete result.highlightFeature;
             }
         };
-
+        scope.runAnotherQuery = function (request) {
+            classWizService.launchWizard(request);
+        };
+        if (req) {
+            var dtgFormat = 'YYYY-MM-DD HH:mm:ss [Z]'; // why isn't there a Stealth constant for displayDtgFormat?
+            scope.lastSearch = {
+                startDtg: (req.isGeomSource()) ? req.timeData.startDtg.format(dtgFormat) : undefined,
+                endDtg: (req.isGeomSource()) ? req.timeData.endDtg.format(dtgFormat) : undefined,
+                imageDtg: (req.isImageIdSource()) ? req.imageDtg.format(dtgFormat) : undefined,
+                title: (req.isImageIdSource() && req.imageId) ? req.imageId : req.geom.name,
+                titleIcon: (req.isImageIdSource()) ? 'fa fa-file-image-o' : 'ccri-icon ccri-icon-map-pin'
+            };
+        }
+        scope.composeThumbnailUrl = function (result) {
+            if (scoredEntityService.hasThumbnail(result)) {
+                var template = _.get(CONFIG, 'dragonfish.thumbnailURL', '{{defaultUrl}}/dragonfish/thumbnail{{thumbnailName}}&h=128&w=128');
+                return $interpolate(template)({
+                    defaultUrl: _.get(CONFIG, 'geoserver.defaultUrl', ''),
+                    thumbnailName: scoredEntityService.thumbnailURL(result)
+                });
+            } else {
+                return 'assets/no_image_128x128.png';
+            }
+        };
 
         scope.floorFigure = function (figure, decimals) {
             if (!decimals) {
@@ -143,6 +169,7 @@ function ($rootScope, ol3Map, VectorOverlay, DF, scoredEntityService, SimConstan
         };
 
         scope.paging = DF.pageResults;
+        scope.dfIcon = DF.icon;
 
         scope.zoomTo = function (result) {
             ol3Map.fit(result.getGeometry());
@@ -157,10 +184,8 @@ function ($rootScope, ol3Map, VectorOverlay, DF, scoredEntityService, SimConstan
  * This method sets up a new category, adds the results to the map, and populates the sidebar.
  */
 .service('stealth.dragonfish.resultsService', [
-'$interpolate',
 '$log',
 '$rootScope',
-'CONFIG',
 'categoryManager',
 'ol3Map',
 'sidebarManager',
@@ -173,11 +198,10 @@ function ($rootScope, ol3Map, VectorOverlay, DF, scoredEntityService, SimConstan
 'stealth.dragonfish.geo.ol3.layers.styler',
 'stealth.dragonfish.geo.ol3.layers.EntityLayer',
 'stealth.dragonfish.geo.ol3.layers.EntityConstant',
-function ($interpolate, $log, $rootScope, CONFIG, catMgr, ol3Map, sidebarManager, AnalysisCategory,
-          GeoJson, WidgetDef, DF, sidebarService, scoredEntityService, entityStyler, EntityLayer, EL) {
+function ($log, $rootScope, catMgr, ol3Map, sidebarManager, AnalysisCategory, GeoJson, WidgetDef, DF, sidebarService,
+          scoredEntityService, entityStyler, EntityLayer, EL) {
     this.display = function (req, resultsPromise) {
         var scope = sidebarService.createScope(req);
-
         var category = catMgr.addCategory(2, new AnalysisCategory(scope.request.name, DF.icon, function () {
             sidebarManager.removeButton(buttonId);
             scope.$destroy();
@@ -192,7 +216,7 @@ function ($interpolate, $log, $rootScope, CONFIG, catMgr, ol3Map, sidebarManager
         };
 
         var buttonId = sidebarManager.toggleButton(
-            sidebarManager.addButton(scope.request.getTitle(), DF.icon, 500,
+            sidebarManager.addButton('Classifier Results: ' + scope.request.getTitle(), DF.icon, 500,
                 new WidgetDef('st-df-sidebar', scope),
                 new WidgetDef('st-pager', scope, "paging='paging' records='results'"),
                 false,
@@ -200,15 +224,7 @@ function ($interpolate, $log, $rootScope, CONFIG, catMgr, ol3Map, sidebarManager
             ),
             true
         );
-
-        scope.composeThumbnailUrl = function (result) {
-            var template = _.get(CONFIG, 'dragonfish.thumbnailURL', '{{defaultUrl}}/dragonfish/thumbnail{{thumbnailName}}&h=128&w=128');
-            return $interpolate(template)({
-                defaultUrl: _.get(CONFIG, 'geoserver.defaultUrl', ''),
-                thumbnailName: scoredEntityService.thumbnailURL(result)
-            });
-        };
-
+        scope.space = DF.space;
         scope.entityLayer = {viewState: {scoreCutoff: 0.0}}; // initialize for html
         var parser = new GeoJson(); // stealth GeoJson, extending OL3 for STEALTH-319
         resultsPromise

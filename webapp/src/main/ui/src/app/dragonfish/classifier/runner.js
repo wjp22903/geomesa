@@ -58,7 +58,7 @@ function (DF, RUN, paramService, geomHelper) {
         };
         this.isNonImageSpace = function () {
             if (this.classifier) {
-                return this.classifier.space !== DF.space.imagery;
+                return this.classifier.space !== DF.space.Imagery.title;
             }
             return true;
         };
@@ -73,13 +73,12 @@ function (DF, RUN, paramService, geomHelper) {
         };
         this.getTitle = function () {
             var title = this.hasSingleLabel() ? this.classifierLabel : this.classifier.name;
-            title += ' [';
+            title += ' in ';
             if (this.isImageIdSource() && this.imageId) {
                 title += this.imageId;
             } else {
                 title += this.geom.name;
             }
-            title += ']';
             return title;
         };
         this.generateGeomName = function () {
