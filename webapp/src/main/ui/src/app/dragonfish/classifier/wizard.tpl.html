@@ -51,19 +51,24 @@
                            placeholder="Enter Image ID"
                            ng-model="query.imageId"
                            st-change="lookupImgMeta()"
+                           st-change-delay="1000"
                            ng-disabled="query.isGeomSource() || query.isNonImageSpace()"
                            class="form-control input-sm df-wizard-selector df-wizard-text-input" />
                     <span ng-class="{'ng-hide': !(imgMeta.isLoading)}"><i class="fa fa-circle-o-notch fa-spin"></i></span>
                 </div>
                 <!-- slidingWindow checkbox -->
                 <label class="df-wizard-sliding-win" ng-class="{'df-wizard-sliding-win-nospin': !(imgMeta.isLoading), 'df-wizard-sliding-win': imgMeta.isLoading}">
-                    <input type="checkbox" ng-model="query.slidingWindow" ng-true-value="false" ng-false-value="true" /> Existing<br />entities only
+                    <input id="df-wizard-checkbox" type="checkbox" ng-model="query.slidingWindow" ng-true-value="false" ng-false-value="true" />
+                    <label for="df-wizard-checkbox">Existing <br> entities only</label>
                 </label>
             </div>
         </div>
-        <div class="form-group df-wizard-image-info" ng-class="{'has-error': imgMeta.errMsg}">
+
+        <div class="form-group df-wizard-image-info df-wizard-control" ng-class="{'has-error': imgMeta.errMsg}">
             <label class="control-label" ng-class="{'ng-hide': !(imgMeta.errMsg)}"><i class="fa fa-warning"></i> {{imgMeta.errMsg}}</label>
         </div>
+
+        <!--image id metadata-->
         <div class="form-group df-wizard-image-info" ng-class="{'ng-hide': query.isGeomSource()}">
             <table class="df-wizard-sm-text">
                 <tr ng-class="{'ng-hide': !imgMeta.resolvedMetadata.dtg}">
@@ -80,6 +85,7 @@
                 </tr>
             </table>
         </div>
+        <!--button group-->
         <div class="form-group df-wizard-content df-wizard-geom" ng-click="searchByGeoTime()">
             <i class="fa fa-fw" ng-class="query.isGeomSource() ? 'fa-dot-circle-o' : 'fa-circle-o'">
             </i>
@@ -90,11 +96,11 @@
             </div>
         </div>
         <div class="btn-group df-wizard-input-content" ng-class="{'ng-hide': !geomButtons}">
-            Search area name: <input type="text" ng-model="query.geom.name"
-                                     class="form-control input-sm df-wizard-selector df-wizard-geom-name"
+            Name search area: <input type="text" ng-model="query.geom.name"
                                      ng-change="geomNameEdited()"
                                      st-select-text-on-focus
-                                     ng-required="query.isGeomSource()" />
+                                     ng-required="query.isGeomSource()"
+                                     class="df-wizard-name-input"/>
         </div>
         <div class="df-wizard-bounds-buttons" ng-class="{'ng-hide': geomButtons !== 'enterCoords'}">
             <table class="df-wizard-bounds-table">
@@ -151,7 +157,7 @@
             <table class="df-wizard-sm-text">
                 <tr>
                     <td>
-                        <label class="control-label" for="startDtg">Start: </label>
+                        <label class="control-label df-wizard-text">Start: </label>
                     </td>
                     <td>
                         <input type="text" ng-model="query.timeData.startDtg" ui-jq="datetimepicker"
@@ -159,12 +165,13 @@
                                ng-disabled="query.isImageIdSource()"
                                ng-required="!query.isImageIdSource()"
                                ui-options="{todayButton: false, yearStart: 1990, yearEnd: 2030, step: 15, format: 'Y-m-d H:i'}"
-                               st-utc-moment-format="YYYY-MM-DD HH:mm" class="df-datetimepicker" /> Z
+                               st-utc-moment-format="YYYY-MM-DD HH:mm"
+                               class="df-datetimepicker" />  Z
                     </td>
                 </tr>
                 <tr>
                     <td>
-                        <label class="control-label">End: </label>
+                        <label class="control-label df-wizard-text">End: </label>
                     </td>
                     <td>
                         <input type="text" ng-model="query.timeData.endDtg" ui-jq="datetimepicker"
@@ -172,7 +179,8 @@
                                ng-disabled="query.isImageIdSource()"
                                ng-required="!query.isImageIdSource()"
                                ui-options="{todayButton: false, yearStart: 1990, yearEnd: 2030, step: 15, format: 'Y-m-d H:i'}"
-                               st-utc-moment-format="YYYY-MM-DD HH:mm" class="df-datetimepicker" /> Z
+                               st-utc-moment-format="YYYY-MM-DD HH:mm"
+                               class="df-datetimepicker" />  Z
                     </td>
                 </tr>
             </table>

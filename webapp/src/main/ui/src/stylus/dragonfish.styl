@@ -83,8 +83,10 @@
                 padding 4px
 
 .df-datetimepicker
-    margin-bottom 10px
+    margin-bottom 6px
     width 120px
+    border none !important
+    line-height 24px !important
 
 .df-dropdown
     font-size 12px
@@ -107,21 +109,27 @@
 
 .df-wizard-content
     margin-right 20px
-    margin-bottom 10px
+    margin-bottom 0px
     margin-left 58px
     vertical-align middle
+
+.form-group
+    margin-top -5px
+    margin-bottom -8px
 
 .df-wizard-input-content
     margin-bottom 10px
     margin-left 80px
 
 .df-wizard-sliding-win
-    font-size 11px
-    margin 0px 0px 0px 3px
+    font-size 12px
+    margin 5px 0px 0px 4px
+    line-height 1.2
+    font-weight 200
 
 .df-wizard-sliding-win-nospin
     @extends .df-wizard-sliding-win
-    margin-left 21px
+    margin-left 23px
 
 .df-wizard-inst
     font-size 14px
@@ -130,16 +138,30 @@
 .df-wizard-sm-text
     font-size 12px
 
+.df-wizard-text
+    font-weight 200
+    border none
+
 .df-wizard-geom
-    padding-top 4px
+    padding-top 12px
+    margin-top -7px
+    padding-bottom 15px
 
 .df-wizard-geom-buttons
     padding 4px 7px 4px 7px
+    font-size 12px
 
 .df-wizard-image-info
-    @extends .df-wizard-input-content
+    margin-bottom 2px
+    margin-left 80px
+    margin-top 6px
+
+.df-wizard-control
+    margin-top 0px
+    margin-bottom 0px
+    padding-top 10px
+    font-size 12px
     position relative
-    margin-top -18px
 
 .df-wizard-imageid
     float left
@@ -156,6 +178,7 @@
     @extends .df-margin-specs
     @extends .df-wizard-table-common
     text-align center
+    padding-left 82px
 
 .df-wizard-draw-message
     @extends .df-margin-specs
@@ -165,14 +188,39 @@
     font-size 12px
     width 300px
     text-align left
+
+.df-wizard-name-input
+    @extends .df-margin-specs
+    width 177px
+    border none !important
+    line-height 25px !important
+
+input[type=checkbox]
+    display none
+
+input[type=checkbox]+ label:before
+    font-family FontAwesome
+    content "\f096"
+    letter-spacing 8px
+    font-size 14px
+
+input[type=checkbox]:checked + label:before
+    content "\f046"
+    letter-spacing 6px
+    font-size 14px
+
+.df-wizard-checkbox
+    padding-top 2px
+    position relative
+    display inline-block
     vertical-align middle
 
 .df-wizard-geom-name
     @extends .df-margin-specs
     font-size 12px
-    width 259px
+    width 256px
     text-align left
-    vertical-align middle
+    vertical-align
 
 .df-wizard-bounds-title
     @extends .df-inline-v-middle
