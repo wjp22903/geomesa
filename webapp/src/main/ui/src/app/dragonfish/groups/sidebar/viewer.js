@@ -25,12 +25,22 @@ function (catMgr, ol3Map, sidebarManager, AnalysisCategory, popupManager, Widget
                              new WidgetDef('st-df-groups-sidebar', scope),
                              new WidgetDef('st-pager', scope, "paging='paging' records='selectedGroup.entities'"),
                              true);
-    scope.groups = groupsManager.getGroups();
+    groupsManager.getGroups().then(function (groups) {
+        scope.groups = groups;
+    });
     scope.scoredEntityService = scoredEntityService;
     scope.groupEntityService = groupEntityService;
     scope.selectedGroup = {};
     scope.setGroup = function (group) {
-        scope.selectedGroup = group;
+        if (!group.entities) {
+            groupsManager.getGroupEntities(group.id).then(function (groupData) {
+                group.entities = groupData.entities;
+                group.links = groupData.links;
+                scope.selectedGroup = group;
+            });
+        } else {
+            scope.selectedGroup = group;
+        }
     };
     scope.DF_GROUPS = DF_GROUPS;
     scope.buttonTitle = DF_GROUPS.popupTitle;

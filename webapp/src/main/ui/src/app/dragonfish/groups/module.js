@@ -38,25 +38,69 @@ angular.module('stealth.dragonfish.groups', [
 
 // Service to put groups in scope for viewer to use
 .service('stealth.dragonfish.groups.groupsManager', [
+'$interpolate',
+'$http',
+'$q',
+'toastr',
 'CONFIG',
 'stealth.dragonfish.groups.groupEntity',
 'stealth.dragonfish.groups.Constant',
-function (CONFIG, groupEntity, DF_GROUPS) {
+function ($interpolate, $http, $q, toastr, CONFIG, groupEntity, DF_GROUPS) {
     var _self = this;
+    this.wktParser = new ol.format.WKT();
+    this.listGroupsUrl = $interpolate(
+        _.get(CONFIG, 'dragonfish.groups.listGroupsUrl', 'cors/{{geoserverPath}}/dragonfish/listGroups')
+    )({
+        geoserverPath: CONFIG.geoserver.defaultUrl
+    });
     this.getGroups = function () {
-        var wktParser = new ol.format.WKT();
-        var parsedGroups = _.get(CONFIG, 'dragonfish.groups', []);
-        _.map(parsedGroups, function (group) {
-            group.entities = _.map(group.entities, function (entity) {
-                return groupEntity(entity.id, entity.name, entity.subGroup, entity.score,
-                    wktParser.readGeometry(entity.geom), '', entity.thumbnailURL,
-                    '', entity.netX, entity.netY, _self.pickColor(entity.subGroup || 0));
-            });
-        });
-        return parsedGroups;
+        return $http.get(_self.listGroupsUrl)
+            .then(
+                function (response) {
+                    return response.data;
+                },
+                function () {
+                    // toast or otherwise report the error and what, return a $q.reject()
+                    toastr.error('Failed to get list of groups from server. Groups Manager is unavailable.', 'Communication Error');
+                    return $q.reject('Failed to get list of groups from server');
+                }
+            );
     };
     this.pickColor = function (subGroup) {
         return DF_GROUPS.entityColors[subGroup % DF_GROUPS.entityColors.length];
+    };
+    this.getGroupEntities = function (groupId) {
+        var groupInfoUrl = $interpolate(
+                _.get(CONFIG, 'dragonfish.groups.groupInfoUrl', 'cors/{{geoserverPath}}/dragonfish/groupInfo/{{id}}')
+            )({
+                id: groupId,
+                geoserverPath: CONFIG.geoserver.defaultUrl
+            });
+        return $http.get(groupInfoUrl)
+            .then(
+                function (response) {
+                    // parse the data if needed and return it
+                    var responseData = {
+                        entities: _.map(response.data.ents, function (entity) {
+                            return groupEntity(entity.id, entity.desc, entity.subgroup, 1.0,
+                                _self.wktParser.readGeometry(entity.geom), '', entity.thumbnailURL,
+                                '', entity.coordinates.x, entity.coordinates.y, _self.pickColor(entity.subgroup || 0));
+                        }),
+                        links: _.map(response.data.edges, function (link) {
+                            return {
+                                source: link.from,
+                                target: link.to
+                            };
+                        })
+                    };
+                    return responseData;
+                },
+                function () {
+                    // toast or otherwise report the error and return a $q.reject()
+                    toastr.error('Failed to get data for group from server.', 'Communication Error');
+                    return $q.reject('Failed to get data for group from server.');
+                }
+            );
     };
 }])
 
@@ -148,7 +192,7 @@ function (scoredEntityService, groupsManager) {
 'stealth.dragonfish.groups.Constant',
 function ($timeout, entityGraphBuilder, DF_GROUPS) {
     var link = function (scope) {
-        var vizDiv = '#' + scope.popupGroup.id + scope.popupOffset;
+        var vizDiv = '#' + scope.popupGroup.id.replace(':', '') + scope.popupOffset;
         var data = [entityGraphBuilder.groupEntityToSonicData(scope.popupGroup), entityGraphBuilder.groupLinksToSonicData(scope.popupGroup)];
         $timeout(function () {
             sonic.viz(angular.element(vizDiv)[0], data)
