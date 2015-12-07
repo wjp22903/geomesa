@@ -39,7 +39,7 @@ function (DF, RUN, paramService, geomHelper) {
             maxTimeRangeMillis: Number.POSITIVE_INFINITY
         };
         this.searchBy = null; // query by image id or using geometry and time
-        this.slidingWindow = true; // slidingWindow true == Search existing entities only false (unchecked)
+        this.searchExisting = false;
         this.geom = paramService.initialGeom();
         this.checkAndSetBounds = function (extent, skipCookie) { // this func name must match what's in stealth.timelapse.wizard.Query
             _.merge(this.geom, paramService.checkAndSetBounds(extent, this.geom.name, this.geom.userSet, skipCookie));
@@ -209,7 +209,7 @@ function (cqlHelper, wps, prefixService) {
             classifierID: queryParams.classifier.id,
             classifierLabel: queryParams.classifierLabel,
             imageID: queryParams.imageId,
-            slidingWindow: queryParams.slidingWindow,
+            slidingWindow: !queryParams.searchExisting,
             geom: geom,
             startDtg: startDtg,
             endDtg: endDtg,

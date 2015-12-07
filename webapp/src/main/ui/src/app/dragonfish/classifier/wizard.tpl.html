@@ -56,9 +56,9 @@
                            class="form-control input-sm df-wizard-selector df-wizard-text-input" />
                     <span ng-class="{'ng-hide': !(imgMeta.isLoading)}"><i class="fa fa-circle-o-notch fa-spin"></i></span>
                 </div>
-                <!-- slidingWindow checkbox -->
+                <!-- searchExisting checkbox -->
                 <label class="df-wizard-sliding-win" ng-class="{'df-wizard-sliding-win-nospin': !(imgMeta.isLoading), 'df-wizard-sliding-win': imgMeta.isLoading}">
-                    <input id="df-wizard-checkbox" type="checkbox" ng-model="query.slidingWindow" ng-true-value="false" ng-false-value="true" />
+                    <input id="df-wizard-checkbox" type="checkbox" ng-model="query.searchExisting" />
                     <label for="df-wizard-checkbox">Existing <br> entities only</label>
                 </label>
             </div>
