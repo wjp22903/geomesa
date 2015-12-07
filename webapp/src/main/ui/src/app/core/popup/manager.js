@@ -84,8 +84,8 @@ function ($log, $rootScope) {
                 _extraStyles.bottom = (_primaryDisplay.height() - _offsetY) + 'px';
                 break;
             case 'center':
-                _extraStyles.right = (_primaryDisplay.width()/2 - 100 - _offsetX) + 'px';
-                _extraStyles.bottom = (_primaryDisplay.height()/2 - 100 - _offsetY) + 'px';
+                _extraStyles.right = (_primaryDisplay.width()/2 - _offsetX) + 'px';
+                _extraStyles.bottom = (_primaryDisplay.height()/2 - _offsetY) + 'px';
                 break;
             default:
                 _extraStyles.left = _offsetX + 'px';

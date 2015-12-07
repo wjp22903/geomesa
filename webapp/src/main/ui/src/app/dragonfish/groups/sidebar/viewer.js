@@ -5,6 +5,7 @@ angular.module('stealth.dragonfish.groups.sidebar', [
 
 .run([
 'categoryManager',
+'CONFIG',
 'ol3Map',
 'sidebarManager',
 'stealth.core.geo.analysis.category.AnalysisCategory',
@@ -17,7 +18,7 @@ angular.module('stealth.dragonfish.groups.sidebar', [
 'stealth.dragonfish.groupEntityService',
 'stealth.dragonfish.geo.ol3.layers.EntityLayer',
 'stealth.dragonfish.sidebarService',
-function (catMgr, ol3Map, sidebarManager, AnalysisCategory, popupManager, WidgetDef, DF_GROUPS,
+function (catMgr, CONFIG, ol3Map, sidebarManager, AnalysisCategory, popupManager, WidgetDef, DF_GROUPS,
           groupsManager, DF, scoredEntityService, groupEntityService, EntityLayer, sidebarService) {
     var scope = sidebarService.createScope();
     scope.popupOffset = 0;
@@ -44,6 +45,7 @@ function (catMgr, ol3Map, sidebarManager, AnalysisCategory, popupManager, Widget
     };
     scope.DF_GROUPS = DF_GROUPS;
     scope.buttonTitle = DF_GROUPS.popupTitle;
+    scope.popupWin = _.get(CONFIG, 'dragonfish.popupWin', {height: 200, width: 300});
     scope.analyzeEmbeddings = function (popupGroup) {
         if (scope.selectedGroup.entities.length > 0) {
             var popupScope = scope.$new();
@@ -54,8 +56,8 @@ function (catMgr, ol3Map, sidebarManager, AnalysisCategory, popupManager, Widget
             }
             scope.popupId = popupManager.displayPopup(scope.buttonTitle + ' (t-SNE)', DF_GROUPS.icon, contentDef, {
                 positioning: 'center',
-                offsetX: (10 * scope.popupOffset),
-                offsetY: (10 * scope.popupOffset)
+                offsetX: (10 * scope.popupOffset) + (DF_GROUPS.panelWidth / 2) + (scope.popupWin.width / 2),
+                offsetY: (10 * scope.popupOffset) + (scope.popupWin.height / 2)
             });
         }
     };
