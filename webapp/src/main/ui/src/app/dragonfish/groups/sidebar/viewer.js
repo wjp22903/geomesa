@@ -15,11 +15,12 @@ angular.module('stealth.dragonfish.groups.sidebar', [
 'stealth.dragonfish.groups.groupsManager',
 'stealth.dragonfish.Constant',
 'stealth.dragonfish.scoredEntityService',
+'stealth.dragonfish.geo.ol3.layers.styler',
 'stealth.dragonfish.groupEntityService',
 'stealth.dragonfish.geo.ol3.layers.EntityLayer',
 'stealth.dragonfish.sidebarService',
 function (catMgr, CONFIG, ol3Map, sidebarManager, AnalysisCategory, popupManager, WidgetDef, DF_GROUPS,
-          groupsManager, DF, scoredEntityService, groupEntityService, EntityLayer, sidebarService) {
+          groupsManager, DF, scoredEntityService, entityStyler, groupEntityService, EntityLayer, sidebarService) {
     var scope = sidebarService.createScope();
     scope.popupOffset = 0;
     sidebarManager.addButton(DF_GROUPS.title, DF_GROUPS.icon, DF_GROUPS.panelWidth,
@@ -68,25 +69,49 @@ function (catMgr, CONFIG, ol3Map, sidebarManager, AnalysisCategory, popupManager
         // swap out what's on the map
         scope.loadMap();
     });
-    scope.loadMap = function () {
-        // clear out old map layer:
-        if (scope.category) {
-            catMgr.removeCategory(scope.category.id);
+    scope.updateMap = function () {
+        if (scope.entityLayer) {
+            scope.entityLayer.updateMap();
         }
-        // populate the map
-        scope.category = catMgr.addCategory(2, new AnalysisCategory(scope.buttonTitle, DF.icon));
-        if (!_.isEmpty(scope.selectedGroup.entities)) {
-            scope.entityLayer = new EntityLayer({
+    };
+    // create map manager category if needed
+    if (!scope.category) {
+        scope.category = catMgr.addCategory(2, new AnalysisCategory(DF_GROUPS.title, DF.icon));
+    }
+    scope.loadMap = function () {
+        var layerExists = false;
+        // hide all layers except currently selected one
+        _.each(scope.groups, function (group) {
+            if (group.layerId && ol3Map.getLayerById(group.layerId)) {
+                var thisLayer = ol3Map.getLayerById(group.layerId);
+                if (group.layerId === scope.selectedGroup.layerId) {
+                    thisLayer.ol3Layer.setVisible(true);
+                    layerExists = true;
+                    ol3Map.fit(thisLayer.getExtent());
+                } else {
+                    thisLayer.ol3Layer.setVisible(false);
+                }
+            }
+        });
+
+        // create map manager category if needed
+        if (!scope.category) {
+            scope.category = catMgr.addCategory(2, new AnalysisCategory(DF_GROUPS.title, DF.icon));
+        }
+        // populate the map if the layer isn't already in the list.
+        if (!layerExists && !_.isEmpty(scope.selectedGroup.entities)) {
+            var newLayer = new EntityLayer({
                 queryable: true,
-                name: scope.buttonTitle,
+                name: "Entities in " + scope.selectedGroup.name,
                 features: scope.selectedGroup.entities,
                 categoryId: scope.category.id
             });
-            scope.updateMap = function () {
-                scope.entityLayer.updateMap();
-            };
-            scope.category.addLayer(scope.entityLayer);
-            ol3Map.fit(scope.entityLayer.getExtent());
+            scope.entityLayer = newLayer;
+            scope.selectedGroup.layerId = newLayer.getId();
+            newLayer.viewState = {};
+            newLayer.ol3Layer.setStyle(entityStyler.groupCurriedStyleFunction(newLayer.viewState));
+            scope.category.addLayer(newLayer);
+            ol3Map.fit(newLayer.getExtent());
         }
     };
 }])
