@@ -14,9 +14,12 @@ angular.module('stealth.dragonfish.similarity.runner', [
  */
 .factory('stealth.dragonfish.similarity.runner.QueryParams', [
 function () {
-    return function (name, entityId) {
-        this.name = name;
+    return function (title, entityId) {
+        this.title = title;
         this.entityId = entityId;
+        this.getTitle = function () {
+            return title;
+        };
     };
 }])
 
@@ -34,20 +37,23 @@ function (scoredEntityService, QueryParams) {
  * Like classification.runner, this is a placeholder for calling WPS processes and such
  */
 .service('stealth.dragonfish.similarity.runner.service', [
-'$log',
-'$q',
+'$interpolate',
+'$http',
+'CONFIG',
 'stealth.dragonfish.scoredEntity',
-function ($log, $q, scoredEntity) {
+function ($interpolate, $http, CONFIG, scoredEntity) {
+    var _self = this;
+    this.knn = _.get(CONFIG, 'knn', {url: "cors/{{defaultUrl}}/../knn-endpoint/knn/{{entityId}}%3Fk%3D{{k}}", k: 30});
     this.run = function (queryParams) {
-        $log.debug(queryParams); // no eslint error. we'll certainly use queryParams when we make the wps
-        return $q(function (resolve) {
-            setTimeout(function () {
-                var parser = new ol.format.GeoJSON();
-                resolve(parser.writeFeatures([
-                    scoredEntity('abcd', 'Entity X', 0.97, new ol.geom.Point([3, 40]), '', '', ''),
-                    scoredEntity('efgh', 'Entity Y', 0.91, new ol.geom.Point([14.5, 37]), '', '', '')
-                ]));
-            }, 100); // simulate a delay
+        var encodedUrl = $interpolate(_self.knn.url)({
+            defaultUrl: CONFIG.geoserver.defaultUrl,
+            entityId: encodeURIComponent(queryParams.entityId),
+            k: _self.knn.k
+        });
+        return $http.get(encodedUrl).then(function (response) {
+            return _.map(response.data, function (idScore) {
+                return scoredEntity(idScore.id, idScore.id, idScore.score);
+            });
         });
     };
 }])

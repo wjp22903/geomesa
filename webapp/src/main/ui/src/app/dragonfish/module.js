@@ -74,7 +74,7 @@ function () {
  */
 .service('stealth.dragonfish.scoredEntityService', [
 function () {
-    this.id    = function (entity) { return entity.get('id') || entity.getId(); };
+    this.id    = function (entity) { return entity.get('id') || entity.get('entityID') || entity.getId(); };
     this.name  = function (entity) { return entity.get('name'); };
     this.score = function (entity) { return entity.get('score'); };
     this.geom  = function (entity) { return entity.getGeometry(); }; //ol.geom.getGeometry
@@ -138,12 +138,12 @@ function ($interpolate, $rootScope, CONFIG, ol3Map, VectorOverlay, DF, classWizS
         scope.runAnotherQuery = function (request) {
             classWizService.launchWizard(request);
         };
-        if (req) {
+        if (req && req.classifier) {
             var dtgFormat = 'YYYY-MM-DD HH:mm:ss [Z]'; // why isn't there a Stealth constant for displayDtgFormat?
             scope.lastSearch = {
                 startDtg: (req.isGeomSource()) ? req.timeData.startDtg.format(dtgFormat) : undefined,
                 endDtg: (req.isGeomSource()) ? req.timeData.endDtg.format(dtgFormat) : undefined,
-                imageDtg: (req.isImageIdSource()) ? req.imageDtg.format(dtgFormat) : undefined,
+                imageDtg: (req.isImageIdSource() && req.imageDtg) ? req.imageDtg.format(dtgFormat) : undefined,
                 title: (req.isImageIdSource() && req.imageId) ? req.imageId : req.geom.name,
                 titleIcon: (req.isImageIdSource()) ? 'fa fa-file-image-o' : 'ccri-icon ccri-icon-map-pin'
             };
@@ -184,22 +184,18 @@ function ($interpolate, $rootScope, CONFIG, ol3Map, VectorOverlay, DF, classWizS
  * This method sets up a new category, adds the results to the map, and populates the sidebar.
  */
 .service('stealth.dragonfish.resultsService', [
-'$log',
 '$rootScope',
 'categoryManager',
 'ol3Map',
 'sidebarManager',
 'stealth.core.geo.analysis.category.AnalysisCategory',
-'stealth.core.geo.ol3.format.GeoJson',
 'stealth.core.utils.WidgetDef',
 'stealth.dragonfish.Constant',
 'stealth.dragonfish.sidebarService',
-'stealth.dragonfish.scoredEntityService',
 'stealth.dragonfish.geo.ol3.layers.styler',
 'stealth.dragonfish.geo.ol3.layers.EntityLayer',
 'stealth.dragonfish.geo.ol3.layers.EntityConstant',
-function ($log, $rootScope, catMgr, ol3Map, sidebarManager, AnalysisCategory, GeoJson, WidgetDef, DF, sidebarService,
-          scoredEntityService, entityStyler, EntityLayer, EL) {
+function ($rootScope, catMgr, ol3Map, sidebarManager, AnalysisCategory, WidgetDef, DF, sidebarService, entityStyler, EntityLayer, EL) {
     this.display = function (req, resultsPromise) {
         var scope = sidebarService.createScope(req);
         var category = catMgr.addCategory(2, new AnalysisCategory(scope.request.name, DF.icon, function () {
@@ -226,13 +222,10 @@ function ($log, $rootScope, catMgr, ol3Map, sidebarManager, AnalysisCategory, Ge
         );
         scope.space = DF.space;
         scope.entityLayer = {viewState: {scoreCutoff: 0.0}}; // initialize for html
-        var parser = new GeoJson(); // stealth GeoJson, extending OL3 for STEALTH-319
         resultsPromise
             .then(function (response) {
                 scope.queryRunning = false;
-                scope.results = _.sortBy(parser.readFeatures(response), function (scoredEntity) {
-                    return -scoredEntityService.score(scoredEntity);
-                });
+                scope.results = response;
                 // populate the Map
                 if (!_.isEmpty(scope.results)) {
                     scope.entityLayer = new EntityLayer({
@@ -250,13 +243,12 @@ function ($log, $rootScope, catMgr, ol3Map, sidebarManager, AnalysisCategory, Ge
                     category.addLayer(scope.entityLayer);
                     ol3Map.fit(scope.entityLayer.getExtent());
                 }
-            }, function (reason) {
+            }, function () {
                 scope.queryRunning = false;
                 scope.results = [];
                 scope.getEntityColor = function () {
                     return '#000000';
                 };
-                $log.warn(reason);
             });
     };
 }])

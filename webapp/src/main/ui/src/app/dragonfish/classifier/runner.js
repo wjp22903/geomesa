@@ -188,10 +188,13 @@ function ($filter, cookies, RUN) {
  * A service to actually 'run' (=apply) a classifier. This relies on the dragonfish-wps project.
  */
 .service('stealth.dragonfish.classifier.runner.service', [
+'$log',
 'cqlHelper',
+'stealth.core.geo.ol3.format.GeoJson',
 'stealth.dragonfish.configWps',
 'stealth.dragonfish.wps.prefixService',
-function (cqlHelper, wps, prefixService) {
+'stealth.dragonfish.scoredEntityService',
+function ($log, cqlHelper, GeoJson, wps, prefixService, scoredEntityService) {
     this.run = function (queryParams) {
         var geom = cqlHelper.bboxToPolygon([queryParams.geom.minLon,
                     queryParams.geom.minLat,
@@ -215,7 +218,16 @@ function (cqlHelper, wps, prefixService) {
             endDtg: endDtg,
             dfPrefix: prefixService.prefix
         });
-        return wps.submit(req);
+        var parser = new GeoJson();
+        return wps.submit(req)
+            .then(function (response) {
+                return _.sortBy(parser.readFeatures(response), function (scoredEntity) {
+                    return -scoredEntityService.score(scoredEntity);
+                });
+            }, function (reason) {
+                $log.warn(reason);
+                return [];
+            });
     };
 }])
 
