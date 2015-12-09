@@ -187,17 +187,26 @@ function (scoredEntityService, groupsManager) {
 }])
 
 .directive('stDfGroupsPopup', [
-'$timeout',
+'$interval',
 'stealth.dragonfish.groups.entityGraphBuilder',
 'stealth.dragonfish.groups.Constant',
-function ($timeout, entityGraphBuilder, DF_GROUPS) {
-    var link = function (scope) {
-        var vizDiv = '#' + scope.popupGroup.id.replace(':', '') + scope.popupOffset;
-        var data = [entityGraphBuilder.groupEntityToSonicData(scope.popupGroup), entityGraphBuilder.groupLinksToSonicData(scope.popupGroup)];
-        $timeout(function () {
-            sonic.viz(angular.element(vizDiv)[0], data)
-            .addNetwork(DF_GROUPS.sonicConf);
-        }, 1000);
+function ($interval, entityGraphBuilder, DF_GROUPS) {
+    var link = function (scope, element) {
+        var nodes = entityGraphBuilder.groupEntityToSonicData(scope.popupGroup);
+        var links = entityGraphBuilder.groupLinksToSonicData(scope.popupGroup);
+        var graphDivCheck = $interval(function () {
+            var graphDivs = element.children('div.df-popup-graph');
+            if (graphDivs.length) {
+                $interval.cancel(graphDivCheck);
+                scope.viz = sonic.viz(graphDivs[0], [
+                    sonic.clone(nodes),
+                    sonic.clone(links)
+                ]).addNetwork(DF_GROUPS.sonicConf);
+            }
+        }, 100, 100, false);
+        element.on('$destroy', function () {
+            $interval.cancel(graphDivCheck);
+        });
     };
     return {
         restrict: 'E',
