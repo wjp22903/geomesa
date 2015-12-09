@@ -7,7 +7,6 @@ angular.module('stealth.static.wizard')
 'toastr',
 'wizardManager',
 'ol3Map',
-'ol3Styles',
 'colors',
 'cqlHelper',
 'stealth.core.wizard.Step',
@@ -19,14 +18,12 @@ angular.module('stealth.static.wizard')
 'boundsHelper',
 'CONFIG',
 function ($log, $rootScope, $filter, toastr,
-          wizardManager, ol3Map, ol3Styles, colors, cqlHelper,
+          wizardManager, ol3Map, colors, cqlHelper,
           Step, Wizard, Query, WidgetDef, staticWorkspaceManager, wps, boundsHelper, CONFIG) {
     var tag = 'stealth.static.wizard.staticLayerWizard: ';
     $log.debug(tag + 'service started');
 
-    var dragBox = new ol.interaction.DragBox({
-        style: ol3Styles.getPolyStyle(1, '#CC0099')
-    });
+    var dragBox = new ol.interaction.DragBox();
 
     function parseBounds (extent) {
         var filter = $filter('number');

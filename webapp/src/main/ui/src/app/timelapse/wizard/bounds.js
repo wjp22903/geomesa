@@ -27,12 +27,9 @@ function (WidgetDef, Step, Wizard, Query) {
 .controller('boundWizController', [
 '$scope',
 'ol3Map',
-'ol3Styles',
 'wizardManager',
-function ($scope, ol3Map, ol3Styles, wizManager) {
-    var _draw = new ol.interaction.DragBox({
-        style: ol3Styles.getPolyStyle(1, '#CC0099')
-    });
+function ($scope, ol3Map, wizManager) {
+    var _draw = new ol.interaction.DragBox();
     _draw.on('boxend', function () {
         $scope.$apply(function () {
             $scope.query.checkAndSetBounds(_draw.getGeometry().getExtent());

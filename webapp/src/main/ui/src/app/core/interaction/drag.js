@@ -27,7 +27,7 @@ function (ol3Map) {
     DragInteraction.prototype.getDraggableFeatureAndLayer = function (evt) {
         var lyr = null;
         var feature = evt.map.forEachFeatureAtPixel(evt.pixel, function (feature, layer) {
-            if (layer.draggable) {  // Overlays skip the filter and are no longer passed in with null layers.
+            if (layer !== null && layer.draggable) {  // Overlays skip the filter and are no longer passed in with null layers.
                 lyr = layer;
                 return feature;
             }

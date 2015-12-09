@@ -21,7 +21,7 @@ function (ol3Map) {
         var f;
         var l = evt.map.forEachFeatureAtPixel(evt.pixel, function (feature, layer) {
             // Redundant, but necessary now that unmanaged layers ignore the layer filter.
-            if (_.isFunction(layer.onMouseOver) && _.isFunction(layer.onMouseLeave)) {
+            if (layer !== null && _.isFunction(layer.onMouseOver) && _.isFunction(layer.onMouseLeave)) {
                 f = feature;
                 return layer;
             }

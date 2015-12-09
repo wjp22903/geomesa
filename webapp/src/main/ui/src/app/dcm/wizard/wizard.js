@@ -67,16 +67,7 @@ function ($log, $rootScope, $filter,
         );
     };
 
-    var dragBox = new ol.interaction.DragBox({
-        style: new ol.style.Style({
-            stroke: new ol.style.Stroke({
-                color: [204, 0, 153, 1]
-            }),
-            fill: new ol.style.Fill({
-                color: [204, 0, 153, 0.5]
-            })
-        })
-    });
+    var dragBox = new ol.interaction.DragBox();
 
     var ol3Layer = new ol.layer.Vector({
         source: getBoxSource({

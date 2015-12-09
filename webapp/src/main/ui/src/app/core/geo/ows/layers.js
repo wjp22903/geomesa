@@ -29,24 +29,14 @@ function ($filter, wms, KeywordExtender, CONFIG) {
                 .then(function (wmsCap) {
                     var layers = wmsCap.Capability.Layer.Layer || [];
                     _.each(CONFIG.map.extraLayers, function (layer) {
+                        if (!layer.Title && layer.Name) {
+                            layer.Title = layer.Name;
+                        }
                         layers.push(layer);
                     });
 
                     _.each(layers, function (layer) {
-                        layer.KeywordConfig = {};
-                        _.eachRight(_.sortByOrder(layer.KeywordList, [_.identity], [false]), function (keyword) {
-                            if (keyword.indexOf(CONFIG.app.context + '.') === 0) {
-                                var parts = $filter('splitLimit')(keyword, '=', 1);
-                                var path = _.rest(parts[0].split('.'));
-                                if (!_.has(layer.KeywordConfig, path)) {
-                                    _.set(layer.KeywordConfig, path, parts[1] || {});
-                                }
-                            }
-                        });
-                        delete layer.KeywordList; //we've replaced KeywordList with KeywordConfig
-                        delete layer.CRS; //throw out unused CRS list
-                        //Extend the keywords
-                        layer.KeywordConfig = _self.keywordExtender.extendKeywords(layer.KeywordConfig);
+                        _self.getKeywordConfig(layer);
                     });
                     return layers;
                 });
@@ -61,6 +51,26 @@ function ($filter, wms, KeywordExtender, CONFIG) {
                 return layers;
             }
         });
+    };
+
+    /**
+     * Adds the KeywordConfig object to the provided layer by looking through its KeywordList.
+     */
+    this.getKeywordConfig = function (layer) {
+        layer.KeywordConfig = {};
+        _.eachRight(_.sortByOrder(layer.KeywordList, [_.identity], [false]), function (keyword) {
+            if (keyword.indexOf(CONFIG.app.context + '.') === 0) {
+                var parts = $filter('splitLimit')(keyword, '=', 1);
+                var path = _.rest(parts[0].split('.'));
+                if (!_.has(layer.KeywordConfig, path)) {
+                    _.set(layer.KeywordConfig, path, parts[1] || {});
+                }
+            }
+        });
+        delete layer.KeywordList; //we've replaced KeywordList with KeywordConfig
+        delete layer.CRS; //throw out unused CRS list
+        //Extend the keywords
+        layer.KeywordConfig = _self.keywordExtender.extendKeywords(layer.KeywordConfig);
     };
 
     /**

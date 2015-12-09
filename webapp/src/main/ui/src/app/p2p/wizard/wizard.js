@@ -33,16 +33,7 @@ function ($log, $rootScope, $filter, toastr,
 
     this.setCategoryScope = function (scope) { catScope = scope; };
 
-    var dragBox = new ol.interaction.DragBox({
-        style: new ol.style.Style({
-            stroke: new ol.style.Stroke({
-                color: [204, 0, 153, 1]
-            }),
-            fill: new ol.style.Fill({
-                color: [204, 0, 153, 0.5]
-            })
-        })
-    });
+    var dragBox = new ol.interaction.DragBox();
 
     function parseBounds (extent) {
         var filter = $filter('number');

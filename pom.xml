@@ -222,6 +222,8 @@
         <map.countriesOff>false</map.countriesOff>
         <map.skipAnimation>false</map.skipAnimation>
         <map.maxZoom>17</map.maxZoom>
+        <map.loadTilesWhileAnimating>true</map.loadTilesWhileAnimating>
+        <map.loadTilesWhileInteracting>false</map.loadTilesWhileInteracting>
 
         <classification.text>Dynamic Page - Highest Possible Classification is UNCLASSIFIED//FOR OFFICIAL USE ONLY</classification.text>
         <!-- supported levels: unclassified, confidential, secret, topSecret, sci -->

@@ -18,16 +18,7 @@ function ($log, $rootScope, $filter,
     var tag = 'stealth.histogram.wizard.histogramWizard: ';
     $log.debug(tag + 'service started');
 
-    var dragBox = new ol.interaction.DragBox({
-        style: new ol.style.Style({
-            stroke: new ol.style.Stroke({
-                color: [204, 0, 153, 1]
-            }),
-            fill: new ol.style.Fill({
-                color: [204, 0, 153, 0.5]
-            })
-        })
-    });
+    var dragBox = new ol.interaction.DragBox();
 
     function parseBounds (extent) {
         var filter = $filter('number');

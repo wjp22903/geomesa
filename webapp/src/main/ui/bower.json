@@ -35,7 +35,7 @@
     "mathjs": "1.7.1",
     "momentjs": "2.10.6",
     "openlayers": "https://github.com/openlayers/openlayers/releases/download/release-2.13.1/OpenLayers-2.13.1.zip",
-    "ol3": "https://github.com/openlayers/ol3/releases/download/v3.9.0/v3.9.0.zip",
+    "ol3": "https://github.com/openlayers/ol3/releases/download/v3.11.2/v3.11.2.zip",
     "sonic.js": "git@github.com:ccri/sonic.js.git#v0.5.100",
     "world.geo.json": "https://github.com/johan/world.geo.json.git#d19059de55ea2954b9285698d2ef794a3d9ee98e"
   }

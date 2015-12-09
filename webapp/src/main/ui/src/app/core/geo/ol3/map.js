@@ -49,7 +49,8 @@ function ($log, $filter, searchManager, GeoJson, MapLayer, TintLayer, CONFIG) {
     var _map = new ol.Map({
         logo: false,
         renderer: 'canvas',
-        loadTilesWhileAnimating: true,
+        loadTilesWhileAnimating: _.isBoolean(CONFIG.map.loadTilesWhileAnimating) ? CONFIG.map.loadTilesWhileAnimating : true,
+        loadTilesWhileInteracting: _.isBoolean(CONFIG.map.loadTilesWhileInteracting) ? CONFIG.map.loadTilesWhileInteracting : false,
         view: new ol.View({
             extent: _.get(CONFIG, 'map.extent', [-180, -90, 180, 90]),
             projection: _projection,

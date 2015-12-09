@@ -852,6 +852,91 @@
                 <geoserver.omitProxy>false</geoserver.omitProxy>
             </properties>
         </profile>
+        <profile>
+            <id>prime</id>
+            <properties>
+                <map.countriesOff>true</map.countriesOff>
+                <geoserver.url>http://192.168.0.13:8080/geoserver</geoserver.url>
+                <map.initLayers>
+                    [
+                        {
+                            serverUrl: "http://192.168.0.13:8080/BaseMaps/Tiles/StamenToner/{z}/{x}/{y}.png",
+                            Name: "stamen:toner"
+                        }
+                    ]</map.initLayers>
+                <map.extraLayers>
+                    [
+                        {
+                            serverUrl: "http://192.168.0.13:8080/BaseMaps/Tiles/StamenToner/{z}/{x}/{y}.png",
+                            xyz: true,
+                            Name: "stamen:toner",
+                            Title: "Stamen Toner",
+                            originalProjection: "EPSG:900913",
+                            tileSize: 256,
+                            wrapX: true,
+                            minZoom: 0,
+                            maxZoom: 9,
+                            KeywordList: [
+                                "stealth.context.Base"
+                            ]
+                        },
+                        {
+                            serverUrl: "http://192.168.0.13:8080/BaseMaps/Tiles/ESRIImagery/{z}/{x}/{y}.png",
+                            xyz: true,
+                            Name: "esri:imagery",
+                            Title: "ESRI Imagery",
+                            originalProjection: "EPSG:900913",
+                            tileSize: 256,
+                            wrapX: true,
+                            minZoom: 0,
+                            maxZoom: 9,
+                            KeywordList: [
+                                "stealth.context.Base"
+                            ]
+                        },
+                        {
+                            serverUrl: "http://192.168.0.13:8080/BaseMaps/Tiles/ESRILightGrayBase/{z}/{x}/{y}.png",
+                            xyz: true,
+                            Name: "esri:light.gray",
+                            Title: "ESRI Light Gray",
+                            originalProjection: "EPSG:900913",
+                            tileSize: 256,
+                            wrapX: true,
+                            minZoom: 0,
+                            maxZoom: 9,
+                            KeywordList: [
+                                "stealth.context.Base"
+                            ]
+                        },
+                        {
+                            serverUrl: "http://192.168.0.13:8080/BaseMaps/Tiles/MapQuestOSM/{z}/{x}/{y}.png",
+                            xyz: true,
+                            Name: "mapquest:osm",
+                            Title: "MapQuest OSM",
+                            originalProjection: "EPSG:900913",
+                            tileSize: 256,
+                            wrapX: true,
+                            minZoom: 0,
+                            maxZoom: 9,
+                            KeywordList: [
+                                "stealth.context.Base"
+                            ]
+                        }
+                    ]
+                </map.extraLayers>
+                <app.plugins>
+                    [
+                        'stealth.air',
+                        'stealth.histogram',
+                        'stealth.static',
+                        'stealth.timelapse',
+                        'stealth.upload',
+                        'stealth.mediator.air-timelapse',
+                        'stealth.mediator.histogram-timelapse'
+                    ]
+                </app.plugins>
+            </properties>
+        </profile>
 
         <!-- Profiles for always-up demos deployed by CI -->
         <profile>
