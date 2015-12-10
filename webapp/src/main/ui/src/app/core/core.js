@@ -2,6 +2,7 @@ angular.module('stealth.core', [
     'ccri.angular-utils',
     'ccri.popup',
     'stealth.core.geo.context',
+    'stealth.core.geo.import',
     'stealth.core.geo.ol3',
     'stealth.core.geo.ows',
     'stealth.core.geo.query',

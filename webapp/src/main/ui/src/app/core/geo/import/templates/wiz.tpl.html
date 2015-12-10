@@ -1,0 +1,10 @@
+<ng-form name="wizardForm">
+    <div class="overlay" ng-class="{'ng-hide': !thinking}">
+        <i class="fa fa-spinner fa-spin fa-4x"></i>
+    </div>
+    <div class="upload-table-header">Select a .zip containing a shapefile to add:</div>
+    <div class="upload-fileupload">
+        <input id="fileupload" type="file" accept=".zip" name="shpfile" ng-model="validFile" filecheck>
+    </div>
+    <div>{{progress}}</div>
+</ng-form>

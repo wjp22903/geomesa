@@ -59,6 +59,7 @@ module.exports = {
             'vendor/bower/momentjs/min/moment.min.js',
             'vendor/bower/ol3/build/ol-debug.js',
             'vendor/bower/openlayers/OpenLayers.debug.js',
+            'vendor/bower/shapefile.js/dist/shp.js',
             'vendor/bower/sonic.js/dist/sonic.js',
             'vendor/bower/stealth.crawler/stealth.crawler.js'
         ],

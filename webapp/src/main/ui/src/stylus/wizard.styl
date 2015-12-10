@@ -134,3 +134,15 @@ span.pastWizardStep:hover, span.pastWizardStep:hover:after
 .wizardMask
     background-color rgba(0,0,0,0.7)
     background-image url(../assets/mask-texture.png)
+
+.overlay {
+    position: absolute;
+    z-index: 1000;
+    top: 50%;
+    left: 50%;
+    margin-left: -25px; /* Negative half width */
+    margin-top: -25px; /* Negative half height */
+    box-shadow: 0 0 0 2038px rgba(0,0,0,.6);
+    background-color rgba(0,0,0,0.6);
+    -webkit-transition: 1s;
+}

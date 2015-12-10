@@ -1,0 +1,22 @@
+<div class="categoryGrouping">
+    <div class="categoryCell"><b>Add Shapefile</b></div>
+    <div class="categoryCell">
+        <span class="btn btn-default fa-stack toggleButton"
+              ng-click="launchShapefileWiz()"
+              tooltip-html-unsafe="<span style='white-space:nowrap'>Add new shapefile</span>"
+              tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500"
+              tooltip-trigger="mouseenter">
+            <i class="fa fa-fw fa-plus fa-stack-1x text-primary"></i>
+        </span>
+    </div>
+</div>
+<div ng-repeat="layer in layers" class="layerGrouping categoryIndent">
+    <div class="categoryCell">
+        <span>{{layer.name}}</span>
+    </div>
+    <div class="categoryCell" ng-if="!layer.viewState.isLoading">
+            <span class="btn btn-default fa-stack toggleButton ng-scope" ng-click="removeLayer(layer)" tooltip-html-unsafe="<span style='white-space:nowrap'>Remove Layer</span>" tooltip-placement="right" tooltip-animation="false" tooltip-popup-delay="500" tooltip-trigger="mouseenter">
+                <i class="fa fa-fw fa-remove fa-stack-1x text-danger"></i>
+            </span>
+    </div>
+</div>
