@@ -97,7 +97,7 @@ function ($log, $q, wfs, colors, ol3Styles, clickSearchHelper, MapLayer, GeoJson
                 _self.styleDirectiveScope.$emit(_self.id + ':finishedLoading');
             });
         };
-        var _query = _.bind(options.queryFn, this) || function () {
+        var _query = _.isFunction(options.queryFn) ? _.bind(options.queryFn, this) : function () {
             _loadStart();
             wfs.getFeature(_geoserverUrl, _typeName, CONFIG.geoserver.omitProxy, _requestParams)
             .success(function (data, status, headers) { //eslint-disable-line no-unused-vars
