@@ -72,7 +72,7 @@ function (DF, RUN, paramService, geomHelper) {
             return (this.classifier && this.classifier.labels.length === 1);
         };
         this.getTitle = function () {
-            var title = this.hasSingleLabel() ? this.classifierLabel : this.classifier.name;
+            var title = this.classifierLabel;
             title += ' in ';
             if (this.isImageIdSource() && this.imageId) {
                 title += this.imageId;

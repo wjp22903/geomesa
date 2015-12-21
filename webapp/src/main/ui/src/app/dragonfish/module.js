@@ -198,7 +198,7 @@ function ($interpolate, $rootScope, CONFIG, ol3Map, VectorOverlay, DF, classWizS
 function ($rootScope, catMgr, ol3Map, sidebarManager, AnalysisCategory, WidgetDef, DF, sidebarService, entityStyler, EntityLayer, EL) {
     this.display = function (req, resultsPromise) {
         var scope = sidebarService.createScope(req);
-        var category = catMgr.addCategory(2, new AnalysisCategory(scope.request.name, DF.icon, function () {
+        var category = catMgr.addCategory(2, new AnalysisCategory(scope.request.getTitle(), DF.icon, function () {
             sidebarManager.removeButton(buttonId);
             scope.$destroy();
         }));
@@ -230,7 +230,7 @@ function ($rootScope, catMgr, ol3Map, sidebarManager, AnalysisCategory, WidgetDe
                 if (!_.isEmpty(scope.results)) {
                     scope.entityLayer = new EntityLayer({
                         queryable: true,
-                        name: scope.request.name,
+                        name: "Results",
                         features: scope.results,
                         categoryId: category.id
                     });
