@@ -728,8 +728,6 @@
             <properties>
                 <stealth.classifier>dragonspell</stealth.classifier>
                 <app.title>DragonSpell</app.title>
-                <classification.text>Dynamic Page - Highest Possible Classification is TOP SECRET//SI//TK//NOFORN</classification.text>
-                <classification.level>sci</classification.level>
                 <map.initLayers>[]</map.initLayers>
                 <map.extraLayers>[]</map.extraLayers>
                 <map.liveOptions>[]</map.liveOptions>
@@ -782,8 +780,6 @@
                         'stealth.mediator.air-timelapse'
                     ]
                 </app.plugins>
-                <classification.text>Dynamic Page - Highest Possible Classification is TOP SECRET//SI//TK//NOFORN</classification.text>
-                <classification.level>sci</classification.level>
                 <map.initLayers>[]</map.initLayers>
                 <map.extraLayers>[]</map.extraLayers>
                 <map.liveOptions>[]</map.liveOptions>
@@ -811,8 +807,6 @@
                         'stealth.timelapse'
                     ]
                 </app.plugins>
-                <classification.text>Dynamic Page - Highest Possible Classification is TOP SECRET//SI//TK//REL TO USA, FVEY</classification.text>
-                <classification.level>sci</classification.level>
                 <map.initLayers>[]</map.initLayers>
                 <map.extraLayers>[]</map.extraLayers>
                 <map.liveOptions>[]</map.liveOptions>
