@@ -46,7 +46,6 @@ function (catMgr, CONFIG, ol3Map, sidebarManager, WidgetDef, popupManager, Analy
             scope.selectedGroup = group;
         }
     };
-    scope.DF_GROUPS = DF_GROUPS;
     scope.buttonTitle = DF_GROUPS.popupTitle;
     scope.popupWin = _.get(CONFIG, 'dragonfish.popupWin', {height: 200, width: 300});
     scope.analyzeEmbeddings = function (popupGroup) {

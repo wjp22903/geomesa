@@ -5,7 +5,7 @@
     </div>
     <div class="df-sidebar-group-list">
         <ul>
-            <li ng-repeat="group in groups | filter:groupFilter | orderBy:'group.name'"
+            <li ng-repeat="group in groups | filter:groupFilter | orderBy:'name'"
                 class="df-sidebar-group-li" ng-click="setGroup(group)"
                 ng-style="{'background-color': (group.name === selectedGroup.name) ? '#000' : '#333'}">{{group.name}}</li>
         </ul>
@@ -32,7 +32,7 @@
             </div>
             <div class="df-result-info-container">
                 <div class="df-result-content">
-                    <strong><i class="fa fa-lg ccri-icon ccri-icon-map-pin" style="color: {{DF_GROUPS.entityColors[groupEntityService.subGroup(result)]}};"></i></strong>
+                    <strong><i class="fa fa-lg ccri-icon ccri-icon-map-pin" style="color: {{groupEntityService.color(result)}};"></i></strong>
                     <div>
                         <div><strong>{{::scoredEntityService.name(result)}}</strong></div>
                         <div ng-if="::scoredEntityService.time(result)">

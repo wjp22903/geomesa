@@ -32,6 +32,13 @@ angular.module('stealth.dragonfish.groups', [
                 highlightStrokeColor: '#ffffff',
                 highlightStrokeWidthGrowth: 1
             }
+        },
+        // Entities in the group panel will be sorted by the following fields, in the (reverse of the) order specified.
+        // Matches in one field are sorted by the next field. See [_.sortByOrder](https://lodash.com/docs#sortByOrder).
+        // This can be overridden with CONFIG.dragonfish.groups.panelSort.
+        panelSort: {
+            fields: ['startTime', 'name', 'desc'],
+            orders: ['asc', 'desc', 'desc'] // note that these should actually be the reverse of what you want
         }
     };
 })())
@@ -79,13 +86,39 @@ function ($interpolate, $http, $q, toastr, CONFIG, groupEntity, DF_GROUPS) {
         return $http.get(groupInfoUrl)
             .then(
                 function (response) {
-                    // parse the data if needed and return it
+                    // Convert raw response to well-formed entities, in a nice order, with assigned subgroups/colors.
+                    // Note that the order looks backwards here, as it seemed to get flipped somewhere before it
+                    // makes it to the list panel. We re-assign subgroups to ensure the values begin at 0 and increment,
+                    // to help ensure colors match between the panel, map, and tSNE plot.
+                    var sortFields = _.get(CONFIG, 'dragonfish.groups.panelSort.fields', DF_GROUPS.panelSort.fields);
+                    var sortOrders = _.get(CONFIG, 'dragonfish.groups.panelSort.orders', DF_GROUPS.panelSort.orders);
+                    var sorted = _.sortByOrder(response.data.ents, sortFields, sortOrders);
+                    var subgroupReduce = {}; // map from given subgroup to 0-based, 1-incrementing, subgroup values
+                    var numSubgroups = 0;
+                    var entities = _.map(sorted, function (entity) {
+                        var givenSubgroup = entity.subgroup;
+                        if (!subgroupReduce.hasOwnProperty(givenSubgroup)) {
+                            subgroupReduce[givenSubgroup] = numSubgroups;
+                            numSubgroups += 1;
+                        }
+                        var subgroup = subgroupReduce[givenSubgroup];
+                        var ent = groupEntity(
+                            entity.id, // id
+                            entity.desc, // name
+                            subgroup, // subgroup
+                            1.0, // score
+                            _self.wktParser.readGeometry(entity.geom), // geom
+                            '', // time
+                            entity.thumbnailURL, // thumbnail
+                            '', // description
+                            entity.coordinates.x, // netX
+                            entity.coordinates.y, // netY
+                            _self.pickColor(subgroup || 0) // color
+                        );
+                        return ent;
+                    });
                     var responseData = {
-                        entities: _.map(response.data.ents, function (entity) {
-                            return groupEntity(entity.id, entity.desc, entity.subgroup, 1.0,
-                                _self.wktParser.readGeometry(entity.geom), '', entity.thumbnailURL,
-                                '', entity.coordinates.x, entity.coordinates.y, _self.pickColor(entity.subgroup || 0));
-                        }),
+                        entities: entities,
                         links: _.map(response.data.edges, function (link) {
                             return {
                                 source: link.from,
@@ -108,7 +141,7 @@ function ($interpolate, $http, $q, toastr, CONFIG, groupEntity, DF_GROUPS) {
 'stealth.dragonfish.groupEntityService',
 function (groupEntityService) {
     var _self = this;
-    this.groupEntityToSonicData = function (selectedGroup) {
+    this.groupEntityToSonicData = function (selectedGroup, cmap) {
         var maxX = groupEntityService.netX(_.max(selectedGroup.entities, groupEntityService.netX));
         var maxY = groupEntityService.netY(_.max(selectedGroup.entities, groupEntityService.netY));
         var minX = groupEntityService.netX(_.min(selectedGroup.entities, groupEntityService.netX));
@@ -116,6 +149,7 @@ function (groupEntityService) {
         return {
             key: selectedGroup.id,
             values: _.map(selectedGroup.entities, function (entity) {
+                cmap.set(groupEntityService.subGroup(entity), groupEntityService.color(entity));
                 return {
                     id: groupEntityService.id(entity),
                     name: groupEntityService.name(entity),
@@ -192,8 +226,13 @@ function (scoredEntityService, groupsManager) {
 'stealth.dragonfish.groups.Constant',
 function ($interval, entityGraphBuilder, DF_GROUPS) {
     var link = function (scope, element) {
-        var nodes = entityGraphBuilder.groupEntityToSonicData(scope.popupGroup);
+        // We need to compute the colorMap to tell sonic to use, to ensure that any difference in the order
+        // in which entities are processed, by us or by sonic, doesn't change the color associated with an entity.
+        var cmap = d3.map();
+        var nodes = entityGraphBuilder.groupEntityToSonicData(scope.popupGroup, cmap);
         var links = entityGraphBuilder.groupLinksToSonicData(scope.popupGroup);
+        var nodeColors = sonic.colors.colorMap(DF_GROUPS.entityColors, cmap);
+        var sonicConf = _.merge(DF_GROUPS.sonicConf, {nodeStyle: {nodeColors: nodeColors}});
         var graphDivCheck = $interval(function () {
             var graphDivs = element.children('div.df-popup-graph');
             if (graphDivs.length) {
@@ -201,7 +240,7 @@ function ($interval, entityGraphBuilder, DF_GROUPS) {
                 scope.viz = sonic.viz(graphDivs[0], [
                     sonic.clone(nodes),
                     sonic.clone(links)
-                ]).addNetwork(DF_GROUPS.sonicConf);
+                ]).addNetwork(sonicConf);
             }
         }, 100, 100, false);
         element.on('$destroy', function () {
