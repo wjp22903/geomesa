@@ -1,5 +1,6 @@
 angular.module('stealth.core', [
     'ccri.angular-utils',
+    'ccri.popup',
     'stealth.core.geo.context',
     'stealth.core.geo.ol3',
     'stealth.core.geo.ows',

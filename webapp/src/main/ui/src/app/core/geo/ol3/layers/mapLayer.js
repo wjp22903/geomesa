@@ -11,8 +11,7 @@ angular.module('stealth.core.geo.ol3.layers', [
 '$timeout',
 'coreCapabilitiesExtender',
 'ccri.angular-utils.WidgetDef',
-'stealth.core.utils.WidgetDef',
-function ($log, $rootScope, $q, $timeout, coreCapabilitiesExtender, WidgetDef, OldWidgetDef) {
+function ($log, $rootScope, $q, $timeout, coreCapabilitiesExtender, WidgetDef) {
     var tag = 'stealth.core.geo.ol3.layers.MapLayer: ';
     $log.debug(tag + 'factory started');
     var _idSeq = 0;
@@ -191,7 +190,11 @@ function ($log, $rootScope, $q, $timeout, coreCapabilitiesExtender, WidgetDef, O
                     widgetDef: (response.isError ||
                         !_.isArray(response.records) ||
                         _.isEmpty(response.records)) ?
-                            null : new OldWidgetDef('st-popup-paged-table', s, "result='result' on-remove-all='onRemoveAll'")
+                            null : new WidgetDef({
+                                tag: 'ccri-popup-components-paged-table',
+                                scope: s,
+                                attrs: "result='result' on-remove-all='onRemoveAll'"
+                            })
                 };
             };
         }

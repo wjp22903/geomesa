@@ -1,4 +1,5 @@
 angular.module('stealth.air.geo.ol3.layers', [
+    'ccri.angular-utils',
     'stealth.core.geo.ol3.follow',
     'stealth.core.geo.ol3.format',
     'stealth.core.geo.ows',
@@ -16,7 +17,7 @@ angular.module('stealth.air.geo.ol3.layers', [
 'colors',
 'wfs',
 'mapFollowManager',
-'stealth.core.utils.WidgetDef',
+'ccri.angular-utils.WidgetDef',
 'stealth.core.geo.ol3.format.GeoJson',
 'CONFIG',
 function ($rootScope, $q, toastr, colors, wfs, mapFollowManager, WidgetDef, GeoJson, CONFIG) {
@@ -169,8 +170,11 @@ function ($rootScope, $q, toastr, colors, wfs, mapFollowManager, WidgetDef, GeoJ
                                     level: _.padLeft(_self.reverseZIndex, 4, '0') + '_' + _.padLeft(index, 4, '0'),
                                     iconClass: _self.styleDirectiveScope.styleVars.iconClass,
                                     tooltipText: s.name,
-                                    widgetDef: new WidgetDef('st-live-air-wms-layer-popup', s,
-                                        "name='name' capabilities='capabilities' record='record' highlight='highlight' following='following' trackended='trackended'"),
+                                    widgetDef: new WidgetDef({
+                                        tag: 'st-live-air-wms-layer-popup',
+                                        scope: s,
+                                        attrs: "name='name' capabilities='capabilities' record='record' highlight='highlight' following='following' trackended='trackended'"
+                                    }),
                                     onTabFocus: function () {
                                         tabFocused = true;
                                         if (!_.isUndefined(_idField)) {

@@ -59,6 +59,7 @@
         "moment": false,
         "ol": false,
         "OpenLayers": false,
+        "Popup": false,
         "saveAs": false,
         "sonic": false,
         "stealth": false

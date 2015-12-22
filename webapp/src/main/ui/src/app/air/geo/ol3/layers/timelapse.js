@@ -1,10 +1,10 @@
 angular.module('stealth.air.geo.ol3.layers', [
-    'stealth.core.utils'
+    'ccri.angular-utils'
 ])
 
 .factory('stealth.air.geo.ol3.layers.TimeLapseLayerConstructorFactory', [
 '$rootScope',
-'stealth.core.utils.WidgetDef',
+'ccri.angular-utils.WidgetDef',
 function ($rootScope, WidgetDef) {
     return {
         getConstructor: function (TimeLapseLayer) {
@@ -33,8 +33,11 @@ function ($rootScope, WidgetDef) {
                                     level: _.padLeft(_self.reverseZIndex, 4, '0') + (response.levelSuffix || '') + '_' + _.padLeft(index, 4, '0'),
                                     iconClass: _self.styleDirectiveScope.styleVars.iconClass,
                                     tooltipText: s.name,
-                                    widgetDef: new WidgetDef('st-live-air-wms-layer-popup', s,
-                                        "name='name' capabilities='capabilities' record='record'")
+                                    widgetDef: new WidgetDef({
+                                        tag: 'st-live-air-wms-layer-popup',
+                                        scope: s,
+                                        attrs: "name='name' capabilities='capabilities' record='record'"
+                                    })
                                 };
                             });
                         } else { //Have parent create widget(s) for response.

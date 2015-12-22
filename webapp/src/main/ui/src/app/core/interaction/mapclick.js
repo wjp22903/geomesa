@@ -1,4 +1,5 @@
 angular.module('stealth.core.interaction.mapclick', [
+    'ccri.popup',
     'stealth.core.geo.ol3.map',
     'stealth.core.popup',
     'stealth.core.utils'
@@ -9,23 +10,25 @@ angular.module('stealth.core.interaction.mapclick', [
 '$rootScope',
 'ol3Map',
 'stealth.core.interaction.mapclick.searchManager',
-'stealth.core.popup.popupManager',
-'stealth.core.utils.WidgetDef',
+'ccri.popup.manager',
+'ccri.angular-utils.WidgetDef',
 function ($filter, $rootScope, ol3Map, searchManager, popupManager, WidgetDef) {
     var _element = angular.element('<div class="fa fa-fw fa-spinner fa-spin fa-lg mapSearchSpinner"></div>');
-    var _getPositioning = function (coord) {
-        var extent = ol3Map.getExtent();
-        var center = ol3Map.getCenter();
-        if (coord[0] < (center[0] + 0.15 * (extent[2] - extent[0]))) {
-            if (coord[1] < center[1]) {
-                return 'bottom-left';
+    var _popupContainer = angular.element('.primaryDisplay > ccri-popup-container');
+    var _popupContainerId;
+    var _getPositioning = function (eventPixels) {
+        var viewportDim = popupManager.getViewportDim(_popupContainerId);
+        var center = [viewportDim[0] / 2, viewportDim[1] / 2];
+        if (eventPixels[0] < center[0]) {
+            if (eventPixels[1] < center[1]) {
+                return Popup.Positioning['TopLeft'];
             } else {
-                return 'top-left';
+                return Popup.Positioning['BottomLeft'];
             }
-        } else if (coord[1] < center[1]) {
-            return 'bottom-right';
+        } else if (eventPixels[1] < center[1]) {
+            return Popup.Positioning['TopRight'];
         } else {
-            return 'top-right';
+            return Popup.Positioning['BottomRight'];
         }
     };
     var _clickListener = function (event) {
@@ -34,6 +37,9 @@ function ($filter, $rootScope, ol3Map, searchManager, popupManager, WidgetDef) {
                 element: _element,
                 position: event.coordinate
             });
+            if (_.isUndefined(_popupContainerId)) {
+                _popupContainerId = _popupContainer.data('ccri.popup.containerId');
+            }
             ol3Map.addOverlay(overlay);
             searchManager.search(event.coordinate, ol3Map.getResolution(), function (searchResults) {
                 ol3Map.removeOverlay(overlay);
@@ -44,21 +50,26 @@ function ($filter, $rootScope, ol3Map, searchManager, popupManager, WidgetDef) {
                 if (popupScope.results.length > 0) {
                     var title = '(' + $filter('number')(event.coordinate[1]) + ', ' +
                                 $filter('number')(event.coordinate[0]) + ')';
-                    var contentDef = new WidgetDef('st-popup-tab-container', popupScope);
-                    var eventPixel = ol3Map.getEventPixel(event.originalEvent);
-                    popupScope.popupId = popupManager.displayPopup(title, 'fa-search', contentDef, {
-                        offsetX: eventPixel[0],
-                        offsetY: eventPixel[1],
-                        positioning: _getPositioning(event.coordinate),
-                        buttons: [{
-                            iconClass: 'fa-thumb-tack',
-                            extraClasses: function () {
-                                return {active: popupScope.isPinned};
-                            },
-                            onClick: function () {
-                                popupScope.isPinned = !popupScope.isPinned;
-                            }
-                        }],
+                    var contentDef = new WidgetDef({
+                        tag: 'ccri-popup-components-tab-container',
+                        scope: popupScope
+                    });
+                    var eventPixels = ol3Map.getEventPixel(event.originalEvent);
+                    var buttonScope = $rootScope.$new();
+                    buttonScope.iconClass = 'fa-thumb-tack';
+                    buttonScope.extraClasses = function () {
+                        return {active: popupScope.isPinned};
+                    };
+                    buttonScope.onClick = function () {
+                        popupScope.isPinned = !popupScope.isPinned;
+                    };
+                    popupScope.popupId = popupManager.displayPopup(_popupContainerId, title, 'search', 'fa-search', contentDef, {
+                        offsets: eventPixels,
+                        positioning: _getPositioning(eventPixels),
+                        toolDefs: [new WidgetDef({
+                            tag: 'ccri-popup-tooldefs-button',
+                            scope: buttonScope
+                        })],
                         onClose: function () {
                             unbindWizLaunch();
                             unbindWizClose();

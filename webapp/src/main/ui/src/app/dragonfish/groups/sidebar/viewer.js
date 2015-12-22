@@ -8,8 +8,9 @@ angular.module('stealth.dragonfish.groups.sidebar', [
 'CONFIG',
 'ol3Map',
 'sidebarManager',
+'ccri.angular-utils.WidgetDef',
+'ccri.popup.manager',
 'stealth.core.geo.analysis.category.AnalysisCategory',
-'stealth.core.popup.popupManager',
 'stealth.core.utils.WidgetDef',
 'stealth.dragonfish.groups.Constant',
 'stealth.dragonfish.groups.groupsManager',
@@ -19,13 +20,14 @@ angular.module('stealth.dragonfish.groups.sidebar', [
 'stealth.dragonfish.groupEntityService',
 'stealth.dragonfish.geo.ol3.layers.EntityLayer',
 'stealth.dragonfish.sidebarService',
-function (catMgr, CONFIG, ol3Map, sidebarManager, AnalysisCategory, popupManager, WidgetDef, DF_GROUPS,
+function (catMgr, CONFIG, ol3Map, sidebarManager, WidgetDef, popupManager, AnalysisCategory, OldWidgetDef, DF_GROUPS,
           groupsManager, DF, scoredEntityService, entityStyler, groupEntityService, EntityLayer, sidebarService) {
     var scope = sidebarService.createScope();
+    var popupContainer = angular.element('.primaryDisplay > ccri-popup-container');
     scope.popupOffset = 0;
     sidebarManager.addButton(DF_GROUPS.title, DF_GROUPS.icon, DF_GROUPS.panelWidth,
-                             new WidgetDef('st-df-groups-sidebar', scope),
-                             new WidgetDef('st-pager', scope, "paging='paging' records='selectedGroup.entities'"),
+                             new OldWidgetDef('st-df-groups-sidebar', scope),
+                             new OldWidgetDef('st-pager', scope, "paging='paging' records='selectedGroup.entities'"),
                              true);
     groupsManager.getGroups().then(function (groups) {
         scope.groups = groups;
@@ -49,17 +51,25 @@ function (catMgr, CONFIG, ol3Map, sidebarManager, AnalysisCategory, popupManager
     scope.popupWin = _.get(CONFIG, 'dragonfish.popupWin', {height: 200, width: 300});
     scope.analyzeEmbeddings = function (popupGroup) {
         if (scope.selectedGroup.entities.length > 0) {
+            var viewportDim = popupManager.getViewportDim(popupContainer.data('ccri.popup.containerId'));
             var popupScope = scope.$new();
             popupScope.popupGroup = popupGroup;
-            var contentDef = new WidgetDef('st-df-groups-popup', popupScope);
+            var contentDef = new WidgetDef({tag: 'st-df-groups-popup', scope: popupScope});
             if (scope.popupId !== undefined) {
                 scope.popupOffset++;
             }
-            scope.popupId = popupManager.displayPopup(scope.buttonTitle + ' (t-SNE)', DF_GROUPS.icon, contentDef, {
-                positioning: 'center',
-                offsetX: (10 * scope.popupOffset) + (DF_GROUPS.panelWidth / 2) + (scope.popupWin.width / 2),
-                offsetY: (10 * scope.popupOffset) + (scope.popupWin.height / 2)
-            });
+            scope.popupId = popupManager.displayPopup(popupContainer.data('ccri.popup.containerId'),
+                                                      scope.buttonTitle + ' (t-SNE)', 'DF_GROUPS',
+                                                      DF_GROUPS.icon, contentDef, {
+                                                          positioning: Popup.Positioning['TopLeft'],
+                                                          offsets: [(viewportDim[0] / 2) + (10 * scope.popupOffset) + (DF_GROUPS.panelWidth / 2) - (scope.popupWin.width / 2),
+                                                                    (viewportDim[1] / 2) + (10 * scope.popupOffset) - (scope.popupWin.height / 2)],
+                                                          contentMinHeight: 270,
+                                                          contentMinWidth: 320,
+                                                          contentHeight: scope.popupWin.height,
+                                                          contentWidth: scope.popupWin.width,
+                                                          limitStartSize: false
+                                                      });
         }
     };
     scope.$watch('selectedGroup', function () {

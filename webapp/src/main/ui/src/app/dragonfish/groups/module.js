@@ -207,7 +207,6 @@ function ($interval, entityGraphBuilder, DF_GROUPS) {
         element.on('$destroy', function () {
             $interval.cancel(graphDivCheck);
         });
-        element.resizable();
     };
     return {
         restrict: 'E',

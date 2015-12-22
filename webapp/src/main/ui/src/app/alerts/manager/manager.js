@@ -1,11 +1,11 @@
 angular.module('stealth.alerts.manager', [
+    'ccri.angular-utils',
     'stealth.core.geo.ol3.format',
     'stealth.core.geo.ol3.layers',
     'stealth.core.geo.ol3.map',
     'stealth.core.geo.ol3.overlays',
     'stealth.core.geo.ol3.style',
-    'stealth.core.geo.ows',
-    'stealth.core.utils'
+    'stealth.core.geo.ows'
 ])
 
 .service('alertsManager', [
@@ -15,7 +15,7 @@ angular.module('stealth.alerts.manager', [
 'ol3Styles',
 'ol3Map',
 'owsLayers',
-'stealth.core.utils.WidgetDef',
+'ccri.angular-utils.WidgetDef',
 'stealth.core.geo.ol3.format.GeoJson',
 'stealth.core.geo.ol3.layers.PollingGeoJsonVectorLayer',
 'stealth.core.geo.ol3.overlays.Vector',
@@ -122,8 +122,11 @@ function ($rootScope, $timeout, colors, ol3Styles, ol3Map, owsLayers,
                                 level: _.padLeft(layer.pollingLayer.reverseZIndex, 4, '0') + '_' + _.padLeft(index, 4, '0'),
                                 iconClass: layer.pollingLayer.styleDirectiveScope.styleVars.iconClass,
                                 tooltipText: s.name,
-                                widgetDef: new WidgetDef('st-live-air-wms-layer-popup', s,
-                                    "name='name' capabilities='capabilities' record='record' trackended=trackended"),
+                                widgetDef: new WidgetDef({
+                                    tag: 'st-live-air-wms-layer-popup',
+                                    scope: s,
+                                    attrs: "name='name' capabilities='capabilities' record='record' trackended=trackended"
+                                }),
                                 onTabFocus: function () {
                                     var found = _findAlert(layer, feature);
                                     if (found) {

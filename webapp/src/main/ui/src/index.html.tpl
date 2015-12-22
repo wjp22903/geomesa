@@ -27,7 +27,7 @@
             <st-sidebar></st-sidebar>
             <div class="primaryDisplay anchorTopBottom anchorRight">
                 <st-ol3-map id="primaryMap"></st-ol3-map>
-                <st-popup-container></st-popup-container>
+                <ccri-popup-container></ccri-popup-container>
                 <st-header></st-header>
                 <st-wizard></st-wizard>
             </div>
