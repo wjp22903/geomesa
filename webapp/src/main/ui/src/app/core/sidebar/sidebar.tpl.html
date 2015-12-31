@@ -24,7 +24,6 @@
                     <st-widget-compiler widget-def="::button.panel.toolDef"
                                         ng-if="::button.panel.toolDef">
                     </st-widget-compiler>
-
                     <div class="btn btn-default btn-xs"
                          tooltip-html-unsafe="<span style='white-space:nowrap'>pin</span>"
                          tooltip-placement="bottom" tooltip-animation="false" tooltip-popup-delay="600" tooltip-trigger="mouseenter"
@@ -43,15 +42,13 @@
                          ng-click="manager.removeButton(button.id)" ng-if="::!button.permanent">
                         <i class="fa fa-fw fa-close text-danger"></i>
                     </div>
-                    <!-- panel content added via st-widget-compiler -->
-                    <st-widget-compiler widget-def="::button.panel.contentDef"
-                                        class="sidebarContent anchorAll"
-                                        ng-if="::button.panel.contentDef">
-                    </st-widget-compiler>
-
                 </div>
             </div>
         </div>
-
+        <!-- panel content added via st-widget-compiler -->
+        <st-widget-compiler widget-def="::button.panel.contentDef"
+                            class="sidebarContent anchorAll"
+                            ng-if="::button.panel.contentDef">
+        </st-widget-compiler>
     </div>
 </div>
