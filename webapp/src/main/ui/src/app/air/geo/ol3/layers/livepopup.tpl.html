@@ -24,13 +24,13 @@
                 <td class="valueCell">{{record.lat < 0 ? 'S' : 'N'}}&nbsp;{{record.lat | numberTrim:4 | lodash:'trimLeft':'-'}}&deg;</td>
                 <td class="labelCell">Lon</td>
                 <td class="valueCell">{{record.lon < 0 ? 'W' : 'E'}}&nbsp;{{record.lon | numberTrim:4 | lodash:'trimLeft':'-'}}&deg;</td>
-            <tr>
+            </tr>
             <tr>
                 <td class="labelCell">TCRS</td>
                 <td class="valueCell">{{record.course | numberTrim:0 | lodash:'padLeft':3:'0'}}&deg;</td>
                 <td class="labelCell">Affiliation</td>
                 <td class="valueCell">{{record.affiliation}}</td>
-            <tr>
+            </tr>
         </table>
         <accordion close-others="false">
             <accordion-group is-open="group1.open">
