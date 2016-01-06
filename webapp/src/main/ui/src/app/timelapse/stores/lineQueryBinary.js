@@ -108,10 +108,10 @@ function ($log, $rootScope, $filter, $window, toastr, cqlHelper, wfs, BinStore, 
                     'service=WFS',
                     'version=1.0.0',
                     'request=GetFeature',
-                    'typeName=' + _query.layerData.currentLayer.Name,
+                    'typeName=' + encodeURIComponent(_query.layerData.currentLayer.Name),
                     'srsName=EPSG:4326',
-                    'outputFormat=' + outputFormat,
-                    'cql_filter=' + _thisStore.buildSpaceTimeFilter(_query.params)
+                    'outputFormat=' + encodeURIComponent(outputFormat),
+                    'cql_filter=' + encodeURIComponent(_thisStore.buildSpaceTimeFilter(_query.params))
                 ].join('&'));
             }
         };
