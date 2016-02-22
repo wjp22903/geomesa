@@ -57,6 +57,7 @@ module.exports = {
             'vendor/bower/long/dist/Long.js',
             'vendor/bower/mathjs/dist/math.js',
             'vendor/bower/momentjs/min/moment.min.js',
+            'vendor/bower/moment-timezone/builds/moment-timezone-with-data-2010-2020.js',
             'vendor/bower/ol3/build/ol-debug.js',
             'vendor/bower/openlayers/OpenLayers.debug.js',
             'vendor/bower/shapefile.js/dist/shp.js',

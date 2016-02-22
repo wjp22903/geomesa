@@ -36,6 +36,7 @@
     "long": "2.2.5",
     "mathjs": "1.7.1",
     "momentjs": "2.10.6",
+    "moment-timezone": "0.4.0",
     "openlayers": "https://github.com/openlayers/openlayers/releases/download/release-2.13.1/OpenLayers-2.13.1.zip",
     "ol3": "https://github.com/openlayers/ol3/releases/download/v3.11.2/v3.11.2.zip",
     "shapefile.js": "https://github.com/calvinmetcalf/shapefile-js/archive/v3.3.1.zip",

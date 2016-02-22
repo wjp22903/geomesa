@@ -1,0 +1,11 @@
+<ng-form name="wizardForm">
+    <p>Select batch time.</p>
+    <select class="form-control input-sm"
+            ng-model="btquery.current"
+            ng-init="btquery.current"
+            ng-options="time.format('MM/DD/YYYY HH:mm:ss') for time in btquery.dateArray"
+            ng-disabled="!btquery.dateArray"
+            required>
+    </select>
+</ng-form>
+
