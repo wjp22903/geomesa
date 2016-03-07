@@ -1,0 +1,99 @@
+<div>
+    <div ng-if="workspaces | lodash:'isEmpty'" class="categoryGrouping">
+        <i>None</i>
+    </div>
+    <div ng-repeat="(workspace, layers) in workspaces" class="categoryGrouping">
+        <div class="categoryCell"><b>{{workspace}}</b></div>
+        <div ng-repeat="layer in layers" class="categoryGrouping">
+            <div class="categoryCell">
+                <div class="legendIconContainer cropIcon">
+                    <img ng-src="{{layer.serverUrl || CONFIG.geoserver.defaultUrl + '/wms'}}?REQUEST=GetLegendGraphic&FORMAT=image/png&WIDTH=16&HEIGHT=16&TRANSPARENT=true&LAYER={{layer.Name}}"
+                         ng-if="layer.queryable"/>
+                </div>
+            </div>
+            <div class="categoryCell">
+                <st-toggle-map-layer visible="layer.viewState.isOnMap"
+                                     loading="layer.viewState.isLoading"
+                                     toggle="toggleLayer(layer, workspace)"></st-toggle-map-layer>
+            </div>
+            <div class="categoryCell">
+                <st-toggle-visibility ng-if="layer.viewState.isOnMap"
+                                      visible="layer.viewState.toggledOn"
+                                      toggle="toggleVisibility(layer)"></st-toggle-visibility>
+            </div>
+            <div class="categoryCell">
+                {{::layer.Title | characters:35:true}}
+            </div>
+<!--
+            <div class="categoryIndent" ng-class="{'ng-hide': !layer.queryable}">
+                <div class="categoryIndent">
+                    <input type="text"
+                           class="form-control input-sm"
+                           placeholder="Enter CQL filter"
+                           st-select-text-on-focus
+                           st-change="updateLayerCql(layer)"
+                           st-change-delay="1000"
+                           ng-model="layer.cqlFilter">
+                </div>
+            </div>
+-->
+<!--
+            <div class="categoryIndent" ng-class="{'ng-hide': !layer.queryable}">
+                <div class="categoryIndent">
+                    <input type="text"
+                           class="form-control input-sm"
+                           placeholder="Filter by Id ..."
+                           st-select-text-on-focus
+                           st-change="addFilter()"
+                           st-change-delay="1000"
+                           ng-model="query">
+                </div>
+                <div class="multi-selections">
+                    <button ng-repeat="id in filters" ng-click="removeFilter(id)"
+                            class="btn btn-multi remove">
+                        <strong>{{id}}</strong>
+                        <i class="fa fa-times-circle"></i>
+                    </button>
+                </div>
+            </div>
+-->
+
+            <div class="template multi-select-template">
+                <form ng-submit="addFilter(layer)">
+                    <input
+                            type="text" ng-model="layer.query" class="form-control input-multi"
+                            placeholder="Filter by Id ..."
+                    />
+                </form>
+
+                <div class="multi-selections">
+                    <button ng-repeat="id in layer.filters" ng-click="removeFilter(layer, id)"
+                            class="btn btn-multi remove">
+                        <strong>{{id}}</strong>
+                        <i class="fa fa-times-circle"></i>
+                    </button>
+                </div>
+            </div>
+
+<!--
+            <div class="template multi-select-template">
+                <form ng-submit="addFilter()">
+                    <input
+                            type="text" ng-model="query" class="form-control input-multi" typeahead-editable="true"
+                            typeahead-on-select="addFilter(vv)" placeholder="Filter by Id ..."
+                            typeahead="id for id in layer.features | filter:$viewValue | orderBy: id | limitTo:8"
+                    />
+                </form>
+
+                <div class="multi-selections">
+                    <button ng-repeat="id in filters" ng-click="removeFilter(id)"
+                            class="btn btn-multi remove">
+                        <strong>{{id}}</strong>
+                        <i class="fa fa-times-circle"></i>
+                    </button>
+                </div>
+            </div>
+-->
+        </div>
+    </div>
+</div>

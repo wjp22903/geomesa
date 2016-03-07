@@ -22,6 +22,7 @@ function (startMenuManager, grizzlybearWizard) {
 'stealth.core.wizard.Wizard',
 'stealth.core.utils.WidgetDef',
 'stealth.grizzlybear.wizard.query.BtQuery',
+'stealth.grizzlybear.geo.query.CQLGenerator',
 'owsLayers',
 'wfs',
 'wps',
@@ -30,8 +31,7 @@ function (startMenuManager, grizzlybearWizard) {
 'CONFIG',
 function ($q, $log, $rootScope, $filter,
           ol3Map, wizardManager, colors, cqlHelper,
-          MapLayer, Step, Wizard, WidgetDef, BtQuery, owsLayers, wfs, wps, toastr, boundsHelper, CONFIG) {
-
+          MapLayer, Step, Wizard, WidgetDef, BtQuery, cqlGenerator, owsLayers, wfs, wps, toastr, boundsHelper, CONFIG) {
     this.launch = function () {
 /*
         $q.all([
@@ -86,6 +86,7 @@ function ($q, $log, $rootScope, $filter,
         wizScope.btquery = new BtQuery();
 
         var useMask = true;
+        var layer;
         steps.push(new Step('Choose batch time',
             new WidgetDef('st-bt-wiz-layer', wizScope),
             null,
@@ -94,13 +95,14 @@ function ($q, $log, $rootScope, $filter,
             function (success) {
                 if (success) {
                     alert("Done");
+                    layer = $rootScope.grizzlyBearScope.workspaces.analysis[0];
+                    layer.cqlFilter = 'cellId == 1';
                 }
             })
         );
 
         var wiz = new Wizard('Grizzly-Bear Batch Time', 'fa-sort-amount-asc', 'fa-check text-success', steps, wizScope, 'btWizardForm');
         wizardManager.launchWizard(wiz);
-
     };
 }])
 
@@ -111,3 +113,4 @@ function () {
         templateUrl: 'grizzlybear/wizard/templates/source.tpl.html'
     };
 })
+;

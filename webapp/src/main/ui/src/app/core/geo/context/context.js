@@ -17,6 +17,7 @@ function ($rootScope, $timeout, catMgr, Category, WidgetDef, owsLayers, ol3Map,
           WmsLayer, XYZLayer, CONFIG) {
     var categoryScope = $rootScope.$new();
     categoryScope.workspaces = {};
+    $rootScope.contextScope = categoryScope;
 
     categoryScope.toggleLayer = function (layer, workspace) {
         if (_.isUndefined(layer.mapLayerId) || _.isNull(layer.mapLayerId)) {

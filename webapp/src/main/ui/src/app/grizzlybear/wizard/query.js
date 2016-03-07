@@ -5,10 +5,8 @@ angular.module('stealth.grizzlybear.wizard.query', [
 'wfs',
 'CONFIG',
 function ($q, wfs, CONFIG) {
-
     var BtQuery = function () {
         var _self = this;
-
 
         _self.dateArray = [];
         _self.current = null;
